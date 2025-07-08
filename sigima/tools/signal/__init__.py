@@ -1,11 +1,11 @@
 """
-Signal Processing Algorithms (:mod:`sigima.tools.signal`)
----------------------------------------------------------------
+Signal Processing Tools (:mod:`sigima.tools.signal`)
+----------------------------------------------------
 
-This package contains signal processing algorithms.
+This package contains signal processing tools, which are organized into subpackages
+according to their purpose:
 
-Algorithms are organized into subpackages according to their purpose:
-
+- :mod:`sigima.tools.signal.decorator`: Decorator for signal functions
 - :mod:`sigima.tools.signal.dynamic`: Dynamic parameter extraction
 - :mod:`sigima.tools.signal.features`: Feature extraction algorithms
 - :mod:`sigima.tools.signal.fitmodels`: Curve fitting models
@@ -17,6 +17,11 @@ Algorithms are organized into subpackages according to their purpose:
 - :mod:`sigima.tools.signal.stability`: Stability analysis algorithms
 - :mod:`sigima.tools.signal.windowing`: Windowing algorithms
 
+
+Decorator for Signal Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: sigima.tools.signal.decorator
+   :members:
 
 Dynamic Parameter Extraction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
