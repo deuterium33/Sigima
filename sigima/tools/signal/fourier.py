@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import numpy as np
-import scipy.signal
+import scipy.signal  # type: ignore[import]
 
 from sigima.tools.signal.dynamic import sampling_rate
 
