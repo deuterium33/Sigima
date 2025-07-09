@@ -1,7 +1,7 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-.. Fourier Analysis (see parent package :mod:`sigima.tools.signal`)
+.. Fourier Analysis (see parent package :mod:`sigima.tools.signal`).
 
 """
 
@@ -34,8 +34,7 @@ def zero_padding(x: np.ndarray, y: np.ndarray, n: int) -> tuple[np.ndarray, np.n
 def fft1d(
     x: np.ndarray, y: np.ndarray, shift: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Compute the Fast Fourier Transform (FFT) of a 1D real signal.
+    """Compute the Fast Fourier Transform (FFT) of a 1D real signal.
 
     Args:
         x: Time domain axis (evenly spaced).
@@ -58,8 +57,7 @@ def fft1d(
 def ifft1d(
     f: np.ndarray, sp: np.ndarray, initial: float = 0.0
 ) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Compute the inverse Fast Fourier Transform (FFT) of a 1D complex spectrum.
+    """Compute the inverse Fast Fourier Transform (FFT) of a 1D complex spectrum.
 
     Args:
         f: Frequency axis (evenly spaced).
