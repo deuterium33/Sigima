@@ -15,22 +15,33 @@ from sigima.tools.signal.dynamic import sampling_rate
 
 
 @SignalCheck(x_evenly_spaced=True)
-def zero_padding(x: np.ndarray, y: np.ndarray, n: int) -> tuple[np.ndarray, np.ndarray]:
+def zero_padding(
+    x: np.ndarray, y: np.ndarray, n_prepend: int = 0, n_append: int = 0
+) -> tuple[np.ndarray, np.ndarray]:
     """Append n zeros at the end of the signal.
 
     Args:
-        x: X data
-        y: Y data
-        n: Number of zeros to append
+        x: X data.
+        y: Y data.
+        n_prepend: Number of zeros to prepend.
+        n_append: Number of zeros to append.
 
     Returns:
-        X data, Y data (tuple)
+        Tuple (xnew, ynew): Padded x and y.
     """
-    if n < 1:
-        raise ValueError("Number of zeros to append must be greater than 0")
-    x1 = np.linspace(x[0], x[-1] + n * (x[1] - x[0]), len(y) + n)
-    y1 = np.append(y, np.zeros(n))
-    return x1, y1
+    if n_prepend < 0:
+        raise ValueError("Number of zeros to prepend must be non-negative.")
+    if n_append < 0:
+        raise ValueError("Number of zeros to append must be non-negative.")
+
+    dx = np.mean(np.diff(x))
+    xnew = np.linspace(
+        x[0] - n_prepend * dx,
+        x[-1] + n_append * dx,
+        y.size + n_prepend + n_append,
+    )
+    ynew = np.pad(y, (n_prepend, n_append), mode="constant")
+    return xnew, ynew
 
 
 @SignalCheck(x_dtype=np.inexact, x_evenly_spaced=True)

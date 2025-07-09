@@ -16,6 +16,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Callable
 from enum import Enum
+from math import ceil, log2
 from typing import Any, Literal
 
 import guidata.dataset as gds
@@ -1025,22 +1026,59 @@ def bandstop(src: SignalObj, p: BandStopFilterParam) -> SignalObj:
 
 
 class ZeroPadding1DParam(gds.DataSet):
-    """Zero padding parameters"""
+    """ZeroPadding1DParam manages the parameters for applying zero-padding to signals.
+
+    Attributes:
+        strategies: Available strategies ("next_pow2", "double", "triple", "custom").
+        strategy: Choice item for selecting the zero-padding strategy.
+        locations: Available locations for padding ("append", "prepend", "both").
+        location: Choice item for selecting where to add the padding.
+        n: Number of points to add as padding (active only for "custom" strategy).
+    """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize zero padding parameters.
+
+        Args:
+            *args: Variable length argument list passed to the superclass.
+            **kwargs: Arbitrary keyword arguments passed to the superclass.
+        """
         super().__init__(*args, **kwargs)
         self.__obj: SignalObj | None = None
 
     def update_from_obj(self, obj: SignalObj) -> None:
-        """Update parameters from signal"""
-        self.__obj = obj
-        self.choice_callback(None, self.strategy)
+        """Update parameters from signal.
 
-    def choice_callback(self, item, value):  # pylint: disable=unused-argument
-        """Callback for choice item"""
+        Args:
+            obj: Signal object from which to update the dataset.
+        """
+        self.__obj = obj
+        self.strategy_callback(None, self.strategy)
+
+    @staticmethod
+    def next_power_of_two(size: int) -> int:
+        """Compute the next power of two greater than or equal to the given size.
+
+        Args:
+            size: The input integer.
+
+        Returns:
+            The smallest power of two greater than or equal to 'size'.
+        """
+        return 2 ** (ceil(log2(size)))
+
+    def strategy_callback(self, _, value):
+        """Callback for strategy choice item.
+
+        Args:
+            _: Unused argument (in this context).
+            value: The selected strategy value.
+        """
+        assert self.__obj is not None
+        assert self.__obj.x is not None
         size = self.__obj.x.size
         if value == "next_pow2":
-            self.n = 2 ** np.ceil(np.log2(size)).astype(int) - size
+            self.n = self.next_power_of_two(size) - size
         elif value == "double":
             self.n = size
         elif value == "triple":
@@ -1050,7 +1088,14 @@ class ZeroPadding1DParam(gds.DataSet):
     _prop = gds.GetAttrProp("strategy")
     strategy = gds.ChoiceItem(
         _("Strategy"), zip(strategies, strategies), default=strategies[-1]
-    ).set_prop("display", store=_prop, callback=choice_callback)
+    ).set_prop("display", store=_prop, callback=strategy_callback)
+    locations = ("append", "prepend", "both")
+    location = gds.ChoiceItem(
+        _("Location"),
+        zip(locations, locations),
+        default=locations[0],
+        help=_("Where to add the padding"),
+    )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
     n = gds.IntItem(
         _("Number of points"), min=1, help=_("Number of points to add")
@@ -1059,23 +1104,37 @@ class ZeroPadding1DParam(gds.DataSet):
 
 @computation_function()
 def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
-    """Compute zero padding with
-    :py:func:`sigima.tools.signal.fourier.zero_padding`
+    """Compute zero padding with :py:func:`sigima.tools.signal.fourier.zero_padding`.
 
     Args:
-        src: source signal
-        p: parameters
+        src: Source signal.
+        p: Parameters.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     if p.strategy == "custom":
         suffix = f"n={p.n}"
     else:
         suffix = f"strategy={p.strategy}"
+
+    assert p.n is not None
+    if p.location == "append":
+        n_prepend = 0
+        n_append = p.n
+    elif p.location == "prepend":
+        n_prepend = p.n
+        n_append = 0
+    elif p.location == "both":
+        n_prepend = p.n // 2
+        n_append = p.n - n_prepend
+    else:
+        raise ValueError(f"Unknown location: {p.location}")
+
     dst = dst_1_to_1(src, "zero_padding", suffix)
     x, y = src.get_data()
-    dst.set_xydata(*fourier.zero_padding(x, y, p.n))
+    dst.set_xydata(*fourier.zero_padding(x, y, n_prepend, n_append))
+
     return dst
 
 
@@ -1107,7 +1166,7 @@ def ifft(src: SignalObj) -> SignalObj:
         src: Source signal.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     dst = dst_1_to_1(src, "ifft")
     x, y = src.get_data()

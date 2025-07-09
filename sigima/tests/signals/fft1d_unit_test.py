@@ -1,8 +1,6 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
-"""
-Signal FFT unit test.
-"""
+"""Signal FFT unit test."""
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
 # pylint: disable=duplicate-code
@@ -30,30 +28,7 @@ def test_signal_zero_padding() -> None:
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=1000
     )
 
-    # Validate zero padding with custom length
-    param = sigima.params.ZeroPadding1DParam.create(n=250)
-    assert param.strategy == "custom", (
-        f"Wrong default strategy: {param.strategy} (expected 'custom')"
-    )
-    s2 = sigima_signal.zero_padding(s1, param)
-    len1 = len(s1.y)
-    exp_len2 = len1 + param.n
-    execenv.print("Validating zero padding with custom length...", end=" ")
-    assert len(s2.y) == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
-    assert np.all(s2.x[:len1] == s1.x[:len1]), "Altered X data in original signal area"
-    assert np.all(s2.y[:len1] == s1.y[:len1]), "Altered Y data in original signal area"
-    assert np.all(s2.y[len1:] == 0), "Non-zero data in zero-padded area"
-    execenv.print("OK")
-    step1 = s1.x[1] - s1.x[0]
-    check_array_result(
-        "Zero padding X data",
-        s2.x[len1:],
-        np.arange(
-            s1.x[len1 - 1] + step1, s1.x[len1 - 1] + step1 * (param.n + 1), step1
-        ),
-    )
-
-    # Validate zero padding with strategies other than custom length
+    # Validate padding length computation
     for strategy, expected_length in (
         ("next_pow2", 24),
         ("double", 1000),
@@ -65,6 +40,71 @@ def test_signal_zero_padding() -> None:
             f"Wrong length for '{param.strategy}' strategy: {param.n}"
             f" (expected {expected_length})"
         )
+
+    # Validate zero padding
+    param = sigima.params.ZeroPadding1DParam.create(strategy="custom", n=250)
+    assert param.n is not None
+    for location in ("append", "prepend", "both"):
+        execenv.print(f"Validating zero padding with location = {location}...", end=" ")
+        param.location = location
+        param.update_from_obj(s1)
+        s2 = sigima_signal.zero_padding(s1, param)
+        len1 = s1.y.size
+        n = param.n
+        exp_len2 = len1 + n
+        assert s2.y.size == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
+        if location == "append":
+            dx = s1.x[1] - s1.x[0]
+            expected_x = np.pad(
+                s1.x,
+                (0, n),
+                mode="linear_ramp",
+                end_values=(s1.x[-1] + dx * n,),
+            )
+            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
+            check_array_result(f"{location}: Check original y-data", s2.y[:len1], s1.y)
+            check_array_result(
+                f"{location}: Check padded y-data", s2.y[len1:], np.zeros(n)
+            )
+        elif location == "prepend":
+            dx = s1.x[1] - s1.x[0]
+            expected_x = np.pad(
+                s1.x,
+                (n, 0),
+                mode="linear_ramp",
+                end_values=(s1.x[0] - dx * n,),
+            )
+            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
+            check_array_result(f"{location}: Check original y-data", s2.y[-len1:], s1.y)
+            check_array_result(
+                f"{location}: Check padded y-data", s2.y[:n], np.zeros(n)
+            )
+        elif location == "both":
+            dx = s1.x[1] - s1.x[0]
+            expected_x = np.pad(
+                s1.x,
+                (n // 2, n - n // 2),
+                mode="linear_ramp",
+                end_values=(
+                    s1.x[0] - dx * (n // 2),
+                    s1.x[-1] + dx * (n - n // 2),
+                ),
+            )
+            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
+            check_array_result(
+                f"{location}: Check original y-data", s2.y[n // 2 : n // 2 + len1], s1.y
+            )
+            check_array_result(
+                f"{location}: Check padded y-data (before)",
+                s2.y[: n // 2],
+                np.zeros(n // 2),
+            )
+            check_array_result(
+                f"{location}: Check padded y-data (after)",
+                s2.y[-(n - n // 2) :],
+                np.zeros(n - n // 2),
+            )
+        execenv.print("OK")
 
 
 @pytest.mark.validation
