@@ -45,7 +45,7 @@ def fft1d(
     Returns:
         Tuple (f, sp): Frequency axis and corresponding FFT values.
     """
-    dt = x[1] - x[0]
+    dt = np.mean(np.diff(x))
     f = np.fft.fftfreq(x.size, d=dt)  # Frequency axis
     sp = np.fft.fft(y)  # Spectrum values
     if shift:
