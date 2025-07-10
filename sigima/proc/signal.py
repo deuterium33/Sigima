@@ -1087,7 +1087,7 @@ class ZeroPadding1DParam(gds.DataSet):
     strategies = ("next_pow2", "double", "triple", "custom")
     _prop = gds.GetAttrProp("strategy")
     strategy = gds.ChoiceItem(
-        _("Strategy"), zip(strategies, strategies), default=strategies[-1]
+        _("Strategy"), zip(strategies, strategies), default=strategies[0]
     ).set_prop("display", store=_prop, callback=strategy_callback)
     locations = ("append", "prepend", "both")
     location = gds.ChoiceItem(
