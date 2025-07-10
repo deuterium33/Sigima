@@ -5,10 +5,10 @@
 import numpy as np
 import pytest
 
-from sigima.tools.signal.decorator import SignalCheck
+from sigima.tools.signal.decorator import signal_check
 
 
-@SignalCheck()
+@signal_check  # Parentheses are optional when no arguments are passed
 def add_arrays(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Dummy function to demonstrate basic signal requirements.
 
@@ -66,7 +66,7 @@ def test_size_mismatch():
         add_arrays(x, y)
 
 
-@SignalCheck(x_sorted=True, x_evenly_spaced=True)
+@signal_check(x_sorted=True, x_evenly_spaced=True)
 def multiply_arrays(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Dummy function to demonstrate evenly spaced check.
 

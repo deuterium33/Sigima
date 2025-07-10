@@ -10,11 +10,11 @@ from __future__ import annotations
 import numpy as np
 import scipy.signal  # type: ignore[import]
 
-from sigima.tools.signal.decorator import SignalCheck
+from sigima.tools.signal.decorator import signal_check
 from sigima.tools.signal.dynamic import sampling_rate
 
 
-@SignalCheck(x_evenly_spaced=True)
+@signal_check(x_evenly_spaced=True)
 def zero_padding(
     x: np.ndarray, y: np.ndarray, n_prepend: int = 0, n_append: int = 0
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -44,7 +44,7 @@ def zero_padding(
     return xnew, ynew
 
 
-@SignalCheck(x_dtype=np.inexact, x_evenly_spaced=True)
+@signal_check(x_dtype=np.inexact, x_evenly_spaced=True)
 def fft1d(
     x: np.ndarray, y: np.ndarray, shift: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -68,7 +68,7 @@ def fft1d(
     return f, sp
 
 
-@SignalCheck(
+@signal_check(
     x_dtype=np.inexact,
     x_sorted=False,
     x_evenly_spaced=False,
@@ -114,7 +114,7 @@ def ifft1d(
     return x, y.real
 
 
-@SignalCheck(x_evenly_spaced=True)
+@signal_check(x_evenly_spaced=True)
 def magnitude_spectrum(
     x: np.ndarray, y: np.ndarray, log_scale: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -136,7 +136,7 @@ def magnitude_spectrum(
     return x1, y_mag
 
 
-@SignalCheck(x_evenly_spaced=True)
+@signal_check(x_evenly_spaced=True)
 def phase_spectrum(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Compute phase spectrum.
 
@@ -152,7 +152,7 @@ def phase_spectrum(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray
     return x1, y_phase
 
 
-@SignalCheck()
+@signal_check
 def psd(
     x: np.ndarray, y: np.ndarray, log_scale: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -172,7 +172,7 @@ def psd(
     return x1, y1
 
 
-@SignalCheck(x_evenly_spaced=True)
+@signal_check(x_evenly_spaced=True)
 def sort_frequencies(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Sort from X,Y data by computing FFT(y).
 
