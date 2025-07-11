@@ -62,8 +62,18 @@ def signal_check(
 
             Returns:
                 The result of the original function after checks.
-            """
 
+            Raises:
+                ValueError: If any of the following conditions is not met:
+                    - x must be 1-D if x_1d is True.
+                    - x must be sorted in ascending order if x_sorted is True.
+                    - x must be evenly spaced if x_evenly_spaced is True.
+                    - y must be 1-D if y_1d is True.
+                    - x and y must have the same size if x_y_same_size is True.
+                TypeError: If any of the following conditions is not met:
+                    - x must be of type x_dtype.
+                    - y must be of type y_dtype.
+            """
             # === Check x array
             if x_1d and x.ndim != 1:
                 raise ValueError("x must be 1-D.")
