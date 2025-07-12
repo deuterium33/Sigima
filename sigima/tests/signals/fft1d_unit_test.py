@@ -45,7 +45,7 @@ def test_signal_zero_padding() -> None:
     param = sigima.params.ZeroPadding1DParam.create(strategy="custom", n=250)
     assert param.n is not None
     for location in ("append", "prepend", "both"):
-        execenv.print(f"Validating zero padding with location = {location}...", end=" ")
+        execenv.print(f"Validating zero padding with location = {location}...")
         param.location = location
         param.update_from_obj(s1)
         s2 = sigima_signal.zero_padding(s1, param)
@@ -194,8 +194,9 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
             with qt_app_context():
                 view_curves(
                     [
-                        sigima.objects.create_signal("Original", t1, y1),
+                        s1,
                         sigima.objects.create_signal("Recovered", t2, y2),
+                        sigima.objects.create_signal("Difference", t1, np.abs(y2 - y1)),
                     ]
                 )
 

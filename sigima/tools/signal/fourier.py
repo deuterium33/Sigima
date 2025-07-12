@@ -46,7 +46,7 @@ def zero_padding(
     return xnew, ynew
 
 
-@signal_check(x_dtype=np.inexact, x_evenly_spaced=True)
+@signal_check(x_dtype=np.inexact, x_evenly_spaced=True, y_dtype=np.inexact)
 def fft1d(
     x: np.ndarray, y: np.ndarray, shift: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -116,7 +116,7 @@ def ifft1d(
     return x, y.real
 
 
-@signal_check(x_evenly_spaced=True)
+@signal_check(x_dtype=np.inexact, x_evenly_spaced=True, y_dtype=np.inexact)
 def magnitude_spectrum(
     x: np.ndarray, y: np.ndarray, log_scale: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -138,7 +138,7 @@ def magnitude_spectrum(
     return x1, y_mag
 
 
-@signal_check(x_evenly_spaced=True)
+@signal_check(x_dtype=np.inexact, x_evenly_spaced=True, y_dtype=np.inexact)
 def phase_spectrum(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Compute phase spectrum.
 
@@ -154,7 +154,7 @@ def phase_spectrum(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray
     return x1, y_phase
 
 
-@signal_check
+@signal_check(x_dtype=np.inexact, x_evenly_spaced=True, y_dtype=np.inexact)
 def psd(
     x: np.ndarray, y: np.ndarray, log_scale: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:

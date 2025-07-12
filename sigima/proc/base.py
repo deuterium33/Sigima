@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import guidata.dataset as gds
 import numpy as np
@@ -175,10 +175,10 @@ class ConstantParam(gds.DataSet):
 
 # MARK: Helper functions for creating result objects -----------------------------------
 
+Obj = TypeVar("Obj", bound="SignalObj | ImageObj")
 
-def dst_1_to_1(
-    src: SignalObj | ImageObj, name: str, suffix: str | None = None
-) -> SignalObj | ImageObj:
+
+def dst_1_to_1(src: Obj, name: str, suffix: str | None = None) -> Obj:
     """Create a result object, for processing functions that take a single
     signal or image object as input and return a single signal or image object (1-to-1).
 
@@ -210,7 +210,7 @@ def dst_1_to_1(
     dst = src.copy(title=title)
     if not options.keep_results.get():
         dst.delete_results()  # Remove any previous results
-    return dst
+    return cast(Obj, dst)
 
 
 def dst_n_to_1(
