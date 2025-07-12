@@ -5,7 +5,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 0.3.0 ##
 
-?? New features and enhancements:
+💥 New features and enhancements:
 
 * New image processing features:
   * Added new "Gaussian frequency filter" feature:
@@ -18,23 +18,23 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
 
-* New signal I/O features:
+* New I/O features:
   * Added support for FT-Lab signal and image format.
 
 ## sigima 0.2.0 ##
 
-?? Major API changes:
+⚠️ Major API changes:
 
 * Rename `sigima.computation` to `sigima.proc`.
 * Rename `sigima.algorithms` to `sigima.tools`.
 * Rename `sigima.obj` to `sigima.objects`.
 * Rename `sigima.param` to `sigima.params`.
 
-?? Various changes:
+ℹ️ Various changes:
 
 * Add Sigima SVG logo.
 
-??? Bug fixes:
+🛠️ Bug fixes:
 
 * Fix API documentation and docstrings.
 
