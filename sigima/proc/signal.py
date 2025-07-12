@@ -833,6 +833,7 @@ class BaseHighLowBandParam(gds.DataSet):
         ("cheby1", _("Chebyshev type 1")),
         ("cheby2", _("Chebyshev type 2")),
         ("ellip", _("Elliptic")),
+        ("brickwall", _("Brickwall")),
     )
 
     TYPE: FilterType = FilterType.LOWPASS
@@ -844,16 +845,18 @@ class BaseHighLowBandParam(gds.DataSet):
         "display", store=_method_prop
     )
 
-    order = gds.IntItem(_("Filter order"), default=3, min=1)
-    f_cut0 = gds.FloatItem(
-        _("Low cutoff frequency"), min=0, nonzero=True, unit="Hz"
-    ).set_prop(
-        "display", hide=gds.FuncProp(_type_prop, lambda x: x is FilterType.HIGHPASS)
+    order = gds.IntItem(_("Filter order"), default=3, min=1).set_prop(
+        "display",
+        active=gds.FuncProp(_method_prop, lambda x: x not in ("brickwall",)),
     )
-    f_cut1 = gds.FloatItem(
+    cut0 = gds.FloatItem(_("Low cutoff frequency"), min=0, nonzero=True, unit="Hz")
+    cut1 = gds.FloatItem(
         _("High cutoff frequency"), min=0, nonzero=True, unit="Hz"
     ).set_prop(
-        "display", hide=gds.FuncProp(_type_prop, lambda x: x is FilterType.LOWPASS)
+        "display",
+        hide=gds.FuncProp(
+            _type_prop, lambda x: x in (FilterType.LOWPASS, FilterType.HIGHPASS)
+        ),
     )
     rp = gds.FloatItem(
         _("Passband ripple"), min=0, default=1, nonzero=True, unit="dB"
@@ -866,6 +869,26 @@ class BaseHighLowBandParam(gds.DataSet):
     ).set_prop(
         "display",
         active=gds.FuncProp(_method_prop, lambda x: x in ("cheby2", "ellip")),
+    )
+
+    _zp_prop = gds.GetAttrProp("zero_padding")
+    zero_padding = gds.BoolItem(
+        _("Zero padding"),
+        default=True,
+    ).set_prop(
+        "display",
+        active=gds.FuncProp(_method_prop, lambda x: x == "brickwall"),
+        store=_zp_prop,
+    )
+    nfft = gds.IntItem(
+        _("Minimum FFT points number"),
+        default=0,
+    ).set_prop(
+        "display",
+        active=gds.FuncPropMulti(
+            [_method_prop, _zp_prop],
+            lambda x, y: x == "brickwall" and y,
+        ),
     )
 
     @staticmethod
@@ -885,10 +908,17 @@ class BaseHighLowBandParam(gds.DataSet):
             obj: signal object
         """
         f_nyquist = self.get_nyquist_frequency(obj)
-        if self.f_cut0 is None:
-            self.f_cut0 = 0.1 * f_nyquist
-        if self.f_cut1 is None:
-            self.f_cut1 = 0.9 * f_nyquist
+        if self.cut0 is None:
+            if self.TYPE is FilterType.LOWPASS:
+                self.cut0 = 0.1 * f_nyquist
+            elif self.TYPE is FilterType.HIGHPASS:
+                self.cut0 = 0.9 * f_nyquist
+            elif self.TYPE is FilterType.BANDPASS:
+                self.cut0 = 0.1 * f_nyquist
+                self.cut1 = 0.9 * f_nyquist
+            elif self.TYPE is FilterType.BANDSTOP:
+                self.cut0 = 0.4 * f_nyquist
+                self.cut1 = 0.6 * f_nyquist
 
     def get_filter_params(self, obj: SignalObj) -> tuple[float | str, float | str]:
         """Return the filter parameters (a and b) as a tuple. These parameters are used
@@ -909,12 +939,10 @@ class BaseHighLowBandParam(gds.DataSet):
             args += [self.rs]
         elif self.method == "ellip":
             args += [self.rp, self.rs]
-        if self.TYPE is FilterType.HIGHPASS:
-            args += [self.f_cut1 / f_nyquist]
-        elif self.TYPE is FilterType.LOWPASS:
-            args += [self.f_cut0 / f_nyquist]
+        if self.TYPE in (FilterType.HIGHPASS, FilterType.LOWPASS):
+            args += [self.cut0 / f_nyquist]
         else:
-            args += [[self.f_cut0 / f_nyquist, self.f_cut1 / f_nyquist]]
+            args += [[self.cut0 / f_nyquist, self.cut1 / f_nyquist]]
         args += [self.TYPE.value]
         return func(*args)
 
@@ -924,11 +952,17 @@ class LowPassFilterParam(BaseHighLowBandParam):
 
     TYPE = FilterType.LOWPASS
 
+    # Redefine cut0 just to change its label (instead of "Low cutoff frequency")
+    cut0 = gds.FloatItem(_("Cutoff frequency"), min=0, nonzero=True, unit="Hz")
+
 
 class HighPassFilterParam(BaseHighLowBandParam):
     """High-pass filter parameters"""
 
     TYPE = FilterType.HIGHPASS
+
+    # Redefine cut0 just to change its label (instead of "High cutoff frequency")
+    cut0 = gds.FloatItem(_("Cutoff frequency"), min=0, nonzero=True, unit="Hz")
 
 
 class BandPassFilterParam(BaseHighLowBandParam):
@@ -955,16 +989,30 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         Result signal object
     """
     name = f"{p.TYPE.value}"
-    suffix = f"order={p.order:d}"
-    if p.TYPE is FilterType.LOWPASS:
-        suffix += f", cutoff={p.f_cut0:.2f}"
-    elif p.TYPE is FilterType.HIGHPASS:
-        suffix += f", cutoff={p.f_cut1:.2f}"
+    suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
+    if p.TYPE in (FilterType.LOWPASS, FilterType.HIGHPASS):
+        suffix += f"cutoff={p.cut0:.2f}"
     else:
-        suffix += f", cutoff={p.f_cut0:.2f}:{p.f_cut1:.2f}"
+        suffix += f"cutoff={p.cut0:.2f}:{p.cut1:.2f}"
     dst = dst_1_to_1(src, name, suffix)
-    b, a = p.get_filter_params(dst)
-    dst.y = sps.filtfilt(b, a, dst.y)
+
+    if p.method == "brickwall":
+        x_pad, y_pad = src.get_data()
+        if p.zero_padding:
+            min_lenght = max(len(src.y), p.nfft) if p.nfft is not None else len(src.y)
+            lenght = 2 ** int(np.ceil(np.log2(min_lenght)))
+
+            if len(src.y) < lenght:
+                # Zero-pad the signal to the specified nfft length
+                x_pad, y_pad = fourier.zero_padding(
+                    src.x, src.y, int(lenght - len(src.y))
+                )
+        x, y = fourier.brickwall_filter(x_pad, y_pad, p.cut0, p.cut1, p.TYPE.value)
+        dst.set_xydata(x, y)
+    else:
+        b, a = p.get_filter_params(dst)
+        dst.y = sps.filtfilt(b, a, dst.y)
+
     restore_data_outside_roi(dst, src)
     return dst
 
