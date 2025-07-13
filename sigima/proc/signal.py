@@ -27,7 +27,6 @@ import scipy.signal as sps
 from sigima.config import _, options
 from sigima.objects.base import ResultProperties, ResultShape
 from sigima.objects.signal import ROI1DParam, SignalObj
-from sigima.proc import computation_function
 from sigima.proc.base import (
     ArithmeticParam,
     ClipParam,
@@ -45,6 +44,7 @@ from sigima.proc.base import (
     dst_n_to_1,
     new_signal_result,
 )
+from sigima.proc.decorator import computation_function
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,

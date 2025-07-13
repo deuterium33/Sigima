@@ -30,7 +30,7 @@ import sigima.tools.image as alg
 from sigima.config import _
 from sigima.objects.base import ResultShape, ShapeTypes
 from sigima.objects.image import ImageObj, create_image_roi
-from sigima.proc import computation_function
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import calc_resultshape
 
 

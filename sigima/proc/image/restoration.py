@@ -23,8 +23,8 @@ from skimage import morphology, restoration
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc import computation_function
 from sigima.proc.base import dst_1_to_1
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.proc.image.morphology import MorphologyParam
 

@@ -23,8 +23,8 @@ from skimage import filters
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc import computation_function
 from sigima.proc.base import dst_1_to_1
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import restore_data_outside_roi
 
 

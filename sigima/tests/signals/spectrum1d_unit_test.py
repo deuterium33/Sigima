@@ -12,11 +12,7 @@ from __future__ import annotations
 import pytest
 
 from sigima.tests.data import get_test_signal
-from sigima.tools.signal.fourier import (
-    magnitude_spectrum,
-    phase_spectrum,
-    psd,
-)
+from sigima.tools.signal.fourier import magnitude_spectrum, phase_spectrum, psd
 
 
 @pytest.mark.gui
