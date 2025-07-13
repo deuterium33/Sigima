@@ -345,13 +345,24 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     def __get_x(self) -> np.ndarray | None:
         """Get x data"""
         if self.xydata is not None:
-            return self.xydata[0]
+            x: np.ndarray = self.xydata[0]
+            # We have to ensure that x is a floating point array, because if y is
+            # complex, the whole xydata array will be complex, and we need to avoid
+            # any unintended type promotion.
+            return x.real.astype(float)
         return None
 
     def __set_x(self, data) -> None:
         """Set x data"""
         assert isinstance(self.xydata, np.ndarray)
-        self.xydata[0] = np.array(data)
+        assert isinstance(data, (list, np.ndarray))
+        data = np.array(data, dtype=float)
+        assert data.shape[1] == self.xydata.shape[1], (
+            "X data size must match Y data size"
+        )
+        if not np.all(np.diff(data) >= 0.0):
+            raise ValueError("X data must be monotonic (sorted in ascending order)")
+        self.xydata[0] = data
 
     def __get_y(self) -> np.ndarray | None:
         """Get y data"""
@@ -362,12 +373,19 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     def __set_y(self, data) -> None:
         """Set y data"""
         assert isinstance(self.xydata, np.ndarray)
-        self.xydata[1] = np.array(data)
+        assert isinstance(data, (list, np.ndarray))
+        data = np.array(data)
+        assert data.shape[0] == self.xydata.shape[1], (
+            "Y data size must match X data size"
+        )
+        assert np.issubdtype(data.dtype, np.inexact), "Y data must be float or complex"
+        self.xydata[1] = data
 
     def __get_dx(self) -> np.ndarray | None:
         """Get dx data"""
         if self.xydata is not None and len(self.xydata) > 2:
-            return self.xydata[2]
+            dx: np.ndarray = self.xydata[2]
+            return dx.real.astype(float)
         return None
 
     def __set_dx(self, data) -> None:
