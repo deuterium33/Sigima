@@ -90,3 +90,70 @@ def check_1d_arrays(
         return decorator(func)
     # Usage: `@check_1d_arrays(...)`
     return decorator
+
+
+def check_2d_array(
+    func: Callable[..., Any] | None = None,
+    *,
+    ndim: int = 2,
+    dtype: type | None = None,
+    non_constant: bool = False,
+    finite_only: bool = False,
+) -> Callable:
+    """
+    Decorator to check input for functions operating on 2D NumPy arrays (e.g. images).
+
+    Can be used with parentheses:
+
+    .. code-block:: python
+
+        @check_2d_array(ndim=3, dtype=np.uint8)
+        def process_image(image: np.ndarray) -> np.ndarray:
+            # Process the image
+            return image
+
+    Or without parentheses (default arguments):
+
+    .. code-block:: python
+
+        @check_2d_array
+        def process_image(image: np.ndarray) -> np.ndarray:
+            # Process the image
+            return image
+
+    Args:
+        ndim: Expected number of dimensions.
+        dtype: Expected dtype.
+        non_constant: Whether to check that the array has dynamic range.
+        finite_only: Whether to check that all values are finite.
+
+    Returns:
+        Decorated function with pre-checks on data.
+    """
+
+    def decorator(inner_func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(inner_func)
+        def wrapper(data: np.ndarray, *args: Any, **kwargs: Any) -> Any:
+            # === Check input array
+            if data.ndim != ndim:
+                raise ValueError(f"Input array must be {ndim}D, got {data.ndim}D.")
+            if dtype is not None and not np.issubdtype(data.dtype, dtype):
+                raise TypeError(
+                    f"Input array must be of type {dtype}, got {data.dtype}."
+                )
+            if non_constant:
+                dmin, dmax = np.nanmin(data), np.nanmax(data)
+                if dmin == dmax:
+                    raise ValueError("Input array has no dynamic range.")
+            if finite_only and not np.all(np.isfinite(data)):
+                raise ValueError("Input array contains non-finite values.")
+            # === Call the original function
+            return inner_func(data, *args, **kwargs)
+
+        return wrapper
+
+    if func is not None:
+        # Usage: `@check_2d_array`
+        return decorator(func)
+    # Usage: `@check_2d_array(...)`
+    return decorator

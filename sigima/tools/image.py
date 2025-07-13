@@ -16,9 +16,12 @@ import scipy.spatial as spt
 from numpy import ma
 from skimage import exposure, feature, measure, transform
 
+from sigima.tools.checks import check_2d_array
+
 # MARK: Level adjustment ---------------------------------------------------------------
 
 
+@check_2d_array(non_constant=True)
 def scale_data_to_min_max(
     data: np.ndarray, zmin: float | int, zmax: float | int
 ) -> np.ndarray:
@@ -33,8 +36,6 @@ def scale_data_to_min_max(
         Scaled data
     """
     dmin, dmax = np.nanmin(data), np.nanmax(data)
-    if dmin == dmax:
-        raise ValueError("Input data has no dynamic range")
     if dmin == zmin and dmax == zmax:
         return data
     fdata = np.array(data, dtype=float)
@@ -44,6 +45,7 @@ def scale_data_to_min_max(
     return np.array(fdata, data.dtype)
 
 
+@check_2d_array(non_constant=True)
 def normalize(
     data: np.ndarray,
     parameter: Literal["maximum", "amplitude", "area", "energy", "rms"] = "maximum",
@@ -74,8 +76,9 @@ def normalize(
 # MARK: Fourier analysis ---------------------------------------------------------------
 
 
+@check_2d_array
 def zero_padding(
-    image: np.ndarray,
+    data: np.ndarray,
     rows: int = 0,
     cols: int = 0,
     position: Literal["bottom-right", "center"] = "bottom-right",
@@ -84,7 +87,7 @@ def zero_padding(
     Zero-pad a 2D image by adding rows and/or columns.
 
     Args:
-        image: 2D input image (grayscale)
+        data: 2D input image (grayscale)
         rows: Number of rows to add in total (default: 0)
         cols: Number of columns to add in total (default: 0)
         position: Padding placement strategy:
@@ -99,8 +102,6 @@ def zero_padding(
     """
     if rows < 0 or cols < 0:
         raise ValueError("Padding values must be non-negative")
-    if image.ndim != 2:
-        raise ValueError("Only 2D grayscale images are supported")
 
     if position == "bottom-right":
         pad_width = ((0, rows), (0, cols))
@@ -112,9 +113,10 @@ def zero_padding(
     else:
         raise ValueError(f"Unsupported padding_position: {position}")
 
-    return np.pad(image, pad_width, mode="constant")
+    return np.pad(data, pad_width, mode="constant")
 
 
+@check_2d_array
 def fft2d(z: np.ndarray, shift: bool = True) -> np.ndarray:
     """Compute FFT of complex array `z`
 
@@ -131,6 +133,7 @@ def fft2d(z: np.ndarray, shift: bool = True) -> np.ndarray:
     return z1
 
 
+@check_2d_array
 def ifft2d(z: np.ndarray, shift: bool = True) -> np.ndarray:
     """Compute inverse FFT of complex array `z`
 
@@ -147,6 +150,7 @@ def ifft2d(z: np.ndarray, shift: bool = True) -> np.ndarray:
     return z1
 
 
+@check_2d_array
 def magnitude_spectrum(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
     """Compute magnitude spectrum of complex array `z`
 
@@ -163,6 +167,7 @@ def magnitude_spectrum(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
     return z1
 
 
+@check_2d_array
 def phase_spectrum(z: np.ndarray) -> np.ndarray:
     """Compute phase spectrum of complex array `z`
 
@@ -175,6 +180,7 @@ def phase_spectrum(z: np.ndarray) -> np.ndarray:
     return np.rad2deg(np.angle(fft2d(z)))
 
 
+@check_2d_array
 def psd(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
     """Compute power spectral density of complex array `z`
 
@@ -191,6 +197,7 @@ def psd(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
     return z1
 
 
+@check_2d_array
 def freq_fft_filter(
     zin: np.ndarray,
     f0: float = 0.1,
@@ -217,9 +224,6 @@ def freq_fft_filter(
     Raises:
         ValueError: If 'zin' is not 2D or if 'ifft_result_type' is invalid.
     """
-    if zin.ndim != 2:
-        raise ValueError("Input image 'zin' must be a 2D array")
-
     n, m = zin.shape
     fx = np.fft.fftshift(np.fft.fftfreq(m, d=1))
     fy = np.fft.fftshift(np.fft.fftfreq(n, d=1))
@@ -249,6 +253,7 @@ def freq_fft_filter(
 BINNING_OPERATIONS = ("sum", "average", "median", "min", "max")
 
 
+@check_2d_array
 def binning(
     data: np.ndarray,
     sx: int,
@@ -293,6 +298,7 @@ def binning(
 # MARK: Background subtraction ---------------------------------------------------------
 
 
+@check_2d_array
 def flatfield(
     rawdata: np.ndarray, flatdata: np.ndarray, threshold: float | None = None
 ) -> np.ndarray:
@@ -318,6 +324,7 @@ def flatfield(
 # MARK: Misc. analyses -----------------------------------------------------------------
 
 
+@check_2d_array
 def get_centroid_fourier(data: np.ndarray) -> tuple[float, float]:
     """Return image centroid using Fourier algorithm
 
@@ -361,6 +368,7 @@ def get_centroid_fourier(data: np.ndarray) -> tuple[float, float]:
     return row, col
 
 
+@check_2d_array(non_constant=True)
 def get_absolute_level(data: np.ndarray, level: float) -> float:
     """Return absolute level
 
@@ -376,6 +384,7 @@ def get_absolute_level(data: np.ndarray, level: float) -> float:
     return (float(np.nanmin(data)) + float(np.nanmax(data))) * level
 
 
+@check_2d_array(non_constant=True)
 def get_enclosing_circle(
     data: np.ndarray, level: float = 0.5
 ) -> tuple[int, int, float]:
@@ -409,6 +418,7 @@ def get_enclosing_circle(
     return result
 
 
+@check_2d_array
 def get_radial_profile(
     data: np.ndarray, center: tuple[int, int]
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -452,6 +462,7 @@ def distance_matrix(coords: list) -> np.ndarray:
     return np.triu(spt.distance.cdist(coords, coords, "euclidean"))
 
 
+@check_2d_array(non_constant=True)
 def get_2d_peaks_coords(
     data: np.ndarray, size: int | None = None, level: float = 0.5
 ) -> np.ndarray:
@@ -494,6 +505,7 @@ def get_2d_peaks_coords(
     return np.array(coords)
 
 
+@check_2d_array(non_constant=True)
 def get_contour_shapes(
     data: np.ndarray | ma.MaskedArray,
     shape: Literal["circle", "ellipse", "polygon"] = "ellipse",
@@ -553,6 +565,7 @@ def get_contour_shapes(
     return np.array(coords)
 
 
+@check_2d_array(non_constant=True)
 def get_hough_circle_peaks(
     data: np.ndarray,
     min_radius: float | None = None,
@@ -602,6 +615,7 @@ def __blobs_to_coords(blobs: np.ndarray) -> np.ndarray:
     return coords
 
 
+@check_2d_array(non_constant=True)
 def find_blobs_dog(
     data: np.ndarray,
     min_sigma: float = 1,
@@ -643,6 +657,7 @@ def find_blobs_dog(
     return __blobs_to_coords(blobs)
 
 
+@check_2d_array(non_constant=True)
 def find_blobs_doh(
     data: np.ndarray,
     min_sigma: float = 1,
@@ -686,6 +701,7 @@ def find_blobs_doh(
     return __blobs_to_coords(blobs)
 
 
+@check_2d_array(non_constant=True)
 def find_blobs_log(
     data: np.ndarray,
     min_sigma: float = 1,
@@ -763,6 +779,7 @@ def remove_overlapping_disks(coords: np.ndarray) -> np.ndarray:
 
 
 # pylint: disable=too-many-positional-arguments
+@check_2d_array(non_constant=True)
 def find_blobs_opencv(
     data: np.ndarray,
     min_threshold: float | None = None,
