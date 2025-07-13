@@ -8,7 +8,7 @@ import pytest
 from sigima.tools.checks import check_2d_array
 
 
-@check_2d_array
+@check_2d_array(dtype=np.floating)
 def identity(data: np.ndarray) -> np.ndarray:
     """Dummy image function returning input."""
     return data
