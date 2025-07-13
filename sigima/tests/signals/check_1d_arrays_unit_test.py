@@ -8,7 +8,7 @@ import pytest
 from sigima.tools.checks import check_1d_arrays
 
 
-@check_1d_arrays  # Parentheses are optional when no arguments are passed
+@check_1d_arrays(y_dtype=np.floating)
 def add_arrays(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Dummy function to demonstrate basic signal requirements.
 

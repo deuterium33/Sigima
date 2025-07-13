@@ -22,18 +22,18 @@ from sigima.tools.signal import features, fitmodels, peakdetection
 
 @check_1d_arrays(x_sorted=True)
 def full_width_at_y(
-    data: np.ndarray, level: float
+    x: np.ndarray, y: np.ndarray, level: float
 ) -> tuple[float, float, float, float]:
     """Compute the full width at a given y level using zero-crossing method.
 
     Args:
-        data: X,Y data
+        x: X data
+        y: Y data
         level: The Y level at which to compute the width
 
     Returns:
         Full width segment coordinates
     """
-    x, y = data
     crossings = features.find_x_at_value(x, y, level)
     if crossings.size < 2:
         raise ValueError("Not enough zero-crossing points found")
@@ -42,7 +42,8 @@ def full_width_at_y(
 
 @check_1d_arrays(x_sorted=True)
 def fwhm(
-    data: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     method: Literal["zero-crossing", "gauss", "lorentz", "voigt"] = "zero-crossing",
     xmin: float | None = None,
     xmax: float | None = None,
@@ -50,7 +51,8 @@ def fwhm(
     """Compute Full Width at Half Maximum (FWHM) of the input data
 
     Args:
-        data: X,Y data
+        x: X data
+        y: Y data
         method: Calculation method. Two types of methods are supported: a zero-crossing
          method and fitting methods (based on various models: Gauss, Lorentz, Voigt).
          Defaults to "zero-crossing".
@@ -62,7 +64,6 @@ def fwhm(
     Returns:
         FWHM segment coordinates
     """
-    x, y = data
     dx, dy, base = np.max(x) - np.min(x), np.max(y) - np.min(y), np.min(y)
     sigma, mu = dx * 0.1, peakdetection.xpeak(x, y)
     if isinstance(xmin, float):
@@ -105,16 +106,16 @@ def fwhm(
 
 
 @check_1d_arrays(x_sorted=True)
-def fw1e2(data: np.ndarray) -> tuple[float, float, float, float]:
+def fw1e2(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float, float]:
     """Compute Full Width at 1/e² of the input data (using a Gaussian model fitting).
 
     Args:
-        data: X,Y data
+        x: X data
+        y: Y data
 
     Returns:
         FW at 1/e² segment coordinates
     """
-    x, y = data
     dx, dy, base = np.max(x) - np.min(x), np.max(y) - np.min(y), np.min(y)
     sigma, mu = dx * 0.1, peakdetection.xpeak(x, y)
     amp = fitmodels.GaussianModel.get_amp_from_amplitude(dy, sigma)

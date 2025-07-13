@@ -184,9 +184,8 @@ def test_brickwall_filter_invalid_x():
     clean, noisy = build_clean_noisy_signals()
     x_bad = clean.x.copy()
     x_bad[5] += 0.01  # break uniformity
-    with pytest.raises(ValueError, match="uniformly spaced"):
+    with pytest.raises(ValueError, match="evenly spaced"):
         brickwall_filter(x_bad, noisy.y, cut0=0.1)
-        raise AssertionError("Expected ValueError for non-uniform x")
 
 
 def test_tools_to_proc_interface():

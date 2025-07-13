@@ -1825,11 +1825,11 @@ def calc_resultshape(
     """
     res = []
     for i_roi in obj.iterate_roi_indices():
-        data_roi = obj.get_data(i_roi)
+        x, y = obj.get_data(i_roi)
         if args is None:
-            results: np.ndarray = func(data_roi)
+            results: np.ndarray = func(x, y)
         else:
-            results: np.ndarray = func(data_roi, *args)
+            results: np.ndarray = func(x, y, *args)
         if not isinstance(results, (np.ndarray, list, tuple)):
             raise ValueError(
                 "The computation function must return a NumPy array, a list or a tuple"

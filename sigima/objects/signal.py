@@ -82,7 +82,7 @@ class SegmentROI(base.BaseSingleROI["SignalObj", ROI1DParam]):
         if self.coords[0] >= self.coords[1]:
             raise ValueError("Invalid ROI segment coords (xmin >= xmax)")
 
-    def get_data(self, obj: SignalObj) -> np.ndarray:
+    def get_data(self, obj: SignalObj) -> tuple[np.ndarray, np.ndarray]:
         """Get signal data in ROI
 
         Args:
@@ -92,7 +92,7 @@ class SegmentROI(base.BaseSingleROI["SignalObj", ROI1DParam]):
             Data in ROI
         """
         imin, imax = self.get_indices_coords(obj)
-        return np.array([obj.x[imin:imax], obj.y[imin:imax]])
+        return obj.x[imin:imax], obj.y[imin:imax]
 
     def to_mask(self, obj: SignalObj) -> np.ndarray:
         """Create mask from ROI
@@ -413,7 +413,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     dx = property(__get_dx, __set_dx)
     dy = property(__get_dy, __set_dy)
 
-    def get_data(self, roi_index: int | None = None) -> np.ndarray:
+    def get_data(self, roi_index: int | None = None) -> tuple[np.ndarray, np.ndarray]:
         """
         Return original data (if ROI is not defined or `roi_index` is None),
         or ROI data (if both ROI and `roi_index` are defined).
@@ -426,7 +426,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         """
         if self.roi is None or roi_index is None:
             assert isinstance(self.xydata, np.ndarray)
-            return self.xydata
+            return self.x, self.y
         single_roi = self.roi.get_single_roi(roi_index)
         return single_roi.get_data(self)
 

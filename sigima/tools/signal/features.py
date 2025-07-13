@@ -113,19 +113,20 @@ def find_x_at_value(x: np.ndarray, y: np.ndarray, value: float) -> np.ndarray:
     return x0
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def bandwidth(
-    data: np.ndarray, level: float = 3.0
+    x: np.ndarray, y: np.ndarray, level: float = 3.0
 ) -> tuple[float, float, float, float]:
     """Compute the bandwidth of the signal at a given level.
 
     Args:
-        data: X,Y data
+        x: X data
+        y: Y data
         level: Level in dB at which the bandwidth is computed. Defaults to 3.0.
 
     Returns:
         Bandwidth of the signal at the given level: segment coordinates
     """
-    x, y = data
     half_max: float = np.max(y) - level
     bw = find_x_at_value(x, y, half_max)[0]
     coords = (x[0], half_max, bw, half_max)
