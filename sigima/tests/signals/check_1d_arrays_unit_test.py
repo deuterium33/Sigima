@@ -1,14 +1,14 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
-"""Decorators for signal functions unit tests."""
+"""Unit tests for 1D-array function checks decorators."""
 
 import numpy as np
 import pytest
 
-from sigima.tools.signal.decorator import signal_check
+from sigima.tools.checks import check_1d_arrays
 
 
-@signal_check  # Parentheses are optional when no arguments are passed
+@check_1d_arrays  # Parentheses are optional when no arguments are passed
 def add_arrays(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Dummy function to demonstrate basic signal requirements.
 
@@ -66,7 +66,7 @@ def test_size_mismatch():
         add_arrays(x, y)
 
 
-@signal_check(x_sorted=True, x_evenly_spaced=True)
+@check_1d_arrays(x_sorted=True, x_evenly_spaced=True)
 def multiply_arrays(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Dummy function to demonstrate evenly spaced check.
 
