@@ -21,6 +21,14 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 * New I/O features:
   * Added support for FT-Lab signal and image format.
 
+🛠️ Bug fixes:
+
+* Fix how data is managed in signal objects (`SignalObj`):
+  * Signal data is stored internally as a 2D array with shape `(2, n)`, where the first row is the x data and the second row is the y data: that is the `xydata` attribute.
+  * Because of this, when storing complex Y data, the data type is propagated to the x data, which is not always desired.
+  * As a workaround, the `x` property now returns the real part of the x data.
+  * Furthermore, the `get_data` method now returns a tuple of numpy arrays instead of a single array, allowing to access both x and y data separately, keeping the original data type.
+
 ## sigima 0.2.0 ##
 
 ⚠️ Major API changes:
