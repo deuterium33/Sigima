@@ -16,11 +16,11 @@ def check_1d_arrays(
     func: Callable[..., Any] | None = None,
     *,
     x_1d: bool = True,
-    x_dtype: type = np.floating,
+    x_dtype: type | None = np.floating,  # Default to floating point types
     x_sorted: bool = False,
     x_evenly_spaced: bool = False,
     y_1d: bool = True,
-    y_dtype: type = np.floating,
+    y_dtype: type | None = np.inexact,  # Default to inexact types (float or complex)
     x_y_same_size: bool = True,
     rtol: float = 1e-5,
 ) -> Callable:
@@ -65,7 +65,7 @@ def check_1d_arrays(
             # === Check x array
             if x_1d and x.ndim != 1:
                 raise ValueError("x must be 1-D.")
-            if not np.issubdtype(x.dtype, x_dtype):
+            if x_dtype is not None and not np.issubdtype(x.dtype, x_dtype):
                 raise TypeError(f"x must be of type {x_dtype}, but got {x.dtype}.")
             if x_sorted and x.size > 1 and not np.all(np.diff(x) >= 0.0):
                 raise ValueError("x must be sorted in ascending order.")
@@ -76,7 +76,7 @@ def check_1d_arrays(
             # === Check y array
             if y_1d and y.ndim != 1:
                 raise ValueError("y must be 1-D.")
-            if not np.issubdtype(y.dtype, y_dtype):
+            if y_dtype is not None and not np.issubdtype(y.dtype, y_dtype):
                 raise TypeError(f"y must be of type {y_dtype}, but got {y.dtype}.")
             if x_y_same_size and x.size != y.size:
                 raise ValueError("x and y must have the same size.")
