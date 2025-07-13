@@ -35,7 +35,6 @@ from sigima.config import _
 from sigima.objects.base import BaseProcParam
 from sigima.objects.image import ImageObj, ROI2DParam
 from sigima.objects.signal import SignalObj
-from sigima.proc import computation_function
 from sigima.proc.base import (
     ClipParam,
     HistogramParam,
@@ -44,6 +43,7 @@ from sigima.proc.base import (
     dst_2_to_1,
     new_signal_result,
 )
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
 

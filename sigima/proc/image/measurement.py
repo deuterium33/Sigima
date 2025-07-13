@@ -32,8 +32,8 @@ from numpy import ma
 import sigima.tools.image as alg
 from sigima.objects.base import ResultProperties, ResultShape
 from sigima.objects.image import ImageObj
-from sigima.proc import computation_function
 from sigima.proc.base import calc_resultproperties
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import calc_resultshape
 
 

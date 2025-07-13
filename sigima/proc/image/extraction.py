@@ -34,8 +34,8 @@ import sigima.tools.image as alg
 from sigima.config import _
 from sigima.objects.image import ImageObj, ImageROI, ROI2DParam
 from sigima.objects.signal import SignalObj
-from sigima.proc import computation_function
 from sigima.proc.base import dst_1_to_1
+from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import dst_1_to_1_signal
 
 

@@ -169,7 +169,10 @@ def test_image_phase_spectrum() -> None:
 def test_image_psd() -> None:
     """2D Power Spectral Density validation test."""
     ima1 = ctd.create_checkerboard()
-    psd = sigima_image.psd(ima1)
+    param = sigima.params.SpectrumParam()
+    for log_scale in (True, False):
+        param.log = log_scale
+        psd = sigima_image.psd(ima1, param)
 
     # Check that the PSD is correct
     exp = np.abs(sigima_image.fft(ima1).data) ** 2
