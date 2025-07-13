@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from sigima.tools.checks import check_1d_arrays
+
 
 def peak_indices(
     y, thres: float = 0.3, min_dist: int = 1, thres_abs: bool = False
@@ -107,6 +109,7 @@ def peak_indices(
     return peaks
 
 
+@check_1d_arrays
 def xpeak(x: np.ndarray, y: np.ndarray) -> float:
     """Return default peak X-position (assuming a single peak).
 

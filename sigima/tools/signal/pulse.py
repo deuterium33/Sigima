@@ -14,11 +14,13 @@ from typing import Literal
 import numpy as np
 import scipy.optimize
 
+from sigima.tools.checks import check_1d_arrays
 from sigima.tools.signal import features, fitmodels, peakdetection
 
 # MARK: Pulse analysis -----------------------------------------------------------------
 
 
+@check_1d_arrays(x_sorted=True)
 def full_width_at_y(
     data: np.ndarray, level: float
 ) -> tuple[float, float, float, float]:
@@ -38,6 +40,7 @@ def full_width_at_y(
     return crossings[0], level, crossings[-1], level
 
 
+@check_1d_arrays(x_sorted=True)
 def fwhm(
     data: np.ndarray,
     method: Literal["zero-crossing", "gauss", "lorentz", "voigt"] = "zero-crossing",
@@ -101,6 +104,7 @@ def fwhm(
     return fit_model_class.half_max_segment(amp, sigma, mu, base)
 
 
+@check_1d_arrays(x_sorted=True)
 def fw1e2(data: np.ndarray) -> tuple[float, float, float, float]:
     """Compute Full Width at 1/e² of the input data (using a Gaussian model fitting).
 

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from sigima.tools.checks import check_1d_arrays
+
 
 def find_zero_crossings(y: np.ndarray) -> np.ndarray:
     """
@@ -23,6 +25,7 @@ def find_zero_crossings(y: np.ndarray) -> np.ndarray:
     return zero_crossing_indices
 
 
+@check_1d_arrays(x_sorted=True)
 def find_first_x_at_y_value(x: np.ndarray, y: np.ndarray, y_value: float) -> float:
     """Find the first x value where the signal reaches a given y value (interpolated).
 
@@ -52,6 +55,7 @@ def find_first_x_at_y_value(x: np.ndarray, y: np.ndarray, y_value: float) -> flo
     return np.nan  # not found
 
 
+@check_1d_arrays(x_sorted=True)
 def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_value: float) -> float:
     """Find the y value at a given x value using linear interpolation.
 
@@ -77,6 +81,7 @@ def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_value: float) -> float:
     return float(np.interp(x_value, x_valid, y_valid))
 
 
+@check_1d_arrays(x_sorted=True)
 def find_x_at_value(x: np.ndarray, y: np.ndarray, value: float) -> np.ndarray:
     """Find the x values where the y value is the closest to the given value using
     linear interpolation to deduce the precise x value.

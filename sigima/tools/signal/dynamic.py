@@ -15,6 +15,8 @@ from typing import Literal
 import numpy as np
 import scipy.optimize
 
+from sigima.tools.checks import check_1d_arrays
+
 
 def sinusoidal_model(
     x: np.ndarray, a: float, f: float, phi: float, offset: float
@@ -23,6 +25,7 @@ def sinusoidal_model(
     return a * np.sin(2 * np.pi * f * x + phi) + offset
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def sinusoidal_fit(
     x: np.ndarray, y: np.ndarray
 ) -> tuple[tuple[float, float, float, float], float]:
@@ -63,6 +66,7 @@ def sinusoidal_fit(
     return fitparams, residuals
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def sinus_frequency(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the frequency of a sinusoidal signal.
 
@@ -77,6 +81,7 @@ def sinus_frequency(x: np.ndarray, y: np.ndarray) -> float:
     return fitparams[1]
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def enob(x: np.ndarray, y: np.ndarray, full_scale: float = 1.0) -> float:
     """Compute Effective Number of Bits (ENOB).
 
@@ -92,6 +97,7 @@ def enob(x: np.ndarray, y: np.ndarray, full_scale: float = 1.0) -> float:
     return -np.log2(residuals * np.sqrt(12) / full_scale)
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def sinad(
     x: np.ndarray,
     y: np.ndarray,
@@ -119,6 +125,7 @@ def sinad(
     return 20 * np.log10(powf / residuals)
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def thd(
     x: np.ndarray,
     y: np.ndarray,
@@ -159,6 +166,7 @@ def thd(
     return 20 * np.log10(sumharm / powfund)
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def sfdr(
     x: np.ndarray,
     y: np.ndarray,
@@ -189,6 +197,7 @@ def sfdr(
     return 20 * np.log10(powfund / maxspike)
 
 
+@check_1d_arrays(x_evenly_spaced=True, x_sorted=True)
 def snr(
     x: np.ndarray,
     y: np.ndarray,

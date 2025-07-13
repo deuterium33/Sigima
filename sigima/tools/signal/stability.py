@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import numpy as np
 
+from sigima.tools.checks import check_1d_arrays
 
+
+@check_1d_arrays(x_evenly_spaced=True)
 def allan_variance(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.ndarray:
     """
     Calculate the Allan variance for given time and measurement values at specified
@@ -63,6 +66,7 @@ def allan_variance(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.n
     return np.array(allan_var)
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def allan_deviation(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.ndarray:
     """
     Calculate the Allan deviation for given time and measurement values at specified
@@ -79,6 +83,7 @@ def allan_deviation(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.
     return np.sqrt(allan_variance(x, y, tau_values))
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def overlapping_allan_variance(
     x: np.ndarray, y: np.ndarray, tau_values: np.ndarray
 ) -> np.ndarray:
@@ -117,6 +122,7 @@ def overlapping_allan_variance(
     return np.array(overlapping_var)
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def modified_allan_variance(
     x: np.ndarray, y: np.ndarray, tau_values: np.ndarray
 ) -> np.ndarray:
@@ -157,6 +163,7 @@ def modified_allan_variance(
     return np.array(mod_allan_var)
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def hadamard_variance(
     x: np.ndarray, y: np.ndarray, tau_values: np.ndarray
 ) -> np.ndarray:
@@ -195,6 +202,7 @@ def hadamard_variance(
     return np.array(hadamard_var)
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def total_variance(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.ndarray:
     """
     Calculate the Total variance for given time and measurement values.
@@ -233,6 +241,7 @@ def total_variance(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.n
     return np.array(total_var)
 
 
+@check_1d_arrays(x_evenly_spaced=True)
 def time_deviation(x: np.ndarray, y: np.ndarray, tau_values: np.ndarray) -> np.ndarray:
     """
     Calculate the Time Deviation (TDEV) for given time and measurement values.

@@ -12,7 +12,10 @@ from typing import Literal
 import numpy as np
 import scipy.interpolate
 
+from sigima.tools.checks import check_1d_arrays
 
+
+@check_1d_arrays(x_sorted=True)
 def interpolate(
     x: np.ndarray,
     y: np.ndarray,
