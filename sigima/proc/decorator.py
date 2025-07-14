@@ -112,9 +112,7 @@ def get_computation_metadata(function: Callable) -> ComputationMetadata:
     return metadata
 
 
-def find_computation_functions(
-    module: ModuleType | None = None,
-) -> list[tuple[str, Callable]]:
+def find_computation_functions() -> list[tuple[str, Callable]]:
     """Find all computation functions in the `sigima.proc` package.
 
     This function uses introspection to locate all functions decorated with
@@ -127,12 +125,10 @@ def find_computation_functions(
         A list of tuples, each containing the function name and the function object.
     """
     functions = []
-    if module is None:
-        path = [osp.dirname(__file__)]
-    else:
-        path = module.__path__
     objs = []
-    for _, modname, _ in pkgutil.walk_packages(path=path, prefix=__name__ + "."):
+    for _, modname, _ in pkgutil.walk_packages(
+        path=[osp.dirname(__file__)], prefix=".".join(__name__.split(".")[:-1]) + "."
+    ):
         try:
             module = importlib.import_module(modname)
         except Exception:  # pylint: disable=broad-except
