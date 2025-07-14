@@ -146,7 +146,10 @@ def test_image_magnitude_spectrum() -> None:
     """2D magnitude spectrum validation test."""
     ima1 = ctd.create_checkerboard()
     fft = sigima_image.fft(ima1)
-    mag = sigima_image.magnitude_spectrum(ima1)
+    param = sigima.params.SpectrumParam()
+    for log_scale in (True, False):
+        param.log = log_scale
+        mag = sigima_image.magnitude_spectrum(ima1, param)
 
     # Check that the magnitude spectrum is correct
     exp = np.abs(fft.data)
