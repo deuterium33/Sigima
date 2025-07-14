@@ -1,7 +1,7 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Image I/O formats test
+Testing image format handling based on the `imageio_formats` option.
 """
 
 # Note about the modules imported outside top-level:
