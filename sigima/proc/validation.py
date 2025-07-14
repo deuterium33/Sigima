@@ -64,7 +64,13 @@ def get_validation_tests(package: str) -> list:
     for _, module_name, _ in pkgutil.walk_packages(
         package_path, package.__name__ + "."
     ):
-        module = importlib.import_module(module_name)
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as exc:
+            raise ImportError(
+                f"Failed to import module {module_name}. "
+                "Ensure the module is correctly installed and accessible."
+            ) from exc
         for name, obj in inspect.getmembers(module, inspect.isfunction):
             if hasattr(obj, "pytestmark"):
                 for mark in obj.pytestmark:
