@@ -410,7 +410,7 @@ def check_scalar_result(
         AssertionError: if values are not almost equal or if expected is not a scalar
          or tuple
     """
-    restxt = f"{title}: {res} (expected: {exp})"
+    restxt = f"{title}: {res} (expected: {exp}) ± {rtol * abs(exp) + atol:.2g}"
     if verbose:
         execenv.print(restxt)
     if isinstance(exp, tuple):
