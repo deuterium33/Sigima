@@ -200,7 +200,7 @@ class ValidationStatistics:
     def get_validation_info(self) -> list[str]:
         """Get the validation information as a list of strings"""
         if not self.validation_info_list:
-            self.collect_validation_status(verbose=True)
+            self.collect_validation_status(verbose=False)
         return self.validation_info_list
 
     def generate_csv_files(self, path: str) -> None:
