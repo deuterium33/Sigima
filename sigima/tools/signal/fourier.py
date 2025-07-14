@@ -170,21 +170,6 @@ def psd(
 
 
 @check_1d_arrays(x_evenly_spaced=True)
-def sort_frequencies(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Sort from X,Y data by computing FFT(y).
-
-    Args:
-        x: X data
-        y: Y data
-
-    Returns:
-        Sorted frequencies in ascending order
-    """
-    freqs, fourier = fft1d(x, y, shift=False)
-    return freqs[np.argsort(fourier)]
-
-
-@check_1d_arrays(x_evenly_spaced=True)
 def brickwall_filter(
     x: np.ndarray,
     y: np.ndarray,
