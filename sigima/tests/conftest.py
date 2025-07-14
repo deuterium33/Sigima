@@ -20,6 +20,7 @@ import scipy
 import skimage
 
 import sigima
+from sigima.proc.validation import ValidationStatistics
 from sigima.tests import env, helpers
 
 # Turn on unattended mode for executing tests without user interaction
@@ -88,6 +89,7 @@ def pytest_report_header(config):  # pylint: disable=unused-argument
         infolist.extend(gitlist)
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
+    infolist.extend(ValidationStatistics().get_validation_info())
     return infolist
 
 

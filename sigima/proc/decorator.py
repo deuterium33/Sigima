@@ -14,7 +14,6 @@ import inspect
 import os.path as osp
 import pkgutil
 import sys
-from types import ModuleType
 from typing import Callable, Optional, TypeVar
 
 if sys.version_info >= (3, 10):
