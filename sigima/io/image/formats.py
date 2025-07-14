@@ -13,18 +13,71 @@ import numpy as np
 import pandas as pd
 import scipy.io as sio
 import skimage.io
+from guidata.io import HDF5Reader, HDF5Writer
 
 from sigima.config import _, options
 from sigima.io import ftlab
 from sigima.io.base import FormatInfo
 from sigima.io.common.converters import convert_array_to_standard_type
 from sigima.io.image import funcs
-from sigima.io.image.base import ImageFormatBase, MultipleImagesFormatBase
+from sigima.io.image.base import (
+    ImageFormatBase,
+    MultipleImagesFormatBase,
+    SingleImageFormatBase,
+)
 from sigima.objects.image import ImageObj
 from sigima.worker import CallbackWorkerProtocol
 
 
-class ClassicsImageFormat(ImageFormatBase):
+class HDF5ImageFormat(ImageFormatBase):
+    """Object representing HDF5 image file type"""
+
+    FORMAT_INFO = FormatInfo(
+        name="HDF5",
+        extensions="*.hdf5 *.h5",
+        readable=True,
+        writeable=True,
+    )
+    GROUP_NAME = "image"
+
+    # pylint: disable=unused-argument
+    def read(
+        self, filename: str, worker: CallbackWorkerProtocol | None = None
+    ) -> list[ImageObj]:
+        """Read list of image objects from file
+
+        Args:
+            filename: File name
+            worker: Callback worker object
+
+        Returns:
+            List of image objects
+        """
+        reader = HDF5Reader(filename)
+        with reader.group(self.GROUP_NAME):
+            obj = ImageObj()
+            obj.deserialize(reader)
+        reader.close()
+        return [obj]
+
+    def write(self, filename: str, obj: ImageObj) -> None:
+        """Write data to file
+
+        Args:
+            filename: file name
+            obj: native object (signal or image)
+
+        Raises:
+            NotImplementedError: if format is not supported
+        """
+        assert isinstance(obj, ImageObj), "Object is not an image"
+        writer = HDF5Writer(filename)
+        with writer.group(self.GROUP_NAME):
+            obj.serialize(writer)
+        writer.close()
+
+
+class ClassicsImageFormat(SingleImageFormatBase):
     """Object representing classic image file types"""
 
     FORMAT_INFO = FormatInfo(
@@ -64,7 +117,7 @@ class ClassicsImageFormat(ImageFormatBase):
         skimage.io.imsave(filename, data, check_contrast=False)
 
 
-class NumPyImageFormat(ImageFormatBase):
+class NumPyImageFormat(SingleImageFormatBase):
     """Object representing NumPy image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -97,7 +150,7 @@ class NumPyImageFormat(ImageFormatBase):
         np.save(filename, data)
 
 
-class TextImageFormat(ImageFormatBase):
+class TextImageFormat(SingleImageFormatBase):
     """Object representing text image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -160,7 +213,7 @@ class TextImageFormat(ImageFormatBase):
             raise ValueError(f"Unknown text file extension {ext}")
 
 
-class MatImageFormat(ImageFormatBase):
+class MatImageFormat(SingleImageFormatBase):
     """Object representing MAT-File image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -219,7 +272,7 @@ class MatImageFormat(ImageFormatBase):
         sio.savemat(filename, {"img": data})
 
 
-class DICOMImageFormat(ImageFormatBase):
+class DICOMImageFormat(SingleImageFormatBase):
     """Object representing DICOM image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -296,7 +349,7 @@ def generate_imageio_format_classes(
 generate_imageio_format_classes()
 
 
-class SpiriconImageFormat(ImageFormatBase):
+class SpiriconImageFormat(SingleImageFormatBase):
     """Object representing Spiricon image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -319,7 +372,7 @@ class SpiriconImageFormat(ImageFormatBase):
         return funcs.imread_scor(filename)
 
 
-class XYZImageFormat(ImageFormatBase):
+class XYZImageFormat(SingleImageFormatBase):
     """Object representing Dürr NDT XYZ image file type"""
 
     FORMAT_INFO = FormatInfo(
@@ -347,7 +400,7 @@ class XYZImageFormat(ImageFormatBase):
         return np.fliplr(arr)
 
 
-class FTLabImageFormat(ImageFormatBase):
+class FTLabImageFormat(SingleImageFormatBase):
     """FT-Lab image file."""
 
     FORMAT_INFO = FormatInfo(

@@ -637,6 +637,47 @@ def create_annotated_image(title: str | None = None) -> ImageObj:
     return image
 
 
+def create_test_image_with_metadata() -> ImageObj:
+    """Create a test image with complex metadata for serialization testing.
+
+    Returns:
+        Image object with metadata containing various data types.
+    """
+    data = get_test_image("flower.npy").data
+    image = create_image("Test image with peaks", data)
+    image.metadata["tata"] = {
+        "lkl": 2,
+        "tototo": 3,
+        "arrdata": np.array([0, 1, 2, 3, 4, 5]),
+        "zzzz": "lklk",
+        "bool": True,
+        "float": 1.234,
+        "list": [1, 2.5, 3, "str", False, 5],
+        "d": {
+            "lkl": 2,
+            "tototo": 3,
+            "zzzz": "lklk",
+            "bool": True,
+            "float": 1.234,
+            "list": [
+                1,
+                2.5,
+                3,
+                "str",
+                False,
+                5,
+                {"lkl": 2, "l": [1, 2, 3]},
+            ],
+        },
+    }
+    image.metadata["toto"] = [
+        np.array([[1, 2], [-3, 0]]),
+        np.array([[1, 2], [-3, 0], [99, 241]]),
+    ]
+    image.metadata["array"] = np.array([-5, -4, -3, -2, -1])
+    return image
+
+
 def create_resultshapes() -> Generator[ResultShape, None, None]:
     """Create test result shapes (core.base.ResultShape test objects)
 

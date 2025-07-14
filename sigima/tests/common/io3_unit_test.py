@@ -12,7 +12,7 @@ import numpy as np
 
 from sigima.io import ImageIORegistry, SignalIORegistry
 from sigima.io.base import FormatInfo
-from sigima.io.image.base import ImageFormatBase
+from sigima.io.image.base import SingleImageFormatBase
 from sigima.io.signal.base import SignalFormatBase
 from sigima.tests.env import execenv
 
@@ -22,10 +22,10 @@ def _get_image_format_number() -> int:
     return len(ImageIORegistry.get_formats())
 
 
-def _add_image_format() -> Type[ImageFormatBase]:
+def _add_image_format() -> Type[SingleImageFormatBase]:
     """Add a new image format to the registry"""
 
-    class MyImageFormat(ImageFormatBase):
+    class MyImageFormat(SingleImageFormatBase):
         """Object representing MyImageFormat image file type"""
 
         FORMAT_INFO = FormatInfo(

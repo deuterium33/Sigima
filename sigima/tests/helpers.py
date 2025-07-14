@@ -15,12 +15,17 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Generator
 
 import numpy as np
 from guidata.configtools import get_module_data_path
 
 from sigima.config import MOD_NAME
+from sigima.io.base import BaseIORegistry
+from sigima.io.image import ImageIORegistry
+from sigima.io.signal import SignalIORegistry
+from sigima.objects.image import ImageObj
+from sigima.objects.signal import SignalObj
 from sigima.tests.env import execenv
 
 TST_PATH = []
@@ -93,6 +98,34 @@ def get_test_fnames(pattern: str, in_folder: str | None = None) -> list[str]:
     if not pathlist:
         raise FileNotFoundError(f"Test file(s) {pattern} not found")
     return [str(path) for path in pathlist]
+
+
+def read_test_objects(
+    registry: BaseIORegistry, pattern: str = "*.*", in_folder: str | None = None
+) -> Generator[tuple[str, ImageObj | None] | tuple[str, SignalObj | None], None, None]:
+    """Read test images and yield their file names and objects
+
+    Args:
+        registry: I/O registry to use
+        pattern: File name pattern to match
+        in_folder: Folder to search for test files
+
+    Yields:
+        Tuple of file name and object (or None if not implemented)
+    """
+    if registry is ImageIORegistry:
+        in_folder = in_folder or "image_formats"
+    elif registry is SignalIORegistry:
+        in_folder = in_folder or "curve_formats"
+    else:
+        raise ValueError(f"Unsupported registry type: {registry}")
+    fnames = get_test_fnames(pattern, in_folder)
+    for fname in fnames:
+        try:
+            obj = registry.read(fname)[0]
+            yield fname, obj
+        except NotImplementedError:
+            yield fname, None
 
 
 def try_open_test_data(title: str, pattern: str) -> Callable:

@@ -14,32 +14,40 @@ from sigima.io.base import BaseIORegistry
 from sigima.io.image import ImageIORegistry
 from sigima.io.signal import SignalIORegistry
 from sigima.tests.env import execenv
-from sigima.tests.helpers import WorkdirRestoringTempDir, get_test_fnames, reduce_path
+from sigima.tests.helpers import WorkdirRestoringTempDir, read_test_objects, reduce_path
 
 
 def __testfunc(
-    title: str, registry: BaseIORegistry, pattern: str, in_folder: str
+    title: str,
+    registry: BaseIORegistry,
+    pattern: str = "*.*",
+    in_folder: str | None = None,
 ) -> None:
-    """Test I/O features"""
+    """Test I/O features
+
+    Args:
+        title: Title of the test
+        registry: I/O registry to use
+        pattern: File name pattern to match
+        in_folder: Folder to search for test files
+
+    Raises:
+        NotImplementedError: if format is not supported
+    """
     execenv.print(f"  {title}:")
     with WorkdirRestoringTempDir() as tmpdir:
         # os.startfile(tmpdir)
-        fnames = get_test_fnames(pattern, in_folder)
         objects = {}
-        for fname in fnames:
+        for fname, obj in read_test_objects(registry, pattern, in_folder):
             label = f"    Opening {reduce_path(fname)}"
             execenv.print(label + ": ", end="")
-            try:
-                obj = registry.read(fname)[0]
+            if obj is None:
+                execenv.print("Skipped (not implemented)")
+            else:
                 execenv.print("OK")
                 objects[fname] = obj
-            except NotImplementedError:
-                execenv.print("Skipped (not implemented)")
         execenv.print("    Saving:")
-        for fname in fnames:
-            obj = objects.get(fname)
-            if obj is None:
-                continue
+        for fname, obj in objects.items():
             path = osp.join(tmpdir, osp.basename(fname))
             try:
                 execenv.print(f"      {path}: ", end="")
@@ -52,8 +60,8 @@ def __testfunc(
 def test_io2():
     """I/O test"""
     execenv.print("I/O unit test:")
-    __testfunc("Signals", SignalIORegistry, "*.*", "curve_formats")
-    __testfunc("Images", ImageIORegistry, "*.*", "image_formats")
+    __testfunc("Signals", SignalIORegistry)
+    __testfunc("Images", ImageIORegistry)
 
 
 if __name__ == "__main__":

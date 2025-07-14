@@ -30,7 +30,35 @@ class ImageFormatBaseMeta(ImageIORegistry, abc.ABCMeta):
 
 
 class ImageFormatBase(abc.ABC, FormatBase, metaclass=ImageFormatBaseMeta):
-    """Object representing an image file type"""
+    @abc.abstractmethod
+    def read(
+        self, filename: str, worker: CallbackWorkerProtocol | None = None
+    ) -> list[ImageObj]:
+        """Read list of image objects from file
+
+        Args:
+            filename: File name
+            worker: Callback worker object
+
+        Returns:
+            List of image objects
+        """
+
+    @abc.abstractmethod
+    def write(self, filename: str, obj: ImageObj) -> None:
+        """Write data to file
+
+        Args:
+            filename: file name
+            obj: native object (signal or image)
+
+        Raises:
+            NotImplementedError: if format is not supported
+        """
+
+
+class SingleImageFormatBase(ImageFormatBase):
+    """Base image format object for single image (e.g., TIFF, PNG, etc.)."""
 
     @staticmethod
     def create_object(filename: str, index: int | None = None) -> ImageObj:
@@ -105,7 +133,7 @@ class ImageFormatBase(abc.ABC, FormatBase, metaclass=ImageFormatBaseMeta):
         raise NotImplementedError(f"Writing to {filename} is not supported")
 
 
-class MultipleImagesFormatBase(ImageFormatBase):
+class MultipleImagesFormatBase(SingleImageFormatBase):
     """Base image format object for multiple images (e.g., SIF or SPE).
 
     Works with read function that returns a NumPy array of 3 dimensions, where

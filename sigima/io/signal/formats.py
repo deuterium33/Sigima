@@ -6,10 +6,9 @@ I/O signal formats
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 import scipy.io as sio
+from guidata.io import HDF5Reader, HDF5Writer
 
 from sigima.config import _
 from sigima.io import ftlab
@@ -17,10 +16,52 @@ from sigima.io.base import FormatInfo
 from sigima.io.common.converters import convert_array_to_standard_type
 from sigima.io.signal import funcs
 from sigima.io.signal.base import SignalFormatBase
+from sigima.objects.signal import SignalObj
 from sigima.worker import CallbackWorkerProtocol
 
-if TYPE_CHECKING:
-    from sigima.objects.signal import SignalObj
+
+class HDF5SignalFormat(SignalFormatBase):
+    """Object representing a HDF5 signal file type"""
+
+    FORMAT_INFO = FormatInfo(
+        name=_("HDF5 files"),
+        extensions="*.hdf5 *.h5",
+        readable=True,
+        writeable=True,
+    )
+    GROUP_NAME = "signal"
+
+    def read(
+        self, filename: str, worker: CallbackWorkerProtocol | None = None
+    ) -> list[SignalObj]:
+        """Read list of signal objects from file
+
+        Args:
+            filename: File name
+            worker: Callback worker object
+
+        Returns:
+            List of signal objects
+        """
+        reader = HDF5Reader(filename)
+        with reader.group(self.GROUP_NAME):
+            obj = SignalObj()
+            obj.deserialize(reader)
+        reader.close()
+        return [obj]
+
+    def write(self, filename: str, obj: SignalObj) -> None:
+        """Write data to file
+
+        Args:
+            filename: Name of file to write
+            obj: Signal object to read data from
+        """
+        assert isinstance(obj, SignalObj), "Object is not a signal"
+        writer = HDF5Writer(filename)
+        with writer.group(self.GROUP_NAME):
+            obj.serialize(writer)
+        writer.close()
 
 
 class CSVSignalFormat(SignalFormatBase):

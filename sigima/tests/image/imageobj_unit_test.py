@@ -9,10 +9,21 @@ Unit tests around the `ImageObj` class and its creation from parameters.
 
 from __future__ import annotations
 
+import os.path as osp
 from collections.abc import Generator
 
+import numpy as np
+
+import sigima.io
 import sigima.objects
+from sigima.io.image import ImageIORegistry
+from sigima.tests.data import create_test_image_with_metadata
 from sigima.tests.env import execenv
+from sigima.tests.helpers import (
+    WorkdirRestoringTempDir,
+    compare_metadata,
+    read_test_objects,
+)
 
 
 def iterate_image_creation(
@@ -104,5 +115,43 @@ def test_all_image_types() -> None:
     execenv.print(f"{test_all_image_types.__doc__}: OK")
 
 
+def __get_filenames_and_images() -> list[tuple[str, sigima.objects.ImageObj]]:
+    """Get test filenames and images from the registry"""
+    fi_list = [
+        (fname, obj)
+        for fname, obj in read_test_objects(ImageIORegistry)
+        if obj is not None
+    ]
+    fi_list.append(("test_image_with_metadata", create_test_image_with_metadata()))
+    return fi_list
+
+
+def test_hdf5_image_io() -> None:
+    """Test HDF5 I/O for image objects"""
+    execenv.print(f"{test_hdf5_image_io.__doc__}:")
+    with WorkdirRestoringTempDir() as tmpdir:
+        for fname, orig_image in __get_filenames_and_images():
+            if orig_image is None:
+                execenv.print(f"  Skipping {fname} (not implemented)")
+                continue
+            # Save to HDF5
+            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5")
+            sigima.io.write_image(filename, orig_image)
+            execenv.print(f"  Saved {filename}")
+            # Read back
+            fetch_image = sigima.io.read_image(filename)
+            execenv.print(f"  Read {filename}")
+            data = fetch_image.data
+            orig_data = orig_image.data
+            assert isinstance(data, np.ndarray)
+            assert isinstance(orig_data, np.ndarray)
+            assert data.shape == orig_data.shape
+            assert data.dtype == orig_data.dtype
+            assert np.isclose(data, orig_data, atol=0.0).all()
+            assert compare_metadata(fetch_image.metadata, orig_image.metadata.copy())
+    execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_all_image_types()
+    test_hdf5_image_io()

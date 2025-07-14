@@ -32,7 +32,7 @@ class SignalFormatBaseMeta(SignalIORegistry, abc.ABCMeta):
 
 
 class SignalFormatBase(abc.ABC, FormatBase, metaclass=SignalFormatBaseMeta):
-    """Object representing a signal file type"""
+    """Class representing a signal file type"""
 
     HEADER_KEY = "HEADER"
 
