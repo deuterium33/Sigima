@@ -438,36 +438,36 @@ def create_2dstep_image(
 class RingParam(gds.DataSet):
     """Parameters for creating a ring image"""
 
-    size = gds.IntItem(_("Size"), default=1000)
-    ring_x0 = gds.IntItem(_("X<sub>center</sub>"), default=500)
-    ring_y0 = gds.IntItem(_("Y<sub>center</sub>"), default=500)
-    ring_width = gds.IntItem(_("Width"), default=10)
-    ring_radius = gds.IntItem(_("Radius"), default=250)
-    ring_intensity = gds.IntItem(_("Intensity"), default=1000)
+    image_size = gds.IntItem(_("Size"), default=1000)
+    xc = gds.IntItem(_("X<sub>center</sub>"), default=500)
+    yc = gds.IntItem(_("Y<sub>center</sub>"), default=500)
+    thickness = gds.IntItem(_("Thickness"), default=10)
+    radius = gds.IntItem(_("Radius"), default=250)
+    intensity = gds.IntItem(_("Intensity"), default=1000)
 
 
 def create_ring_data(
-    size: int, x0: int, y0: int, width: int, radius: int, intensity: int
+    image_size: int, xc: int, yc: int, thickness: int, radius: int, intensity: int
 ) -> np.ndarray:
     """Create 2D ring data
 
     Args:
-        size: Size of the image
-        x0: Center x coordinate
-        y0: Center y coordinate
-        width: Width of the ring
+        image_size: Size of the image
+        xc: Center x coordinate
+        yc: Center y coordinate
+        thickness: Thickness of the ring
         radius: Radius of the ring
         intensity: Intensity of the ring
 
     Returns:
         2D data
     """
-    data = np.zeros((size, size), dtype=np.uint16)
+    data = np.zeros((image_size, image_size), dtype=np.uint16)
     for x in range(data.shape[0]):
         for y in range(data.shape[1]):
-            if (x - x0) ** 2 + (y - y0) ** 2 >= (radius - width) ** 2 and (
-                x - x0
-            ) ** 2 + (y - y0) ** 2 <= (radius + width) ** 2:
+            if (x - xc) ** 2 + (y - yc) ** 2 >= (radius - thickness) ** 2 and (
+                x - xc
+            ) ** 2 + (y - yc) ** 2 <= (radius + thickness) ** 2:
                 data[x, y] = intensity
     return data
 
@@ -484,16 +484,16 @@ def create_ring_image(p: RingParam | None = None) -> ImageObj:
     if p is None:
         p = RingParam()
     obj = create_image(
-        f"Ring(size={p.size},x0={p.ring_x0},y0={p.ring_y0},width={p.ring_width},"
-        f"radius={p.ring_radius},intensity={p.ring_intensity})"
+        f"Ring(size={p.image_size},xc={p.xc},yc={p.yc},thickness={p.thickness},"
+        f"radius={p.radius},intensity={p.intensity})"
     )
     obj.data = create_ring_data(
-        p.size,
-        p.ring_x0,
-        p.ring_y0,
-        p.ring_width,
-        p.ring_radius,
-        p.ring_intensity,
+        p.image_size,
+        p.xc,
+        p.yc,
+        p.thickness,
+        p.radius,
+        p.intensity,
     )
     return obj
 

@@ -11,10 +11,12 @@ Testing enclsoing circle function on various test images.
 
 import pytest
 
+import sigima.tools.image as alg
 from sigima.config import _
-from sigima.tests.data import get_laser_spot_data
+from sigima.proc.image import enclosing_circle
+from sigima.tests.data import RingParam, create_ring_image, get_laser_spot_data
 from sigima.tests.env import execenv
-from sigima.tools.image import get_centroid_fourier, get_enclosing_circle
+from sigima.tests.helpers import check_scalar_result
 
 
 def __enclosingcircle_test(data):
@@ -28,7 +30,7 @@ def __enclosingcircle_test(data):
     items += [make.image(data, interpolation="nearest", eliminate_outliers=1.0)]
 
     # Computing centroid coordinates
-    row, col = get_centroid_fourier(data)
+    row, col = alg.get_centroid_fourier(data)
     label = _("Centroid") + " (%d, %d)"
     execenv.print(label % (row, col))
     cursor = make.xcursor(col, row, label=label)
@@ -36,7 +38,7 @@ def __enclosingcircle_test(data):
     cursor.set_movable(False)
     items.append(cursor)
 
-    x, y, radius = get_enclosing_circle(data)
+    x, y, radius = alg.get_enclosing_circle(data)
     circle = make.circle(x - radius, y - radius, x + radius, y + radius)
     circle.set_readonly(True)
     circle.set_resizable(False)
@@ -59,5 +61,30 @@ def test_enclosing_circle_interactive():
             __enclosingcircle_test(data)
 
 
+@pytest.mark.validation
+def test_image_enclosing_circle():
+    """Test enclosing circle on a ring image."""
+    p = RingParam.create(
+        image_size=200,
+        xc=100,
+        yc=100,
+        radius=30,
+        thickness=5,
+    )
+    # Create a ring image, so that the outer circle radius is radius + thickness:
+    obj = create_ring_image(p)
+    execenv.print("Testing enclosing circle on a ring image...")
+    x, y, r = alg.get_enclosing_circle(obj.data)
+    res = enclosing_circle(obj)
+    df = res.to_dataframe()
+    execenv.print(df)
+    assert x == df.x[0] and y == df.y[0] and r == df.r[0], (
+        f"Enclosing circle test failed: expected ({x}, {y}, {r}), "
+        f"got ({df.x[0]}, {df.y[0]}, {df.r[0]})"
+    )
+    check_scalar_result("Enclosing circle", r, p.radius + p.thickness, rtol=0.002)
+
+
 if __name__ == "__main__":
     test_enclosing_circle_interactive()
+    test_image_enclosing_circle()
