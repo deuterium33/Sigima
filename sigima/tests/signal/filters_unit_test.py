@@ -57,6 +57,8 @@ def build_clean_noisy_signals(
 @pytest.mark.validation
 def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
     """Validation test for frequency filtering."""
+    guiutils.set_current_request(request)
+
     clean, noisy = build_clean_noisy_signals()
 
     param = sigima_signal.LowPassFilterParam.create(
@@ -89,6 +91,8 @@ def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
 @pytest.mark.validation
 def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
     """Validation test for highpass frequency filtering."""
+    guiutils.set_current_request(request)
+
     noise_level = 0.2  # Set noise level for the test
     clean, noisy = build_clean_noisy_signals(noise_level=noise_level)
     param = sigima_signal.HighPassFilterParam.create(
@@ -121,6 +125,8 @@ def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
 @pytest.mark.validation
 def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
     """Validation test for stopband frequency filtering."""
+    guiutils.set_current_request(request)
+
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([1, 5]), noise_level=0)
 
@@ -152,6 +158,8 @@ def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
 @pytest.mark.validation
 def test_signal_bandpass(request: pytest.FixtureRequest | None = None) -> None:
     """Validation test for bandpass frequency filtering."""
+    guiutils.set_current_request(request)
+
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([3]), noise_level=0)
     param = sigima_signal.BandPassFilterParam.create(
@@ -241,9 +249,9 @@ def test_tools_to_proc_interface():
 
 
 if __name__ == "__main__":
-    test_signal_lowpass()
-    test_signal_highpass()
-    test_signal_stopband()
-    test_signal_bandpass()
+    test_signal_lowpass(request=guiutils.DummyRequest(gui=True))
+    test_signal_highpass(request=guiutils.DummyRequest(gui=True))
+    test_signal_stopband(request=guiutils.DummyRequest(gui=True))
+    test_signal_bandpass(request=guiutils.DummyRequest(gui=True))
     test_brickwall_filter_invalid_x()
     test_tools_to_proc_interface()
