@@ -309,10 +309,9 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
                 )
 
 
-def test_signal_spectrum(request: pytest.FixtureRequest | None = None) -> None:
+@pytest.mark.gui
+def test_signal_spectrum() -> None:
     """Test several FFT-related functions on `dynamic_parameters.txt`."""
-    guiutils.set_current_request(request)
-
     # pylint: disable=import-outside-toplevel
     from guidata.qthelpers import qt_app_context
 
@@ -337,4 +336,4 @@ if __name__ == "__main__":
     test_signal_magnitude_spectrum(request=guiutils.DummyRequest(gui=True))
     test_signal_phase_spectrum(request=guiutils.DummyRequest(gui=True))
     test_signal_psd(request=guiutils.DummyRequest(gui=True))
-    test_signal_spectrum(request=guiutils.DummyRequest(gui=True))
+    test_signal_spectrum()
