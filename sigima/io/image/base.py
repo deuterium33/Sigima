@@ -30,6 +30,13 @@ class ImageFormatBaseMeta(ImageIORegistry, abc.ABCMeta):
 
 
 class ImageFormatBase(abc.ABC, FormatBase, metaclass=ImageFormatBaseMeta):
+    """Base image format object.
+
+    This class is used to define the interface for image I/O formats.
+    It is an abstract base class that defines the methods that must be
+    implemented by any image format class.
+    """
+
     @abc.abstractmethod
     def read(
         self, filename: str, worker: CallbackWorkerProtocol | None = None
