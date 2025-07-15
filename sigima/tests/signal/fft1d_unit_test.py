@@ -293,11 +293,13 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
         param.decibel = decibel
         psd = sigima_signal.psd(s1, param)
 
-        # Check that the PSD is correct (Welch's method is used by default)
+        # Check that the PSD is correct.
         exp_x, exp_y = sps.welch(s1.y, fs=1.0 / (s1.x[1] - s1.x[0]))
-
         if decibel:
             exp_y = 10 * np.log10(exp_y)
+
+        fpk1 = psd.x[np.argmax(psd.y)]
+        check_scalar_result("Frequency of the maximum", fpk1, freq, rtol=2e-2)
 
         check_array_result(f"Cosine signal PSD X (db={decibel})", psd.x, exp_x)
         check_array_result(f"Cosine signal PSD Y (db={decibel})", psd.y, exp_y)
