@@ -93,14 +93,14 @@ Detection
 .. automodule:: sigima.proc.image.detection
     :members:
 
-Utilities
-^^^^^^^^^
+Decorators and utilities
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 This package also provides some utility functions to help with the creation and
 introspection of computation functions:
 
-.. autofunction:: sigima.proc.computation_function
-.. autofunction:: sigima.proc.is_computation_function
-.. autofunction:: sigima.proc.get_computation_metadata
-.. autofunction:: sigima.proc.find_computation_functions
+.. autofunction:: sigima.proc.decorator.computation_function
+.. autofunction:: sigima.proc.decorator.is_computation_function
+.. autofunction:: sigima.proc.decorator.get_computation_metadata
+.. autofunction:: sigima.proc.decorator.find_computation_functions
 """
