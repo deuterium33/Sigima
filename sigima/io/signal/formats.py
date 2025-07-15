@@ -44,10 +44,18 @@ class HDF5SignalFormat(SignalFormatBase):
             List of signal objects
         """
         reader = HDF5Reader(filename)
-        with reader.group(self.GROUP_NAME):
-            obj = SignalObj()
-            obj.deserialize(reader)
-        reader.close()
+        try:
+            with reader.group(self.GROUP_NAME):
+                obj = SignalObj()
+                obj.deserialize(reader)
+        except ValueError as exc:
+            raise ValueError("No valid signal data found") from exc
+        except Exception as exc:  # pylint: disable=broad-except
+            raise RuntimeError(
+                f"Unexpected error reading HDF5 signal from {filename}"
+            ) from exc
+        finally:
+            reader.close()
         return [obj]
 
     def write(self, filename: str, obj: SignalObj) -> None:

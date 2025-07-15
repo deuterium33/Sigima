@@ -54,10 +54,18 @@ class HDF5ImageFormat(ImageFormatBase):
             List of image objects
         """
         reader = HDF5Reader(filename)
-        with reader.group(self.GROUP_NAME):
-            obj = ImageObj()
-            obj.deserialize(reader)
-        reader.close()
+        try:
+            with reader.group(self.GROUP_NAME):
+                obj = ImageObj()
+                obj.deserialize(reader)
+        except ValueError as exc:
+            raise ValueError("No valid image data found") from exc
+        except Exception as exc:  # pylint: disable=broad-except
+            raise RuntimeError(
+                f"Unexpected error reading HDF5 image from {filename}"
+            ) from exc
+        finally:
+            reader.close()
         return [obj]
 
     def write(self, filename: str, obj: ImageObj) -> None:
