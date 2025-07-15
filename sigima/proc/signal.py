@@ -1181,7 +1181,8 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
 
     dst = dst_1_to_1(src, "zero_padding", suffix)
     x, y = src.get_data()
-    dst.set_xydata(*fourier.zero_padding(x, y, n_prepend, n_append))
+    x_padded, y_padded = fourier.zero_padding(x, y, n_prepend, n_append)
+    dst.set_xydata(x_padded, y_padded)
 
     return dst
 
@@ -1199,7 +1200,8 @@ def fft(src: SignalObj, p: FFTParam | None = None) -> SignalObj:
     """
     dst = dst_1_to_1(src, "fft")
     x, y = src.get_data()
-    dst.set_xydata(*fourier.fft1d(x, y, shift=True if p is None else p.shift))
+    fft_x, fft_y = fourier.fft1d(x, y, shift=True if p is None else p.shift)
+    dst.set_xydata(fft_x, fft_y)
     dst.save_attr_to_metadata("xunit", "Hz" if dst.xunit == "s" else "")
     dst.save_attr_to_metadata("yunit", "")
     dst.save_attr_to_metadata("xlabel", _("Frequency"))
@@ -1217,8 +1219,9 @@ def ifft(src: SignalObj) -> SignalObj:
         Result signal object.
     """
     dst = dst_1_to_1(src, "ifft")
-    x, y = src.get_data()
-    dst.set_xydata(*fourier.ifft1d(x, y))
+    f, sp = src.get_data()
+    x, y = fourier.ifft1d(f, sp)
+    dst.set_xydata(x, y)
     dst.restore_attr_from_metadata("xunit", "s" if src.xunit == "Hz" else "")
     dst.restore_attr_from_metadata("yunit", "")
     dst.restore_attr_from_metadata("xlabel", "")
@@ -1240,7 +1243,8 @@ def magnitude_spectrum(src: SignalObj, p: SpectrumParam | None = None) -> Signal
     log_scale = p is not None and p.log
     dst = dst_1_to_1(src, "magnitude_spectrum", f"log={log_scale}")
     x, y = src.get_data()
-    dst.set_xydata(*fourier.magnitude_spectrum(x, y, log_scale=log_scale))
+    mag_x, mag_y = fourier.magnitude_spectrum(x, y, log_scale=log_scale)
+    dst.set_xydata(mag_x, mag_y)
     dst.xlabel = _("Frequency")
     dst.xunit = "Hz" if dst.xunit == "s" else ""
     dst.yunit = "dB" if log_scale else ""
@@ -1260,7 +1264,8 @@ def phase_spectrum(src: SignalObj) -> SignalObj:
     """
     dst = dst_1_to_1(src, "phase_spectrum")
     x, y = src.get_data()
-    dst.set_xydata(*fourier.phase_spectrum(x, y))
+    phase_x, phase_y = fourier.phase_spectrum(x, y)
+    dst.set_xydata(phase_x, phase_y)
     dst.xlabel = _("Frequency")
     dst.xunit = "Hz" if dst.xunit == "s" else ""
     dst.yunit = ""
