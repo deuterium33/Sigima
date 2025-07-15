@@ -1288,7 +1288,7 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
     dst = dst_1_to_1(src, "psd", f"db={decibel}")
     x, y = src.get_data()
     psd_x, psd_y = fourier.psd(x, y, decibel=decibel)
-    dst.xydata = np.vstack((psd_x, psd_y))
+    dst.set_xydata(psd_x, psd_y)
     dst.xlabel = _("Frequency")
     dst.xunit = "Hz" if dst.xunit == "s" else ""
     dst.yunit = "dB/Hz" if decibel else ""
