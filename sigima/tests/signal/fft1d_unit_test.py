@@ -16,6 +16,7 @@ import sigima.params
 import sigima.proc.signal as sigima_signal
 import sigima.tests.data as ctd
 from sigima.tests import guiutils
+from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result, check_scalar_result
 from sigima.tools.signal import fourier
@@ -315,6 +316,27 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
                 )
 
 
+def test_signal_spectrum(request: pytest.FixtureRequest | None = None) -> None:
+    """Test several FFT-related functions on `dynamic_parameters.txt`."""
+    guiutils.set_current_request(request)
+
+    # pylint: disable=import-outside-toplevel
+    from guidata.qthelpers import qt_app_context
+
+    from sigima.tests.vistools import view_curves
+
+    with qt_app_context():
+        sig = get_test_signal("dynamic_parameters.txt")
+        view_curves([sig])
+        p = sigima.params.SpectrumParam.create(decibel=True)
+        ms = sigima_signal.magnitude_spectrum(sig, p)
+        view_curves([ms], title="Magnitude spectrum")
+        ps = sigima_signal.phase_spectrum(sig)
+        view_curves([ps], title="Phase spectrum")
+        psd = sigima_signal.psd(sig, p)
+        view_curves([psd], title="Power spectral density")
+
+
 if __name__ == "__main__":
     test_signal_zero_padding()
     test_signal_fft()
@@ -322,3 +344,4 @@ if __name__ == "__main__":
     test_signal_magnitude_spectrum(request=guiutils.DummyRequest(gui=True))
     test_signal_phase_spectrum(request=guiutils.DummyRequest(gui=True))
     test_signal_psd(request=guiutils.DummyRequest(gui=True))
+    test_signal_spectrum(request=guiutils.DummyRequest(gui=True))
