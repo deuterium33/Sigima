@@ -88,8 +88,7 @@ class FTLabSignalFile:
     """FT-Lab signal file."""
 
     def __init__(self, file_path: str) -> None:
-        """
-        Initialize an FTLabSignalFile object.
+        """Initialize an FTLabSignalFile object.
 
         Args:
             file_path: Path to the FT-Lab signal file (.sig).
@@ -130,7 +129,6 @@ class FTLabSignalFile:
             start: Start of the x range.
             step: Step size for the x range.
         """
-
         self.x = np.linspace(start, start + (n - 1) * step, n)
         self.y = np.fromfile(fid, dtype="<d", count=n)
         if self.y.size != n:
@@ -180,8 +178,7 @@ class FTLabSignalFile:
         self.y = data[1::3] + 1j * data[2::3]
 
     def read_data(self) -> np.ndarray:
-        """
-        Read the FT-Lab signal file, populate data and metadata.
+        """Read the FT-Lab signal file, populate data and metadata.
 
         This method reads the signal data from the file, checking the header and
         determining the signal type. It supports various signal formats.
