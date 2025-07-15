@@ -114,7 +114,7 @@ def test_signal_fft() -> None:
     freq = 50.0
     size = 10000
 
-    # See note in the interactive test above
+    # See note in function `test_signal_ifft` below.
     xmin = 0.0
 
     s1 = ctd.create_periodic_signal(
@@ -123,31 +123,9 @@ def test_signal_fft() -> None:
     fft = sigima_signal.fft(s1)
     ifft = sigima_signal.ifft(fft)
 
-    # Check that the inverse FFT reconstructs the original signal
-    check_array_result("Cosine signal FFT/iFFT X reconstruction", s1.y, ifft.y.real)
-    check_array_result("Cosine signal FFT/iFFT Y reconstruction", s1.x, ifft.x.real)
-
-    # Check FFT properties
-    mag = np.abs(fft.y)
-
-    # Find the peak in the FFT
-    ipk1, ipk2 = np.argmax(mag[: size // 2]), np.argmax(mag[size // 2 :]) + size // 2
-    fpk1, fpk2 = fft.x[ipk1], fft.x[ipk2]
-
-    # Verify the peak frequencies are correct
-    check_scalar_result("Cosine negative frequency", fpk1, -freq, rtol=0.001)
-    check_scalar_result("Cosine positive frequency", fpk2, freq, rtol=0.001)
-
-    # Verify the magnitude at the peak
-    exp_mag = size / 2
-    check_scalar_result("Cosine peak magnitude", mag[ipk1], exp_mag, rtol=0.05)
-
-    # Verify the symmetry of the FFT
-    check_array_result(
-        "FFT symmetry",
-        mag[1 : size // 2],
-        mag[1 + size // 2 :][::-1],
-    )
+    # Check that the inverse FFT reconstructs the original signal.
+    check_array_result("Original and recovered x data", s1.y, ifft.y.real)
+    check_array_result("Original and recovered y data", s1.x, ifft.x.real)
 
 
 @pytest.mark.validation
@@ -217,10 +195,24 @@ def test_signal_magnitude_spectrum(
     )
     fft = sigima_signal.fft(s1)
     mag = sigima_signal.magnitude_spectrum(s1)
-    fpk1 = fft.x[np.argmax(mag.y[: size // 2])]
-    check_scalar_result("Cosine negative frequency", fpk1, -freq, rtol=0.001)
 
-    # Check that the magnitude spectrum is correct
+    # Check that the peak frequencies are correct.
+    ipk1 = np.argmax(mag.y[: size // 2])
+    ipk2 = np.argmax(mag.y[size // 2 :]) + size // 2
+    fpk1 = fft.x[ipk1]
+    fpk2 = fft.x[ipk2]
+    check_scalar_result("Frequency of the first peak", fpk1, -freq, rtol=1e-4)
+    check_scalar_result("Frequency of the second peak", fpk2, freq, rtol=1e-4)
+
+    # Check that magnitude spectrum is symmetric.
+    check_array_result("Symmetry of magnitude spectrum", mag.y[1::], mag.y[-1:0:-1])
+
+    # Check the magnitude of the peaks.
+    exp_mag = size / 2
+    check_scalar_result("Magnitude of the first peak", mag.y[ipk1], exp_mag, rtol=0.05)
+    check_scalar_result("Magnitude of the second peak", mag.y[ipk2], exp_mag, rtol=0.05)
+
+    # Check that the magnitude spectrum is correct.
     check_array_result("Cosine signal magnitude spectrum X", mag.x, fft.x.real)
     check_array_result("Cosine signal magnitude spectrum Y", mag.y, np.abs(fft.y))
 
