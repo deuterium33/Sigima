@@ -1240,14 +1240,14 @@ def magnitude_spectrum(src: SignalObj, p: SpectrumParam | None = None) -> Signal
     Returns:
         Result signal object
     """
-    log_scale = p is not None and p.log
-    dst = dst_1_to_1(src, "magnitude_spectrum", f"log={log_scale}")
+    decibel = p is not None and p.decibel
+    dst = dst_1_to_1(src, "magnitude_spectrum", f"db={decibel}")
     x, y = src.get_data()
-    mag_x, mag_y = fourier.magnitude_spectrum(x, y, log_scale=log_scale)
+    mag_x, mag_y = fourier.magnitude_spectrum(x, y, decibel=decibel)
     dst.set_xydata(mag_x, mag_y)
     dst.xlabel = _("Frequency")
     dst.xunit = "Hz" if dst.xunit == "s" else ""
-    dst.yunit = "dB" if log_scale else ""
+    dst.yunit = "dB" if decibel else ""
     return dst
 
 
@@ -1284,14 +1284,14 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
     Returns:
         Result signal object
     """
-    log_scale = p is not None and p.log
-    dst = dst_1_to_1(src, "psd", f"log={log_scale}")
+    decibel = p is not None and p.decibel
+    dst = dst_1_to_1(src, "psd", f"db={decibel}")
     x, y = src.get_data()
-    psd_x, psd_y = fourier.psd(x, y, log_scale=log_scale)
+    psd_x, psd_y = fourier.psd(x, y, decibel=decibel)
     dst.xydata = np.vstack((psd_x, psd_y))
     dst.xlabel = _("Frequency")
     dst.xunit = "Hz" if dst.xunit == "s" else ""
-    dst.yunit = "dB/Hz" if log_scale else ""
+    dst.yunit = "dB/Hz" if decibel else ""
     return dst
 
 

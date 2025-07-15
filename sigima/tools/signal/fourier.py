@@ -113,24 +113,23 @@ def ifft1d(
 
 @check_1d_arrays(x_evenly_spaced=True)
 def magnitude_spectrum(
-    x: np.ndarray, y: np.ndarray, log_scale: bool = False
+    x: np.ndarray, y: np.ndarray, decibel: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
     """Compute magnitude spectrum.
 
     Args:
-        x: X data
-        y: Y data
-        log_scale: Use log scale. Defaults to False.
+        x: X data.
+        y: Y data.
+        decibel: Compute the magnitude spectrum root-power level in decibel (dB).
 
     Returns:
-        Magnitude spectrum (X data, Y data)
+        Tuple (f, mag_spectrum): Frequency values and magnitude spectrum.
     """
-    x1, y1 = fft1d(x, y)
-    if log_scale:
-        y_mag = 20 * np.log10(np.abs(y1))
-    else:
-        y_mag = np.abs(y1)
-    return x1, y_mag
+    f, spectrum = fft1d(x, y)
+    mag_spectrum = np.abs(spectrum)
+    if decibel:
+        mag_spectrum = 20 * np.log10(mag_spectrum)
+    return f, mag_spectrum
 
 
 @check_1d_arrays(x_evenly_spaced=True)
@@ -138,35 +137,35 @@ def phase_spectrum(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray
     """Compute phase spectrum.
 
     Args:
-        x: X data
-        y: Y data
+        x: X data.
+        y: Y data.
 
     Returns:
-        Phase spectrum in degrees (X data, Y data)
+        Tuple (f, phase): Frequency values and phase spectrum in degrees.
     """
-    x1, y1 = fft1d(x, y)
-    y_phase = np.rad2deg(np.angle(y1))
-    return x1, y_phase
+    f, spectrum = fft1d(x, y)
+    phase = np.rad2deg(np.angle(spectrum))
+    return f, phase
 
 
 @check_1d_arrays(x_evenly_spaced=True)
 def psd(
-    x: np.ndarray, y: np.ndarray, log_scale: bool = False
+    x: np.ndarray, y: np.ndarray, decibel: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Compute Power Spectral Density (PSD), using the Welch method.
+    """Estimate the Power Spectral Density (PSD) using Welch's method.
 
     Args:
-        x: X data
-        y: Y data
-        log_scale: Use log scale. Defaults to False.
+        x: X data.
+        y: Y data.
+        decibel: Compute the power spectral density power level in decibel (dB).
 
     Returns:
-        Power Spectral Density (PSD): X data, Y data (tuple)
+        Tuple (f, welch_psd): Frequency values and PSD.
     """
-    x1, y1 = scipy.signal.welch(y, fs=sampling_rate(x))
-    if log_scale:
-        y1 = 10 * np.log10(y1)
-    return x1, y1
+    f, welch_psd = scipy.signal.welch(y, fs=sampling_rate(x))
+    if decibel:
+        welch_psd = 10 * np.log10(welch_psd)
+    return f, welch_psd
 
 
 @check_1d_arrays(x_evenly_spaced=True)

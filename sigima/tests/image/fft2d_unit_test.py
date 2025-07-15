@@ -147,8 +147,8 @@ def test_image_magnitude_spectrum() -> None:
     ima1 = ctd.create_checkerboard()
     fft = sigima_image.fft(ima1)
     param = sigima.params.SpectrumParam()
-    for log_scale in (True, False):
-        param.log = log_scale
+    for decibel in (True, False):
+        param.decibel = decibel
         mag = sigima_image.magnitude_spectrum(ima1, param)
 
     # Check that the magnitude spectrum is correct
@@ -173,8 +173,8 @@ def test_image_psd() -> None:
     """2D Power Spectral Density validation test."""
     ima1 = ctd.create_checkerboard()
     param = sigima.params.SpectrumParam()
-    for log_scale in (True, False):
-        param.log = log_scale
+    for decibel in (True, False):
+        param.decibel = decibel
         psd = sigima_image.psd(ima1, param)
 
     # Check that the PSD is correct

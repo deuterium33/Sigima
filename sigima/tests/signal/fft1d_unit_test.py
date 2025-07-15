@@ -250,18 +250,18 @@ def test_signal_psd() -> None:
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
     param = sigima.params.SpectrumParam()
-    for log_scale in (False, True):
-        param.log = log_scale
+    for decibel in (False, True):
+        param.decibel = decibel
         psd = sigima_signal.psd(s1, param)
 
         # Check that the PSD is correct (Welch's method is used by default)
         exp_x, exp_y = sps.welch(s1.y, fs=1.0 / (s1.x[1] - s1.x[0]))
 
-        if log_scale:
+        if decibel:
             exp_y = 10 * np.log10(exp_y)
 
-        check_array_result(f"Cosine signal PSD X (log={log_scale})", psd.x, exp_x)
-        check_array_result(f"Cosine signal PSD Y (log={log_scale})", psd.y, exp_y)
+        check_array_result(f"Cosine signal PSD X (db={decibel})", psd.x, exp_x)
+        check_array_result(f"Cosine signal PSD Y (db={decibel})", psd.y, exp_y)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ def test_signal_magnitude_spectrum_interactive() -> None:
     with qt_app_context():
         obj = get_test_signal("dynamic_parameters.txt")
         x, y = obj.xydata
-        xms, yms = magnitude_spectrum(x, y, log_scale=True)
+        xms, yms = magnitude_spectrum(x, y, decibel=True)
         view_curves(
             [(xms, yms)],
             title="Magnitude spectrum",
@@ -66,7 +66,7 @@ def test_signal_psd_interactive() -> None:
     with qt_app_context():
         obj = get_test_signal("dynamic_parameters.txt")
         x, y = obj.xydata
-        xpsd, ypsd = psd(x, y, log_scale=True)
+        xpsd, ypsd = psd(x, y, decibel=True)
         view_curves(
             [(xpsd, ypsd)],
             title="Power spectral density",

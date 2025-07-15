@@ -162,9 +162,9 @@ class FFTParam(gds.DataSet):
 
 
 class SpectrumParam(gds.DataSet):
-    """Spectrum parameters"""
+    """Spectrum parameters."""
 
-    log = gds.BoolItem(_("Logarithmic scale"), default=False)
+    decibel = gds.BoolItem(_("Decibel"), default=False)
 
 
 class ConstantParam(gds.DataSet):
