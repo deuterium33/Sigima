@@ -115,28 +115,46 @@ def test_not_sorted():
 
 
 @check_1d_arrays(x_evenly_spaced=True, rtol=1e-2)
-def tolerant_spacing(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Dummy function accepting nearly-evenly spaced x."""
+def add_arrays_with_tolerant_spacing(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Dummy function accepting nearly-evenly spaced x.
+
+    Args:
+        x: 1-D array of floats.
+        y: 1-D array of floats.
+
+    Returns:
+        Result of the operation.
+    """
+    return x + y
+
+
+@check_1d_arrays(x_evenly_spaced=True)
+def add_arrays_without_tolerance(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Dummy function for evenly spaced x.
+
+    Args:
+        x: 1-D array of floats.
+        y: 1-D array of floats.
+
+    Returns:
+        Result of the operation.
+    """
     return x + y
 
 
 def test_tolerant_spacing():
     """Test x array that is almost evenly spaced with relaxed tolerance."""
-    # L'espacement varie légèrement (0.01 d'écart max)
+    # The spacing varies slightly (1 +/- 0.01)
     x = np.array([0.0, 1.0, 2.01], dtype=float)
     y = np.array([1.0, 1.0, 1.0], dtype=float)
 
-    # Devrait passer avec rtol=1e-2
-    result = tolerant_spacing(x, y)
+    # Should pass with rtol=1e-2
+    result = add_arrays_with_tolerant_spacing(x, y)
     np.testing.assert_array_equal(result, x + y)
 
-    # Devrait échouer avec décorateur par défaut (rtol=1e-5)
-    @check_1d_arrays(x_evenly_spaced=True)
-    def strict_spacing(x, y):
-        return x + y
-
+    # Should fail with decorator's default value (rtol=1e-5)
     with pytest.raises(ValueError, match="x must be evenly spaced."):
-        strict_spacing(x, y)
+        add_arrays_without_tolerance(x, y)
 
 
 if __name__ == "__main__":
