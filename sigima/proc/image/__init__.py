@@ -82,7 +82,7 @@ from sigima.proc.image.exposure import (
     EqualizeHistParam,
     FlatFieldParam,
     RescaleIntensityParam,
-    ZCalibrateParam,
+    XYZCalibrateParam,
     adjust_gamma,
     adjust_log,
     adjust_sigmoid,

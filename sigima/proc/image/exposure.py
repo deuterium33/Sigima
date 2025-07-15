@@ -346,15 +346,17 @@ def histogram(src: ImageObj, p: HistogramParam) -> SignalObj:
     return dst
 
 
-class ZCalibrateParam(gds.DataSet):
+class XYZCalibrateParam(gds.DataSet):
     """Image linear calibration parameters"""
 
+    axes = (("x", _("X-axis")), ("y", _("Y-axis")), ("z", _("Z-axis")))
+    axis = gds.ChoiceItem(_("Calibrate"), axes, default="z")
     a = gds.FloatItem("a", default=1.0)
     b = gds.FloatItem("b", default=0.0)
 
 
 @computation_function()
-def calibration(src: ImageObj, p: ZCalibrateParam) -> ImageObj:
+def calibration(src: ImageObj, p: XYZCalibrateParam) -> ImageObj:
     """Compute linear calibration
 
     Args:
@@ -364,9 +366,20 @@ def calibration(src: ImageObj, p: ZCalibrateParam) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = dst_1_to_1(src, "calibration", f"z={p.a}*z+{p.b}")
-    dst.data = p.a * src.data + p.b
-    restore_data_outside_roi(dst, src)
+    dst = dst_1_to_1(src, "calibration", f"{p.axis}={p.a}*{p.axis}+{p.b}")
+    if p.axis == "z":
+        dst.data = p.a * src.data + p.b
+        restore_data_outside_roi(dst, src)
+    elif p.axis == "x":
+        # Adjust X-axis via the `x0` origin and `dx` step attributes:
+        dst.x0 = p.a * src.x0 + p.b
+        dst.dx = p.a * src.dx
+    elif p.axis == "y":
+        # Adjust Y-axis via the `y0` origin and `dy` step attributes:
+        dst.y0 = p.a * src.y0 + p.b
+        dst.dy = p.a * src.dy
+    else:  # Should not happen
+        raise ValueError(f"Unknown axis: {p.axis}")  # pragma: no cover
     return dst
 
 

@@ -144,7 +144,7 @@ Base image parameters
     :no-index:
 .. autodataset:: sigima.params.SegmentProfileParam
     :no-index:
-.. autodataset:: sigima.params.ZCalibrateParam
+.. autodataset:: sigima.params.XYZCalibrateParam
     :no-index:
 .. autodataset:: sigima.params.ZeroPadding2DParam
     :no-index:
@@ -269,7 +269,7 @@ from sigima.proc.image import (
     EqualizeHistParam,
     FlatFieldParam,
     RescaleIntensityParam,
-    ZCalibrateParam,
+    XYZCalibrateParam,
 )
 from sigima.proc.image import (
     AverageProfileParam,

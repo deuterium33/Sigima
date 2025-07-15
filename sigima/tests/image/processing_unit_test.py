@@ -57,19 +57,33 @@ from sigima.tests.helpers import check_array_result, check_scalar_result
 def test_image_calibration() -> None:
     """Validation test for the image calibration processing."""
     src = get_test_image("flower.npy")
-    p = sigima.params.ZCalibrateParam()
-
-    # Test with a = 1 and b = 0: should do nothing
-    p.a, p.b = 1.0, 0.0
-    dst = sigima_image.calibration(src, p)
-    exp = np.array(src.data, dtype=float)
-    check_array_result("Calibration[identity]", dst.data, exp)
-
-    # Testing with random values of a and b
-    p.a, p.b = 0.5, 0.1
-    exp = p.a * src.data + p.b
-    dst = sigima_image.calibration(src, p)
-    check_array_result(f"Calibration[a={p.a},b={p.b}]", dst.data, exp)
+    p = sigima.params.XYZCalibrateParam()
+    for axis in ("x", "y", "z"):
+        for a, b in ((1.0, 0.0), (0.5, 0.1)):
+            p.axis = axis
+            p.a, p.b = a, b
+            dst = sigima_image.calibration(src, p)
+            exp = src.copy("expected")
+            if p.a == 1.0 and p.b == 0.0:
+                suffix = "identity"
+                # Identity, do nothing except convert data to float for Z-axis case
+                if axis == "z":
+                    exp.data = np.array(src.data, dtype=float)
+            else:
+                suffix = f"a={p.a},b={p.b}"
+                if axis in ("x", "y"):
+                    setattr(exp, f"{axis}0", getattr(src, f"{axis}0") * p.a + p.b)
+                    setattr(exp, f"d{axis}", getattr(src, f"d{axis}") * p.a)
+                else:
+                    exp.data = p.a * src.data + p.b
+            title = f"Calibration[{axis},{suffix}]"
+            if axis in ("x", "y"):
+                x0n, dxn = f"{axis}0", f"d{axis}"
+                res_x0n, exp_x0n = getattr(dst, x0n), getattr(exp, x0n)
+                res_dxn, exp_dxn = getattr(dst, dxn), getattr(exp, dxn)
+                check_scalar_result(f"{title}|{x0n}", res_x0n, exp_x0n)
+                check_scalar_result(f"{title}|{dxn}", res_dxn, exp_dxn)
+            check_array_result(title, dst.data, exp.data)
 
 
 @pytest.mark.validation
