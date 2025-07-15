@@ -1189,18 +1189,18 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
 
 @computation_function()
 def fft(src: SignalObj, p: FFTParam | None = None) -> SignalObj:
-    """Compute FFT with :py:func:`sigima.tools.signal.fourier.fft1d`
+    """Compute FFT with :py:func:`sigima.tools.signal.fourier.fft1d`.
 
     Args:
-        src: source signal
-        p: parameters
+        src: Source signal.
+        p: Parameters.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     dst = dst_1_to_1(src, "fft")
     x, y = src.get_data()
-    fft_x, fft_y = fourier.fft1d(x, y, shift=True if p is None else p.shift)
+    fft_x, fft_y = fourier.fft1d(x, y, shift=bool(True if p is None else p.shift))
     dst.set_xydata(fft_x, fft_y)
     dst.save_attr_to_metadata("xunit", "Hz" if dst.xunit == "s" else "")
     dst.save_attr_to_metadata("yunit", "")
@@ -1230,15 +1230,17 @@ def ifft(src: SignalObj) -> SignalObj:
 
 @computation_function()
 def magnitude_spectrum(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
-    """Compute magnitude spectrum
-    with :py:func:`sigima.tools.signal.fourier.magnitude_spectrum`
+    """Compute magnitude spectrum.
+
+    This function computes the magnitude spectrum of a signal using
+    :py:func:`sigima.tools.signal.fourier.magnitude_spectrum`.
 
     Args:
-        src: source signal
-        p: parameters
+        src: Source signal.
+        p: Parameters.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     decibel = bool(p is not None and p.decibel)
     dst = dst_1_to_1(src, "magnitude_spectrum", f"db={decibel}")
@@ -1253,14 +1255,16 @@ def magnitude_spectrum(src: SignalObj, p: SpectrumParam | None = None) -> Signal
 
 @computation_function()
 def phase_spectrum(src: SignalObj) -> SignalObj:
-    """Compute phase spectrum
-    with :py:func:`sigima.tools.signal.fourier.phase_spectrum`
+    """Compute phase spectrum.
+
+    This function computes the phase spectrum of a signal using
+    :py:func:`sigima.tools.signal.fourier.phase_spectrum`
 
     Args:
-        src: source signal
+        src: Source signal.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     dst = dst_1_to_1(src, "phase_spectrum")
     x, y = src.get_data()
@@ -1274,17 +1278,16 @@ def phase_spectrum(src: SignalObj) -> SignalObj:
 
 @computation_function()
 def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
-    """Compute power spectral density
-    with :py:func:`sigima.tools.signal.fourier.psd`
+    """Compute power spectral density with :py:func:`sigima.tools.signal.fourier.psd`.
 
     Args:
-        src: source signal
-        p: parameters
+        src: Source signal.
+        p: Parameters.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
-    decibel = bool(p is not None and p.decibel)
+    decibel = p is not None and p.decibel
     dst = dst_1_to_1(src, "psd", f"db={decibel}")
     x, y = src.get_data()
     psd_x, psd_y = fourier.psd(x, y, decibel=decibel)
