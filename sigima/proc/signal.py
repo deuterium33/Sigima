@@ -1243,7 +1243,7 @@ def magnitude_spectrum(src: SignalObj, p: SpectrumParam | None = None) -> Signal
         Result signal object.
     """
     decibel = bool(p is not None and p.decibel)
-    dst = dst_1_to_1(src, "magnitude_spectrum", f"db={decibel}")
+    dst = dst_1_to_1(src, "magnitude_spectrum", f"dB={decibel}")
     x, y = src.get_data()
     mag_x, mag_y = fourier.magnitude_spectrum(x, y, decibel=decibel)
     dst.set_xydata(mag_x, mag_y)
@@ -1288,7 +1288,7 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
         Result signal object.
     """
     decibel = p is not None and p.decibel
-    dst = dst_1_to_1(src, "psd", f"db={decibel}")
+    dst = dst_1_to_1(src, "psd", f"dB={decibel}")
     x, y = src.get_data()
     psd_x, psd_y = fourier.psd(x, y, decibel=decibel)
     dst.set_xydata(psd_x, psd_y)

@@ -292,8 +292,8 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
         fpk1 = psd.x[np.argmax(psd.y)]
         check_scalar_result("Frequency of the maximum", fpk1, freq, rtol=2e-2)
 
-        check_array_result(f"Cosine signal PSD X (db={decibel})", psd.x, exp_x)
-        check_array_result(f"Cosine signal PSD Y (db={decibel})", psd.y, exp_y)
+        check_array_result(f"Cosine signal PSD X (dB={decibel})", psd.x, exp_x)
+        check_array_result(f"Cosine signal PSD Y (dB={decibel})", psd.y, exp_y)
 
         if guiutils.is_gui_enabled():
             # pylint: disable=import-outside-toplevel
