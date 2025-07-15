@@ -79,7 +79,12 @@ def get_validation_tests(package: str) -> list:
                 for mark in obj.pytestmark:
                     if isinstance(mark, Mark) and mark.name == "validation":
                         module_path = inspect.getfile(obj)
-                        line_number = inspect.getsourcelines(obj)[1]
+                        try:
+                            line_number = inspect.getsourcelines(obj)[1]
+                        except OSError as exc:
+                            raise RuntimeError(
+                                f"Failed to get source line for {name} in {module_name}"
+                            ) from exc
                         validation_tests.append((name, module_path, line_number))
     return validation_tests
 
