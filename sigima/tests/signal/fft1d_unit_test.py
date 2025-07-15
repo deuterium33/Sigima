@@ -202,8 +202,12 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
 
 
 @pytest.mark.validation
-def test_signal_magnitude_spectrum() -> None:
+def test_signal_magnitude_spectrum(
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """1D magnitude spectrum validation test."""
+    guiutils.set_current_request(request)
+
     freq = 50.0
     size = 10000
 
@@ -219,10 +223,27 @@ def test_signal_magnitude_spectrum() -> None:
     check_array_result("Cosine signal magnitude spectrum X", mag.x, fft.x.real)
     check_array_result("Cosine signal magnitude spectrum Y", mag.y, np.abs(fft.y))
 
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_curves
+
+        with qt_app_context():
+            view_curves(
+                [
+                    sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
+                    sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
+                    sigima.objects.create_signal("FFT-magnitude", mag.x.real, mag.y),
+                ]
+            )
+
 
 @pytest.mark.validation
-def test_signal_phase_spectrum() -> None:
+def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> None:
     """1D phase spectrum validation test."""
+    guiutils.set_current_request(request)
+
     freq = 50.0
     size = 10000
 
@@ -239,10 +260,27 @@ def test_signal_phase_spectrum() -> None:
     exp_phase = np.rad2deg(np.angle(fft.y))
     check_array_result("Cosine signal phase spectrum Y", phase.y, exp_phase)
 
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_curves
+
+        with qt_app_context():
+            view_curves(
+                [
+                    sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
+                    sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
+                    sigima.objects.create_signal("Phase", phase.x.real, phase.y),
+                ]
+            )
+
 
 @pytest.mark.validation
-def test_signal_psd() -> None:
+def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
     """1D Power Spectral Density validation test."""
+    guiutils.set_current_request(request)
+
     freq = 50.0
     size = 10000
 
@@ -263,11 +301,24 @@ def test_signal_psd() -> None:
         check_array_result(f"Cosine signal PSD X (db={decibel})", psd.x, exp_x)
         check_array_result(f"Cosine signal PSD Y (db={decibel})", psd.y, exp_y)
 
+        if guiutils.is_gui_enabled():
+            # pylint: disable=import-outside-toplevel
+            from guidata.qthelpers import qt_app_context
+
+            from sigima.tests.vistools import view_curves
+
+            with qt_app_context():
+                view_curves(
+                    [
+                        sigima.objects.create_signal("PSD", psd.x, psd.y),
+                    ]
+                )
+
 
 if __name__ == "__main__":
     test_signal_zero_padding()
     test_signal_fft()
     test_signal_ifft(request=guiutils.DummyRequest(gui=True))
-    test_signal_magnitude_spectrum()
-    test_signal_phase_spectrum()
-    test_signal_psd()
+    test_signal_magnitude_spectrum(request=guiutils.DummyRequest(gui=True))
+    test_signal_phase_spectrum(request=guiutils.DummyRequest(gui=True))
+    test_signal_psd(request=guiutils.DummyRequest(gui=True))
