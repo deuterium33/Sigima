@@ -163,7 +163,7 @@ def magnitude_spectrum(src: ImageObj, p: SpectrumParam | None = None) -> ImageOb
         Output image object
     """
     decibel = p is not None and p.decibel
-    dst = dst_1_to_1(src, "magnitude_spectrum", f"db={decibel}")
+    dst = dst_1_to_1(src, "magnitude_spectrum", f"dB={decibel}")
     dst.data = alg.magnitude_spectrum(src.data, log_scale=decibel)
     dst.xunit = dst.yunit = dst.zunit = ""
     dst.xlabel = dst.ylabel = _("Frequency")
@@ -200,7 +200,7 @@ def psd(src: ImageObj, p: SpectrumParam | None = None) -> ImageObj:
         Output image object
     """
     decibel = p is not None and p.decibel
-    dst = dst_1_to_1(src, "psd", f"db={decibel}")
+    dst = dst_1_to_1(src, "psd", f"dB={decibel}")
     dst.data = alg.psd(src.data, log_scale=decibel)
     dst.xunit = dst.yunit = dst.zunit = ""
     dst.xlabel = dst.ylabel = _("Frequency")
