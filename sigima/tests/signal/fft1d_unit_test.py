@@ -130,11 +130,11 @@ def test_signal_fft() -> None:
 
 @pytest.mark.validation
 def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
-    """1D iFFT validation test."""
-    # To validate the iFFT, we check that the original signal and the
-    # reconstructed signal are equal. We need to set the request
-    # to enable the GUI if needed, so that the test can be run interactively.
+    """1D iFFT validation test.
 
+    Check that the original and reconstructed signals are equal.
+    """
+    # We need to set the request to enable the GUI.
     guiutils.set_current_request(request)
 
     newparam = sigima.objects.NewSignalParam.create(
@@ -151,6 +151,7 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
 
     extra_param = sigima.objects.PeriodicParam()
     s1 = sigima.objects.create_signal_from_param(newparam, extra_param=extra_param)
+    assert s1.xydata is not None
     t1, y1 = s1.xydata
     for shift in (True, False):
         f1, sp1 = fourier.fft1d(t1, y1, shift=shift)
