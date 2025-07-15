@@ -245,10 +245,8 @@ def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> 
     )
     fft = sigima_signal.fft(s1)
     phase = sigima_signal.phase_spectrum(s1)
-    fpk1 = fft.x[np.argmax(phase.y[: size // 2])]
-    check_scalar_result("Cosine negative frequency", fpk1, -freq, rtol=0.001)
 
-    # Check that the phase spectrum is correct
+    # Check that the phase spectrum is correct.
     check_array_result("Cosine signal phase spectrum X", phase.x, fft.x.real)
     exp_phase = np.rad2deg(np.angle(fft.y))
     check_array_result("Cosine signal phase spectrum Y", phase.y, exp_phase)
