@@ -135,14 +135,14 @@ def try_open_test_data(title: str, pattern: str) -> Callable:
         """Decorator handling test data opening"""
 
         @functools.wraps(func)
-        def func_wrapper() -> None:
+        def func_wrapper(*args, **kwargs) -> None:
             """Decorator wrapper function"""
             execenv.print(title + ":")
             execenv.print("-" * len(title))
             try:
                 for fname in get_test_fnames(pattern):
                     execenv.print(f"=> Opening: {fname}")
-                    func(fname)
+                    func(fname, title, *args, **kwargs)
             except FileNotFoundError:
                 execenv.print(f"  No test data available for {pattern}")
             finally:

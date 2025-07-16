@@ -177,7 +177,7 @@ class FTLabSignalFile:
         self.x = data[::3]
         self.y = data[1::3] + 1j * data[2::3]
 
-    def read_data(self) -> np.ndarray:
+    def read(self) -> np.ndarray:
         """Read the FT-Lab signal file, populate data and metadata.
 
         This method reads the signal data from the file, checking the header and
@@ -248,7 +248,7 @@ def sigread_ftlabsig(filename: str):
         XY data from the signal file.
     """
     sig = FTLabSignalFile(filename)
-    return sig.read_data()
+    return sig.read()
 
 
 class ImageType(Enum):
@@ -322,7 +322,7 @@ class FTLabImageFile:
             )
         raise NotImplementedError(f"Image type {self.image_type} is not supported.")
 
-    def read_data(self) -> np.ndarray:
+    def read(self) -> np.ndarray:
         """Read an image file and return its data.
 
         Returns:
@@ -392,4 +392,4 @@ def imread_ftlabima(filename: str) -> np.ndarray:
         Image data.
     """
     ftlab_file = FTLabImageFile(filename)
-    return ftlab_file.read_data()
+    return ftlab_file.read()

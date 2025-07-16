@@ -15,7 +15,6 @@ import pytest
 
 from sigima.io import read_images, read_signals
 from sigima.io.ftlab import FTLabImageFile, imread_ftlabima, sigread_ftlabsig
-from sigima.io.image import funcs as image_funcs
 from sigima.objects import ImageObj, SignalObj
 from sigima.tests import guiutils, helpers
 from sigima.tests.env import execenv
@@ -38,107 +37,128 @@ def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
     return objs
 
 
-@helpers.try_open_test_data("Testing TXT file reader", "*.txt")
-def open_txt(fname: str | None = None) -> None:
-    """Testing TXT files"""
+def __read_and_view_objs(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> list[ImageObj]:
+    """Read and view objects from a file
+
+    Args:
+        fname: Name of the file to open.
+        title: Title for the view.
+        request: Pytest fixture request for GUI context.
+
+    Returns:
+        List of ImageObj or SignalObj read from the file.
+    """
+    guiutils.set_current_request(request)
     objs = __read_objs(fname)
     if guiutils.is_gui_enabled():
         from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
         with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title="TXT file")
+            vistools.view_curves_and_images(objs, title=title)
+    return objs
+
+
+@helpers.try_open_test_data("Testing TXT file reader", "*.txt")
+def test_open_txt(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
+    """Testing TXT files"""
+    __read_and_view_objs(fname, title, request)
 
 
 @helpers.try_open_test_data("Testing CSV file reader", "*.csv")
-def open_csv(fname: str | None = None) -> None:
+def test_open_csv(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """Testing CSV files"""
-    objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title="CSV file")
+    __read_and_view_objs(fname, title, request)
 
 
 @helpers.try_open_test_data("Testing FTLab signal file reader", "*.sig")
-def open_sigdata(fname: str | None = None) -> None:
+def test_open_sigdata(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """Testing FTLab signal files"""
-    objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
+    __read_and_view_objs(fname, title, request)
 
-        vistools.view_curves_and_images(objs, title="FTLab signal file")
+    # Read the FTLab signal file and compare the data with the reference
     data = sigread_ftlabsig(fname)
     ref = read_signals(fname.replace(".sig", ".npy"))[0]
     helpers.check_array_result(f"{fname}", data, ref.xydata)
 
 
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
-def open_mat(fname: str | None = None) -> None:
+def test_open_mat(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """Testing MAT files"""
-    objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title="MAT file")
+    __read_and_view_objs(fname, title, request)
 
 
 @helpers.try_open_test_data("Testing SIF file handler", "*.sif")
-def open_sif(fname: str | None = None) -> None:
+def test_open_sif(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """Testing SIF files"""
-    execenv.print(image_funcs.SIFFile(fname))
-    datalist = image_funcs.imread_sif(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_images(datalist)
+    __read_and_view_objs(fname, title, request)
 
 
 @helpers.try_open_test_data("Testing SCOR-DATA file handler", "*.scor-data")
-def open_scordata(fname: str | None = None) -> None:
+def test_open_scordata(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
     """Testing SCOR-DATA files"""
-    execenv.print(image_funcs.SCORFile(fname))
-    data = image_funcs.imread_scor(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_images(data, title="SCOR-DATA file")
+    __read_and_view_objs(fname, title, request)
 
 
 @helpers.try_open_test_data("Testing FTLab image file handler", "*.ima")
-def open_imadata(fname: str | None = None) -> None:
-    """Testing FTLab image files.
+def test_open_imadata(
+    fname: str | None = None,
+    title: str | None = None,
+    request: pytest.FixtureRequest | None = None,
+) -> None:
+    """Testing FTLab image files."""
+    __read_and_view_objs(fname, title, request)
 
-    Args:
-        fname: Name of the file to open.
-    """
-    objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        vistools.view_curves_and_images(objs, title="FTLab image file")
+    # Read the FTLab image file and show the data
     ftlab_file = FTLabImageFile(fname)
-    _ = ftlab_file.read_data()
+    ftlab_file.read()
     execenv.print(ftlab_file)
+
+    # Read the FTLab image file and compare the data with the reference
     data = imread_ftlabima(fname)
     ref = read_images(fname.replace(".ima", ".npy"))[0]
     helpers.check_array_result(f"{fname}", data, ref.data)
 
 
-def test_io1(request: pytest.FixtureRequest | None = None) -> None:
-    """I/O test"""
-    guiutils.set_current_request(request)
-    open_txt()
-    open_csv()
-    open_sigdata()
-    open_mat()
-    open_sif()
-    open_scordata()
-    open_imadata()
+@pytest.mark.gui
+def test_io1_interactive() -> None:
+    """Interactive test for I/O"""
+    request = guiutils.DummyRequest(gui=True)
+    test_open_txt(request=request)
+    test_open_csv(request=request)
+    test_open_sigdata(request=request)
+    test_open_mat(request=request)
+    test_open_sif(request=request)
+    test_open_scordata(request=request)
+    test_open_imadata(request=request)
 
 
 if __name__ == "__main__":
-    test_io1(request=guiutils.DummyRequest(gui=True))
+    test_io1_interactive()
