@@ -66,6 +66,7 @@ Image model
 .. autofunction:: sigima.objects.create_image_from_param
 .. autoclass:: sigima.objects.ImageTypes
 .. autodataset:: sigima.objects.NewImageParam
+.. autodataset:: sigima.objects.BilinearFormParam
 .. autodataset:: sigima.objects.Gauss2DParam
 .. autodataset:: sigima.objects.ROI2DParam
 .. autoclass:: sigima.objects.ImageROI
@@ -92,6 +93,7 @@ from sigima.objects.image import (
     create_image_roi,
     create_image,
     create_image_from_param,
+    BilinearFormParam,
     Gauss2DParam,
     ROI2DParam,
     RectangularROI,

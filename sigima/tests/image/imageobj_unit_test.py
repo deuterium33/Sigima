@@ -21,6 +21,7 @@ from sigima.tests.data import create_test_image_with_metadata
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
     WorkdirRestoringTempDir,
+    check_scalar_result,
     compare_metadata,
     read_test_objects,
 )
@@ -67,12 +68,22 @@ def _iterate_image_datatypes(
 def _get_additional_param(
     itype: sigima.objects.ImageTypes, dtype: sigima.objects.ImageDatatypes
 ) -> (
-    sigima.objects.Gauss2DParam
+    sigima.objects.BilinearFormParam
+    | sigima.objects.Gauss2DParam
     | sigima.objects.UniformRandomParam
     | sigima.objects.NormalRandomParam
     | None
 ):
-    if itype == sigima.objects.ImageTypes.GAUSS:
+    if itype == sigima.objects.ImageTypes.BILINEAR:
+        addparam = sigima.objects.BilinearFormParam()
+        addparam.a = 1.0
+        addparam.b = 2.0
+        addparam.c = 3.0
+        addparam.xmin = -1.0
+        addparam.xmax = 2.0
+        addparam.ymin = -5.0
+        addparam.ymax = 4.0
+    elif itype == sigima.objects.ImageTypes.GAUSS:
         addparam = sigima.objects.Gauss2DParam()
         addparam.x0 = addparam.y0 = 3
         addparam.sigma = 5
@@ -90,8 +101,7 @@ def _get_additional_param(
 def _test_image_data(
     itype: sigima.objects.ImageTypes, image: sigima.objects.ImageObj
 ) -> None:
-    """
-    Tests the data of an image based on its type.
+    """Tests the data of an image based on its type.
 
     Args:
         itype: The type of the image.
@@ -103,6 +113,12 @@ def _test_image_data(
     """
     if itype == sigima.objects.ImageTypes.ZEROS:
         assert (image.data == 0).all()
+    elif itype == sigima.objects.ImageTypes.BILINEAR:
+        assert image.data is not None
+        check_scalar_result("Top-left corner", image.data[0][0], -8.0)
+        check_scalar_result("Top-right corner", image.data[0][-1], -5.0)
+        check_scalar_result("Bottom-left corner", image.data[-1][0], 10.0)
+        check_scalar_result("Bottom-right", image.data[-1][-1], 13.0)
     else:
         assert image.data is not None
 

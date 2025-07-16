@@ -18,6 +18,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
 
+* New bilinear image generator.
+
 * New I/O features:
   * Added support for FT-Lab signal and image format.
 

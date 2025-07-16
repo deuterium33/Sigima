@@ -1025,12 +1025,14 @@ ImageDatatypes.check()
 
 
 class ImageTypes(base.Choices):
-    """Image types"""
+    """Image types."""
 
     #: Image filled with zeros
     ZEROS = _("zeros")
     #: Empty image (filled with data from memory state)
     EMPTY = _("empty")
+    #: Bilinear form image
+    BILINEAR = _("bilinear")
     #: 2D Gaussian image
     GAUSS = _("gaussian")
     #: Image filled with random data (uniform law)
@@ -1043,7 +1045,7 @@ DEFAULT_TITLE = _("Untitled image")
 
 
 class NewImageParam(gds.DataSet):
-    """New image dataset"""
+    """New image dataset."""
 
     hide_image_height = False
     hide_image_dtype = False
@@ -1062,6 +1064,49 @@ class NewImageParam(gds.DataSet):
     itype = gds.ChoiceItem(_("Type"), ImageTypes.get_choices()).set_prop(
         "display", hide=gds.GetAttrProp("hide_image_type")
     )
+
+
+class BilinearFormParam(gds.DataSet):
+    """Define the parameters of a bilinear form.
+
+    z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c
+    """
+
+    _g0_begin = gds.BeginGroup(_("Coefficients"))
+    a = gds.FloatItem(_("a"), default=1.0).set_pos(col=0)
+    b = gds.FloatItem(_("b"), default=1.0).set_pos(col=1)
+    c = gds.FloatItem(_("c"), default=0.0).set_pos(colspan=1)
+    x0 = gds.FloatItem(_("x<sub>0</sub>"), default=0.0).set_pos(col=0)
+    y0 = gds.FloatItem(_("y<sub>0</sub>"), default=0.0).set_pos(col=1)
+    _g0_end = gds.EndGroup(_(""))
+    _g1_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem(_("x<sub>min</sub>"), default=-1.0).set_pos(col=0)
+    xmax = gds.FloatItem(_("x<sub>max</sub>"), default=1.0).set_pos(col=1)
+    ymin = gds.FloatItem(_("y<sub>min</sub>"), default=-1.0).set_pos(col=0)
+    ymax = gds.FloatItem(_("y<sub>max</sub>"), default=1.0).set_pos(col=1)
+    _g1_end = gds.EndGroup(_(""))
+
+
+def _compute_bilinear_form(
+    param: BilinearFormParam, shape: tuple[int, int] = (1024, 1024)
+) -> np.ndarray:
+    """Compute the output of a bilinear form.
+
+    Args:
+        param: Bilinear form parameters.
+        shape: Tuple (height, width) for the output array.
+
+    Returns:
+        Two-dimensional data.
+    """
+    assert param.xmin is not None
+    assert param.xmax is not None
+    assert param.ymin is not None
+    assert param.ymax is not None
+    x = np.linspace(param.xmin, param.xmax, shape[1])
+    y = np.linspace(param.ymin, param.ymax, shape[0])
+    xx, yy = np.meshgrid(x, y)
+    return param.a * (xx - param.x0) + param.b * (yy - param.y0) + param.c
 
 
 class Gauss2DParam(gds.DataSet):
@@ -1133,6 +1178,13 @@ def create_image_from_param(
 
     elif base_param.itype == ImageTypes.EMPTY:
         data = np.empty(shape, dtype=dtype)
+
+    elif base_param.itype == ImageTypes.BILINEAR:
+        if ep is None:
+            raise ValueError("BilinearFormParam required.")
+        assert isinstance(ep, BilinearFormParam)
+        data = _compute_bilinear_form(ep, shape)
+        title = f"\nz = {ep.a} (x - {ep.x0}) + {ep.b} (y - {ep.y0}) + {ep.c})"
 
     elif base_param.itype == ImageTypes.GAUSS:
         if ep is None:
