@@ -1051,9 +1051,11 @@ class NewImageParam(gds.DataSet):
 
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     height = gds.IntItem(
-        _("Height"), help=_("Image height: number of rows"), min=1
+        _("Height"), default=1024, help=_("Image height: number of rows"), min=1
     ).set_prop("display", hide=gds.GetAttrProp("hide_image_height"))
-    width = gds.IntItem(_("Width"), help=_("Image width: number of columns"), min=1)
+    width = gds.IntItem(
+        _("Width"), default=1024, help=_("Image width: number of columns"), min=1
+    )
     dtype = gds.ChoiceItem(_("Data type"), ImageDatatypes.get_choices()).set_prop(
         "display", hide=gds.GetAttrProp("hide_image_dtype")
     )
