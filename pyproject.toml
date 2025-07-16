@@ -86,6 +86,7 @@ include = ["sigima*"]
     "*.jpg",
     "*.sif",
     "*.csv",
+    "*.mca",
     "*.mat",
     "*.js",
     "*.css",
