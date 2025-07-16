@@ -218,10 +218,11 @@ class SIFFile:
         self.filesize = os.path.getsize(filepath)
         self.datasize = self.width * self.height * 4 * self.stacksize
 
-    def read_all(self) -> np.ndarray:
-        """
-        Returns all blocks (i.e. frames) in the .sif file as a numpy array.
-        :return: a numpy array with shape (blocks, y, x)
+    def read(self) -> np.ndarray:
+        """Read the data from the SIF file
+
+        Returns:
+            The image data. The shape of the array is (stacksize, height, width)
         """
         with open(self.filepath, "rb") as sif_file:
             sif_file.seek(self.m_offset)
@@ -264,7 +265,7 @@ def imread_sif(filename: str) -> np.ndarray:
         Image data
     """
     sif_file = SIFFile(filename)
-    return sif_file.read_all()
+    return sif_file.read()
 
 
 # ==============================================================================
@@ -330,8 +331,12 @@ class SCORFile:
         self.datasize = self.width * self.height * 2
         self.m_offset = self.filesize - self.datasize - 8
 
-    def read_all(self) -> np.ndarray:
-        """Read all data"""
+    def read(self) -> np.ndarray:
+        """Read the data from the SPIRICON file
+
+        Returns:
+            The image data as a NumPy array with shape (height, width)
+        """
         with open(self.filepath, "rb") as data_file:
             data_file.seek(self.m_offset)
             block = data_file.read(self.datasize)
@@ -349,7 +354,7 @@ def imread_scor(filename: str) -> np.ndarray:
         Image data
     """
     scor_file = SCORFile(filename)
-    return scor_file.read_all()
+    return scor_file.read()
 
 
 # Original code: see PlotPy package (BSD 3-Clause license)
