@@ -1087,9 +1087,7 @@ class Ramp2DParam(gds.DataSet):
     _g1_end = gds.EndGroup(_(""))
 
 
-def _compute_ramp2d(
-    p: Ramp2DParam, shape: tuple[int, int] = (1024, 1024)
-) -> np.ndarray:
+def _compute_ramp2d(p: Ramp2DParam, shape: tuple[int, int]) -> np.ndarray:
     """Compute the output of a 2D ramp.
 
     Args:
