@@ -185,9 +185,7 @@ def create_periodic_signal(
         Signal object
     """
     param_class = get_signal_parameters_class(shape)
-    param = param_class.create(
-        stype=shape, size=size, xmin=xmin, xmax=xmax, freq=freq, a=a
-    )
+    param = param_class.create(size=size, xmin=xmin, xmax=xmax, freq=freq, a=a)
     return create_signal_from_param(param)
 
 
