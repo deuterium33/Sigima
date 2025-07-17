@@ -54,11 +54,8 @@ def get_analytical_stats(data: np.ndarray) -> dict[str, float]:
 
 def create_reference_signal() -> sigima.objects.SignalObj:
     """Create reference signal"""
-    snew = sigima.objects.NewSignalParam.create(
-        title="Gaussian", stype=sigima.objects.SignalTypes.GAUSS
-    )
-    extra_param = sigima.objects.GaussLorentzVoigtParam()
-    sig = sigima.objects.create_signal_from_param(snew, extra_param=extra_param)
+    param = sigima.objects.GaussParam()
+    sig = sigima.objects.create_signal_from_param(param)
     sig.roi = sigima.objects.create_signal_roi(
         [len(sig.x) // 2, len(sig.x) - 1], indices=True
     )
@@ -67,11 +64,8 @@ def create_reference_signal() -> sigima.objects.SignalObj:
 
 def create_reference_image() -> sigima.objects.ImageObj:
     """Create reference image"""
-    inew = sigima.objects.NewImageParam.create(
-        title="2D-Gaussian", itype=sigima.objects.ImageTypes.GAUSS
-    )
-    extra_param = sigima.objects.Gauss2DParam()
-    ima = sigima.objects.create_image_from_param(inew, extra_param=extra_param)
+    param = sigima.objects.Gauss2DParam.create(title="2D-Gaussian")
+    ima = sigima.objects.create_image_from_param(param)
     dy, dx = ima.data.shape
     ima.roi = sigima.objects.create_image_roi(
         "rectangle",

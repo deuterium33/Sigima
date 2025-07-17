@@ -53,49 +53,33 @@ def _iterate_image_datatypes(
     for dtype in sigima.objects.ImageDatatypes:
         if verbose:
             execenv.print(f"      {dtype.value}")
-        base_param = sigima.objects.NewImageParam.create(
-            itype=itype, dtype=dtype, width=data_size, height=data_size
-        )
-        extra_param = _get_additional_param(itype, dtype)
-        image = sigima.objects.create_image_from_param(
-            base_param, extra_param=extra_param
-        )
+        param_class = sigima.objects.get_image_parameters_class(itype)
+        param = param_class.create(dtype=dtype, width=data_size, height=data_size)
+        if itype == sigima.objects.ImageTypes.RAMP:
+            if dtype is not sigima.objects.ImageDatatypes.FLOAT64:
+                continue  # Testing only float64 for ramp
+            assert isinstance(param, sigima.objects.Ramp2DParam)
+            param.a = 1.0
+            param.b = 2.0
+            param.c = 3.0
+            param.xmin = -1.0
+            param.xmax = 2.0
+            param.ymin = -5.0
+            param.ymax = 4.0
+        elif itype == sigima.objects.ImageTypes.GAUSS:
+            assert isinstance(param, sigima.objects.Gauss2DParam)
+            param.x0 = param.y0 = 3
+            param.sigma = 5
+        elif itype == sigima.objects.ImageTypes.UNIFORMRANDOM:
+            assert isinstance(param, sigima.objects.UniformRandom2DParam)
+            param.set_from_datatype(dtype.value)
+        elif itype == sigima.objects.ImageTypes.NORMALRANDOM:
+            assert isinstance(param, sigima.objects.NormalRandom2DParam)
+            param.set_from_datatype(dtype.value)
+        image = sigima.objects.create_image_from_param(param)
         if image is not None:
             _test_image_data(itype, image)
         yield image
-
-
-def _get_additional_param(
-    itype: sigima.objects.ImageTypes, dtype: sigima.objects.ImageDatatypes
-) -> (
-    sigima.objects.Ramp2DParam
-    | sigima.objects.Gauss2DParam
-    | sigima.objects.UniformRandomParam
-    | sigima.objects.NormalRandomParam
-    | None
-):
-    if itype == sigima.objects.ImageTypes.RAMP:
-        addparam = sigima.objects.Ramp2DParam()
-        addparam.a = 1.0
-        addparam.b = 2.0
-        addparam.c = 3.0
-        addparam.xmin = -1.0
-        addparam.xmax = 2.0
-        addparam.ymin = -5.0
-        addparam.ymax = 4.0
-    elif itype == sigima.objects.ImageTypes.GAUSS:
-        addparam = sigima.objects.Gauss2DParam()
-        addparam.x0 = addparam.y0 = 3
-        addparam.sigma = 5
-    elif itype == sigima.objects.ImageTypes.UNIFORMRANDOM:
-        addparam = sigima.objects.UniformRandomParam()
-        addparam.set_from_datatype(dtype.value)
-    elif itype == sigima.objects.ImageTypes.NORMALRANDOM:
-        addparam = sigima.objects.NormalRandomParam()
-        addparam.set_from_datatype(dtype.value)
-    else:
-        addparam = None
-    return addparam
 
 
 def _test_image_data(

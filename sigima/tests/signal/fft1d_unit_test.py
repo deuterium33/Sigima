@@ -137,9 +137,7 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
     # We need to set the request to enable the GUI.
     guiutils.set_current_request(request)
 
-    newparam = sigima.objects.NewSignalParam.create(
-        stype=sigima.objects.SignalTypes.COSINUS, size=500
-    )
+    param = sigima.objects.CosinusParam.create(size=500)
 
     # *** Note ***
     #
@@ -147,10 +145,9 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
     # reconstructed signals, because the FFT do not preserve the X data (phase is
     # lost, sampling rate is assumed to be constant), so that comparing the X data
     # is not meaningful if xmin is different.
-    newparam.xmin = 0.0
+    param.xmin = 0.0
 
-    extra_param = sigima.objects.PeriodicParam()
-    s1 = sigima.objects.create_signal_from_param(newparam, extra_param=extra_param)
+    s1 = sigima.objects.create_signal_from_param(param)
     assert s1.xydata is not None
     t1, y1 = s1.xydata
     for shift in (True, False):

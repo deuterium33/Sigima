@@ -107,7 +107,7 @@ class BaseRandomParam(BaseProcParam):
     seed = gds.IntItem(_("Seed"), default=1)
 
 
-class UniformRandomParam(BaseRandomParam):
+class BaseUniformRandomParam(BaseRandomParam):
     """Uniform-law random signal/image parameters"""
 
     def apply_integer_range(self, vmin, vmax):
@@ -121,8 +121,12 @@ class UniformRandomParam(BaseRandomParam):
         "V<sub>max</sub>", default=0.5, help=_("Uniform distribution higher bound")
     ).set_pos(col=1)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"UniformRandom(vmin={self.vmin:g},vmax={self.vmax:g},seed={self.seed})"
 
-class NormalRandomParam(BaseRandomParam):
+
+class BaseNormalRandomParam(BaseRandomParam):
     """Normal-law random signal/image parameters"""
 
     DEFAULT_RELATIVE_MU = 0.1
@@ -142,6 +146,10 @@ class NormalRandomParam(BaseRandomParam):
         default=DEFAULT_RELATIVE_SIGMA,
         help=_("Normal distribution standard deviation"),
     ).set_pos(col=1)
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"NormalRandom(μ={self.mu:g},σ={self.sigma:g},seed={self.seed})"
 
 
 @enum.unique

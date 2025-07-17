@@ -19,14 +19,13 @@ import numpy as np
 from sigima.config import _
 from sigima.io import read_image, read_signal
 from sigima.objects import (
-    GaussLorentzVoigtParam,
+    GaussParam,
     ImageDatatypes,
     ImageObj,
     ImageTypes,
     NewImageParam,
     NewSignalParam,
-    NormalRandomParam,
-    PeriodicParam,
+    NormalRandom2DParam,
     ResultProperties,
     ResultShape,
     SignalObj,
@@ -34,6 +33,7 @@ from sigima.objects import (
     create_image,
     create_image_from_param,
     create_signal_from_param,
+    get_signal_parameters_class,
 )
 from sigima.tests.helpers import get_test_fnames
 
@@ -129,8 +129,7 @@ def add_gaussian_noise_to_signal(
 
 def create_noisy_signal(
     noiseparam: GaussianNoiseParam | None = None,
-    newparam: NewSignalParam | None = None,
-    addparam: GaussLorentzVoigtParam | None = None,
+    param: NewSignalParam | None = None,
     title: str | None = None,
     noised: bool | None = None,
 ) -> SignalObj:
@@ -139,9 +138,8 @@ def create_noisy_signal(
     Args:
         noiseparam: Noise parameters. Default: None: No noise
         newparam: New signal parameters.
-         Default: Gaussian, size=500, xmin=-10, xmax=10
-        addparam: Additional parameters.
-         Default: a=1.0, sigma=1.0, mu=0.0, ymin=0.0
+         Default: Gaussian, size=500, xmin=-10, xmax=10,
+         a=1.0, sigma=1.0, mu=0.0, ymin=0.0
         title: Title of the signal. Default: None
          If not None, overrides the title in newparam
         noised: If True, add noise to the signal.
@@ -151,18 +149,15 @@ def create_noisy_signal(
     Returns:
         Signal object
     """
-    if newparam is None:
-        newparam = NewSignalParam()
-        newparam.stype = SignalTypes.GAUSS
+    if param is None:
+        param = GaussParam()
     if title is not None:
-        newparam.title = title
-    newparam.title = "Test signal (noisy)" if newparam.title is None else newparam.title
-    if addparam is None:
-        addparam = GaussLorentzVoigtParam()
+        param.title = title
+    param.title = "Test signal (noisy)" if param.title is None else param.title
     if noised is not None and noised and noiseparam is None:
         noiseparam = GaussianNoiseParam()
         noiseparam.sigma = 5.0
-    sig = create_signal_from_param(newparam, addparam)
+    sig = create_signal_from_param(param)
     if noiseparam is not None:
         add_gaussian_noise_to_signal(sig, noiseparam)
     return sig
@@ -189,9 +184,11 @@ def create_periodic_signal(
     Returns:
         Signal object
     """
-    newparam = NewSignalParam.create(stype=shape, size=size, xmin=xmin, xmax=xmax)
-    addparam = PeriodicParam.create(freq=freq, a=a)
-    return create_signal_from_param(newparam, addparam)
+    param_class = get_signal_parameters_class(shape)
+    param = param_class.create(
+        stype=shape, size=size, xmin=xmin, xmax=xmax, freq=freq, a=a
+    )
+    return create_signal_from_param(param)
 
 
 def create_2d_steps_data(size: int, width: int, dtype: np.dtype) -> np.ndarray:
@@ -380,20 +377,18 @@ def __set_default_size_dtype(
     return p
 
 
-def add_gaussian_noise_to_image(image: ImageObj, param: NormalRandomParam) -> None:
+def add_gaussian_noise_to_image(image: ImageObj, param: NormalRandom2DParam) -> None:
     """Add Gaussian noise to image
 
     Args:
         src: Source image
         param: Parameters for the normal distribution
     """
-    newparam = NewImageParam.create(
-        height=image.data.shape[0],
-        width=image.data.shape[1],
-        dtype=ImageDatatypes.from_dtype(image.data.dtype),
-        itype=ImageTypes.NORMALRANDOM,
-    )
-    noise = create_image_from_param(newparam, param)
+    param.height = image.data.shape[0]
+    param.width = image.data.shape[1]
+    param.dtype = ImageDatatypes.from_dtype(image.data.dtype)
+    param.itype = ImageTypes.NORMALRANDOM
+    noise = create_image_from_param(param)
     image.data = image.data + noise.data
 
 
@@ -416,21 +411,18 @@ def create_checkerboard(p: NewImageParam | None = None, num_checkers=8) -> Image
     return obj
 
 
-def create_2dstep_image(
-    p: NewImageParam | None = None, extra_param: gds.DataSet | None = None
-) -> ImageObj:
+def create_2dstep_image(p: NewImageParam | None = None) -> ImageObj:
     """Creating 2D step image
 
     Args:
         p: Image parameters. Defaults to None.
-        extra_param: Extra parameters for the image creation
 
     Returns:
         Image object
     """
     p = __set_default_size_dtype(p)
     p.title = "Test image (2D step)" if p.title is None else p.title
-    obj = create_image_from_param(p, extra_param=extra_param)
+    obj = create_image_from_param(p)
     obj.data = create_2d_steps_data(p.height, p.height // 10, p.dtype.value)
     return obj
 
@@ -498,21 +490,18 @@ def create_ring_image(p: RingParam | None = None) -> ImageObj:
     return obj
 
 
-def create_peak2d_image(
-    p: NewImageParam | None = None, extra_param: gds.DataSet | None = None
-) -> ImageObj:
+def create_peak2d_image(p: NewImageParam | None = None) -> ImageObj:
     """Creating 2D peak image
 
     Args:
         p: Image parameters. Defaults to None
-        extra_param: Extra parameters for the image creation
 
     Returns:
         Image object
     """
     p = __set_default_size_dtype(p)
     p.title = "Test image (2D peaks)" if p.title is None else p.title
-    obj = create_image_from_param(p, extra_param=extra_param)
+    obj = create_image_from_param(p)
     param = PeakDataParam()
     if p.height is not None and p.width is not None:
         param.size = max(p.height, p.width)
@@ -521,14 +510,11 @@ def create_peak2d_image(
     return obj
 
 
-def create_sincos_image(
-    p: NewImageParam | None = None, extra_param: gds.DataSet | None = None
-) -> ImageObj:
+def create_sincos_image(p: NewImageParam | None = None) -> ImageObj:
     """Creating test image (sin(x)+cos(y))
 
     Args:
         p: Image parameters. Defaults to None
-        extra_param: Extra parameters
 
     Returns:
         Image object
@@ -538,7 +524,7 @@ def create_sincos_image(
     dtype = p.dtype.value
     x, y = np.meshgrid(np.linspace(0, 10, p.width), np.linspace(0, 10, p.height))
     raw_data = 0.5 * (np.sin(x) + np.cos(y)) + 0.5
-    obj = create_image_from_param(p, extra_param=extra_param)
+    obj = create_image_from_param(p)
     if np.issubdtype(dtype, np.floating):
         obj.data = raw_data
         return obj
@@ -567,7 +553,6 @@ def create_noisygauss_image(
     center: tuple[float, float] | None = None,
     level: float = 0.1,
     add_annotations: bool = False,
-    extra_param: gds.DataSet | None = None,
 ) -> ImageObj:
     """Create test image (2D noisy gaussian)
 
@@ -576,7 +561,6 @@ def create_noisygauss_image(
         center: Center of the gaussian. Defaults to None.
         level: Level of the random noise. Defaults to 0.1.
         add_annotations: If True, add annotations. Defaults to False.
-        extra_param: Extra parameters for the image creation. Defaults to None.
 
     Returns:
         Image object
@@ -585,7 +569,7 @@ def create_noisygauss_image(
     p.title = "Test image (noisy 2D Gaussian)" if p.title is None else p.title
     dtype = p.dtype.value
     size = p.width
-    obj = create_image_from_param(p, extra_param=extra_param)
+    obj = create_image_from_param(p)
     if center is None:
         # Default center
         x0, y0 = 2.0, 3.0
@@ -599,14 +583,11 @@ def create_noisygauss_image(
     return obj
 
 
-def create_multigauss_image(
-    p: NewImageParam | None = None, extra_param: gds.DataSet | None = None
-) -> ImageObj:
+def create_multigauss_image(p: NewImageParam | None = None) -> ImageObj:
     """Create test image (multiple 2D-gaussian peaks)
 
     Args:
         p: Image parameters. Defaults to None.
-        extra_param: Extra parameters for the image creation. Defaults to None.
 
     Returns:
         Image object
@@ -615,7 +596,7 @@ def create_multigauss_image(
     p.title = "Test image (multi-2D-gaussian)" if p.title is None else p.title
     dtype = p.dtype.value
     size = p.width
-    obj = create_image_from_param(p, extra_param=extra_param)
+    obj = create_image_from_param(p)
     obj.data = (
         create_2d_gaussian(size, dtype, x0=0.5, y0=3.0)
         + create_2d_gaussian(size, dtype, x0=-1.0, y0=-1.0, sigma=1.0)

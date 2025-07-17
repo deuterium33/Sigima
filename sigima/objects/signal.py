@@ -499,16 +499,16 @@ class SignalTypes(base.Choices):
 
     #: Signal filled with zeros
     ZEROS = _("zeros")
+    #: Random signal (uniform law)
+    UNIFORMRANDOM = _("random (uniform law)")
+    #: Random signal (normal law)
+    NORMALRANDOM = _("random (normal law)")
     #: Gaussian function
     GAUSS = _("gaussian")
     #: Lorentzian function
     LORENTZ = _("lorentzian")
     #: Voigt function
     VOIGT = "Voigt"
-    #: Random signal (uniform law)
-    UNIFORMRANDOM = _("random (uniform law)")
-    #: Random signal (normal law)
-    NORMALRANDOM = _("random (normal law)")
     #: Sinusoid
     SINUS = _("sinus")
     #: Cosinusoid
@@ -533,13 +533,188 @@ class SignalTypes(base.Choices):
     EXPERIMENTAL = _("experimental")
 
 
-class GaussLorentzVoigtParam(gds.DataSet):
-    """Parameters for Gaussian and Lorentzian functions"""
+DEFAULT_TITLE = _("Untitled signal")
+
+
+class NewSignalParam(gds.DataSet):
+    """New signal dataset"""
+
+    hide_signal_type = False
+
+    title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
+    xmin = gds.FloatItem("Xmin", default=-10.0)
+    xmax = gds.FloatItem("Xmax", default=10.0)
+    size = gds.IntItem(
+        _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
+    )
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return ""
+
+    def generate_x_data(self) -> np.ndarray:
+        """Generate x data based on current parameters."""
+        return np.linspace(self.xmin, self.xmax, self.size)
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        return self.generate_x_data(), np.zeros(self.size)
+
+
+SIGNAL_TYPE_PARAM_CLASSES = {}
+
+
+def register_signal_parameters_class(stype: SignalTypes, param_class) -> None:
+    """Register a parameters class for a given signal type.
+
+    Args:
+        stype: signal type
+        param_class: parameters class
+    """
+    SIGNAL_TYPE_PARAM_CLASSES[stype] = param_class
+
+
+def get_signal_parameters_class(stype: SignalTypes) -> Type[NewSignalParam]:
+    """Get parameters class for a given signal type.
+
+    Args:
+        stype: signal type
+
+    Returns:
+        Parameters class
+
+    Raises:
+        ValueError: if no parameters class is registered for the given signal type
+    """
+    try:
+        return SIGNAL_TYPE_PARAM_CLASSES[stype]
+    except KeyError as exc:
+        raise ValueError(
+            f"Image type {stype} has no parameters class registered"
+        ) from exc
+
+
+def check_all_signal_parameters_classes() -> None:
+    """Check all registered parameters classes."""
+    for stype, param_class in SIGNAL_TYPE_PARAM_CLASSES.items():
+        assert get_signal_parameters_class(stype) is param_class
+
+
+class ZerosParam(NewSignalParam):
+    """Parameters for zero signal"""
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        return x, np.zeros_like(x)
+
+
+register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
+
+
+class UniformRandomParam(NewSignalParam, base.BaseUniformRandomParam):
+    """Uniform-law random signal/image parameters"""
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        rng = np.random.default_rng(self.seed)
+        y = rng.random((len(x),)) * (self.vmax - self.vmin) + self.vmin
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.UNIFORMRANDOM, UniformRandomParam)
+
+
+class NormalRandomParam(NewSignalParam, base.BaseNormalRandomParam):
+    """Normal-law random signal/image parameters"""
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        rng = np.random.default_rng(self.seed)
+        y = rng.normal(self.mu, self.sigma, len(x))
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.NORMALRANDOM, NormalRandomParam)
+
+
+class BaseGaussLorentzVoigtParam(NewSignalParam):
+    """Base parameters for Gaussian, Lorentzian and Voigt functions"""
+
+    STYPE: Type[SignalTypes] | None = None
 
     a = gds.FloatItem("A", default=1.0)
     ymin = gds.FloatItem("Ymin", default=0.0).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
     mu = gds.FloatItem("μ", default=0.0).set_pos(col=1)
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        assert isinstance(self.STYPE, SignalTypes)
+        return (
+            f"{self.STYPE.name.lower()}(a={self.a:.3g},sigma={self.sigma:.3g},"
+            f"mu={self.mu:.3g},ymin={self.ymin:.3g})"
+        )
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        func = {
+            SignalTypes.GAUSS: GaussianModel.func,
+            SignalTypes.LORENTZ: LorentzianModel.func,
+            SignalTypes.VOIGT: VoigtModel.func,
+        }[self.STYPE]
+        y = func(x, self.a, self.sigma, self.mu, self.ymin)
+        return x, y
+
+
+class GaussParam(BaseGaussLorentzVoigtParam):
+    """Parameters for Gaussian function"""
+
+    STYPE = SignalTypes.GAUSS
+
+
+register_signal_parameters_class(SignalTypes.GAUSS, GaussParam)
+
+
+class LorentzParam(BaseGaussLorentzVoigtParam):
+    """Parameters for Lorentzian function"""
+
+    STYPE = SignalTypes.LORENTZ
+
+
+register_signal_parameters_class(SignalTypes.LORENTZ, LorentzParam)
+
+
+class VoigtParam(BaseGaussLorentzVoigtParam):
+    """Parameters for Voigt function"""
+
+    STYPE = SignalTypes.VOIGT
+
+
+register_signal_parameters_class(SignalTypes.VOIGT, VoigtParam)
 
 
 class FreqUnits(base.Choices):
@@ -559,8 +734,10 @@ class FreqUnits(base.Choices):
         return value * factor
 
 
-class PeriodicParam(gds.DataSet):
+class BasePeriodicParam(NewSignalParam):
     """Parameters for periodic functions"""
+
+    STYPE: Type[SignalTypes] | None = None
 
     def get_frequency_in_hz(self):
         """Return frequency in Hz"""
@@ -574,24 +751,142 @@ class PeriodicParam(gds.DataSet):
     ).set_pos(col=1)
     phase = gds.FloatItem(_("Phase"), default=0.0, unit="°").set_pos(col=1)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        assert isinstance(self.STYPE, SignalTypes)
+        freq_hz = self.get_frequency_in_hz()
+        title = (
+            f"{self.STYPE.name.lower()}(f={freq_hz:.3g}Hz,"
+            f"a={self.a:.3g},ymin={self.ymin:.3g},phase={self.phase:.3g}°)"
+        )
+        return title
 
-class StepParam(gds.DataSet):
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        func = {
+            SignalTypes.SINUS: np.sin,
+            SignalTypes.COSINUS: np.cos,
+            SignalTypes.SAWTOOTH: sps.sawtooth,
+            SignalTypes.TRIANGLE: triangle_func,
+            SignalTypes.SQUARE: sps.square,
+            SignalTypes.SINC: np.sinc,
+        }[self.STYPE]
+        freq = self.get_frequency_in_hz()
+        y = self.a * func(2 * np.pi * freq * x + np.deg2rad(self.phase)) + self.ymin
+        return x, y
+
+
+class SinusParam(BasePeriodicParam):
+    """Parameters for sinus function"""
+
+    STYPE = SignalTypes.SINUS
+
+
+register_signal_parameters_class(SignalTypes.SINUS, SinusParam)
+
+
+class CosinusParam(BasePeriodicParam):
+    """Parameters for cosinus function"""
+
+    STYPE = SignalTypes.COSINUS
+
+
+register_signal_parameters_class(SignalTypes.COSINUS, CosinusParam)
+
+
+class SawtoothParam(BasePeriodicParam):
+    """Parameters for sawtooth function"""
+
+    STYPE = SignalTypes.SAWTOOTH
+
+
+register_signal_parameters_class(SignalTypes.SAWTOOTH, SawtoothParam)
+
+
+class TriangleParam(BasePeriodicParam):
+    """Parameters for triangle function"""
+
+    STYPE = SignalTypes.TRIANGLE
+
+
+register_signal_parameters_class(SignalTypes.TRIANGLE, TriangleParam)
+
+
+class SquareParam(BasePeriodicParam):
+    """Parameters for square function"""
+
+    STYPE = SignalTypes.SQUARE
+
+
+register_signal_parameters_class(SignalTypes.SQUARE, SquareParam)
+
+
+class SincParam(BasePeriodicParam):
+    """Parameters for cardinal sine function"""
+
+    STYPE = SignalTypes.SINC
+
+
+register_signal_parameters_class(SignalTypes.SINC, SincParam)
+
+
+class StepParam(NewSignalParam):
     """Parameters for step function"""
 
     a1 = gds.FloatItem("A1", default=0.0)
     a2 = gds.FloatItem("A2", default=1.0).set_pos(col=1)
     x0 = gds.FloatItem("X0", default=0.0)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"step(a1={self.a1:.3g},a2={self.a2:.3g},x0={self.x0:.3g})"
 
-class ExponentialParam(gds.DataSet):
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        y = np.ones_like(x) * self.a1
+        y[x > self.x0] = self.a2
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.STEP, StepParam)
+
+
+class ExponentialParam(NewSignalParam):
     """Parameters for exponential function"""
 
     a = gds.FloatItem("A", default=1.0)
     offset = gds.FloatItem(_("Offset"), default=0.0)
     exponent = gds.FloatItem(_("Exponent"), default=1.0)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"exponential(a={self.a:.3g},k={self.exponent:.3g},y0={self.offset:.3g})"
 
-class PulseParam(gds.DataSet):
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        y = self.a * np.exp(self.exponent * x) + self.offset
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.EXPONENTIAL, ExponentialParam)
+
+
+class PulseParam(NewSignalParam):
     """Parameters for pulse function"""
 
     amp = gds.FloatItem("Amplitude", default=1.0)
@@ -599,8 +894,29 @@ class PulseParam(gds.DataSet):
     offset = gds.FloatItem(_("Offset"), default=0.0)
     stop = gds.FloatItem(_("End"), default=0.0).set_pos(col=1)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"pulse(start={self.start:.3g},stop={self.stop:.3g},"
+            f"offset={self.offset:.3g},amp={self.amp:.3g})"
+        )
 
-class PolyParam(gds.DataSet):
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        y = np.full_like(x, self.offset)
+        y[(x >= self.start) & (x <= self.stop)] += self.amp
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.PULSE, PulseParam)
+
+
+class PolyParam(NewSignalParam):
     """Parameters for polynomial function"""
 
     a0 = gds.FloatItem("a0", default=1.0)
@@ -610,8 +926,28 @@ class PolyParam(gds.DataSet):
     a2 = gds.FloatItem("a2", default=0.0)
     a5 = gds.FloatItem("a5", default=0.0).set_pos(col=1)
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"polynomial(a0={self.a0:.3g},a1={self.a1:.3g},a2={self.a2:.3g},"
+            f"a3={self.a3:.3g},a4={self.a4:.3g},a5={self.a5:.3g})"
+        )
 
-class ExperimentalSignalParam(gds.DataSet):
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        x = self.generate_x_data()
+        y = np.polyval([self.a5, self.a4, self.a3, self.a2, self.a1, self.a0], x)
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.POLYNOMIAL, PolyParam)
+
+
+class ExperimentalSignalParam(NewSignalParam):
     """Parameters for experimental signal"""
 
     size = gds.IntItem("Size", default=5).set_prop("display", hide=True)
@@ -642,24 +978,23 @@ class ExperimentalSignalParam(gds.DataSet):
         x_arr = np.linspace(self.xmin, self.xmax, self.size)  # type: ignore
         self.xyarray = np.vstack((x_arr, x_arr)).T
 
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"experimental(size={self.size})"
 
-DEFAULT_TITLE = _("Untitled signal")
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays
+        """
+        self.setup_array(size=self.size, xmin=self.xmin, xmax=self.xmax)
+        x, y = self.xyarray.T
+        return x, y
 
 
-class NewSignalParam(gds.DataSet):
-    """New signal dataset"""
-
-    hide_signal_type = False
-
-    title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
-    xmin = gds.FloatItem("Xmin", default=-10.0)
-    xmax = gds.FloatItem("Xmax", default=10.0)
-    size = gds.IntItem(
-        _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
-    )
-    stype = gds.ChoiceItem(_("Type"), SignalTypes.get_choices()).set_prop(
-        "display", hide=gds.GetAttrProp("hide_signal_type")
-    )
+register_signal_parameters_class(SignalTypes.EXPERIMENTAL, ExperimentalSignalParam)
+check_all_signal_parameters_classes()
 
 
 def triangle_func(xarr: np.ndarray) -> np.ndarray:
@@ -689,144 +1024,25 @@ def get_next_signal_number() -> int:
     return SIG_NB
 
 
-def create_signal_from_param(
-    base_param: NewSignalParam,
-    extra_param: gds.DataSet | None = None,
-) -> SignalObj:
+def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     """Create a new Signal object from parameters.
 
     Args:
-        base_param: new signal parameters
-        extra_param: additional parameters (optional)
+        param: new signal parameters
 
     Returns:
         Signal object
 
     Raises:
-        ValueError: if `extra_param` is required but not provided
         NotImplementedError: if the signal type is not supported
     """
-    incr_sig_nb = not base_param.title
-    prefix = base_param.stype.name.lower()
-    title = base_param.title = base_param.title or DEFAULT_TITLE
+    incr_sig_nb = not param.title
+    title = param.title = param.title or DEFAULT_TITLE
     if incr_sig_nb:
         title = f"{title} {get_next_signal_number():d}"
-
-    ep = extra_param
-    xarr = np.linspace(base_param.xmin, base_param.xmax, base_param.size)
-
-    if base_param.stype == SignalTypes.ZEROS:
-        yarr = np.zeros(base_param.size)
-
-    elif base_param.stype == SignalTypes.UNIFORMRANDOM:
-        if ep is None:
-            raise ValueError("extra_param (UniformRandomParam) required.")
-        assert isinstance(ep, base.UniformRandomParam)
-        rng = np.random.default_rng(ep.seed)
-        yarr = rng.random((base_param.size,)) * (ep.vmax - ep.vmin) + ep.vmin
-        title = f"{prefix}(vmin={ep.vmin:.3g},vmax={ep.vmax:.3g})"
-
-    elif base_param.stype == SignalTypes.NORMALRANDOM:
-        if ep is None:
-            raise ValueError("extra_param (NormalRandomParam) required.")
-        assert isinstance(ep, base.NormalRandomParam)
-        rng = np.random.default_rng(ep.seed)
-        yarr = rng.normal(ep.mu, ep.sigma, size=(base_param.size,))
-        title = f"{prefix}(mu={ep.mu:.3g},sigma={ep.sigma:.3g})"
-
-    elif base_param.stype in (
-        SignalTypes.GAUSS,
-        SignalTypes.LORENTZ,
-        SignalTypes.VOIGT,
-    ):
-        if ep is None:
-            raise ValueError("extra_param (GaussLorentzVoigtParam) required.")
-        assert isinstance(ep, GaussLorentzVoigtParam)
-        func = {
-            SignalTypes.GAUSS: GaussianModel.func,
-            SignalTypes.LORENTZ: LorentzianModel.func,
-            SignalTypes.VOIGT: VoigtModel.func,
-        }[base_param.stype]
-        yarr = func(xarr, ep.a, ep.sigma, ep.mu, ep.ymin)
-        title = (
-            f"{prefix}(a={ep.a:.3g},sigma={ep.sigma:.3g},"
-            f"mu={ep.mu:.3g},ymin={ep.ymin:.3g})"
-        )
-
-    elif base_param.stype in (
-        SignalTypes.SINUS,
-        SignalTypes.COSINUS,
-        SignalTypes.SAWTOOTH,
-        SignalTypes.TRIANGLE,
-        SignalTypes.SQUARE,
-        SignalTypes.SINC,
-    ):
-        if ep is None:
-            raise ValueError("extra_param (PeriodicParam) required.")
-        assert isinstance(ep, PeriodicParam)
-        func = {
-            SignalTypes.SINUS: np.sin,
-            SignalTypes.COSINUS: np.cos,
-            SignalTypes.SAWTOOTH: sps.sawtooth,
-            SignalTypes.TRIANGLE: triangle_func,
-            SignalTypes.SQUARE: sps.square,
-            SignalTypes.SINC: np.sinc,
-        }[base_param.stype]
-        freq = ep.get_frequency_in_hz()
-        yarr = ep.a * func(2 * np.pi * freq * xarr + np.deg2rad(ep.phase)) + ep.ymin
-        title = (
-            f"{prefix}(f={ep.freq:.3g} {ep.freq_unit.value}),"
-            f"a={ep.a:.3g},ymin={ep.ymin:.3g},phase={ep.phase:.3g}°)"
-        )
-
-    elif base_param.stype == SignalTypes.STEP:
-        if ep is None:
-            raise ValueError("extra_param (StepParam) required.")
-        assert isinstance(ep, StepParam)
-        yarr = np.ones_like(xarr) * ep.a1
-        yarr[xarr > ep.x0] = ep.a2
-        title = f"{prefix}(a1={ep.a1:.3g},a2={ep.a2:.3g},x0={ep.x0:.3g})"
-
-    elif base_param.stype == SignalTypes.EXPONENTIAL:
-        if ep is None:
-            raise ValueError("extra_param (ExponentialParam) required.")
-        assert isinstance(ep, ExponentialParam)
-        yarr = ep.a * np.exp(ep.exponent * xarr) + ep.offset
-        title = f"{prefix}(a={ep.a:.3g},k={ep.exponent:.3g},y0={ep.offset:.3g})"
-
-    elif base_param.stype == SignalTypes.PULSE:
-        if ep is None:
-            raise ValueError("extra_param (PulseParam) required.")
-        assert isinstance(ep, PulseParam)
-        yarr = np.full_like(xarr, ep.offset)
-        yarr[(xarr >= ep.start) & (xarr <= ep.stop)] += ep.amp
-        title = (
-            f"{prefix}(start={ep.start:.3g},stop={ep.stop:.3g},offset={ep.offset:.3g})"
-        )
-
-    elif base_param.stype == SignalTypes.POLYNOMIAL:
-        if ep is None:
-            raise ValueError("extra_param (PolyParam) required.")
-        assert isinstance(ep, PolyParam)
-        yarr = np.polyval([ep.a5, ep.a4, ep.a3, ep.a2, ep.a1, ep.a0], xarr)
-        title = (
-            f"{prefix}(a0={ep.a0:.3g},a1={ep.a1:.3g},a2={ep.a2:.3g},"
-            f"a3={ep.a3:.3g},a4={ep.a4:.3g},a5={ep.a5:.3g})"
-        )
-
-    elif base_param.stype == SignalTypes.EXPERIMENTAL:
-        if ep is None:
-            raise ValueError("extra_param (Experimental) required.")
-        assert isinstance(ep, ExperimentalSignalParam)
-        ep.setup_array(size=base_param.size, xmin=base_param.xmin, xmax=base_param.xmax)
-        xarr, yarr = ep.xyarray.T
-        title = f"experimental(npts={ep.size})"
-
-    else:
-        raise NotImplementedError(
-            f"Signal type '{base_param.stype}' is not implemented."
-        )
-
-    title = title if base_param.title == DEFAULT_TITLE else base_param.title
-    signal = create_signal(title, xarr, yarr)
+    x, y = param.generate_1d_data()
+    gen_title = param.generate_title()
+    if gen_title:
+        title = gen_title if param.title == DEFAULT_TITLE else param.title
+    signal = create_signal(title, x, y)
     return signal

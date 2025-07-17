@@ -48,10 +48,24 @@ Signal model
 .. autofunction:: sigima.objects.create_signal
 .. autofunction:: sigima.objects.create_signal_from_param
 .. autoclass:: sigima.objects.SignalTypes
-.. autodataset:: sigima.objects.NewSignalParam
-.. autodataset:: sigima.objects.GaussLorentzVoigtParam
+.. autoclass:: sigima.objects.NewSignalParam
+.. autodataset:: sigima.objects.ZerosParam
+.. autodataset:: sigima.objects.UniformRandomParam
+.. autodataset:: sigima.objects.NormalRandomParam
+.. autodataset:: sigima.objects.GaussParam
+.. autodataset:: sigima.objects.LorentzParam
+.. autodataset:: sigima.objects.VoigtParam
+.. autodataset:: sigima.objects.SinusParam
+.. autodataset:: sigima.objects.CosinusParam
+.. autodataset:: sigima.objects.SawtoothParam
+.. autodataset:: sigima.objects.TriangleParam
+.. autodataset:: sigima.objects.SquareParam
+.. autodataset:: sigima.objects.SincParam
 .. autodataset:: sigima.objects.StepParam
-.. autodataset:: sigima.objects.PeriodicParam
+.. autodataset:: sigima.objects.ExponentialParam
+.. autodataset:: sigima.objects.PulseParam
+.. autodataset:: sigima.objects.PolyParam
+.. autodataset:: sigima.objects.ExperimentalSignalParam
 .. autodataset:: sigima.objects.ROI1DParam
 .. autoclass:: sigima.objects.SignalROI
 
@@ -65,9 +79,13 @@ Image model
 .. autofunction:: sigima.objects.create_image
 .. autofunction:: sigima.objects.create_image_from_param
 .. autoclass:: sigima.objects.ImageTypes
-.. autodataset:: sigima.objects.NewImageParam
-.. autodataset:: sigima.objects.BilinearFormParam
+.. autoclass:: sigima.objects.NewImageParam
+.. autodataset:: sigima.objects.Zeros2DParam
+.. autodataset:: sigima.objects.Empty2DParam
+.. autodataset:: sigima.objects.UniformRandom2DParam
+.. autodataset:: sigima.objects.NormalRandom2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
+.. autodataset:: sigima.objects.Ramp2DParam
 .. autodataset:: sigima.objects.ROI2DParam
 .. autoclass:: sigima.objects.ImageROI
 .. autoclass:: sigima.objects.ImageDatatypes
@@ -77,8 +95,6 @@ Image model
 # flake8: noqa
 
 from sigima.objects.base import (
-    UniformRandomParam,
-    NormalRandomParam,
     ResultProperties,
     ResultShape,
     TypeObj,
@@ -102,11 +118,17 @@ from sigima.objects.image import (
     PolygonalROI,
     ImageDatatypes,
     NewImageParam,
+    UniformRandom2DParam,
+    NormalRandom2DParam,
+    get_image_parameters_class,
+    Zeros2DParam,
+    Empty2DParam,
 )
 from sigima.objects.signal import (
     SignalObj,
     ROI1DParam,
     SegmentROI,
+    get_signal_parameters_class,
     SignalTypes,
     SignalROI,
     create_signal_roi,
@@ -117,7 +139,17 @@ from sigima.objects.signal import (
     PulseParam,
     PolyParam,
     StepParam,
-    PeriodicParam,
-    GaussLorentzVoigtParam,
+    SinusParam,
+    CosinusParam,
+    SawtoothParam,
+    TriangleParam,
+    SquareParam,
+    SincParam,
+    ZerosParam,
+    GaussParam,
+    LorentzParam,
+    VoigtParam,
     NewSignalParam,
+    UniformRandomParam,
+    NormalRandomParam,
 )

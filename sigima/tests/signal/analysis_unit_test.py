@@ -84,11 +84,7 @@ def test_signal_x_at_minmax() -> None:
 @pytest.mark.validation
 def test_signal_x_at_y() -> None:
     """Validation test for the abscissa finding computation."""
-    newparam = sigima.objects.NewSignalParam.create(
-        stype=sigima.objects.SignalTypes.STEP
-    )
-    extra_param = sigima.objects.StepParam()
-    obj = sigima.objects.create_signal_from_param(newparam, extra_param=extra_param)
+    obj = sigima.objects.create_signal_from_param(sigima.objects.StepParam.create())
     if obj is None:
         raise ValueError("Failed to create test signal")
     param = sigima_signal.OrdinateParam.create(y=0.5)
@@ -101,11 +97,8 @@ def test_signal_x_at_y() -> None:
 @pytest.mark.validation
 def test_signal_y_at_x() -> None:
     """Validation test for the ordinate finding computation."""
-    newparam = sigima.objects.NewSignalParam.create(
-        stype=sigima.objects.SignalTypes.TRIANGLE, xmin=0.0, xmax=10.0, size=101
-    )
-    extra_param = sigima.objects.PeriodicParam()
-    obj = sigima.objects.create_signal_from_param(newparam, extra_param=extra_param)
+    param = sigima.objects.TriangleParam.create(xmin=0.0, xmax=10.0, size=101)
+    obj = sigima.objects.create_signal_from_param(param)
     if obj is None:
         raise ValueError("Failed to create test signal")
     param = sigima_signal.AbscissaParam.create(x=2.5)

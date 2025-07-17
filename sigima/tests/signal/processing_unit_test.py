@@ -205,11 +205,8 @@ def test_signal_clip() -> None:
 def test_signal_convolution() -> None:
     """Validation test for the signal convolution processing."""
     src1 = get_test_signal("paracetamol.txt")
-    snew = sigima.objects.NewSignalParam.create(
-        title="Gaussian", stype=sigima.objects.SignalTypes.GAUSS
-    )
-    extra_param = sigima.objects.GaussLorentzVoigtParam.create(sigma=10.0)
-    src2 = sigima.objects.create_signal_from_param(snew, extra_param=extra_param)
+    param = sigima.objects.GaussParam.create(title="Gaussian", sigma=10.0)
+    src2 = sigima.objects.create_signal_from_param(param)
 
     dst = sigima_signal.convolution(src1, src2)
     exp = np.convolve(src1.data, src2.data, mode="same")

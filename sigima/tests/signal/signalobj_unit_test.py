@@ -39,41 +39,46 @@ def iterate_signal_creation(
             continue
         if verbose:
             execenv.print(f"    {stype.value}")
-        base_param = sigima.objects.NewSignalParam.create(stype=stype, size=data_size)
-        if stype == sigima.objects.SignalTypes.UNIFORMRANDOM:
-            extra_param = sigima.objects.UniformRandomParam()
+
+        if stype == sigima.objects.SignalTypes.ZEROS:
+            param = sigima.objects.ZerosParam()
+        elif stype == sigima.objects.SignalTypes.UNIFORMRANDOM:
+            param = sigima.objects.UniformRandomParam()
         elif stype == sigima.objects.SignalTypes.NORMALRANDOM:
-            extra_param = sigima.objects.NormalRandomParam()
-        elif stype in (
-            sigima.objects.SignalTypes.GAUSS,
-            sigima.objects.SignalTypes.LORENTZ,
-            sigima.objects.SignalTypes.VOIGT,
-        ):
-            extra_param = sigima.objects.GaussLorentzVoigtParam()
-        elif stype in (
-            sigima.objects.SignalTypes.SINUS,
-            sigima.objects.SignalTypes.COSINUS,
-            sigima.objects.SignalTypes.SAWTOOTH,
-            sigima.objects.SignalTypes.TRIANGLE,
-            sigima.objects.SignalTypes.SQUARE,
-            sigima.objects.SignalTypes.SINC,
-        ):
-            extra_param = sigima.objects.PeriodicParam()
+            param = sigima.objects.NormalRandomParam()
+        elif stype == sigima.objects.SignalTypes.GAUSS:
+            param = sigima.objects.GaussParam()
+        elif stype == sigima.objects.SignalTypes.LORENTZ:
+            param = sigima.objects.LorentzParam()
+        elif stype == sigima.objects.SignalTypes.VOIGT:
+            param = sigima.objects.VoigtParam()
+        elif stype == sigima.objects.SignalTypes.SINUS:
+            param = sigima.objects.SinusParam()
+        elif stype == sigima.objects.SignalTypes.COSINUS:
+            param = sigima.objects.CosinusParam()
+        elif stype == sigima.objects.SignalTypes.SAWTOOTH:
+            param = sigima.objects.SawtoothParam()
+        elif stype == sigima.objects.SignalTypes.TRIANGLE:
+            param = sigima.objects.TriangleParam()
+        elif stype == sigima.objects.SignalTypes.SQUARE:
+            param = sigima.objects.SquareParam()
+        elif stype == sigima.objects.SignalTypes.SINC:
+            param = sigima.objects.SincParam()
         elif stype == sigima.objects.SignalTypes.STEP:
-            extra_param = sigima.objects.StepParam()
+            param = sigima.objects.StepParam()
         elif stype == sigima.objects.SignalTypes.EXPONENTIAL:
-            extra_param = sigima.objects.ExponentialParam()
+            param = sigima.objects.ExponentialParam()
         elif stype == sigima.objects.SignalTypes.PULSE:
-            extra_param = sigima.objects.PulseParam()
+            param = sigima.objects.PulseParam()
         elif stype == sigima.objects.SignalTypes.POLYNOMIAL:
-            extra_param = sigima.objects.PolyParam()
+            param = sigima.objects.PolyParam()
         elif stype == sigima.objects.SignalTypes.EXPERIMENTAL:
-            extra_param = sigima.objects.ExperimentalSignalParam()
+            param = sigima.objects.ExperimentalSignalParam()
         else:
-            extra_param = None
-        signal = sigima.objects.create_signal_from_param(
-            base_param, extra_param=extra_param
-        )
+            raise NotImplementedError(f"Signal type {stype} is not implemented")
+
+        param.size = data_size
+        signal = sigima.objects.create_signal_from_param(param)
         if stype == sigima.objects.SignalTypes.ZEROS:
             assert (signal.y == 0).all()
         yield signal
