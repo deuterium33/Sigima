@@ -1088,7 +1088,7 @@ class Ramp2DParam(gds.DataSet):
 
 
 def _compute_ramp2d(
-    param: Ramp2DParam, shape: tuple[int, int] = (1024, 1024)
+    p: Ramp2DParam, shape: tuple[int, int] = (1024, 1024)
 ) -> np.ndarray:
     """Compute the output of a 2D ramp.
 
@@ -1100,16 +1100,14 @@ def _compute_ramp2d(
         2D array with the computed ramp values.
 
     Raises:
-        AssertionError: if any of the required parameters are None.
+        ValueError: if any of the required parameters are None.
     """
-    assert param.xmin is not None
-    assert param.xmax is not None
-    assert param.ymin is not None
-    assert param.ymax is not None
-    x = np.linspace(param.xmin, param.xmax, shape[1])
-    y = np.linspace(param.ymin, param.ymax, shape[0])
+    if p.xmin is None or p.xmax is None or p.ymin is None or p.ymax is None:
+        raise ValueError("Ramp2DParam requires xmin, xmax, ymin, ymax to be set.")
+    x = np.linspace(p.xmin, p.xmax, shape[1])
+    y = np.linspace(p.ymin, p.ymax, shape[0])
     xx, yy = np.meshgrid(x, y)
-    return param.a * (xx - param.x0) + param.b * (yy - param.y0) + param.c
+    return p.a * (xx - p.x0) + p.b * (yy - p.y0) + p.c
 
 
 class Gauss2DParam(gds.DataSet):
