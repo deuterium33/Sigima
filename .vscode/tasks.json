@@ -443,13 +443,13 @@
             "label": "🔁 Reinstall guidata/plotpy dev",
             "type": "shell",
             "windows": {
-                "command": "pip uninstall -y guidata plotpy; Remove-Item -Recurse -Force .venv/Lib/site-packages/guidata -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .venv/Lib/site-packages/plotpy -ErrorAction SilentlyContinue; pip install -e ../guidata; pip install -e ../plotpy",
+                "command": ".venv/scripts/pip uninstall -y guidata plotpy; Remove-Item -Recurse -Force .venv/Lib/site-packages/guidata -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .venv/Lib/site-packages/plotpy -ErrorAction SilentlyContinue; .venv/scripts/pip install -e ../guidata; .venv/scripts/pip install -e ../plotpy",
             },
             "linux": {
-                "command": "pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && pip install -e ../guidata && pip install -e ../plotpy"
+                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy"
             },
             "osx": {
-                "command": "pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && pip install -e ../guidata && pip install -e ../plotpy"
+                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy"
             },
             "options": {
                 "cwd": "${workspaceFolder}",
