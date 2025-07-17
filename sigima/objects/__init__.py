@@ -31,8 +31,6 @@ Common objects
     :members:
 .. autoclass:: sigima.objects.ShapeTypes
     :members:
-.. autoclass:: sigima.objects.UniformRandomParam
-.. autoclass:: sigima.objects.NormalRandomParam
 .. autoclass:: sigima.objects.TypeObj
 .. autoclass:: sigima.objects.TypeROI
 .. autoclass:: sigima.objects.TypeROIParam
