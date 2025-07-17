@@ -32,6 +32,7 @@ from sigima.proc.base import (
     AngleUnit,
     ArithmeticParam,
     ClipParam,
+    CombineToComplexParam,
     ConstantParam,
     FFTParam,
     GaussianParam,
@@ -649,6 +650,37 @@ def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
     dst.set_xydata(x, argument, src.dx, None)
     dst.yunit = p.unit.value
     restore_data_outside_roi(dst, src)
+    return dst
+
+
+@computation_function()
+def combine_to_complex(
+    src1: SignalObj, src2: SignalObj, p: CombineToComplexParam
+) -> SignalObj:
+    """Combine two real signal in a complex signal`
+
+    Args:
+        src1: real part or module
+        src2: imaginary part or phase
+        p: parameters
+
+
+    Returns:
+        Result signal object
+    """
+    dst = dst_2_to_1(src1, src2, p.mode)
+
+    if not np.array_equal(src1.x, src2.x):
+        raise ValueError(_("The x coordinates of the two signals must be the same"))
+
+    if p.mode == "real_imag":
+        # If not unwrapping, use numpy.angle
+        y = src1.y + 1j * src2.y
+        dst.set_xydata(src1.x, y)
+    else:  # If mode is "mag_phase"
+        y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit)
+        dst.set_xydata(src1.x, y)
+
     return dst
 
 

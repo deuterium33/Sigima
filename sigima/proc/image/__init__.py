@@ -155,6 +155,7 @@ from sigima.proc.image.mathops import (
     log10,
     logp1,
     real,
+    combine_to_complex,
 )
 from sigima.proc.image.measurement import centroid, enclosing_circle, stats
 from sigima.proc.image.morphology import (

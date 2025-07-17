@@ -284,3 +284,24 @@ def vector_rotation(theta: float, dx: float, dy: float) -> tuple[float, float]:
         Tuple of (x, y) coordinates of rotated vector
     """
     return (rotate(theta) @ colvector(dx, dy)).ravel()[:2]
+
+
+def polar_to_complex(
+    r: np.ndarray, theta: np.ndarray, unit: Literal["rad", "deg"] = "rad"
+) -> np.ndarray:
+    """Convert polar coordinates to complex numbers.
+
+    Args:
+        r: Polar radius.
+        theta: Polar angle.
+        unit: Unit of the angle ('rad' or 'deg').
+
+    Returns:
+        Complex numbers corresponding to the polar coordinates.
+    """
+    if unit not in ["rad", "deg"]:
+        raise ValueError("unit must be 'rad' or 'deg'")
+    if unit == "deg":
+        theta = np.deg2rad(theta)
+
+    return r * np.exp(1j * theta)

@@ -219,6 +219,27 @@ class PhaseParam(gds.DataSet):
     )
 
 
+class CombineToComplexParam(gds.DataSet):
+    """parameters for phase angle computation"""
+
+    mode = gds.ChoiceItem(
+        _("Combination mode"),
+        [
+            ("real_imag", _("Real and imaginary part")),
+            ("mag_phase", _("Magnitude and phase angle")),
+        ],
+        default="mag_phase",
+    )
+    unit = gds.ChoiceItem(
+        _("Angle unit"),
+        [("rad", _("Radians")), ("deg", _("Degrees"))],
+        default="deg",
+    ).set_prop(
+        "active",
+        active=gds.FuncProp("mode", lambda x: x == "mag_phase"),
+    )
+
+
 # MARK: Helper functions for creating result objects -----------------------------------
 
 Obj = TypeVar("Obj", bound="SignalObj | ImageObj")

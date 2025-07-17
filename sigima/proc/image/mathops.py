@@ -32,9 +32,16 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc.base import AngleUnit, PhaseParam, dst_1_to_1
+from sigima.proc.base import (
+    AngleUnit,
+    CombineToComplexParam,
+    PhaseParam,
+    dst_1_to_1,
+    dst_2_to_1,
+)
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
+from sigima.tools import coordinates
 from sigima.tools.datatypes import clip_astype
 
 __all__ = [
@@ -134,6 +141,36 @@ def phase(src: ImageObj, p: PhaseParam) -> ImageObj:
     dst.data = argument
     dst.zunit = p.unit.value
     restore_data_outside_roi(dst, src)
+    return dst
+
+
+@computation_function()
+def combine_to_complex(
+    src1: ImageObj, src2: ImageObj, p: CombineToComplexParam
+) -> ImageObj:
+    """Combine two real images in a complex image`
+
+    Args:
+        src1: real part or module
+        src2: imaginary part or phase
+        p: parameters
+
+    Returns:
+        Result signal object
+    """
+    dst = dst_2_to_1(src1, src2, p.mode)
+
+    if not np.array_equal(src1.x, src2.x) or not np.array_equal(src1.y, src2.y):
+        raise ValueError(
+            _("The x and y coordinates of the two signals must be the same")
+        )
+
+    if p.mode == "real_imag":
+        # If not unwrapping, use numpy.angle
+        dst.z = src1.z + 1j * src2.z
+    else:  # If mode is "mag_phase"
+        dst.z = coordinates.polar_to_complex(src1.z, src2.z, unit=p.unit)
+
     return dst
 
 
