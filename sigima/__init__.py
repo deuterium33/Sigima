@@ -63,7 +63,7 @@ from sigima.io import (
 from sigima.objects import (
     CircularROI,
     ExponentialParam,
-    BilinearFormParam,
+    Ramp2DParam,
     Gauss2DParam,
     GaussLorentzVoigtParam,
     ImageDatatypes,

@@ -68,14 +68,14 @@ def _iterate_image_datatypes(
 def _get_additional_param(
     itype: sigima.objects.ImageTypes, dtype: sigima.objects.ImageDatatypes
 ) -> (
-    sigima.objects.BilinearFormParam
+    sigima.objects.Ramp2DParam
     | sigima.objects.Gauss2DParam
     | sigima.objects.UniformRandomParam
     | sigima.objects.NormalRandomParam
     | None
 ):
-    if itype == sigima.objects.ImageTypes.BILINEAR:
-        addparam = sigima.objects.BilinearFormParam()
+    if itype == sigima.objects.ImageTypes.RAMP:
+        addparam = sigima.objects.Ramp2DParam()
         addparam.a = 1.0
         addparam.b = 2.0
         addparam.c = 3.0
@@ -113,7 +113,7 @@ def _test_image_data(
     """
     if itype == sigima.objects.ImageTypes.ZEROS:
         assert (image.data == 0).all()
-    elif itype == sigima.objects.ImageTypes.BILINEAR:
+    elif itype == sigima.objects.ImageTypes.RAMP:
         assert image.data is not None
         check_scalar_result("Top-left corner", image.data[0][0], -8.0)
         check_scalar_result("Top-right corner", image.data[0][-1], -5.0)

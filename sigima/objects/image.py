@@ -1032,7 +1032,7 @@ class ImageTypes(base.Choices):
     #: Empty image (filled with data from memory state)
     EMPTY = _("empty")
     #: Bilinear form image
-    BILINEAR = _("bilinear")
+    RAMP = _("2D ramp")
     #: 2D Gaussian image
     GAUSS = _("gaussian")
     #: Image filled with random data (uniform law)
@@ -1066,8 +1066,8 @@ class NewImageParam(gds.DataSet):
     )
 
 
-class BilinearFormParam(gds.DataSet):
-    """Define the parameters of a bilinear form.
+class Ramp2DParam(gds.DataSet):
+    """Define the parameters of a 2D ramp (planar ramp).
 
     z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c
     """
@@ -1087,17 +1087,20 @@ class BilinearFormParam(gds.DataSet):
     _g1_end = gds.EndGroup(_(""))
 
 
-def _compute_bilinear_form(
-    param: BilinearFormParam, shape: tuple[int, int] = (1024, 1024)
+def _compute_ramp2d(
+    param: Ramp2DParam, shape: tuple[int, int] = (1024, 1024)
 ) -> np.ndarray:
-    """Compute the output of a bilinear form.
+    """Compute the output of a 2D ramp.
 
     Args:
-        param: Bilinear form parameters.
+        param: 2D ramp parameters.
         shape: Tuple (height, width) for the output array.
 
     Returns:
-        Two-dimensional data.
+        2D array with the computed ramp values.
+
+    Raises:
+        AssertionError: if any of the required parameters are None.
     """
     assert param.xmin is not None
     assert param.xmax is not None
@@ -1179,11 +1182,11 @@ def create_image_from_param(
     elif base_param.itype == ImageTypes.EMPTY:
         data = np.empty(shape, dtype=dtype)
 
-    elif base_param.itype == ImageTypes.BILINEAR:
+    elif base_param.itype == ImageTypes.RAMP:
         if ep is None:
             raise ValueError("BilinearFormParam required.")
-        assert isinstance(ep, BilinearFormParam)
-        data = _compute_bilinear_form(ep, shape)
+        assert isinstance(ep, Ramp2DParam)
+        data = _compute_ramp2d(ep, shape)
         title = f"\nz = {ep.a} (x - {ep.x0}) + {ep.b} (y - {ep.y0}) + {ep.c})"
 
     elif base_param.itype == ImageTypes.GAUSS:

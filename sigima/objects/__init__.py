@@ -93,7 +93,7 @@ from sigima.objects.image import (
     create_image_roi,
     create_image,
     create_image_from_param,
-    BilinearFormParam,
+    Ramp2DParam,
     Gauss2DParam,
     ROI2DParam,
     RectangularROI,
