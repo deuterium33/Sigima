@@ -539,14 +539,17 @@ DEFAULT_TITLE = _("Untitled signal")
 class NewSignalParam(gds.DataSet):
     """New signal dataset"""
 
+    SIZE_RANGE_ACTIVATION_FLAG = True
+
     hide_signal_type = False
 
+    _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
-    xmin = gds.FloatItem("Xmin", default=-10.0)
-    xmax = gds.FloatItem("Xmax", default=10.0)
+    xmin = gds.FloatItem("Xmin", default=-10.0).set_prop("display", active=_size_range)
+    xmax = gds.FloatItem("Xmax", default=10.0).set_prop("display", active=_size_range)
     size = gds.IntItem(
         _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
-    )
+    ).set_prop("display", active=_size_range)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -950,13 +953,12 @@ register_signal_parameters_class(SignalTypes.POLYNOMIAL, PolyParam)
 class ExperimentalSignalParam(NewSignalParam):
     """Parameters for experimental signal"""
 
-    size = gds.IntItem("Size", default=5).set_prop("display", hide=True)
+    SIZE_RANGE_ACTIVATION_FLAG = False
+
     xyarray = gds.FloatArrayItem(
         "XY Values",
         format="%g",
     )
-    xmin = gds.FloatItem("Min", default=0).set_prop("display", hide=True)
-    xmax = gds.FloatItem("Max", default=1).set_prop("display", hide=True)
 
     def setup_array(
         self,
