@@ -45,7 +45,10 @@ def check_for_validation_test(
             # Path relative to the `datalab` package:
             path = osp.relpath(path, start=osp.dirname(osp.join(tests_pkg.__file__)))
             name = "/".join(path.split(osp.sep))
-            link = f"https://github.com/DataLab-Platform/Sigima/blob/v{stable_version}/sigima/tests/{name}#L{line_number}"
+            link = (
+                f"https://github.com/DataLab-Platform/Sigima/blob/"
+                f"v{stable_version}/sigima/tests/{name}#L{line_number}"
+            )
             return f"`{test} <{link}>`_"
     return None
 
