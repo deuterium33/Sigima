@@ -529,8 +529,8 @@ class SignalTypes(base.Choices):
     PULSE = _("pulse")
     #: Polynomial function
     POLYNOMIAL = _("polynomial")
-    #: Experimental function
-    EXPERIMENTAL = _("experimental")
+    #: Custom function
+    CUSTOM = _("custom")
 
 
 DEFAULT_TITLE = _("Untitled signal")
@@ -950,8 +950,8 @@ class PolyParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.POLYNOMIAL, PolyParam)
 
 
-class ExperimentalSignalParam(NewSignalParam):
-    """Parameters for experimental signal"""
+class CustomSignalParam(NewSignalParam):
+    """Parameters for custom signal (e.g. manually defined experimental data)"""
 
     SIZE_RANGE_ACTIVATION_FLAG = False
 
@@ -982,7 +982,7 @@ class ExperimentalSignalParam(NewSignalParam):
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
-        return f"experimental(size={self.size})"
+        return f"custom(size={self.size})"
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Compute 1D data based on current parameters.
@@ -995,7 +995,7 @@ class ExperimentalSignalParam(NewSignalParam):
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.EXPERIMENTAL, ExperimentalSignalParam)
+register_signal_parameters_class(SignalTypes.CUSTOM, CustomSignalParam)
 check_all_signal_parameters_classes()
 
 

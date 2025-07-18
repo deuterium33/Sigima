@@ -63,7 +63,7 @@ Signal model
 .. autodataset:: sigima.objects.ExponentialParam
 .. autodataset:: sigima.objects.PulseParam
 .. autodataset:: sigima.objects.PolyParam
-.. autodataset:: sigima.objects.ExperimentalSignalParam
+.. autodataset:: sigima.objects.CustomSignalParam
 .. autodataset:: sigima.objects.ROI1DParam
 .. autoclass:: sigima.objects.SignalROI
 
@@ -133,7 +133,7 @@ from sigima.objects.signal import (
     create_signal,
     create_signal_from_param,
     ExponentialParam,
-    ExperimentalSignalParam,
+    CustomSignalParam,
     PulseParam,
     PolyParam,
     StepParam,

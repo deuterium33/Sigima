@@ -72,8 +72,8 @@ def iterate_signal_creation(
             param = sigima.objects.PulseParam()
         elif stype == sigima.objects.SignalTypes.POLYNOMIAL:
             param = sigima.objects.PolyParam()
-        elif stype == sigima.objects.SignalTypes.EXPERIMENTAL:
-            param = sigima.objects.ExperimentalSignalParam()
+        elif stype == sigima.objects.SignalTypes.CUSTOM:
+            param = sigima.objects.CustomSignalParam()
         else:
             raise NotImplementedError(f"Signal type {stype} is not implemented")
 
