@@ -1722,6 +1722,10 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     x, y = src.get_data()
     r, theta = coordinates.to_polar(x, y, p.unit)
     dst.set_xydata(r, theta)
+    dst.xlabel = _("Radius")
+    dst.ylabel = _("Angle")
+    dst.xunit = src.xunit if src.xunit == src.yunit else ""
+    dst.yunit = p.unit
     return dst
 
 
@@ -1747,6 +1751,10 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     r, theta = src.get_data()
     x, y = coordinates.to_cartesian(r, theta, p.unit)
     dst.set_xydata(x, y)
+    dst.xlabel = _("x")
+    dst.ylabel = _("y")
+    dst.xunit = src.xunit
+    dst.yunit = src.xunit
     return dst
 
 
