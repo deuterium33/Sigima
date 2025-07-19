@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-06 14:52+0200\n"
+"POT-Creation-Date: 2025-07-19 19:15+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -16,6 +16,308 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
+
+msgid "If True, computation functions will not delete previous results when creating new objects. This allows for retaining results across invocations."
+msgstr "Si vrai, les fonctions de calcul ne supprimeront pas les résultats précédents lors de la création de nouveaux objets. Cela permet de conserver les résultats entre les appels."
+
+msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
+msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
+
+msgid ""
+"List of supported image I/O formats. Each format is a tuple of\n"
+"(file extension, description).\n"
+"\n"
+".. note::\n"
+"\n"
+"    The `sigima` library supports any image format that can be read by the `imageio`\n"
+"    library, provided that the associated plugin(s) are installed (see `imageio\n"
+"    documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
+"    and that the output NumPy array data type and shape are supported by `sigima`.\n"
+"\n"
+"    To add a new file format, you may use the `imageio_formats` option to specify\n"
+"    additional formats. Each entry should be a tuple of (file extension, description).\n"
+"\n"
+"    Example:\n"
+"\n"
+"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
+msgstr ""
+"Liste des formats d'entrée/sortie d'images pris en charge. Chaque format est un tuple de\n"
+"(extension de fichier, description).\n"
+"\n"
+".. note::\n"
+"\n"
+"    La bibliothèque `sigima` prend en charge tout format d'image qui peut être lu par la bibliothèque `imageio`,\n"
+"    à condition que le(s) plugin(s) associé(s) soient installés (voir la documentation `imageio <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
+"    et que le type de données et la forme du tableau NumPy de sortie soient pris en charge par `sigima`.\n"
+"\n"
+"    Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option `imageio_formats` pour spécifier\n"
+"    des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
+"\n"
+"    Exemple :\n"
+"\n"
+"    \n"
+"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
+
+msgid "All supported files"
+msgstr "Tous les fichiers pris en charge"
+
+msgid "Image I/O formats"
+msgstr "Formats d'entrée/sortie d'images"
+
+msgid "Text files"
+msgstr "Fichiers texte"
+
+msgid "MAT-Files"
+msgstr "Fichiers MAT"
+
+msgid "Signal I/O formats"
+msgstr "Formats d'entrée/sortie de signaux"
+
+msgid "HDF5 files"
+msgstr "Fichiers HDF5"
+
+msgid "CSV files"
+msgstr "Fichiers CSV"
+
+msgid "NumPy binary files"
+msgstr "Fichiers binaires NumPy"
+
+msgid "FT-Lab"
+msgstr "FT-Lab"
+
+msgid "Seed"
+msgstr "Graine"
+
+msgid "Uniform distribution lower bound"
+msgstr "Borne inférieure de la distribution uniforme"
+
+msgid "Uniform distribution higher bound"
+msgstr "Borne supérieure de la distribution uniforme"
+
+msgid "Normal distribution mean"
+msgstr "Moyenne de la distribution normale"
+
+msgid "Normal distribution standard deviation"
+msgstr "Ecart-type de la distribution normale"
+
+msgid "Properties"
+msgstr "Propriétés"
+
+msgid "Geometry"
+msgstr "Géométrie"
+
+msgid "Top left corner"
+msgstr "Coin supérieur gauche"
+
+msgid "Center coordinates"
+msgstr "Coordonnées du centre"
+
+msgid "Radius"
+msgstr "Rayon"
+
+msgid "Coordinates"
+msgstr "Coordonnées"
+
+msgid "Data"
+msgstr "Données"
+
+msgid "Metadata"
+msgstr "Métadonnées"
+
+msgid "Annotations"
+msgstr "Annotations"
+
+msgid "Origin"
+msgstr "Origine"
+
+msgid "Pixel spacing"
+msgstr "Taille des pixels"
+
+msgid "Image title"
+msgstr "Titre de l'image"
+
+msgid "Untitled"
+msgstr "Sans titre"
+
+msgid "X-axis"
+msgstr "Axe des X"
+
+msgid "Title"
+msgstr "Titre"
+
+msgid "Unit"
+msgstr "Unité"
+
+msgid "Y-axis"
+msgstr "Axe des Y"
+
+msgid "Z-axis"
+msgstr "Axe des Z"
+
+msgid "Scales"
+msgstr "Echelles"
+
+msgid "Auto scale"
+msgstr "Echelle automatique"
+
+msgid "Logarithmic scale"
+msgstr "Echelle logarithmique"
+
+msgid "Lower bound"
+msgstr "Borne inférieure"
+
+msgid "Upper bound"
+msgstr "Borne supérieure"
+
+msgid "LUT range"
+msgstr "Plage de LUT"
+
+msgid "zeros"
+msgstr "zéros"
+
+msgid "empty"
+msgstr "vide"
+
+msgid "random (uniform law)"
+msgstr "aléatoire (loi uniforme)"
+
+msgid "random (normal law)"
+msgstr "aléatoire (loi normale)"
+
+msgid "gaussian"
+msgstr "gaussienne"
+
+msgid "2D ramp"
+msgstr "Rampe 2D"
+
+msgid "Untitled image"
+msgstr "Image sans titre"
+
+msgid "Height"
+msgstr "Hauteur"
+
+msgid "Image height: number of rows"
+msgstr "Hauteur de l'image : nombre de lignes"
+
+msgid "Width"
+msgstr "Largeur"
+
+msgid "Image width: number of columns"
+msgstr "Largeur de l'image : nombre de colonnes"
+
+msgid "Data type"
+msgstr "Type de données"
+
+msgid "Coefficients"
+msgstr "Coefficients"
+
+msgid "a"
+msgstr "a"
+
+msgid "b"
+msgstr "b"
+
+msgid "c"
+msgstr "c"
+
+msgid "x<sub>0</sub>"
+msgstr "x<sub>0</sub>"
+
+msgid "y<sub>0</sub>"
+msgstr "y<sub>0</sub>"
+
+msgid "Domain"
+msgstr "Domaine"
+
+msgid "x<sub>min</sub>"
+msgstr "x<sub>min</sub>"
+
+msgid "x<sub>max</sub>"
+msgstr "x<sub>max</sub>"
+
+msgid "y<sub>min</sub>"
+msgstr "y<sub>min</sub>"
+
+msgid "y<sub>max</sub>"
+msgstr "y<sub>max</sub>"
+
+msgid "First point coordinate"
+msgstr "Coordonnée du premier point"
+
+msgid "Last point coordinate"
+msgstr "Coordonnée du dernier point"
+
+msgid "Data and metadata"
+msgstr "Données et métadonnées"
+
+msgid "Signal title"
+msgstr "Titre du signal"
+
+msgid "Titles and units"
+msgstr "Titres et unités"
+
+msgid "lorentzian"
+msgstr "lorentzienne"
+
+msgid "sinus"
+msgstr "sinus"
+
+msgid "cosinus"
+msgstr "cosinus"
+
+msgid "sawtooth"
+msgstr "dent de scie"
+
+msgid "triangle"
+msgstr "triangle"
+
+msgid "square"
+msgstr "carré"
+
+msgid "cardinal sine"
+msgstr "sinus cardinal"
+
+msgid "step"
+msgstr "échelon"
+
+msgid "exponential"
+msgstr "exponentielle"
+
+msgid "pulse"
+msgstr "impulsion"
+
+msgid "polynomial"
+msgstr "polynomial"
+
+msgid "custom"
+msgstr "personnalisé"
+
+msgid "Untitled signal"
+msgstr "Signal sans titre"
+
+msgid "Signal size (total number of points)"
+msgstr "Nombre de points"
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Frequency"
+msgstr "Fréquence"
+
+msgid "Phase"
+msgstr "Phase"
+
+msgid "Offset"
+msgstr "Offset"
+
+msgid "Exponent"
+msgstr "Exposant"
+
+msgid "Start"
+msgstr "Démarrer"
+
+msgid "End"
+msgstr "Fin"
 
 msgid "Operator"
 msgstr "Opérateur"
@@ -95,8 +397,8 @@ msgstr "Décalage"
 msgid "Shift zero frequency to center"
 msgstr "Décaler la fréquence nulle au centre"
 
-msgid "Logarithmic scale"
-msgstr "Echelle logarithmique"
+msgid "Output in decibel (dB)"
+msgstr "Sortie en décibels (dB)"
 
 msgid "Constant value"
 msgstr "Constante"
@@ -437,6 +739,30 @@ msgstr "Ordre"
 msgid "Order of the Butterworth filter"
 msgstr "Ordre du filtre de Butterworth"
 
+msgid "Center frequency"
+msgstr "Fréquence centrale"
+
+msgid "Center frequency of the Gaussian filter"
+msgstr "Fréquence centrale du filtre gaussien"
+
+msgid "σ"
+msgstr "σ"
+
+msgid "Standard deviation of the Gaussian filter"
+msgstr "Ecart-type du filtre gaussien"
+
+msgid "Inverse FFT result"
+msgstr "Résultat de la FFT inverse"
+
+msgid "Real part"
+msgstr "Partie réelle"
+
+msgid "Absolute value"
+msgstr "Valeur absolue"
+
+msgid "How to return the inverse FFT result"
+msgstr "Comment retourner le résultat de la FFT inverse"
+
 msgid "Padding strategy"
 msgstr "Stratégie de complément de zéros"
 
@@ -482,9 +808,6 @@ msgstr "Nombre de pixels (Y)"
 msgid "Number of adjacent pixels to be combined together along Y-axis."
 msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
 
-msgid "Data type"
-msgstr "Type de données"
-
 msgid "Change pixel size"
 msgstr "Modifier la taille des pixels"
 
@@ -493,9 +816,6 @@ msgstr "Modification de la taille des pixels de sorte que les dimensions de l'im
 
 msgid "Footprint (disk) radius."
 msgstr "Rayon de l'ouverture circulaire (disque)."
-
-msgid "Radius"
-msgstr "Rayon"
 
 msgid "Denoising weight"
 msgstr "Poids de débruitage"
@@ -560,12 +880,6 @@ msgstr "Seuil"
 msgid "Minimum distance"
 msgstr "Distance minimale"
 
-msgid "X-axis"
-msgstr "Axe des X"
-
-msgid "Y-axis"
-msgstr "Axe des Y"
-
 msgid "Calibrate"
 msgstr "Étalonner"
 
@@ -583,6 +897,9 @@ msgstr "Chebyshev de type 2"
 
 msgid "Elliptic"
 msgstr "Elliptique"
+
+msgid "Brickwall"
+msgstr "Brickwall"
 
 msgid "Filter method"
 msgstr "Méthode de filtrage"
@@ -602,17 +919,29 @@ msgstr "Ondulation de la bande passante"
 msgid "Stopband attenuation"
 msgstr "Atténuation de la bande d'arrêt"
 
+msgid "Zero padding"
+msgstr "Complément de zéros"
+
+msgid "Minimum FFT points number"
+msgstr "Nombre minimum de points FFT"
+
+msgid "Cutoff frequency"
+msgstr "Fréquence de coupure"
+
 msgid "Strategy"
 msgstr "Stratégie"
+
+msgid "Location"
+msgstr "Emplacement"
+
+msgid "Where to add the padding"
+msgstr "Où ajouter le complément de zéros"
 
 msgid "Number of points to add"
 msgstr "Nombre de points à ajouter"
 
 msgid "Number of points"
 msgstr "Nombre de points"
-
-msgid "Frequency"
-msgstr "Fréquence"
 
 msgid "Degree"
 msgstr "Degré"
@@ -719,256 +1048,11 @@ msgstr "Pleine échelle"
 msgid "Unit for SINAD"
 msgstr "Unité pour SINAD"
 
-msgid "Unit"
-msgstr "Unité"
-
 msgid "Number of harmonics"
 msgstr "Nombre d'harmoniques"
 
 msgid "Number of harmonics to consider for THD"
 msgstr "Nombre d'harmoniques à considérer pour le THD"
-
-msgid "If True, computation functions will not delete previous results when creating new objects. This allows for retaining results across invocations."
-msgstr "Si vrai, les fonctions de calcul ne supprimeront pas les résultats précédents lors de la création de nouveaux objets. Cela permet de conserver les résultats entre les appels."
-
-msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
-msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
-
-msgid ""
-"List of supported image I/O formats. Each format is a tuple of\n"
-"(file extension, description).\n"
-"\n"
-".. note::\n"
-"\n"
-"    The `sigima` library supports any image format that can be read by the `imageio`\n"
-"    library, provided that the associated plugin(s) are installed (see `imageio\n"
-"    documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
-"    and that the output NumPy array data type and shape are supported by `sigima`.\n"
-"\n"
-"    To add a new file format, you may use the `imageio_formats` option to specify\n"
-"    additional formats. Each entry should be a tuple of (file extension, description).\n"
-"\n"
-"    Example:\n"
-"\n"
-"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
-msgstr ""
-"Liste des formats d'entrée/sortie d'images pris en charge. Chaque format est un tuple de\n"
-"(extension de fichier, description).\n"
-"\n"
-".. note::\n"
-"\n"
-"    La bibliothèque `sigima` prend en charge tout format d'image qui peut être lu par la bibliothèque `imageio`,\n"
-"    à condition que le(s) plugin(s) associé(s) soient installés (voir la documentation `imageio <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
-"    et que le type de données et la forme du tableau NumPy de sortie soient pris en charge par `sigima`.\n"
-"\n"
-"    Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option `imageio_formats` pour spécifier\n"
-"    des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
-"\n"
-"    Exemple :\n"
-"\n"
-"    \n"
-"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
-
-msgid "All supported files"
-msgstr "Tous les fichiers pris en charge"
-
-msgid "Image I/O formats"
-msgstr "Formats d'entrée/sortie d'images"
-
-msgid "Text files"
-msgstr "Fichiers texte"
-
-msgid "MAT-Files"
-msgstr "Fichiers MAT"
-
-msgid "Signal I/O formats"
-msgstr "Formats d'entrée/sortie de signaux"
-
-msgid "CSV files"
-msgstr "Fichiers CSV"
-
-msgid "NumPy binary files"
-msgstr "Fichiers binaires NumPy"
-
-msgid "Seed"
-msgstr "Graine"
-
-msgid "Uniform distribution lower bound"
-msgstr "Borne inférieure de la distribution uniforme"
-
-msgid "Uniform distribution higher bound"
-msgstr "Borne supérieure de la distribution uniforme"
-
-msgid "Normal distribution mean"
-msgstr "Moyenne de la distribution normale"
-
-msgid "Normal distribution standard deviation"
-msgstr "Ecart-type de la distribution normale"
-
-msgid "Properties"
-msgstr "Propriétés"
-
-msgid "Geometry"
-msgstr "Géométrie"
-
-msgid "Top left corner"
-msgstr "Coin supérieur gauche"
-
-msgid "Center coordinates"
-msgstr "Coordonnées du centre"
-
-msgid "Coordinates"
-msgstr "Coordonnées"
-
-msgid "Data"
-msgstr "Données"
-
-msgid "Metadata"
-msgstr "Métadonnées"
-
-msgid "Annotations"
-msgstr "Annotations"
-
-msgid "Origin"
-msgstr "Origine"
-
-msgid "Pixel spacing"
-msgstr "Taille des pixels"
-
-msgid "Image title"
-msgstr "Titre de l'image"
-
-msgid "Untitled"
-msgstr "Sans titre"
-
-msgid "Title"
-msgstr "Titre"
-
-msgid "Z-axis"
-msgstr "Axe des Z"
-
-msgid "Scales"
-msgstr "Echelles"
-
-msgid "Auto scale"
-msgstr "Echelle automatique"
-
-msgid "Lower bound"
-msgstr "Borne inférieure"
-
-msgid "Upper bound"
-msgstr "Borne supérieure"
-
-msgid "LUT range"
-msgstr "Plage de LUT"
-
-msgid "zeros"
-msgstr "zéros"
-
-msgid "empty"
-msgstr "vide"
-
-msgid "gaussian"
-msgstr "gaussienne"
-
-msgid "random (uniform law)"
-msgstr "aléatoire (loi uniforme)"
-
-msgid "random (normal law)"
-msgstr "aléatoire (loi normale)"
-
-msgid "Untitled image"
-msgstr "Image sans titre"
-
-msgid "Height"
-msgstr "Hauteur"
-
-msgid "Image height: number of rows"
-msgstr "Hauteur de l'image : nombre de lignes"
-
-msgid "Image width: number of columns"
-msgstr "Largeur de l'image : nombre de colonnes"
-
-msgid "Width"
-msgstr "Largeur"
-
-msgid "Type"
-msgstr "Type"
-
-msgid "First point coordinate"
-msgstr "Coordonnée du premier point"
-
-msgid "Last point coordinate"
-msgstr "Coordonnée du dernier point"
-
-msgid "Data and metadata"
-msgstr "Données et métadonnées"
-
-msgid "Signal title"
-msgstr "Titre du signal"
-
-msgid "Titles and units"
-msgstr "Titres et unités"
-
-msgid "lorentzian"
-msgstr "lorentzienne"
-
-msgid "sinus"
-msgstr "sinus"
-
-msgid "cosinus"
-msgstr "cosinus"
-
-msgid "sawtooth"
-msgstr "dent de scie"
-
-msgid "triangle"
-msgstr "triangle"
-
-msgid "square"
-msgstr "carré"
-
-msgid "cardinal sine"
-msgstr "sinus cardinal"
-
-msgid "step"
-msgstr "échelon"
-
-msgid "exponential"
-msgstr "exponentielle"
-
-msgid "pulse"
-msgstr "impulsion"
-
-msgid "polynomial"
-msgstr "polynomial"
-
-msgid "experimental"
-msgstr "expérimental"
-
-msgid "Phase"
-msgstr "Phase"
-
-msgid "Offset"
-msgstr "Offset"
-
-msgid "Exponent"
-msgstr "Exposant"
-
-msgid "Start"
-msgstr "Démarrer"
-
-msgid "End"
-msgstr "Fin"
-
-msgid "Untitled signal"
-msgstr "Signal sans titre"
-
-msgid "Signal size (total number of points)"
-msgstr "Nombre de points"
-
-msgid "Size"
-msgstr "Taille"
 
 msgid "Mean of the Gaussian distribution"
 msgstr "Moyenne de la distribution gaussienne"
@@ -1000,9 +1084,11 @@ msgstr "X<sub>centre</sub>"
 msgid "Y<sub>center</sub>"
 msgstr "Y<sub>centre</sub>"
 
+msgid "Thickness"
+msgstr "Epaisseur"
+
 msgid "Intensity"
 msgstr "Intensité"
 
 msgid "Centroid"
 msgstr "Barycentre"
-
