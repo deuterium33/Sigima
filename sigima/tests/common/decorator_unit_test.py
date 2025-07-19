@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import guidata.dataset as gds
 import numpy as np
+import pytest
 
 from sigima.objects import ImageObj, SignalObj, create_image, create_signal
 from sigima.proc.base import dst_1_to_1
@@ -29,6 +30,8 @@ class DummySignalParam(gds.DataSet):
 
     a = gds.FloatItem("X value", default=1.0)
     b = gds.FloatItem("Y value", default=5.0)
+    methods = (("linear", "Linear"), ("quadratic", "Quadratic"))
+    method = gds.ChoiceItem("Method", choices=methods, default="linear")
 
 
 SCF_NAME = "dummy_signal_func"
@@ -36,10 +39,21 @@ SCF_DESCRIPTION = "A dummy signal function"
 
 
 @computation_function(name=SCF_NAME, description=SCF_DESCRIPTION)
-def dummy_signal_func(src: SignalObj, param: DummySignalParam) -> SignalObj:
-    """A dummy function that adds two parameters from a DataSet"""
-    dst = dst_1_to_1(src, SCF_NAME, f"x={param.a:.3f}, y={param.b:.3f}")
-    dst.y = src.y + src.x * param.a + param.b
+def dummy_signal_func(src: SignalObj, p: DummySignalParam) -> SignalObj:
+    """A dummy function that adds two parameters from a DataSet.
+
+    Args:
+        src: The source SignalObj.
+        param: The parameters from the DummySignalParam DataSet.
+
+    Returns:
+        The signal with the operation applied.
+    """
+    dst = dst_1_to_1(src, SCF_NAME, f"x={p.a:.3f}, y={p.b:.3f}")
+    if p.method == "linear":
+        dst.y = src.y + src.x * p.a + p.b
+    else:  # Quadratic method
+        dst.y = src.y + src.x**2 * p.a + p.b
     return dst
 
 
@@ -55,52 +69,99 @@ ICF_DESCRIPTION = "A dummy image function"
 
 @computation_function(name=ICF_NAME, description=ICF_DESCRIPTION)
 def dummy_image_func(src: ImageObj, param: DummyImageParam) -> ImageObj:
-    """A dummy function that applies a simple operation based on a DataSet parameter"""
+    """A dummy function that applies a simple operation based on a DataSet parameter.
+
+    Args:
+        src: The source ImageObj.
+        param: The parameters from the DummyImageParam DataSet.
+
+    Returns:
+        The image with the operation applied.
+    """
     dst = dst_1_to_1(src, ICF_NAME, f"sigma={param.alpha:.3f}")
     dst.data = src.data * param.alpha  # Simplified operation for testing
     return dst
 
 
-def test_signal_computation_function_decorator() -> None:
-    """Test the computation function decorator for signals"""
+def test_signal_decorator_marker() -> None:
+    """Test the computation function decorator marker for signals"""
     # Check if the function is marked as a computation function
     assert is_computation_function(dummy_signal_func)
 
+
+def test_signal_decorator_metadata() -> None:
+    """Test the computation function decorator metadata for signals"""
     # Check if the metadata is correctly set
     metadata = get_computation_metadata(dummy_signal_func)
     assert metadata.name == SCF_NAME
     assert metadata.description == SCF_DESCRIPTION
 
-    # Call the function with a SignalObj and DummySignalParam
+
+def test_signal_decorator_signature() -> None:
+    """Test the computation function decorator signature for signals"""
     x = np.linspace(0, 10, 100)
     orig = create_signal("test_signal", x=x, y=x)
-    p = DummySignalParam.create(a=3.0, b=4.0)
-    res = dummy_signal_func(orig, p)
 
-    # Check the result
-    check_array_result("Signal x", res.x, orig.x)
-    check_array_result("Signal y", res.y, orig.y + orig.x * p.a + p.b)
+    # Call the function with a DataSet parameter
+    p = DummySignalParam.create(a=3.0, b=4.0, method="quadratic")
+    res_ds = dummy_signal_func(orig, p)
+    name = "Signal[DataSet parameter]"
+    check_array_result(f"{name} x", res_ds.x, orig.x)
+    check_array_result(f"{name} y", res_ds.y, orig.y + orig.x**2 * 3.0 + 4.0)
+
+    # Call the function with keyword arguments
+    res_kw = dummy_signal_func(orig, a=3.0, b=4.0)
+    name = "Signal[keyword arguments]"
+    check_array_result(f"{name} x", res_kw.x, orig.x)
+    check_array_result(f"{name} y", res_kw.y, orig.y + orig.x * 3.0 + 4.0)
+
+    # Call the functions with both DataSet and keyword arguments: should raise an error
+    with pytest.raises(
+        TypeError,
+        match="Cannot pass both a DummySignalParam instance and keyword arguments",
+    ):
+        dummy_signal_func(orig, p, a=3.0, b=4.0)
 
 
-def test_image_computation_function_decorator() -> None:
-    """Test the computation function decorator for images"""
+def test_image_decorator_marker() -> None:
+    """Test the computation function decorator marker for images"""
     # Check if the function is marked as a computation function
     assert is_computation_function(dummy_image_func)
 
+
+def test_image_decorator_metadata() -> None:
+    """Test the computation function decorator metadata for images"""
     # Check if the metadata is correctly set
     metadata = get_computation_metadata(dummy_image_func)
     assert metadata.name == ICF_NAME
     assert metadata.description == ICF_DESCRIPTION
 
-    # Call the function with an ImageObj and DummyImageParam
-    orig = create_image("test_image", data=np.random.rand(64, 64))
-    p = DummyImageParam.create(alpha=0.8)
-    res = dummy_image_func(orig, p)
 
-    # Check the result
-    check_array_result("Image data", res.data, orig.data * p.alpha)
+def test_image_decorator_signature() -> None:
+    """Test the computation function decorator signature for images"""
+    orig = create_image("test_image", data=np.random.rand(64, 64))
+
+    # Call the function with an ImageObj and DummyImageParam
+    p = DummyImageParam.create(alpha=0.8)
+    res_ds = dummy_image_func(orig, p)
+    check_array_result("Image data", res_ds.data, orig.data * p.alpha)
+
+    # Call the function with keyword arguments
+    res_kw = dummy_image_func(orig, alpha=0.8)
+    check_array_result("Image data", res_kw.data, orig.data * 0.8)
+
+    # Call the function with both DataSet and keyword arguments: should raise an error
+    with pytest.raises(
+        TypeError,
+        match="Cannot pass both a DummyImageParam instance and keyword arguments",
+    ):
+        dummy_image_func(orig, p, alpha=0.8)
 
 
 if __name__ == "__main__":
-    test_signal_computation_function_decorator()
-    test_image_computation_function_decorator()
+    test_signal_decorator_marker()
+    test_signal_decorator_metadata()
+    test_signal_decorator_signature()
+    test_image_decorator_marker()
+    test_image_decorator_metadata()
+    test_image_decorator_signature()

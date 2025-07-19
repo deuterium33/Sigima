@@ -14,7 +14,11 @@ import inspect
 import os.path as osp
 import pkgutil
 import sys
-from typing import Callable, Optional, TypeVar
+import typing
+from typing import Callable, Literal, TypeVar
+
+import guidata.dataset as gds
+import makefun
 
 if sys.version_info >= (3, 10):
     # Use ParamSpec from typing module in Python 3.10+
@@ -45,36 +49,164 @@ class ComputationMetadata:
 
 def computation_function(
     *,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """Decorator to mark a function as a Sigima computation function.
+    name: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+) -> typing.Callable[
+    [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
+]:
+    """
+    Decorator to mark a function as a Sigima computation function.
+
+    - Adds a marker attribute (ComputationMetadata) to the wrapped function.
+    - Makes the signature explicit: parameters of any guidata DataSet used as argument
+      become keyword-only arguments, so the function can be called as
+      `func(obj, param1=..., param2=..., ...)`.
+    - Maintains backward compatibility: a DataSet instance can still be passed directly.
+    - Signature shown in IDE and help() reflects all available parameters.
 
     Args:
-        name: Optional name to override the function name.
+        name: Optional name to override the function name in metadata.
         description: Optional docstring override or additional description.
 
     Returns:
-        The wrapped function, tagged with a marker attribute.
+        The wrapped function, tagged with a marker attribute and an explicit signature.
     """
 
-    def decorator(f: Callable[P, R]) -> Callable[P, R]:
-        """Decorator to mark a function as a Sigima computation function.
-        This decorator adds a marker attribute to the function, allowing
-        it to be identified as a computation function.
-        It also allows for optional name and description overrides.
-        The function can be used as a decorator or as a standalone function.
-        """
-
-        @functools.wraps(f)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            return f(*args, **kwargs)
-
+    def decorator(
+        f: typing.Callable[..., typing.Any],
+    ) -> typing.Callable[..., typing.Any]:
         metadata = ComputationMetadata(
             name=name or f.__name__, description=description or f.__doc__
         )
-        setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
-        return wrapper
+
+        sig = inspect.signature(f)
+        params = list(sig.parameters.values())
+        try:
+            type_hints = typing.get_type_hints(f)
+        except Exception:
+            type_hints = {}
+
+        ds_param = None
+        ds_cls = None
+        for p in params:
+            annot = type_hints.get(p.name, p.annotation)
+            if (
+                annot != inspect._empty
+                and isinstance(annot, type)
+                and issubclass(annot, gds.DataSet)
+                and annot.__name__ not in ("SignalObj", "ImageObj")
+            ):
+                ds_param = p
+                ds_cls = annot
+                break
+
+        if ds_cls is not None:
+            # Build the signature: expose all DataSet items as keyword-only parameters
+            items: list[inspect.Parameter] = []
+            ds_items: list[gds.DataItem] = ds_cls._items
+            for item in ds_items:
+                if item.get_name() not in [p.name for p in params]:
+                    if isinstance(item, gds.ChoiceItem):
+                        choice_data = item.get_prop("data", "choices")
+                        choices = [v[0] for v in choice_data]
+                        item_type = Literal[tuple(choices)]
+                    else:
+                        item_type = item.type
+                    items.append(
+                        inspect.Parameter(
+                            item.get_name(),
+                            inspect.Parameter.KEYWORD_ONLY,
+                            annotation=item_type,
+                            default=item.get_default(),
+                        )
+                    )
+            # Keep DataSet param as positional-or-keyword for backward compatibility
+            base_params = []
+            for p in params:
+                if p is ds_param:
+                    base_params.append(
+                        inspect.Parameter(
+                            p.name,
+                            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                            annotation=p.annotation,
+                            default=None,  # Make param optional!
+                        )
+                    )
+                else:
+                    base_params.append(p)
+            new_params = base_params + items
+            new_sig = sig.replace(parameters=new_params)
+
+            # --- inner, makefun-wrapped implementation ---
+            @makefun.with_signature(new_sig)
+            @functools.wraps(f)
+            def real_wrapper(*args, **kwargs):
+                user_kwarg_keys = getattr(real_wrapper, "_user_kwarg_keys", set())
+                ba = new_sig.bind(*args, **kwargs)
+                ba.apply_defaults()
+                ds_obj = ba.arguments.get(ds_param.name, None)
+                ds_item_names = set([it.get_name() for it in ds_items])
+                if isinstance(ds_obj, ds_cls):
+                    conflict_keys = ds_item_names.intersection(user_kwarg_keys)
+                    if conflict_keys:
+                        raise TypeError(
+                            f"Cannot pass both a {ds_cls.__name__} instance and "
+                            f"keyword arguments for its items "
+                            f"({', '.join(conflict_keys)}). Please use only one style."
+                        )
+                else:
+                    # DataSet instance NOT provided: build from keyword-only arguments
+                    ds_kwargs = {
+                        k: ba.arguments.pop(k)
+                        for k in list(ba.arguments.keys())
+                        if k in ds_item_names
+                    }
+                    ds_obj = ds_cls.create(**ds_kwargs)
+                final_args = []
+                for p in params:
+                    if p is ds_param:
+                        final_args.append(ds_obj)
+                    else:
+                        final_args.append(ba.arguments.get(p.name, None))
+                return f(*final_args)
+
+            # --- outer pre-wrapper: captures user-passed keywords only ---
+            def pre_wrapper(*args, **kwargs):
+                real_wrapper._user_kwarg_keys = set(kwargs.keys())
+                return real_wrapper(*args, **kwargs)
+
+            # --- Sphinx-style docstring injection with actual parameter names ---
+            param_class_name = ds_cls.__name__
+            item_names = [item.get_name() for item in ds_items]
+            kwarg_example = ", ".join(f"{name}=..." for name in item_names)
+
+            signature_info = (
+                f"    .. note::\n\n"
+                f"       This computation function can be called in two ways:\n\n"
+                f"       1. **With a parameter ``{param_class_name}`` object**:\n"
+                f"          ``func(obj, param)``\n"
+                f"       2. **With keyword arguments "
+                f"corresponding to ``{param_class_name}`` items**:\n"
+                f"          ``func(obj, {kwarg_example})``\n\n"
+                f"       Both styles are fully supported and equivalent.\n\n"
+            )
+            doc = f.__doc__ or ""
+            if not doc.endswith("\n"):
+                doc += "\n"
+            pre_wrapper.__doc__ = doc + signature_info
+
+            setattr(pre_wrapper, COMPUTATION_METADATA_ATTR, metadata)
+            pre_wrapper.__signature__ = new_sig
+            return pre_wrapper
+
+        else:
+
+            @functools.wraps(f)
+            def wrapper(*args, **kwargs):
+                return f(*args, **kwargs)
+
+            setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
+            return wrapper
 
     return decorator
 
