@@ -181,7 +181,7 @@
                 "build",
             ],
             "options": {
-                "cwd": "${workspaceFolder}/doc",
+                "cwd": "${workspaceFolder}",
                 "statusbar": {
                     "hide": true
                 }
