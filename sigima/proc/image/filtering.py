@@ -160,7 +160,7 @@ class FreqFFTParam(gds.DataSet):
         help=_("Standard deviation of the Gaussian filter"),
     )
     ifft_result_type = gds.ChoiceItem(
-        _("IFFT result type"),
+        _("Inverse FFT result"),
         (("real", _("Real part")), ("abs", _("Absolute value"))),
         default="real",
         help=_("How to return the inverse FFT result"),
