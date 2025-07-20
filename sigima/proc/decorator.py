@@ -188,14 +188,15 @@ def computation_function(
             kwarg_example = ", ".join(f"{name}=..." for name in item_names)
 
             signature_info = (
-                f"    .. note::\n\n"
-                f"       This computation function can be called in two ways:\n\n"
-                f"       1. **With a parameter ``{param_class_name}`` object**:\n"
-                f"          ``func(obj, param)``\n"
-                f"       2. **With keyword arguments "
-                f"corresponding to ``{param_class_name}`` items**:\n"
-                f"          ``func(obj, {kwarg_example})``\n\n"
-                f"       Both styles are fully supported and equivalent.\n\n"
+                f".. note::\n\n"
+                f"   This computation function can be called in two ways:\n\n"
+                f"   1. With a parameter ``{param_class_name}`` object:\n\n"
+                f"   .. code-block:: python\n\n"
+                f"       param = {param_class_name}.create({kwarg_example})\n"
+                f"       func(obj, param)\n\n"
+                f"   2. Or, with keyword arguments directly:\n\n"
+                f"   .. code-block:: python\n\n"
+                f"       func(obj, {kwarg_example})\n\n"
             )
             doc = f.__doc__ or ""
             if not doc.endswith("\n"):
