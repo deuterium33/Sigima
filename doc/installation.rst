@@ -47,7 +47,7 @@ Package manager ``pip``
 Sigima's package ``sigima`` is available on the Python Package Index (PyPI)
 on the following URL: https://pypi.python.org/pypi/sigima.
 
-Installing Sigima from PyPI with Qt is as simple as running this command
+Installing Sigima from PyPI is as simple as running this command
 (you may need to use ``pip3`` instead of ``pip`` on some systems):
 
 .. code-block:: console
