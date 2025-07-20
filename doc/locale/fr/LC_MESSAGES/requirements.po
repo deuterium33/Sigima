@@ -1,0 +1,233 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-20 11:10+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "The `sigima` package requires the following Python modules:"
+msgstr "Le paquet `sigima` nécessite les modules Python suivants :"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Summary"
+msgstr "Résumé"
+
+msgid "Python"
+msgstr "Python"
+
+msgid ">=3.9, <4"
+msgstr ""
+
+msgid "Python programming language"
+msgstr "Langage de programmation Python"
+
+msgid "guidata"
+msgstr "guidata"
+
+msgid ">= 3.12"
+msgstr ""
+
+msgid "Automatic GUI generation for easy dataset editing and display"
+msgstr "Génération automatique d'interface graphique pour une édition et un affichage faciles des ensembles de données"
+
+msgid "NumPy"
+msgstr ""
+
+msgid ">= 1.22"
+msgstr ""
+
+msgid "Fundamental package for array computing in Python"
+msgstr "Paquet fondamental pour le calcul sur tableaux en Python"
+
+msgid "SciPy"
+msgstr ""
+
+msgid ">= 1.10.1"
+msgstr ""
+
+msgid "Fundamental algorithms for scientific computing in Python"
+msgstr "Algorithmes fondamentaux pour le calcul scientifique en Python"
+
+msgid "scikit-image"
+msgstr ""
+
+msgid ">= 0.19.2"
+msgstr ""
+
+msgid "Image processing in Python"
+msgstr "Traitement d'image en Python"
+
+msgid "pandas"
+msgstr ""
+
+msgid ">= 1.4"
+msgstr ""
+
+msgid "Powerful data structures for data analysis, time series, and statistics"
+msgstr "Structures de données puissantes pour l'analyse de données, les séries temporelles et les statistiques"
+
+msgid "PyWavelets"
+msgstr ""
+
+msgid ">= 1.2"
+msgstr ""
+
+msgid "PyWavelets, wavelet transform module"
+msgstr "PyWavelets, module de transformation en ondelettes"
+
+msgid "packaging"
+msgstr ""
+
+msgid ">= 21.3"
+msgstr ""
+
+msgid "Core utilities for Python packages"
+msgstr "Utilitaires de base pour les paquets Python"
+
+msgid "typing-extensions"
+msgstr ""
+
+msgid ">= 4.0"
+msgstr ""
+
+msgid "Backported and Experimental Type Hints for Python 3.9+"
+msgstr "Extensions de typage rétroportées et expérimentales pour Python 3.9+"
+
+msgid "Optional modules for GUI support (Qt):"
+msgstr ""
+
+msgid "qtpy"
+msgstr ""
+
+msgid "Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6)."
+msgstr "Fournit une couche d'abstraction au-dessus des différentes liaisons Qt (PyQt5/6 et PySide2/6)."
+
+msgid "PyQt5"
+msgstr ""
+
+msgid "Python bindings for the Qt cross platform application toolkit"
+msgstr "Liaisons Python pour l'outil de développement d'applications multiplateforme Qt"
+
+msgid "plotpy"
+msgstr ""
+
+msgid "Curve and image plotting tools for Python/Qt applications"
+msgstr "Outils de traçage de courbes et d'images pour les applications Python/Qt"
+
+msgid "Optional modules for development:"
+msgstr "Modules facultatifs pour le développement :"
+
+msgid "build"
+msgstr ""
+
+msgid "A simple, correct Python build frontend"
+msgstr "Un frontend de construction Python simple et correct"
+
+msgid "babel"
+msgstr ""
+
+msgid "Internationalization utilities"
+msgstr "Utilitaires d'internationalisation"
+
+msgid "ruff"
+msgstr ""
+
+msgid "An extremely fast Python linter and code formatter, written in Rust."
+msgstr "Un linter Python extrêmement rapide et un formateur de code, écrit en Rust."
+
+msgid "pylint"
+msgstr ""
+
+msgid "python code static checker"
+msgstr "Analyseur statique de code Python"
+
+msgid "Coverage"
+msgstr ""
+
+msgid "Code coverage measurement for Python"
+msgstr "Mesure de la couverture du code pour Python"
+
+msgid "pre-commit"
+msgstr ""
+
+msgid "A framework for managing and maintaining multi-language pre-commit hooks."
+msgstr "Un framework pour gérer et maintenir des hooks de pré-commit multi-langages."
+
+msgid "Optional modules for building the documentation:"
+msgstr "Modules facultatifs pour la construction de la documentation :"
+
+msgid "sphinx"
+msgstr ""
+
+msgid "Python documentation generator"
+msgstr "Générateur de documentation Python"
+
+msgid "sphinx_intl"
+msgstr ""
+
+msgid "Sphinx utility that make it easy to translate and to apply translation."
+msgstr "Utilitaire Sphinx qui facilite la traduction et l'application de la traduction."
+
+msgid "sphinx-sitemap"
+msgstr ""
+
+msgid "Sitemap generator for Sphinx"
+msgstr "Générateur de plan du site pour Sphinx"
+
+msgid "myst_parser"
+msgstr ""
+
+msgid "An extended [CommonMark](https://spec.commonmark.org/) compliant parser,"
+msgstr "Un analyseur conforme à [CommonMark](https://spec.commonmark.org/) étendu,"
+
+msgid "sphinx_design"
+msgstr ""
+
+msgid "A sphinx extension for designing beautiful, view size responsive web components."
+msgstr "Une extension Sphinx pour concevoir de beaux composants web réactifs à la taille de la vue."
+
+msgid "sphinx-copybutton"
+msgstr ""
+
+msgid "Add a copy button to each of your code cells."
+msgstr "Ajoute un bouton de copie à chacune de vos cellules de code."
+
+msgid "pydata-sphinx-theme"
+msgstr ""
+
+msgid "Bootstrap-based Sphinx theme from the PyData community"
+msgstr "Thème Sphinx basé sur Bootstrap de la communauté PyData"
+
+msgid "Optional modules for running test suite:"
+msgstr "Modules facultatifs pour exécuter la suite de tests :"
+
+msgid "pytest"
+msgstr ""
+
+msgid "pytest: simple powerful testing with Python"
+msgstr "pytest : tests simples et puissants avec Python"
+
+msgid "pytest-xvfb"
+msgstr ""
+
+msgid "A pytest plugin to run Xvfb (or Xephyr/Xvnc) for tests."
+msgstr "Un plugin pytest pour exécuter Xvfb (ou Xephyr/Xvnc) pour les tests."

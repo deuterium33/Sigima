@@ -92,7 +92,7 @@ pip install -e .
 ## 📚 Documentation
 
 📖 Full documentation (in progress) is available at:
-👉 <https://datalab-platform.com/en/api/>
+👉 <https://sigima.readthedocs.io/>
 
 > Want to use Sigima inside DataLab with GUI tools?
 > Check out the full platform: [DataLab](https://datalab-platform.com/)

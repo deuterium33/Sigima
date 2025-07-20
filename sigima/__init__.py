@@ -99,7 +99,8 @@ from sigima.objects import (
 )
 
 __version__ = "0.3.0"
-__docurl__ = __homeurl__ = "https://datalab-platform.com/"
+__docurl__ = "https://sigima.readthedocs.io/en/latest/"
+__homeurl__ = "https://github.com/DataLab-Platform/Sigima"
 __supporturl__ = "https://github.com/DataLab-Platform/sigima/issues/new/choose"
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the

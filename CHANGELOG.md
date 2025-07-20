@@ -18,7 +18,16 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
 
-* New bilinear image generator.
+* New 2D ramp image generator:
+  * This feature allows to generate a 2D ramp image: z = a(x − x₀) + b(y − y₀) + c
+  * It is implemented in the `sigima.objects.Ramp2DParam` parameter class.
+  * Example usage:
+
+    ```python
+    import sigima.objects as sio
+    param = sio.Ramp2DParam.create(width=100, height=100, a=1.0, b=2.0)
+    image = sio.create_image_from_param(param)
+    ```
 
 * New I/O features:
   * Added support for FT-Lab signal and image format.

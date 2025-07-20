@@ -1,0 +1,62 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-20 11:10+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "Contents"
+msgstr "Table des matières"
+
+msgid "Sigima"
+msgstr "Sigima"
+
+msgid "**Sigima** is an advanced Python library for *scientific image and signal processing*. It provides a wide range of functionalities for analyzing and processing data, including signal filtering, image enhancement, and feature extraction. Sigima is based on a simple but effective object-oriented design, making it easy to use and extend."
+msgstr "**Sigima** est une bibliothèque Python avancée pour le *traitement scientifique des images et des signaux*. Elle offre une large gamme de fonctionnalités pour l'analyse et le traitement des données, y compris le filtrage des signaux, l'amélioration des images et l'extraction de caractéristiques. Sigima est basée sur une conception orientée objet simple mais efficace, ce qui la rend facile à utiliser et à étendre."
+
+msgid "Developed and maintained by the DataLab Platform Developers, **Sigima** powers the computation backend of `DataLab <https://www.datalab-platform.com>`_."
+msgstr "Développée et maintenue par les développeurs de la plateforme DataLab, **Sigima** alimente le backend de calcul de `DataLab <https://www.datalab-platform.com>`_."
+
+msgid "Sigima has been funded by the following stakeholders:"
+msgstr "Sigima a été financée par les parties prenantes suivantes:"
+
+msgid "|nlnet_logo|"
+msgstr "|nlnet_logo|"
+
+msgid "nlnet_logo"
+msgstr "nlnet_logo"
+
+msgid "`NLnet Foundation <https://nlnet.nl>`_, as part of the NGI0 Commons Fund, backed by the European Commission, has funded the `redesign of DataLab's core architecture <https://nlnet.nl/project/DataLab/>`_."
+msgstr "`NLnet Foundation <https://nlnet.nl>`_, dans le cadre du NGI0 Commons Fund, soutenu par la Commission européenne, a financé la `refonte de l'architecture de base de DataLab <https://nlnet.nl/project/DataLab/>`_."
+
+msgid "|cea_logo|"
+msgstr "|cea_logo|"
+
+msgid "cea_logo"
+msgstr "cea_logo"
+
+msgid "`CEA <https://www.cea.fr>`_, the French Alternative Energies and Atomic Energy Commission, is the major investor in DataLab, and is the main contributor to the project."
+msgstr "`CEA <https://www.cea.fr>`_, la Commission française de l'énergie atomique et des énergies alternatives, est le principal investisseur de DataLab et le principal contributeur au projet."
+
+msgid "|codra_logo|"
+msgstr "|codra_logo|"
+
+msgid "codra_logo"
+msgstr "codra_logo"
+
+msgid "`CODRA`_, a software engineering and editor firm, has supported DataLab open-source journey since its inception (see `here <https://codra.net/en/offer/software-engineering/datalab/>`_)."
+msgstr "`CODRA`_, une entreprise d'ingénierie logicielle et d'édition, a soutenu le parcours open-source de DataLab depuis ses débuts (voir `ici <https://codra.net/en/offer/software-engineering/datalab/>`_)."

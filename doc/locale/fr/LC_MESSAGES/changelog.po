@@ -1,0 +1,128 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-20 11:21+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "Changelog"
+msgstr "Historique des modifications"
+
+msgid "The `sigima` library is part of the DataLab open-source platform. See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones."
+msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataLab. Consultez la [page de feuille de route](https://datalab-platform.com/en/contributing/roadmap.html) de DataLab pour les jalons futurs et passés."
+
+msgid "sigima 0.3.0"
+msgstr "sigima 0.3.0"
+
+msgid "💥 New features and enhancements:"
+msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "New image processing features:"
+msgstr "Nouvelles fonctionnalités de traitement d'image:"
+
+msgid "Added new \"Gaussian frequency filter\" feature:"
+msgstr "Ajout de la nouvelle fonctionnalité \"Filtrage fréquentiel gaussien\":"
+
+msgid "This feature allows to filter an image in the frequency domain using a Gaussian filter."
+msgstr "Cette fonctionnalité permet de filtrer une image dans le domaine fréquentiel à l'aide d'un filtre gaussien."
+
+msgid "It is implemented in the `sigima.proc.image.freq_fft` function."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.image.freq_fft`."
+
+msgid "New signal processing features:"
+msgstr "Nouvelles fonctionnalités de traitement du signal:"
+
+msgid "Added \"Brickwall frequency filter\" feature:"
+msgstr "Ajout de la fonctionnalité \"Filtre fréquentiel Brickwall\":"
+
+msgid "This feature allows to filter a signal in the frequency domain using a brickwall filter."
+msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre Brickwall."
+
+msgid "It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.)."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.freq_fft`."
+
+msgid "Enhanced zero padding to support prepend and append. Change default strategy to next power of 2."
+msgstr "Amélioration du remplissage de zéros pour prendre en charge l'ajout au début et à la fin. Changement de la stratégie par défaut vers la prochaine puissance de 2."
+
+msgid "New 2D ramp image generator:"
+msgstr "Nouveau générateur d'image de rampe 2D:"
+
+msgid "This feature allows to generate a 2D ramp image: z = a(x − x₀) + b(y − y₀) + c"
+msgstr "Cette fonctionnalité permet de générer une image de rampe 2D: z = a(x − x₀) + b(y − y₀) + c"
+
+msgid "It is implemented in the `sigima.objects.Ramp2DParam` parameter class."
+msgstr "Elle est implémentée dans la classe de paramètres `sigima.objects.Ramp2DParam`."
+
+msgid "Example usage:"
+msgstr "Exemple d'utilisation:"
+
+msgid "New I/O features:"
+msgstr "Nouvelles fonctionnalités d'E/S:"
+
+msgid "Added support for FT-Lab signal and image format."
+msgstr "Ajout de la prise en charge du format de signal et d'image FT-Lab."
+
+msgid "🛠️ Bug fixes:"
+msgstr "🛠️ Corrections de bogues:"
+
+msgid "Fix how data is managed in signal objects (`SignalObj`):"
+msgstr "Correction de la gestion des données dans les objets de signal (`SignalObj`):"
+
+msgid "Signal data is stored internally as a 2D array with shape `(2, n)`, where the first row is the x data and the second row is the y data: that is the `xydata` attribute."
+msgstr "Les données du signal sont stockées en interne sous la forme d'un tableau 2D de forme `(2, n)`, où la première ligne est les données x et la deuxième ligne est les données y : c'est l'attribut `xydata`."
+
+msgid "Because of this, when storing complex Y data, the data type is propagated to the x data, which is not always desired."
+msgstr "En raison de cela, lors du stockage de données Y complexes, le type de données est propagé aux données x, ce qui n'est pas toujours souhaité."
+
+msgid "As a workaround, the `x` property now returns the real part of the x data."
+msgstr "En guise de solution de contournement, la propriété `x` renvoie désormais la partie réelle des données x."
+
+msgid "Furthermore, the `get_data` method now returns a tuple of numpy arrays instead of a single array, allowing to access both x and y data separately, keeping the original data type."
+msgstr "De plus, la méthode `get_data` renvoie désormais un tuple de tableaux numpy au lieu d'un seul tableau, permettant d'accéder séparément aux données x et y, tout en conservant le type de données d'origine."
+
+msgid "sigima 0.2.0"
+msgstr "sigima 0.2.0"
+
+msgid "⚠️ Major API changes:"
+msgstr "⚠️ Changements majeurs de l'API:"
+
+msgid "Rename `sigima.computation` to `sigima.proc`."
+msgstr "Renommage de `sigima.computation` en `sigima.proc`."
+
+msgid "Rename `sigima.algorithms` to `sigima.tools`."
+msgstr "Renommage de `sigima.algorithms` en `sigima.tools`."
+
+msgid "Rename `sigima.obj` to `sigima.objects`."
+msgstr "Renommage de `sigima.obj` en `sigima.objects`."
+
+msgid "Rename `sigima.param` to `sigima.params`."
+msgstr "Renommage de `sigima.param` en `sigima.params`."
+
+msgid "ℹ️ Various changes:"
+msgstr "ℹ️ Divers changements:"
+
+msgid "Add Sigima SVG logo."
+msgstr "Ajout du logo SVG de Sigima."
+
+msgid "Fix API documentation and docstrings."
+msgstr "Correction de la documentation de l'API et des docstrings."
+
+msgid "sigima 0.1.0"
+msgstr "sigima 0.1.0"
+
+msgid "This first version of the library is the result of the externalization of the signal and image processing features from the DataLab main repository."
+msgstr "Cette première version de la bibliothèque est le résultat de l'externalisation des fonctionnalités de traitement des signaux et des images du référentiel principal de DataLab."
