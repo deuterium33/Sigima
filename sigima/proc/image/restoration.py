@@ -28,6 +28,16 @@ from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.proc.image.morphology import MorphologyParam
 
+__all__ = [
+    "DenoiseTVParam",
+    "denoise_tv",
+    "DenoiseBilateralParam",
+    "denoise_bilateral",
+    "DenoiseWaveletParam",
+    "denoise_wavelet",
+    "denoise_tophat",
+]
+
 
 class DenoiseTVParam(gds.DataSet):
     """Total Variation denoising parameters"""

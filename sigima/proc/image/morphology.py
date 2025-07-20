@@ -26,6 +26,16 @@ from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import restore_data_outside_roi
 
+__all__ = [
+    "MorphologyParam",
+    "white_tophat",
+    "black_tophat",
+    "erosion",
+    "dilation",
+    "opening",
+    "closing",
+]
+
 
 class MorphologyParam(gds.DataSet):
     """White Top-Hat parameters"""

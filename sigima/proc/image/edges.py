@@ -36,6 +36,25 @@ from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
+__all__ = [
+    "CannyParam",
+    "canny",
+    "roberts",
+    "prewitt",
+    "prewitt_h",
+    "prewitt_v",
+    "sobel",
+    "sobel_h",
+    "sobel_v",
+    "scharr",
+    "scharr_h",
+    "scharr_v",
+    "farid",
+    "farid_h",
+    "farid_v",
+    "laplace",
+]
+
 
 class CannyParam(gds.DataSet):
     """Canny filter parameters"""

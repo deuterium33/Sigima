@@ -38,6 +38,19 @@ from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import dst_1_to_1_signal
 
+__all__ = [
+    "extract_rois",
+    "extract_roi",
+    "LineProfileParam",
+    "line_profile",
+    "SegmentProfileParam",
+    "segment_profile",
+    "AverageProfileParam",
+    "average_profile",
+    "RadialProfileParam",
+    "radial_profile",
+]
+
 
 @computation_function()
 def extract_rois(src: ImageObj, params: list[ROI2DParam]) -> ImageObj:

@@ -33,6 +33,25 @@ from sigima.objects.image import ImageObj, create_image_roi
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import calc_resultshape
 
+__all__ = [
+    "GenericDetectionParam",
+    "Peak2DDetectionParam",
+    "peak_detection",
+    "ContourShapeParam",
+    "contour_shape",
+    "BaseBlobParam",
+    "BlobDOGParam",
+    "blob_dog",
+    "BlobDOHParam",
+    "blob_doh",
+    "BlobLOGParam",
+    "blob_log",
+    "BlobOpenCVParam",
+    "blob_opencv",
+    "HoughCircleParam",
+    "hough_circle_peaks",
+]
+
 
 class GenericDetectionParam(gds.DataSet):
     """Generic detection parameters"""

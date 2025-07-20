@@ -27,6 +27,13 @@ else:
     # Use ParamSpec from typing_extensions module in Python < 3.10
     from typing_extensions import ParamSpec
 
+__all__ = [
+    "computation_function",
+    "is_computation_function",
+    "get_computation_metadata",
+    "find_computation_functions",
+]
+
 # Marker attribute used by @computation_function and introspection
 COMPUTATION_METADATA_ATTR = "__computation_function_metadata"
 
