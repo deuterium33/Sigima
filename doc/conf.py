@@ -82,7 +82,7 @@ else:
     ann = "Sigima is under development 🚧"  # noqa: E501
 html_theme_options = {
     "show_toc_level": 2,
-    "github_url": "https://github.com/DataLab-Platform/DataLab/",
+    "github_url": "https://github.com/DataLab-Platform/Sigima/",
     "logo": {
         "text": f"v{sigima.__version__}",
     },
@@ -114,7 +114,7 @@ html_theme_options = {
 html_static_path = ["_static"]
 
 # -- Options for LaTeX output ------------------------------------------------
-latex_logo = "_static/DataLab-Frontpage.png"
+latex_logo = "_static/Sigima-Frontpage.png"
 
 # -- Options for sphinx-intl package -----------------------------------------
 locale_dirs = ["locale/"]  # path is example but recommended.
