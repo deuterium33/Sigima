@@ -138,6 +138,8 @@
                 "-m",
                 "sphinx_intl",
                 "update",
+                "-d",
+                "doc/locale",
                 "-p",
                 "build/gettext",
                 "-l",
