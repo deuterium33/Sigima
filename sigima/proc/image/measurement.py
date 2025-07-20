@@ -36,6 +36,12 @@ from sigima.proc.base import calc_resultproperties
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import calc_resultshape
 
+__all__ = [
+    "centroid",
+    "enclosing_circle",
+    "stats",
+]
+
 
 def get_centroid_coords(data: np.ndarray) -> np.ndarray:
     """Return centroid coordinates

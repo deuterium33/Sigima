@@ -27,6 +27,13 @@ from sigima.objects.image import ImageObj
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import dst_1_to_1, new_signal_result
 
+__all__ = [
+    "restore_data_outside_roi",
+    "Wrap1to1Func",
+    "dst_1_to_1_signal",
+    "calc_resultshape",
+]
+
 
 def restore_data_outside_roi(dst: ImageObj, src: ImageObj) -> None:
     """Restore data outside the Region Of Interest (ROI) of the input image

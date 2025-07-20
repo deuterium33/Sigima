@@ -39,6 +39,20 @@ from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func
 from sigima.tools.coordinates import vector_rotation
 
+__all__ = [
+    "RotateParam",
+    "rotate",
+    "rotate90",
+    "rotate270",
+    "fliph",
+    "flipv",
+    "ResizeParam",
+    "resize",
+    "BinningParam",
+    "binning",
+    "swap_axes",
+]
+
 
 class RotateParam(gds.DataSet):
     """Rotate parameters"""

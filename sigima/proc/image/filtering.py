@@ -42,6 +42,17 @@ from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.tools.image import freq_fft_filter
 
+__all__ = [
+    "gaussian_filter",
+    "moving_average",
+    "moving_median",
+    "wiener",
+    "ButterworthParam",
+    "butterworth",
+    "FreqFFTParam",
+    "freq_fft",
+]
+
 
 @computation_function()
 def gaussian_filter(src: ImageObj, p: GaussianParam) -> ImageObj:
