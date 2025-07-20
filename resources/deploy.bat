@@ -4,7 +4,7 @@ set INKSCAPE_PATH="C:\Program Files\Inkscape\bin\inkscape.exe"
 
 @REM Deploying images and icons
 copy Sigima.svg ..\sigima\data\logo
-%INKSCAPE_PATH% "Sigima-Title.svg" -o "..\doc\_static\Sigima-Title.png" -w 190
+copy Sigima-Title.svg ..\doc\_static
 %INKSCAPE_PATH% "Sigima-Frontpage.svg" -o "..\doc\_static\Sigima-Frontpage.png" -w 1300
 %INKSCAPE_PATH% "Sigima-Banner.svg" -o "..\doc\images\Sigima-Banner.png" -w 364
 
