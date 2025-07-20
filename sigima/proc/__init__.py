@@ -55,8 +55,38 @@ Image processing features
 Basic image processing
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: sigima.proc.image
+.. automodule:: sigima.proc.image.base
    :members:
+
+Arithmetic
+~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.arithmetic
+    :members:
+
+Mathematical Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.mathops
+    :members:
+
+Measurements
+~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.measurement
+    :members:
+
+Filtering
+~~~~~~~~~
+
+.. automodule:: sigima.proc.image.filtering
+    :members:
+
+Fourier
+~~~~~~~
+
+.. automodule:: sigima.proc.image.fourier
+    :members:
 
 Thresholding
 ~~~~~~~~~~~~
@@ -91,6 +121,12 @@ Detection
 ~~~~~~~~~
 
 .. automodule:: sigima.proc.image.detection
+    :members:
+
+Geometry
+~~~~~~~~
+
+.. automodule:: sigima.proc.image.geometry
     :members:
 
 Decorators and utilities
