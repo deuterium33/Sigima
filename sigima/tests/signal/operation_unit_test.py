@@ -194,6 +194,31 @@ def test_signal_imag() -> None:
 
 
 @pytest.mark.validation
+def test_signal_phase_angle() -> None:
+    """Phase angle validation test."""
+    s1 = __create_two_signals()[0]
+    # Make a complex signal for testing
+    y_complex = s1.y + 1j * s1.y[::-1]
+    s_complex = sigima.objects.create_signal("complex", s1.x, y_complex)
+    p_rad = sigima_param.PhaseAngleParam.create(unwrap=False, unit="rad")
+    p_deg = sigima_param.PhaseAngleParam.create(unwrap=False, unit="deg")
+    # Test radians
+    phase_signal_rad = sigima_signal.phase_angle(s_complex, p_rad)
+    check_array_result("Phase angle (rad)", phase_signal_rad.y, np.angle(y_complex))
+    # Test degrees
+    phase_signal_deg = sigima_signal.phase_angle(s_complex, p_deg)
+    check_array_result(
+        "Phase angle (deg)", phase_signal_deg.y, np.angle(y_complex, deg=True)
+    )
+    # Test unwrap
+    p_unwrap = sigima_param.PhaseAngleParam.create(unwrap=True, unit="rad")
+    phase_signal_unwrap = sigima_signal.phase_angle(s_complex, p_unwrap)
+    check_array_result(
+        "Phase angle (unwrap)", phase_signal_unwrap.y, np.unwrap(np.angle(y_complex))
+    )
+
+
+@pytest.mark.validation
 def test_signal_astype() -> None:
     """Data type conversion validation test."""
     s1 = __create_two_signals()[0]

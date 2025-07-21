@@ -150,6 +150,7 @@ from sigima.proc.image.mathops import (
     astype,
     exp,
     imag,
+    phase_angle,
     inverse,
     log10,
     logp1,

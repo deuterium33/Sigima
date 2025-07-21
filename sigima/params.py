@@ -248,6 +248,7 @@ from sigima.proc.base import (
     MovingMedianParam,
     NormalizeParam,
     SpectrumParam,
+    PhaseAngleParam,
 )
 from sigima.proc.signal import (
     AllanVarianceParam,

@@ -193,6 +193,18 @@ class ConstantParam(gds.DataSet):
     value = gds.FloatItem(_("Constant value"))
 
 
+class PhaseAngleParam(gds.DataSet):
+    """parameters for phase angle computation"""
+
+    unwrap = gds.BoolItem("unwrap", default=False)
+    unit = gds.ChoiceItem(
+        _("Unit"),
+        [("rad", _("Radians")), ("deg", _("Degrees"))],
+        default="deg",
+        help=_("Output angle unit"),
+    )
+
+
 # MARK: Helper functions for creating result objects -----------------------------------
 
 Obj = TypeVar("Obj", bound="SignalObj | ImageObj")

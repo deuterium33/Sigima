@@ -302,6 +302,38 @@ def test_image_imag() -> None:
         check_array_result("Imaginary part", ima2.data, exp)
 
 
+@pytest.mark.validation
+def test_image_phase_angle() -> None:
+    """Image phase angle test."""
+    execenv.print("*** Testing image phase angle:")
+    for ima1 in __iterate_images():
+        # Make a complex image for testing
+        data = ima1.data.astype(np.complex128)
+        data += 1j * (ima1.data.astype(np.complex128) * 0.5 + 1)
+        ima_complex = ima1.copy()
+        ima_complex.data = data
+
+        # Test radians
+        p_rad = sigima.params.PhaseAngleParam.create(unit="rad", unwrap=False)
+        exp_rad = np.angle(ima_complex.data, deg=False)
+        ima_phase_rad = sigima_image.phase_angle(ima_complex, p_rad)
+        check_array_result("Phase angle (rad)", ima_phase_rad.data, exp_rad)
+
+        # Test degrees
+        p_deg = sigima.params.PhaseAngleParam.create(unit="deg", unwrap=False)
+        exp_deg = np.angle(ima_complex.data, deg=True)
+        ima_phase_deg = sigima_image.phase_angle(ima_complex, p_deg)
+        check_array_result("Phase angle (deg)", ima_phase_deg.data, exp_deg)
+
+        # Test unwrap (radians)
+        p_unwrap = sigima.params.PhaseAngleParam.create(unit="rad", unwrap=True)
+        exp_unwrap = np.unwrap(np.angle(ima_complex.data, deg=False))
+        ima_phase_unwrap = sigima_image.phase_angle(ima_complex, p_unwrap)
+        check_array_result(
+            "Phase angle (unwrap, rad)", ima_phase_unwrap.data, exp_unwrap
+        )
+
+
 def __get_numpy_info(dtype: np.dtype) -> np.generic:
     """Get numpy info for a given data type."""
     if np.issubdtype(dtype, np.integer):

@@ -38,6 +38,7 @@ from sigima.proc.base import (
     MovingAverageParam,
     MovingMedianParam,
     NormalizeParam,
+    PhaseAngleParam,
     SpectrumParam,
     calc_resultproperties,
     dst_1_to_1,
@@ -620,6 +621,27 @@ def imag(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(np.imag)(src)
+
+
+@computation_function()
+def phase_angle(src: SignalObj, p: PhaseAngleParam) -> SignalObj:
+    """Compute phase angle of complex signal with :py:func:`numpy.angle`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    deg = p.unit == "deg"
+    if not p.unwrap:
+        # If not unwrapping, use numpy.angle
+        return Wrap1to1Func(np.angle, deg)(src)
+
+    def __angle_unwrap(y, deg=deg):
+        return np.unwrap(np.angle(y, deg=deg))
+
+    return Wrap1to1Func(__angle_unwrap, deg)(src)
 
 
 class DataTypeSParam(gds.DataSet):

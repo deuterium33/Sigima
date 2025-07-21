@@ -32,7 +32,7 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc.base import dst_1_to_1
+from sigima.proc.base import PhaseAngleParam, dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.tools.datatypes import clip_astype
@@ -107,6 +107,27 @@ def imag(src: ImageObj) -> ImageObj:
         Output image object
     """
     return Wrap1to1Func(np.imag)(src)
+
+
+@computation_function()
+def phase_angle(src: ImageObj, p: PhaseAngleParam) -> ImageObj:
+    """Compute phase angle of complex signal with :py:func:`numpy.angle`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    deg = p.unit == "deg"
+    if not p.unwrap:
+        # If not unwrapping, use numpy.angle
+        return Wrap1to1Func(np.angle, deg)(src)
+
+    def __angle_unwrap(y, deg=deg):
+        return np.unwrap(np.angle(y, deg=deg))
+
+    return Wrap1to1Func(__angle_unwrap, deg)(src)
 
 
 @computation_function()
