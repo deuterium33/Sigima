@@ -732,7 +732,7 @@ class PlanckParam(NewSignalParam):
     y = (2 h c<sup>2</sup>) / (λ<sup>5</sup> * (exp(h c / (λ k<sub>B</sub> T)) - 1))
     """
 
-    xmin = gds.FloatItem("x<sub>min</sub>", default=0.0, unit="m")
+    xmin = gds.FloatItem("x<sub>min</sub>", default=1e-7, unit="m", nonzero=True)
     xmax = gds.FloatItem("x<sub>max</sub>", default=1e-5, unit="m")
     T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
 
