@@ -551,8 +551,12 @@ class NewSignalParam(gds.DataSet):
 
     _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
-    xmin = gds.FloatItem("Xmin", default=-10.0).set_prop("display", active=_size_range)
-    xmax = gds.FloatItem("Xmax", default=10.0).set_prop("display", active=_size_range)
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_prop(
+        "display", active=_size_range
+    )
+    xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop(
+        "display", active=_size_range, col=1
+    )
     size = gds.IntItem(
         _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
     ).set_prop("display", active=_size_range)
@@ -671,7 +675,7 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
     STYPE: Type[SignalTypes] | None = None
 
     a = gds.FloatItem("A", default=1.0)
-    ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=1)
+    y0 = gds.FloatItem("y<sub>0</sub>", default=0.0).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
     mu = gds.FloatItem("μ", default=0.0).set_pos(col=1)
 
@@ -679,8 +683,8 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
         """Generate a title based on current parameters."""
         assert isinstance(self.STYPE, SignalTypes)
         return (
-            f"{self.STYPE.name.lower()}(a={self.a:.3g},sigma={self.sigma:.3g},"
-            f"mu={self.mu:.3g},ymin={self.ymin:.3g})"
+            f"{self.STYPE.name.lower()}(a={self.a:.3g},σ={self.sigma:.3g},"
+            f"μ={self.mu:.3g},y0={self.y0:.3g})"
         )
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -695,7 +699,7 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
             SignalTypes.LORENTZ: LorentzianModel.func,
             SignalTypes.VOIGT: VoigtModel.func,
         }[self.STYPE]
-        y = func(x, self.a, self.sigma, self.mu, self.ymin)
+        y = func(x, self.a, self.sigma, self.mu, self.y0)
         return x, y
 
 
@@ -733,7 +737,9 @@ class PlanckParam(NewSignalParam):
     """
 
     xmin = gds.FloatItem("x<sub>min</sub>", default=1e-7, unit="m", nonzero=True)
-    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-5, unit="m")
+    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-5, unit="m").set_prop(
+        "display", col=1
+    )
     T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
 
     def generate_title(self) -> str:
@@ -805,13 +811,13 @@ class BasePeriodicParam(NewSignalParam):
         """Return frequency in Hz"""
         return FreqUnits.convert_in_hz(self.freq, self.freq_unit)
 
-    a = gds.FloatItem("A", default=1.0)
-    ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=1)
+    a = gds.FloatItem(_("Amplitude"), default=1.0)
+    offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
     freq = gds.FloatItem(_("Frequency"), default=1.0)
     freq_unit = gds.ChoiceItem(
         _("Unit"), FreqUnits.get_choices(), default=FreqUnits.HZ
     ).set_pos(col=1)
-    phase = gds.FloatItem(_("Phase"), default=0.0, unit="°").set_pos(col=1)
+    phase = gds.FloatItem(_("Phase"), default=0.0, unit="°")
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -819,7 +825,7 @@ class BasePeriodicParam(NewSignalParam):
         freq_hz = self.get_frequency_in_hz()
         title = (
             f"{self.STYPE.name.lower()}(f={freq_hz:.3g}Hz,"
-            f"a={self.a:.3g},ymin={self.ymin:.3g},phase={self.phase:.3g}°)"
+            f"a={self.a:.3g},offset={self.offset:.3g},phase={self.phase:.3g}°)"
         )
         return title
 
@@ -839,7 +845,7 @@ class BasePeriodicParam(NewSignalParam):
             SignalTypes.SINC: np.sinc,
         }[self.STYPE]
         freq = self.get_frequency_in_hz()
-        y = self.a * func(2 * np.pi * freq * x + np.deg2rad(self.phase)) + self.ymin
+        y = self.a * func(2 * np.pi * freq * x + np.deg2rad(self.phase)) + self.offset
         return x, y
 
 
@@ -900,14 +906,18 @@ register_signal_parameters_class(SignalTypes.SINC, SincParam)
 class LinearChirpParam(NewSignalParam):
     """Linear chirp function.
 
-    y = y<sub>min</sub> + a sin(φ<sub>0</sub> + 2π (f<sub>0</sub> x + 0.5 k x²))
+    y = y<sub>0</sub> + a sin(φ<sub>0</sub> + 2π (f<sub>0</sub> x + 0.5 k x²))
     """
 
     a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    phi0 = gds.FloatItem(
+        "φ<sub>0</sub>", default=0.0, help=_("Initial phase")
+    ).set_prop("display", col=1)
     k = gds.FloatItem("k", default=1.0, help=_("Chirp rate (f<sup>-2</sup>)"))
+    offset = gds.FloatItem(
+        "y<sub>0</sub>", default=0.0, help=_("Vertical offset")
+    ).set_prop("display", col=1)
     f0 = gds.FloatItem("f<sub>0</sub>", default=1.0, help=_("Initial frequency (Hz)"))
-    phi0 = gds.FloatItem("φ<sub>0</sub>", default=0.0, help=_("Initial phase"))
-    offset = gds.FloatItem("y<sub>min</sub>", default=0.0, help=_("Vertical offset"))
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters.
@@ -1016,13 +1026,17 @@ register_signal_parameters_class(SignalTypes.EXPONENTIAL, ExponentialParam)
 class LogisticParam(NewSignalParam):
     """Logistic function.
 
-    y = y<sub>min</sub> + a / (1 + exp(-k (x - x<sub>0</sub>)))
+    y = y<sub>0</sub> + a / (1 + exp(-k (x - x<sub>0</sub>)))
     """
 
     a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    x0 = gds.FloatItem(
+        "x<sub>0</sub>", default=0.0, help=_("Horizontal offset")
+    ).set_prop("display", col=1)
     k = gds.FloatItem("k", default=1.0, help=_("Growth or decay rate"))
-    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("Horizontal offset"))
-    offset = gds.FloatItem("y<sub>min</sub>", default=0.0, help=_("Vertical offset"))
+    offset = gds.FloatItem(
+        "y<sub>0</sub>", default=0.0, help=_("Vertical offset")
+    ).set_prop("display", col=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters.
