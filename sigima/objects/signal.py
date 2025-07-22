@@ -15,6 +15,7 @@ from typing import Type
 
 import guidata.dataset as gds
 import numpy as np
+import scipy.constants
 import scipy.signal as sps
 
 from sigima.config import _
@@ -103,7 +104,6 @@ class SegmentROI(base.BaseSingleROI["SignalObj", ROI1DParam]):
         Returns:
             Mask (boolean array where True values are inside the ROI)
         """
-
         mask = np.ones_like(obj.xydata, dtype=bool)
         imin, imax = self.get_indices_coords(obj)
         mask[:, imin:imax] = False
@@ -509,6 +509,8 @@ class SignalTypes(base.Choices):
     LORENTZ = _("lorentzian")
     #: Voigt function
     VOIGT = "Voigt"
+    #: Planck function
+    PLANCK = _("planckian")
     #: Sinusoid
     SINUS = _("sinus")
     #: Cosinusoid
@@ -521,10 +523,14 @@ class SignalTypes(base.Choices):
     SQUARE = _("square")
     #: Cardinal sine
     SINC = _("cardinal sine")
+    #: Linear chirp
+    LINEARCHIRP = _("linear chirp")
     #: Step function
     STEP = _("step")
     #: Exponential function
     EXPONENTIAL = _("exponential")
+    #: Logistic function
+    LOGISTIC = _("logistic")
     #: Pulse function
     PULSE = _("pulse")
     #: Polynomial function
@@ -720,6 +726,59 @@ class VoigtParam(BaseGaussLorentzVoigtParam):
 register_signal_parameters_class(SignalTypes.VOIGT, VoigtParam)
 
 
+class PlanckParam(NewSignalParam):
+    """Planck radiation law.
+
+    y = (2 h c<sup>2</sup>) / (λ<sup>5</sup> * (exp(h c / (λ k<sub>B</sub> T)) - 1))
+    """
+
+    xmin = gds.FloatItem("x<sub>min</sub>", default=0.0, unit="m")
+    xmax = gds.FloatItem("X<sub>max</sub>", default=1e-5, unit="m")
+    T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters.
+
+        Returns:
+            Title string.
+        """
+        return f"planck(T={self.T:.3g}K)"
+
+    @classmethod
+    def func(cls, wavelength: np.ndarray, temperature: float) -> np.ndarray:
+        """Compute the Planck function.
+
+        Args:
+            wavelength: Wavelength (m).
+            T: Temperature (K).
+
+        Returns:
+            Spectral radiance (W m<sup>-2</sup> sr<sup>-1</sup> Hz<sup>-1</sup>).
+        """
+        h = scipy.constants.h  # Planck constant (J·s)
+        c = scipy.constants.c  # Speed of light (m/s)
+        k = scipy.constants.k  # Boltzmann constant (J/K)
+        c1 = 2 * h * c**2
+        c2 = (h * c) / k
+        denom = np.exp(c2 / (wavelength * temperature)) - 1.0
+        spectral_radiance = c1 / (wavelength**5 * (denom))
+        return spectral_radiance
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (wavelength, spectral radiance) arrays.
+        """
+        wavelength = self.generate_x_data()
+        assert self.T is not None
+        y = self.func(wavelength, self.T)
+        return wavelength, y
+
+
+register_signal_parameters_class(SignalTypes.PLANCK, PlanckParam)
+
+
 class FreqUnits(base.Choices):
     """Frequency units"""
 
@@ -838,6 +897,71 @@ class SincParam(BasePeriodicParam):
 register_signal_parameters_class(SignalTypes.SINC, SincParam)
 
 
+class LinearChirpParam(NewSignalParam):
+    """Linear chirp function.
+
+    y = y<sub>min</sub> + a sin(phi<sub>0</sub> + 2π (f<sub>0</sub> x + 0.5 k x²))
+    """
+
+    a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    k = gds.FloatItem("k", default=1.0, help=_("Chirp rate (f<sup>-2</sup>)"))
+    f0 = gds.FloatItem("f<sub>0</sub>", default=1.0, help=_("Initial frequency (Hz)"))
+    phi0 = gds.FloatItem("phi<sub>0</sub>", default=0.0, help=_("Initial phase"))
+    offset = gds.FloatItem("y<sub>min</sub>", default=0.0, help=_("Vertical offset"))
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters.
+
+        Returns:
+            Title string.
+        """
+        return (
+            f"chirp(a={self.a:.3g},"
+            f"k={self.k:.3g},"
+            f"f0={self.f0:.3g},"
+            f"phi0={self.phi0:.3g},"
+            f"ymin={self.offset:.3g})"
+        )
+
+    @classmethod
+    def func(
+        cls, x: np.ndarray, a: float, k: float, f0: float, phi0: float, offset: float
+    ) -> np.ndarray:
+        """Compute the linear chirp function.
+
+        Args:
+            x: X data array.
+            a: Amplitude.
+            k: Chirp rate (s<sup>-2</sup>).
+            f0: Initial frequency (Hz).
+            phi0: Initial phase.
+            offset: Vertical offset.
+
+        Returns:
+            Y data array computed using the chirp function.
+        """
+        phase = phi0 + 2 * np.pi * (f0 * x + 0.5 * k * x**2)
+        return offset + a * np.sin(phase)
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays.
+        """
+        assert self.a is not None
+        assert self.k is not None
+        assert self.f0 is not None
+        assert self.phi0 is not None
+        assert self.offset is not None
+        x = self.generate_x_data()
+        y = self.func(x, self.a, self.k, self.f0, self.phi0, self.offset)
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.LINEARCHIRP, LinearChirpParam)
+
+
 class StepParam(NewSignalParam):
     """Parameters for step function"""
 
@@ -887,6 +1011,66 @@ class ExponentialParam(NewSignalParam):
 
 
 register_signal_parameters_class(SignalTypes.EXPONENTIAL, ExponentialParam)
+
+
+class LogisticParam(NewSignalParam):
+    """Logistic function.
+
+    y = y<sub>min</sub> + a / (1 + exp(-k (x - x<sub>0</sub>)))
+    """
+
+    a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    k = gds.FloatItem("k", default=1.0, help=_("Growth or decay rate"))
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("Horizontal offset"))
+    offset = gds.FloatItem("y<sub>min</sub>", default=0.0, help=_("Vertical offset"))
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters.
+
+        Returns:
+            Title string.
+        """
+        return (
+            f"logistic(a={self.a:.3g},"
+            f"k={self.k:.3g},"
+            f"x0={self.x0:.3g},"
+            f"ymin={self.offset:.3g})"
+        )
+
+    @classmethod
+    def func(
+        cls, x: np.ndarray, a: float, k: float, x0: float, offset: float
+    ) -> np.ndarray:
+        """Compute the logistic function.
+
+        Args:
+            x: X data array.
+            a: Amplitude.
+            k: Growth or decay rate.
+            x0: Horizontal offset.
+            offset: Vertical offset.
+
+        Returns:
+            Y data array computed using the logistic function.
+        """
+        return offset + a / (1.0 + np.exp(-k * (x - x0)))
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays.
+        """
+        assert self.a is not None
+        assert self.k is not None
+        assert self.x0 is not None
+        assert self.offset is not None
+        x = self.generate_x_data()
+        y = self.func(x, self.a, self.k, self.x0, self.offset)
+        return x, y
+
+
+register_signal_parameters_class(SignalTypes.LOGISTIC, LogisticParam)
 
 
 class PulseParam(NewSignalParam):

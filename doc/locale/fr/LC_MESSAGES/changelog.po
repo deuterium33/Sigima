@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-20 11:21+0200\n"
+"POT-Creation-Date: 2025-07-22 15:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -69,6 +69,9 @@ msgstr "Elle est implémentée dans la classe de paramètres `sigima.objects.Ram
 
 msgid "Example usage:"
 msgstr "Exemple d'utilisation:"
+
+msgid "New signal generators: linear chirp, logistic function, Planck function."
+msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique, fonction de Planck."
 
 msgid "New I/O features:"
 msgstr "Nouvelles fonctionnalités d'E/S:"

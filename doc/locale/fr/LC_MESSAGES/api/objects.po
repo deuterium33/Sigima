@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-22 14:54+0200\n"
+"POT-Creation-Date: 2025-07-22 14:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -677,6 +677,9 @@ msgstr ""
 msgid "Voigt function"
 msgstr ""
 
+msgid "Planck function"
+msgstr ""
+
 msgid "Sinusoid"
 msgstr ""
 
@@ -695,10 +698,16 @@ msgstr ""
 msgid "Cardinal sine"
 msgstr ""
 
+msgid "Linear chirp"
+msgstr ""
+
 msgid "Step function"
 msgstr ""
 
 msgid "Exponential function"
+msgstr ""
+
+msgid "Logistic function"
 msgstr ""
 
 msgid "Pulse function"

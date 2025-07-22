@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-20 11:24+0200\n"
+"POT-Creation-Date: 2025-07-22 16:25+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -259,6 +259,9 @@ msgstr "Titres et unités"
 msgid "lorentzian"
 msgstr "lorentzienne"
 
+msgid "planckian"
+msgstr "planckienne"
+
 msgid "sinus"
 msgstr "sinus"
 
@@ -277,11 +280,17 @@ msgstr "carré"
 msgid "cardinal sine"
 msgstr "sinus cardinal"
 
+msgid "linear chirp"
+msgstr "modulation linéaire de fréquence"
+
 msgid "step"
 msgstr "échelon"
 
 msgid "exponential"
 msgstr "exponentielle"
+
+msgid "logistic"
+msgstr "logistique"
 
 msgid "pulse"
 msgstr "impulsion"
@@ -301,17 +310,41 @@ msgstr "Nombre de points"
 msgid "Size"
 msgstr "Taille"
 
+msgid "Temperature"
+msgstr "Température"
+
 msgid "Frequency"
 msgstr "Fréquence"
 
 msgid "Phase"
 msgstr "Phase"
 
+msgid "Amplitude"
+msgstr "Amplitude"
+
+msgid "Chirp rate (f<sup>-2</sup>)"
+msgstr "Taux de modulation de fréquence"
+
+msgid "Initial frequency (Hz)"
+msgstr "Fréquence intiale (Hz)"
+
+msgid "Initial phase"
+msgstr "Phase initiale"
+
+msgid "Vertical offset"
+msgstr "Décalage vertical"
+
 msgid "Offset"
-msgstr "Offset"
+msgstr "Décalage"
 
 msgid "Exponent"
 msgstr "Exposant"
+
+msgid "Growth or decay rate"
+msgstr "Taux de croissance ou de décroissance"
+
+msgid "Horizontal offset"
+msgstr "Décalage horizontal"
 
 msgid "Start"
 msgstr "Démarrer"
@@ -366,9 +399,6 @@ msgstr "Borne supérieure d'écrêtage"
 
 msgid "Maximum"
 msgstr "Maximum"
-
-msgid "Amplitude"
-msgstr "Amplitude"
 
 msgid "Area"
 msgstr "Aire"
@@ -1092,4 +1122,3 @@ msgstr "Intensité"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

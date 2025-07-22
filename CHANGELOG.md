@@ -29,6 +29,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     image = sio.create_image_from_param(param)
     ```
 
+* New signal generators: linear chirp, logistic function, Planck function.
+
 * New I/O features:
   * Added support for FT-Lab signal and image format.
 

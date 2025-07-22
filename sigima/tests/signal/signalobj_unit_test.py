@@ -52,6 +52,8 @@ def iterate_signal_creation(
             param = sigima.objects.LorentzParam()
         elif stype == sigima.objects.SignalTypes.VOIGT:
             param = sigima.objects.VoigtParam()
+        elif stype == sigima.objects.SignalTypes.PLANCK:
+            param = sigima.objects.PlanckParam()
         elif stype == sigima.objects.SignalTypes.SINUS:
             param = sigima.objects.SinusParam()
         elif stype == sigima.objects.SignalTypes.COSINUS:
@@ -64,10 +66,14 @@ def iterate_signal_creation(
             param = sigima.objects.SquareParam()
         elif stype == sigima.objects.SignalTypes.SINC:
             param = sigima.objects.SincParam()
+        elif stype == sigima.objects.SignalTypes.LINEARCHIRP:
+            param = sigima.objects.LinearChirpParam()
         elif stype == sigima.objects.SignalTypes.STEP:
             param = sigima.objects.StepParam()
         elif stype == sigima.objects.SignalTypes.EXPONENTIAL:
             param = sigima.objects.ExponentialParam()
+        elif stype == sigima.objects.SignalTypes.LOGISTIC:
+            param = sigima.objects.LogisticParam()
         elif stype == sigima.objects.SignalTypes.PULSE:
             param = sigima.objects.PulseParam()
         elif stype == sigima.objects.SignalTypes.POLYNOMIAL:
