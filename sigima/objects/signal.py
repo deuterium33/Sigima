@@ -498,45 +498,45 @@ class SignalTypes(base.Choices):
     """Signal types"""
 
     #: Signal filled with zeros
-    ZEROS = _("zeros")
+    ZEROS = _("Zeros")
     #: Random signal (uniform law)
-    UNIFORMRANDOM = _("random (uniform law)")
+    UNIFORMRANDOM = _("Random (uniform law)")
     #: Random signal (normal law)
-    NORMALRANDOM = _("random (normal law)")
+    NORMALRANDOM = _("Random (normal law)")
     #: Gaussian function
-    GAUSS = _("gaussian")
+    GAUSS = _("Gaussian")
     #: Lorentzian function
-    LORENTZ = _("lorentzian")
+    LORENTZ = _("Lorentzian")
     #: Voigt function
     VOIGT = "Voigt"
     #: Planck function
-    PLANCK = _("planckian")
+    PLANCK = _("Blackbody (Planck)")
     #: Sinusoid
-    SINUS = _("sinus")
+    SINUS = _("Sinus")
     #: Cosinusoid
-    COSINUS = _("cosinus")
+    COSINUS = _("Cosinus")
     #: Sawtooth function
-    SAWTOOTH = _("sawtooth")
+    SAWTOOTH = _("Sawtooth")
     #: Triangle function
-    TRIANGLE = _("triangle")
+    TRIANGLE = _("Triangle")
     #: Square function
-    SQUARE = _("square")
+    SQUARE = _("Square")
     #: Cardinal sine
-    SINC = _("cardinal sine")
+    SINC = _("Cardinal sine")
     #: Linear chirp
-    LINEARCHIRP = _("linear chirp")
+    LINEARCHIRP = _("Linear chirp")
     #: Step function
-    STEP = _("step")
+    STEP = _("Step")
     #: Exponential function
-    EXPONENTIAL = _("exponential")
+    EXPONENTIAL = _("Exponential")
     #: Logistic function
-    LOGISTIC = _("logistic")
+    LOGISTIC = _("Logistic")
     #: Pulse function
-    PULSE = _("pulse")
+    PULSE = _("Pulse")
     #: Polynomial function
-    POLYNOMIAL = _("polynomial")
+    POLYNOMIAL = _("Polynomial")
     #: Custom function
-    CUSTOM = _("custom")
+    CUSTOM = _("Custom")
 
 
 DEFAULT_TITLE = _("Untitled signal")

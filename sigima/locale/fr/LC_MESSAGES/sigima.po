@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-22 16:25+0200\n"
+"POT-Creation-Date: 2025-07-22 17:58+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -172,20 +172,20 @@ msgstr "Borne supérieure"
 msgid "LUT range"
 msgstr "Plage de LUT"
 
-msgid "zeros"
-msgstr "zéros"
+msgid "Zeros"
+msgstr "Zéros"
 
-msgid "empty"
-msgstr "vide"
+msgid "Empty"
+msgstr "Vide"
 
-msgid "random (uniform law)"
-msgstr "aléatoire (loi uniforme)"
+msgid "Random (uniform law)"
+msgstr "Aléatoire (loi uniforme)"
 
-msgid "random (normal law)"
-msgstr "aléatoire (loi normale)"
+msgid "Random (normal law)"
+msgstr "Aléatoire (loi normale)"
 
-msgid "gaussian"
-msgstr "gaussienne"
+msgid "Gaussian"
+msgstr "Gaussienne"
 
 msgid "2D ramp"
 msgstr "Rampe 2D"
@@ -256,50 +256,50 @@ msgstr "Titre du signal"
 msgid "Titles and units"
 msgstr "Titres et unités"
 
-msgid "lorentzian"
-msgstr "lorentzienne"
+msgid "Lorentzian"
+msgstr "Lorentzienne"
 
-msgid "planckian"
-msgstr "planckienne"
+msgid "Blackbody (Planck)"
+msgstr "Corps noir (Planck)"
 
-msgid "sinus"
-msgstr "sinus"
+msgid "Sinus"
+msgstr "Sinus"
 
-msgid "cosinus"
-msgstr "cosinus"
+msgid "Cosinus"
+msgstr "Cosinus"
 
-msgid "sawtooth"
-msgstr "dent de scie"
+msgid "Sawtooth"
+msgstr "Dent de scie"
 
-msgid "triangle"
-msgstr "triangle"
+msgid "Triangle"
+msgstr "Triangle"
 
-msgid "square"
-msgstr "carré"
+msgid "Square"
+msgstr "Carré"
 
-msgid "cardinal sine"
-msgstr "sinus cardinal"
+msgid "Cardinal sine"
+msgstr "Sinus cardinal"
 
-msgid "linear chirp"
-msgstr "modulation linéaire de fréquence"
+msgid "Linear chirp"
+msgstr "Modulation linéaire de fréquence"
 
-msgid "step"
-msgstr "échelon"
+msgid "Step"
+msgstr "Echelon"
 
-msgid "exponential"
-msgstr "exponentielle"
+msgid "Exponential"
+msgstr "Exponentielle"
 
-msgid "logistic"
-msgstr "logistique"
+msgid "Logistic"
+msgstr "Logistique"
 
-msgid "pulse"
-msgstr "impulsion"
+msgid "Pulse"
+msgstr "Impulsion"
 
-msgid "polynomial"
-msgstr "polynomial"
+msgid "Polynomial"
+msgstr "Polynomial"
 
-msgid "custom"
-msgstr "personnalisé"
+msgid "Custom"
+msgstr "Personnalisé"
 
 msgid "Untitled signal"
 msgstr "Signal sans titre"
@@ -880,9 +880,6 @@ msgstr "Moyenne"
 msgid "Minimum"
 msgstr "Minimum"
 
-msgid "Triangle"
-msgstr "Triangle"
-
 msgid "Threshold method"
 msgstr "Méthode de seuillage"
 
@@ -1018,14 +1015,8 @@ msgstr "Méthode d'élimation de la tendance"
 msgid "Cosine"
 msgstr "Cosinus"
 
-msgid "Exponential"
-msgstr "Exponentielle"
-
 msgid "Flat top"
 msgstr "Sommet plat"
-
-msgid "Gaussian"
-msgstr "Gaussienne"
 
 msgid "Rectangular"
 msgstr "Rectangulaire"
