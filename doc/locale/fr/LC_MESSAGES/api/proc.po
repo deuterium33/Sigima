@@ -38,10 +38,10 @@ msgid "In Sigima overall architecture, the purpose of this package is to provide
 msgstr "Dans l'architecture globale de Sigima, le but de ce package est de fournir les fonctions de calcul qui sont utilisées par le module :mod:`sigima.core.gui.processor`, basées sur les algorithmes définis dans le module :mod:`sigima.tools` et sur le modèle de données défini dans le module :mod:`sigima.objects` (ou :mod:`sigima.core.model`)."
 
 msgid "The computation modules are organized in subpackages according to their purpose. The following subpackages are available:"
-msgstr "\"Les modules de calcul sont organisés en sous-packages selon leur objectif. Les sous-packages suivants sont disponibles :"
+msgstr "Les modules de calcul sont organisés en sous-packages selon leur objectif. Les sous-packages suivants sont disponibles :"
 
 msgid ":mod:`sigima.proc.base`: Common processing features"
-msgstr "\":mod:`sigima.proc.base`: Fonctionnalités de traitement communes"
+msgstr ":mod:`sigima.proc.base`: Fonctionnalités de traitement communes"
 
 msgid ":mod:`sigima.proc.signal`: Signal processing features"
 msgstr ":mod:`sigima.proc.signal`: Fonctionnalités de traitement du signal"
