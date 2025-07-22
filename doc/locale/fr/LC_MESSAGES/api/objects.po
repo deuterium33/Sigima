@@ -20,7 +20,7 @@ msgstr ""
 "Generated-By: Babel 2.17.0\n"
 
 msgid "Model classes for signals and images (:mod:`sigima.objects`)"
-msgstr ""Classes de modèle pour les signaux et les images (:mod:`sigima.objects`)"
+msgstr "Classes de modèle pour les signaux et les images (:mod:`sigima.objects`)"
 
 msgid "The :mod:`sigima.objects` module aims at providing all the necessary classes and functions to create and manipulate Sigima signal and image objects."
 msgstr "Le module :mod:`sigima.objects` vise à fournir toutes les classes et fonctions nécessaires pour créer et manipuler des objets signal et image de Sigima."
