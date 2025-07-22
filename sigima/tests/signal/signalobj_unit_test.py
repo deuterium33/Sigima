@@ -13,6 +13,7 @@ import os.path as osp
 from collections.abc import Generator
 
 import numpy as np
+import pytest
 
 import sigima.io
 import sigima.objects
@@ -40,49 +41,7 @@ def iterate_signal_creation(
         if verbose:
             execenv.print(f"    {stype.value}")
 
-        if stype == sigima.objects.SignalTypes.ZEROS:
-            param = sigima.objects.ZerosParam()
-        elif stype == sigima.objects.SignalTypes.UNIFORMRANDOM:
-            param = sigima.objects.UniformRandomParam()
-        elif stype == sigima.objects.SignalTypes.NORMALRANDOM:
-            param = sigima.objects.NormalRandomParam()
-        elif stype == sigima.objects.SignalTypes.GAUSS:
-            param = sigima.objects.GaussParam()
-        elif stype == sigima.objects.SignalTypes.LORENTZ:
-            param = sigima.objects.LorentzParam()
-        elif stype == sigima.objects.SignalTypes.VOIGT:
-            param = sigima.objects.VoigtParam()
-        elif stype == sigima.objects.SignalTypes.PLANCK:
-            param = sigima.objects.PlanckParam()
-        elif stype == sigima.objects.SignalTypes.SINUS:
-            param = sigima.objects.SinusParam()
-        elif stype == sigima.objects.SignalTypes.COSINUS:
-            param = sigima.objects.CosinusParam()
-        elif stype == sigima.objects.SignalTypes.SAWTOOTH:
-            param = sigima.objects.SawtoothParam()
-        elif stype == sigima.objects.SignalTypes.TRIANGLE:
-            param = sigima.objects.TriangleParam()
-        elif stype == sigima.objects.SignalTypes.SQUARE:
-            param = sigima.objects.SquareParam()
-        elif stype == sigima.objects.SignalTypes.SINC:
-            param = sigima.objects.SincParam()
-        elif stype == sigima.objects.SignalTypes.LINEARCHIRP:
-            param = sigima.objects.LinearChirpParam()
-        elif stype == sigima.objects.SignalTypes.STEP:
-            param = sigima.objects.StepParam()
-        elif stype == sigima.objects.SignalTypes.EXPONENTIAL:
-            param = sigima.objects.ExponentialParam()
-        elif stype == sigima.objects.SignalTypes.LOGISTIC:
-            param = sigima.objects.LogisticParam()
-        elif stype == sigima.objects.SignalTypes.PULSE:
-            param = sigima.objects.PulseParam()
-        elif stype == sigima.objects.SignalTypes.POLYNOMIAL:
-            param = sigima.objects.PolyParam()
-        elif stype == sigima.objects.SignalTypes.CUSTOM:
-            param = sigima.objects.CustomSignalParam()
-        else:
-            raise NotImplementedError(f"Signal type {stype} is not implemented")
-
+        param = sigima.objects.get_signal_parameters_class(stype)()
         param.size = data_size
         signal = sigima.objects.create_signal_from_param(param)
         if stype == sigima.objects.SignalTypes.ZEROS:
@@ -129,6 +88,27 @@ def test_hdf5_signal_io() -> None:
     execenv.print(f"{test_hdf5_signal_io.__doc__}: OK")
 
 
+@pytest.mark.gui
+def test_signal_parameters_interactive() -> None:
+    """Test interactive creation of signal parameters"""
+    execenv.print(f"{test_signal_parameters_interactive.__doc__}:")
+    # pylint: disable=import-outside-toplevel
+    from guidata.qthelpers import qt_app_context
+
+    with qt_app_context():
+        for stype in sigima.objects.SignalTypes:
+            param = sigima.objects.get_signal_parameters_class(stype)()
+            if isinstance(param, sigima.objects.CustomSignalParam):
+                param.setup_array()
+            if param.edit():
+                execenv.print(f"  Edited parameters for {stype.value}:")
+                execenv.print(f"    {param}")
+            else:
+                execenv.print(f"  Skipped editing parameters for {stype.value}")
+    execenv.print(f"{test_signal_parameters_interactive.__doc__}: OK")
+
+
 if __name__ == "__main__":
+    test_signal_parameters_interactive()
     test_all_signal_types()
     test_hdf5_signal_io()
