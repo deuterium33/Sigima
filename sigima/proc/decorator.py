@@ -182,6 +182,10 @@ def computation_function(
                 real_wrapper._user_kwarg_keys = set(kwargs.keys())
                 return real_wrapper(*args, **kwargs)
 
+            # --- preserve the original function's docstring ---
+            pre_wrapper.__doc__ = f.__doc__
+            pre_wrapper.__name__ = f.__name__
+
             # --- Sphinx-style docstring injection with actual parameter names ---
             param_class_name = ds_cls.__name__
             item_names = [item.get_name() for item in ds_items]
