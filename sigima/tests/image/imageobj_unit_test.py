@@ -13,6 +13,7 @@ import os.path as osp
 from collections.abc import Generator
 
 import numpy as np
+import pytest
 
 import sigima.io
 import sigima.objects
@@ -152,6 +153,25 @@ def test_hdf5_image_io() -> None:
     execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
 
 
+@pytest.mark.gui
+def test_image_parameters_interactive() -> None:
+    """Test interactive creation of image parameters"""
+    execenv.print(f"{test_image_parameters_interactive.__doc__}:")
+    # pylint: disable=import-outside-toplevel
+    from guidata.qthelpers import qt_app_context
+
+    with qt_app_context():
+        for itype in sigima.objects.ImageTypes:
+            param = sigima.objects.get_image_parameters_class(itype)()
+            if param.edit():
+                execenv.print(f"  Edited parameters for {itype.value}:")
+                execenv.print(f"    {param}")
+            else:
+                execenv.print(f"  Skipped editing parameters for {itype.value}")
+    execenv.print(f"{test_image_parameters_interactive.__doc__}: OK")
+
+
 if __name__ == "__main__":
+    test_image_parameters_interactive()
     test_all_image_types()
     test_hdf5_image_io()
