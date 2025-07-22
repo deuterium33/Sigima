@@ -1201,7 +1201,7 @@ register_image_parameters_class(ImageTypes.NORMALRANDOM, NormalRandom2DParam)
 class Gauss2DParam(NewImageParam):
     """2D Gaussian parameters"""
 
-    a = gds.FloatItem("Norm")
+    a = gds.FloatItem("A", default=None, check=False)
     xmin = gds.FloatItem("Xmin", default=-10).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
     xmax = gds.FloatItem("Xmax", default=10).set_pos(col=1)
