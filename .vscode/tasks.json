@@ -11,14 +11,14 @@
                 "${command:python.interpreterPath}",
                 "-m",
                 "ruff",
-                "format"
+                "format",
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "clear": true,
@@ -26,9 +26,9 @@
                 "focus": false,
                 "panel": "dedicated",
                 "reveal": "always",
-                "showReuseMessage": true
+                "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "🔦 Ruff Linter",
@@ -42,11 +42,11 @@
                 "--fix",
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "clear": true,
@@ -56,7 +56,7 @@
                 "reveal": "always",
                 "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "🔦 Pylint",
@@ -75,14 +75,14 @@
                 "--disable=too-many-lines",
                 "--disable=too-many-locals",
                 "--disable=too-many-public-methods",
-                "--disable=too-many-statements"
+                "--disable=too-many-statements",
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "clear": true,
@@ -90,9 +90,9 @@
                 "focus": false,
                 "panel": "dedicated",
                 "reveal": "always",
-                "showReuseMessage": true
+                "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "sphinx-build",
@@ -107,17 +107,17 @@
                 "build/gettext",
                 "-b",
                 "gettext",
-                "-W"
+                "-W",
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "clear": true,
@@ -127,7 +127,7 @@
                 "reveal": "always",
                 "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "sphinx-intl update",
@@ -151,12 +151,12 @@
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "clear": true,
@@ -169,8 +169,8 @@
             "type": "shell",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "sphinx-build"
-            ]
+                "sphinx-build",
+            ],
         },
         {
             "label": "sphinx-intl build",
@@ -185,12 +185,12 @@
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "clear": true,
@@ -198,9 +198,9 @@
                 "focus": false,
                 "panel": "dedicated",
                 "reveal": "always",
-                "showReuseMessage": true
+                "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "🔎 Scan translations",
@@ -216,14 +216,14 @@
                 "--directory",
                 ".",
                 "--copyright-holder",
-                "DataLab Platform Developers"
+                "DataLab Platform Developers",
             ],
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "presentation": {
                 "clear": false,
@@ -231,14 +231,14 @@
                 "focus": false,
                 "panel": "shared",
                 "reveal": "always",
-                "showReuseMessage": true
+                "showReuseMessage": true,
             },
             "type": "shell",
             "dependsOrder": "sequence",
             "dependsOn": [
                 "sphinx-build",
-                "sphinx-intl update"
-            ]
+                "sphinx-intl update",
+            ],
         },
         {
             "label": "📚 Compile translations",
@@ -252,14 +252,14 @@
                 "--name",
                 "sigima",
                 "--directory",
-                "."
+                ".",
             ],
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "presentation": {
                 "clear": false,
@@ -267,13 +267,13 @@
                 "focus": false,
                 "panel": "shared",
                 "reveal": "always",
-                "showReuseMessage": true
+                "showReuseMessage": true,
             },
             "type": "shell",
             "dependsOrder": "sequence",
             "dependsOn": [
                 "sphinx-intl build",
-            ]
+            ],
         },
         {
             "label": "🚀 Pytest",
@@ -289,12 +289,12 @@
                 "cwd": "${workspaceFolder}",
                 "env": {
                     // "DEBUG": "1", // ☣️ Debug mode will reset .ini settings
-                    "UNATTENDED": "1"
-                }
+                    "UNATTENDED": "1",
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "echo": true,
@@ -302,7 +302,7 @@
                 "focus": false,
                 "panel": "dedicated",
                 "showReuseMessage": true,
-                "clear": true
+                "clear": true,
             },
             "type": "shell",
         },
@@ -319,12 +319,12 @@
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "clear": true,
@@ -334,7 +334,7 @@
                 "reveal": "always",
                 "showReuseMessage": true,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "🧪 Coverage tests",
@@ -348,7 +348,7 @@
                 "run",
                 "-m",
                 "pytest",
-                "sigima"
+                "sigima",
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -356,38 +356,38 @@
                     "COVERAGE_PROCESS_START": "${workspaceFolder}/.coveragerc",
                 },
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "test",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
-                "panel": "dedicated"
+                "panel": "dedicated",
             },
-            "problemMatcher": []
+            "problemMatcher": [],
         },
         {
             "label": "📊 Coverage full",
             "type": "shell",
             "windows": {
-                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && start htmlcov\\index.html"
+                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && start htmlcov\\index.html",
             },
             "linux": {
-                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && xdg-open htmlcov/index.html"
+                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && xdg-open htmlcov/index.html",
             },
             "osx": {
-                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && open htmlcov/index.html"
+                "command": "${command:python.interpreterPath} -m coverage combine && ${command:python.interpreterPath} -m coverage html && open htmlcov/index.html",
             },
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
-                    "COVERAGE_PROCESS_START": "${workspaceFolder}/.coveragerc"
-                }
+                    "COVERAGE_PROCESS_START": "${workspaceFolder}/.coveragerc",
+                },
             },
             "presentation": {
-                "panel": "dedicated"
+                "panel": "dedicated",
             },
             "problemMatcher": [],
             "dependsOrder": "sequence",
@@ -401,21 +401,21 @@
             "command": "cmd",
             "args": [
                 "/c",
-                "update_doc_resources.bat"
+                "update_doc_resources.bat",
             ],
             "options": {
                 "cwd": "scripts",
                 "env": {
                     "PYTHON": "${command:python.interpreterPath}",
-                    "UNATTENDED": "1"
+                    "UNATTENDED": "1",
                 },
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "echo": true,
@@ -423,12 +423,12 @@
                 "focus": false,
                 "panel": "dedicated",
                 "showReuseMessage": true,
-                "clear": true
+                "clear": true,
             },
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Generate requirements",
-            ]
+            ],
         },
         {
             "label": "Upgrade PlotPyStack",
@@ -448,12 +448,12 @@
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "echo": true,
@@ -461,9 +461,9 @@
                 "focus": false,
                 "panel": "shared",
                 "showReuseMessage": true,
-                "clear": false
+                "clear": false,
             },
-            "type": "shell"
+            "type": "shell",
         },
         {
             "label": "🔁 Reinstall guidata/plotpy dev",
@@ -472,22 +472,22 @@
                 "command": ".venv/scripts/pip uninstall -y guidata plotpy; Remove-Item -Recurse -Force .venv/Lib/site-packages/guidata -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .venv/Lib/site-packages/plotpy -ErrorAction SilentlyContinue; .venv/scripts/pip install -e ../guidata; .venv/scripts/pip install -e ../plotpy",
             },
             "linux": {
-                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy"
+                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy",
             },
             "osx": {
-                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy"
+                "command": ".venv/bin/pip uninstall -y guidata plotpy && rm -rf .venv/lib/python*/site-packages/guidata && rm -rf .venv/lib/python*/site-packages/plotpy && .venv/bin/pip install -e ../guidata && .venv/bin/pip install -e ../plotpy",
             },
             "options": {
                 "cwd": "${workspaceFolder}",
                 "statusbar": {
-                    "hide": true
-                }
+                    "hide": true,
+                },
             },
             "presentation": {
                 "panel": "dedicated",
-                "reveal": "always"
+                "reveal": "always",
             },
-            "problemMatcher": []
+            "problemMatcher": [],
         },
         {
             "label": "🧹 Clean Up",
@@ -495,14 +495,14 @@
             "command": "cmd",
             "args": [
                 "/c",
-                "clean_up.bat"
+                "clean_up.bat",
             ],
             "options": {
-                "cwd": "scripts"
+                "cwd": "scripts",
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "echo": true,
@@ -510,8 +510,8 @@
                 "focus": false,
                 "panel": "shared",
                 "showReuseMessage": true,
-                "clear": false
-            }
+                "clear": false,
+            },
         },
         {
             "label": "📚 Build doc",
@@ -526,14 +526,14 @@
                 "build/doc",
                 "-b",
                 "html",
-                "-W"
+                "-W",
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "clear": true,
@@ -546,25 +546,25 @@
             "type": "shell",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Generate requirements"
-            ]
+                "Generate requirements",
+            ],
         },
         {
             "label": "🌐 Open HTML doc",
             "type": "shell",
             "windows": {
-                "command": "start build/doc/index.html"
+                "command": "start build/doc/index.html",
             },
             "linux": {
-                "command": "xdg-open build/doc/index.html"
+                "command": "xdg-open build/doc/index.html",
             },
             "osx": {
-                "command": "open build/doc/index.html"
+                "command": "open build/doc/index.html",
             },
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
-            "problemMatcher": []
+            "problemMatcher": [],
         },
         {
             "label": "📦 Build package",
@@ -577,21 +577,21 @@
                 "guidata.utils.securebuild",
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": false,
             },
             "presentation": {
                 "clear": true,
-                "panel": "dedicated"
+                "panel": "dedicated",
             },
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
                 "🧹 Clean Up",
-            ]
+            ],
         },
         {
             "label": "❔ Untracked files",
@@ -602,7 +602,7 @@
             },
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": true,
             },
             "presentation": {
                 "echo": true,
@@ -610,8 +610,8 @@
                 "focus": false,
                 "panel": "dedicated",
                 "showReuseMessage": true,
-                "clear": true
-            }
+                "clear": true,
+            },
         },
-    ]
+    ],
 }
