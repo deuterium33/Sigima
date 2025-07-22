@@ -671,7 +671,7 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
     STYPE: Type[SignalTypes] | None = None
 
     a = gds.FloatItem("A", default=1.0)
-    ymin = gds.FloatItem("Ymin", default=0.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
     mu = gds.FloatItem("μ", default=0.0).set_pos(col=1)
 
@@ -733,7 +733,7 @@ class PlanckParam(NewSignalParam):
     """
 
     xmin = gds.FloatItem("x<sub>min</sub>", default=0.0, unit="m")
-    xmax = gds.FloatItem("X<sub>max</sub>", default=1e-5, unit="m")
+    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-5, unit="m")
     T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
 
     def generate_title(self) -> str:
@@ -806,7 +806,7 @@ class BasePeriodicParam(NewSignalParam):
         return FreqUnits.convert_in_hz(self.freq, self.freq_unit)
 
     a = gds.FloatItem("A", default=1.0)
-    ymin = gds.FloatItem("Ymin", default=0.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=1)
     freq = gds.FloatItem(_("Frequency"), default=1.0)
     freq_unit = gds.ChoiceItem(
         _("Unit"), FreqUnits.get_choices(), default=FreqUnits.HZ
@@ -900,13 +900,13 @@ register_signal_parameters_class(SignalTypes.SINC, SincParam)
 class LinearChirpParam(NewSignalParam):
     """Linear chirp function.
 
-    y = y<sub>min</sub> + a sin(phi<sub>0</sub> + 2π (f<sub>0</sub> x + 0.5 k x²))
+    y = y<sub>min</sub> + a sin(φ<sub>0</sub> + 2π (f<sub>0</sub> x + 0.5 k x²))
     """
 
     a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
     k = gds.FloatItem("k", default=1.0, help=_("Chirp rate (f<sup>-2</sup>)"))
     f0 = gds.FloatItem("f<sub>0</sub>", default=1.0, help=_("Initial frequency (Hz)"))
-    phi0 = gds.FloatItem("phi<sub>0</sub>", default=0.0, help=_("Initial phase"))
+    phi0 = gds.FloatItem("φ<sub>0</sub>", default=0.0, help=_("Initial phase"))
     offset = gds.FloatItem("y<sub>min</sub>", default=0.0, help=_("Vertical offset"))
 
     def generate_title(self) -> str:
@@ -965,9 +965,9 @@ register_signal_parameters_class(SignalTypes.LINEARCHIRP, LinearChirpParam)
 class StepParam(NewSignalParam):
     """Parameters for step function"""
 
-    a1 = gds.FloatItem("A1", default=0.0)
-    a2 = gds.FloatItem("A2", default=1.0).set_pos(col=1)
-    x0 = gds.FloatItem("X0", default=0.0)
+    a1 = gds.FloatItem("A<sub>1</sub>", default=0.0)
+    a2 = gds.FloatItem("A<sub>2</sub>", default=1.0).set_pos(col=1)
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
