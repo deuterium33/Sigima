@@ -1708,8 +1708,10 @@ class AngleUnitParam(gds.DataSet):
 
 @computation_function()
 def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert cartesian coordinates to polar coordinates with
-    :py:func:`sigima.tools.coordinates.to_polar`.
+    """Convert cartesian coordinates to polar coordinates.
+
+    This function converts the x and y coordinates of a signal to polar coordinates
+    using :py:func:`sigima.tools.coordinates.to_polar`.
 
     Args:
         src: Source signal.
@@ -1717,22 +1719,33 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
 
     Returns:
         Result signal object.
+
+    Raises:
+        ValueError: If the x and y units are not the same.
     """
+    assert p.unit is not None
+    if src.xunit != src.yunit:
+        raise ValueError(
+            "X and y must have the same unit, got "
+            f"(xunit={src.xunit}, yunit={src.yunit})."
+        )
     dst = dst_1_to_1(src, "Polar coordinates", f"unit={p.unit}")
     x, y = src.get_data()
     r, theta = coordinates.to_polar(x, y, p.unit)
     dst.set_xydata(r, theta)
     dst.xlabel = _("Radius")
     dst.ylabel = _("Angle")
-    dst.xunit = src.xunit if src.xunit == src.yunit else ""
+    dst.xunit = src.xunit
     dst.yunit = p.unit
     return dst
 
 
 @computation_function()
 def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert polar coordinates to cartesian coordinates with
-    :py:func:`sigima.tools.coordinates.to_cartesian`.
+    """Convert polar coordinates to cartesian coordinates.
+
+    This function converts the r and theta coordinates of a signal to cartesian
+    coordinates using :py:func:`sigima.tools.coordinates.to_cartesian`.
 
     Args:
         src: Source signal.
@@ -1747,6 +1760,7 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
         represents the angle. Negative values are not allowed for the radius, and will
         be clipped to 0 (a warning will be raised).
     """
+    assert p.unit is not None
     dst = dst_1_to_1(src, "Cartesian coordinates", f"unit={p.unit}")
     r, theta = src.get_data()
     x, y = coordinates.to_cartesian(r, theta, p.unit)
@@ -1767,7 +1781,7 @@ class AllanVarianceParam(gds.DataSet):
 @computation_function()
 def allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Allan variance with
-    :py:func:`sigima.tools.signal.stability.allan_variance`
+    :py:func:`sigima.tools.signal.stability.allan_variance`.
 
     Args:
         src: source signal

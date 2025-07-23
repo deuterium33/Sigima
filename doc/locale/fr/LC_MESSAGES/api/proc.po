@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 09:48+0200\n"
+"POT-Creation-Date: 2025-07-23 11:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -950,19 +950,25 @@ msgstr ""
 msgid "New instance of :py:class:`AngleUnitParam`."
 msgstr ""
 
-msgid "Convert cartesian coordinates to polar coordinates with"
+msgid "Convert cartesian coordinates to polar coordinates."
 msgstr ""
 
-msgid ":py:func:`sigima.tools.coordinates.to_polar`."
+msgid "This function converts the x and y coordinates of a signal to polar coordinates using :py:func:`sigima.tools.coordinates.to_polar`."
+msgstr ""
+
+msgid "Raises:"
+msgstr ""
+
+msgid "ValueError: If the x and y units are not the same."
 msgstr ""
 
 msgid "With a parameter ``AngleUnitParam`` object:"
 msgstr ""
 
-msgid "Convert polar coordinates to cartesian coordinates with"
+msgid "Convert polar coordinates to cartesian coordinates."
 msgstr ""
 
-msgid ":py:func:`sigima.tools.coordinates.to_cartesian`."
+msgid "This function converts the r and theta coordinates of a signal to cartesian coordinates using :py:func:`sigima.tools.coordinates.to_cartesian`."
 msgstr ""
 
 msgid "This function assumes that the x-axis represents the radius and the y-axis represents the angle. Negative values are not allowed for the radius, and will be clipped to 0 (a warning will be raised)."
@@ -983,7 +989,7 @@ msgstr ""
 msgid "Compute Allan variance with"
 msgstr ""
 
-msgid ":py:func:`sigima.tools.signal.stability.allan_variance`"
+msgid ":py:func:`sigima.tools.signal.stability.allan_variance`."
 msgstr ""
 
 msgid "With a parameter ``AllanVarianceParam`` object:"
