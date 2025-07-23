@@ -1725,10 +1725,7 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     """
     assert p.unit is not None
     if src.xunit != src.yunit:
-        raise ValueError(
-            "X and y must have the same unit, got "
-            f"(xunit={src.xunit}, yunit={src.yunit})."
-        )
+        warnings.warn(f"X and Y units are not the same: {src.xunit} != {src.yunit}.")
     dst = dst_1_to_1(src, "Polar coordinates", f"unit={p.unit}")
     x, y = src.get_data()
     r, theta = coordinates.to_polar(x, y, p.unit)
