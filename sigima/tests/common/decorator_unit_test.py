@@ -109,6 +109,7 @@ def test_signal_decorator_signature() -> None:
     check_array_result(f"{name} y", res_ds.y, orig.y + orig.x**2 * 3.0 + 4.0)
 
     # Call the function with keyword arguments
+    # pylint: disable=no-value-for-parameter
     res_kw = dummy_signal_func(orig, a=3.0, b=4.0)
     name = "Signal[keyword arguments]"
     check_array_result(f"{name} x", res_kw.x, orig.x)
@@ -152,6 +153,7 @@ def test_image_decorator_signature() -> None:
     check_array_result("Image data", res_ds.data, orig.data * p.alpha)
 
     # Call the function with keyword arguments
+    # pylint: disable=no-value-for-parameter
     res_kw = dummy_image_func(orig, alpha=0.8)
     check_array_result("Image data", res_kw.data, orig.data * 0.8)
 

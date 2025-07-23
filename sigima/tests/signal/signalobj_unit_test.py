@@ -34,7 +34,6 @@ def preprocess_signal_parameters(param: sio.NewSignalParam) -> None:
         param: The signal parameters to preprocess.
     """
     # TODO: [P4] Add specific preprocessing for signal parameters if needed
-    pass
 
 
 def postprocess_signal_object(obj: sio.SignalObj, stype: sio.SignalTypes) -> None:

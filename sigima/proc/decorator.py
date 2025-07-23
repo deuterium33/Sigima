@@ -168,7 +168,7 @@ def computation_function(
         params = list(sig.parameters.values())
         try:
             type_hints = typing.get_type_hints(f)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             type_hints = {}
 
         # Find DataSet parameter if any
@@ -177,7 +177,7 @@ def computation_function(
         for p in params:
             annot = type_hints.get(p.name, p.annotation)
             if (
-                annot != inspect._empty
+                annot is not inspect.Signature.empty
                 and isinstance(annot, type)
                 and issubclass(annot, gds.DataSet)
                 and annot.__name__ not in ("SignalObj", "ImageObj")
@@ -189,7 +189,7 @@ def computation_function(
         # If a DataSet param is present, expand signature and docstring
         if ds_cls is not None:
             # Build signature exposing all DataSet items as keyword-only parameters
-            ds_items: list[gds.DataItem] = ds_cls._items
+            ds_items: list[gds.DataItem] = ds_cls._items  # pylint: disable=W0212
             item_names = [item.get_name() for item in ds_items]
             items = []
             for item in ds_items:
@@ -248,18 +248,18 @@ def computation_function(
             return _make_computation_wrapper(
                 f, ds_cls, ds_param, params, ds_items, new_sig, signature_info, metadata
             )
-        else:
-            # No DataSet parameter: simple passthrough
-            @functools.wraps(f)
-            def wrapper(*args, **kwargs):
-                return f(*args, **kwargs)
 
-            metadata = ComputationMetadata(
-                name=name or f.__name__,
-                description=description or f.__doc__,
-            )
-            setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
-            return wrapper
+        # No DataSet parameter: simple passthrough
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        metadata = ComputationMetadata(
+            name=name or f.__name__,
+            description=description or f.__doc__,
+        )
+        setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
+        return wrapper
 
     return decorator
 
