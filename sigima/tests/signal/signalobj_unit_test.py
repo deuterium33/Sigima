@@ -88,7 +88,7 @@ def test_hdf5_signal_io() -> None:
     execenv.print(f"{test_hdf5_signal_io.__doc__}: OK")
 
 
-@pytest.mark.gui
+@pytest.marker.gui
 def test_signal_parameters_interactive() -> None:
     """Test interactive creation of signal parameters"""
     execenv.print(f"{test_signal_parameters_interactive.__doc__}:")
