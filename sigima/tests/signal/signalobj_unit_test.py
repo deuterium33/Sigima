@@ -10,14 +10,14 @@ Unit tests around the `SignalObj` class and its creation from parameters.
 from __future__ import annotations
 
 import os.path as osp
-from collections.abc import Generator
 
 import numpy as np
 import pytest
 
 import sigima.io
-import sigima.objects
+import sigima.objects as sio
 from sigima.io.signal import SignalIORegistry
+from sigima.tests.data import iterate_signal_creation
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
     WorkdirRestoringTempDir,
@@ -26,33 +26,34 @@ from sigima.tests.helpers import (
 )
 
 
-def iterate_signal_creation(
-    data_size: int = 500, non_zero: bool = False, verbose: bool = True
-) -> Generator[sigima.objects.SignalObj, None, None]:
-    """Iterate over all possible signals created from parameters"""
-    if verbose:
-        execenv.print(
-            f"  Iterating over {len(sigima.objects.SignalTypes)} signal types "
-            f"(size={data_size}, non_zero={non_zero}):"
-        )
-    for stype in sigima.objects.SignalTypes:
-        if non_zero and stype in (sigima.objects.SignalTypes.ZEROS,):
-            continue
-        if verbose:
-            execenv.print(f"    {stype.value}")
+# pylint: disable=unused-argument
+def preprocess_signal_parameters(param: sio.NewSignalParam) -> None:
+    """Preprocess signal parameters before creating the signal.
 
-        param = sigima.objects.get_signal_parameters_class(stype)()
-        param.size = data_size
-        signal = sigima.objects.create_signal_from_param(param)
-        if stype == sigima.objects.SignalTypes.ZEROS:
-            assert (signal.y == 0).all()
-        yield signal
+    Args:
+        param: The signal parameters to preprocess.
+    """
+    # TODO: [P4] Add specific preprocessing for signal parameters if needed
+    pass
+
+
+def postprocess_signal_object(obj: sio.SignalObj, stype: sio.SignalTypes) -> None:
+    """Postprocess signal object after creation.
+
+    Args:
+        obj: The signal object to postprocess.
+        stype: The type of the signal.
+    """
+    if stype == sio.SignalTypes.ZEROS:
+        assert (obj.y == 0).all()
 
 
 def test_all_signal_types() -> None:
     """Test all combinations of signal types and data sizes"""
     execenv.print(f"{test_all_signal_types.__doc__}:")
-    for signal in iterate_signal_creation():
+    for signal in iterate_signal_creation(
+        preproc=preprocess_signal_parameters, postproc=postprocess_signal_object
+    ):
         assert signal.x is not None and signal.y is not None
     execenv.print(f"{test_all_signal_types.__doc__}: OK")
 
@@ -96,9 +97,9 @@ def test_signal_parameters_interactive() -> None:
     from guidata.qthelpers import qt_app_context
 
     with qt_app_context():
-        for stype in sigima.objects.SignalTypes:
-            param = sigima.objects.get_signal_parameters_class(stype)()
-            if isinstance(param, sigima.objects.CustomSignalParam):
+        for stype in sio.SignalTypes:
+            param = sio.create_signal_parameters(stype)
+            if isinstance(param, sio.CustomSignalParam):
                 param.setup_array()
             if param.edit():
                 execenv.print(f"  Edited parameters for {stype.value}:")

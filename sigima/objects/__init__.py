@@ -44,6 +44,7 @@ Signal model
     :inherited-members:
 .. autofunction:: sigima.objects.create_signal_roi
 .. autofunction:: sigima.objects.create_signal
+.. autofunction:: sigima.objects.create_signal_parameters
 .. autofunction:: sigima.objects.create_signal_from_param
 .. autoclass:: sigima.objects.SignalTypes
 .. autoclass:: sigima.objects.NewSignalParam
@@ -75,6 +76,7 @@ Image model
     :inherited-members:
 .. autofunction:: sigima.objects.create_image_roi
 .. autofunction:: sigima.objects.create_image
+.. autofunction:: sigima.objects.create_image_parameters
 .. autofunction:: sigima.objects.create_image_from_param
 .. autoclass:: sigima.objects.ImageTypes
 .. autoclass:: sigima.objects.NewImageParam
@@ -119,8 +121,8 @@ from sigima.objects.image import (
     Zeros2DParam,
     create_image,
     create_image_from_param,
+    create_image_parameters,
     create_image_roi,
-    get_image_parameters_class,
 )
 from sigima.objects.signal import (
     CosinusParam,
@@ -151,6 +153,6 @@ from sigima.objects.signal import (
     ZerosParam,
     create_signal,
     create_signal_from_param,
+    create_signal_parameters,
     create_signal_roi,
-    get_signal_parameters_class,
 )

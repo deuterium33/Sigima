@@ -1092,7 +1092,7 @@ def register_image_parameters_class(itype: ImageTypes, param_class) -> None:
     IMAGE_TYPE_PARAM_CLASSES[itype] = param_class
 
 
-def get_image_parameters_class(itype: ImageTypes) -> Type[NewImageParam]:
+def __get_image_parameters_class(itype: ImageTypes) -> Type[NewImageParam]:
     """Get parameters class for a given image type.
 
     Args:
@@ -1115,7 +1115,42 @@ def get_image_parameters_class(itype: ImageTypes) -> Type[NewImageParam]:
 def check_all_image_parameters_classes() -> None:
     """Check all registered parameters classes."""
     for itype, param_class in IMAGE_TYPE_PARAM_CLASSES.items():
-        assert get_image_parameters_class(itype) is param_class
+        assert __get_image_parameters_class(itype) is param_class
+
+
+def create_image_parameters(
+    itype: ImageTypes,
+    title: str | None = None,
+    height: int | None = None,
+    width: int | None = None,
+    idtype: ImageDatatypes | None = None,
+    **kwargs: dict,
+) -> NewImageParam:
+    """Create parameters for a given image type.
+
+    Args:
+        itype: image type
+        title: image title
+        height: image height (number of rows)
+        width: image width (number of columns)
+        idtype: image data type (`ImageDatatypes` member)
+        **kwargs: additional parameters (specific to the image type)
+
+    Returns:
+        Parameters object for the given image type
+    """
+    pclass = __get_image_parameters_class(itype)
+    p = pclass.create(**kwargs)
+    if title is not None:
+        p.title = title
+    if height is not None:
+        p.height = height
+    if width is not None:
+        p.width = width
+    if idtype is not None:
+        assert isinstance(idtype, ImageDatatypes)
+        p.dtype = idtype
+    return p
 
 
 class Zeros2DParam(NewImageParam):

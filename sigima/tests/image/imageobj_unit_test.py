@@ -10,7 +10,6 @@ Unit tests around the `ImageObj` class and its creation from parameters.
 from __future__ import annotations
 
 import os.path as osp
-from collections.abc import Generator
 
 import numpy as np
 import pytest
@@ -18,7 +17,8 @@ import pytest
 import sigima.io
 import sigima.objects
 from sigima.io.image import ImageIORegistry
-from sigima.tests.data import create_test_image_with_metadata
+from sigima.objects.image import Gauss2DParam, Ramp2DParam
+from sigima.tests.data import create_test_image_with_metadata, iterate_image_creation
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
     WorkdirRestoringTempDir,
@@ -28,90 +28,53 @@ from sigima.tests.helpers import (
 )
 
 
-def iterate_image_creation(
-    data_size: int = 500, non_zero: bool = False, verbose: bool = True
-) -> Generator[sigima.objects.ImageObj, None, None]:
-    """Iterate over all possible images created from parameters"""
-    if verbose:
-        execenv.print(
-            f"  Iterating over {len(sigima.objects.ImageTypes)} image types "
-            f"(size={data_size}, non_zero={non_zero}):"
-        )
-    for itype in sigima.objects.ImageTypes:
-        if non_zero and itype in (
-            sigima.objects.ImageTypes.EMPTY,
-            sigima.objects.ImageTypes.ZEROS,
-        ):
-            continue
-        if verbose:
-            execenv.print(f"    {itype.value}")
-        yield from _iterate_image_datatypes(itype, data_size, verbose)
-
-
-def _iterate_image_datatypes(
-    itype: sigima.objects.ImageTypes, data_size: int, verbose: bool
-) -> Generator[sigima.objects.ImageObj | None, None, None]:
-    for dtype in sigima.objects.ImageDatatypes:
-        if verbose:
-            execenv.print(f"      {dtype.value}")
-        param_class = sigima.objects.get_image_parameters_class(itype)
-        param = param_class.create(dtype=dtype, width=data_size, height=data_size)
-        if itype == sigima.objects.ImageTypes.RAMP:
-            if dtype is not sigima.objects.ImageDatatypes.FLOAT64:
-                continue  # Testing only float64 for ramp
-            assert isinstance(param, sigima.objects.Ramp2DParam)
-            param.a = 1.0
-            param.b = 2.0
-            param.c = 3.0
-            param.xmin = -1.0
-            param.xmax = 2.0
-            param.ymin = -5.0
-            param.ymax = 4.0
-        elif itype == sigima.objects.ImageTypes.GAUSS:
-            assert isinstance(param, sigima.objects.Gauss2DParam)
-            param.x0 = param.y0 = 3
-            param.sigma = 5
-        elif itype == sigima.objects.ImageTypes.UNIFORMRANDOM:
-            assert isinstance(param, sigima.objects.UniformRandom2DParam)
-            param.set_from_datatype(dtype.value)
-        elif itype == sigima.objects.ImageTypes.NORMALRANDOM:
-            assert isinstance(param, sigima.objects.NormalRandom2DParam)
-            param.set_from_datatype(dtype.value)
-        image = sigima.objects.create_image_from_param(param)
-        if image is not None:
-            _test_image_data(itype, image)
-        yield image
-
-
-def _test_image_data(
-    itype: sigima.objects.ImageTypes, image: sigima.objects.ImageObj
-) -> None:
-    """Tests the data of an image based on its type.
+def preprocess_image_parameters(param: sigima.objects.NewImageParam) -> None:
+    """Preprocess image parameters before creating the image.
 
     Args:
-        itype: The type of the image.
-        image: The image object containing the data to be tested.
+        param: The image parameters to preprocess.
+    """
+    if isinstance(param, Ramp2DParam):
+        param.a = 1.0
+        param.b = 2.0
+        param.c = 3.0
+        param.xmin = -1.0
+        param.xmax = 2.0
+        param.ymin = -5.0
+        param.ymax = 4.0
+    elif isinstance(param, Gauss2DParam):
+        param.x0 = param.y0 = 3
+        param.sigma = 5
 
-    Raises:
-        AssertionError: If the image data does not match the expected values
-         for the given image type.
+
+def postprocess_image_object(
+    obj: sigima.objects.ImageObj, itype: sigima.objects.ImageTypes
+) -> None:
+    """Postprocess the image object after creation.
+
+    Args:
+        obj: The image object to postprocess.
+        itype: The type of the image.
     """
     if itype == sigima.objects.ImageTypes.ZEROS:
-        assert (image.data == 0).all()
+        assert (obj.data == 0).all()
     elif itype == sigima.objects.ImageTypes.RAMP:
-        assert image.data is not None
-        check_scalar_result("Top-left corner", image.data[0][0], -8.0)
-        check_scalar_result("Top-right corner", image.data[0][-1], -5.0)
-        check_scalar_result("Bottom-left corner", image.data[-1][0], 10.0)
-        check_scalar_result("Bottom-right", image.data[-1][-1], 13.0)
+        assert obj.data is not None
+        check_scalar_result("Top-left corner", obj.data[0][0], -8.0)
+        check_scalar_result("Top-right corner", obj.data[0][-1], -5.0)
+        check_scalar_result("Bottom-left corner", obj.data[-1][0], 10.0)
+        check_scalar_result("Bottom-right", obj.data[-1][-1], 13.0)
     else:
-        assert image.data is not None
+        assert obj.data is not None
 
 
 def test_all_image_types() -> None:
     """Testing image creation from parameters"""
     execenv.print(f"{test_all_image_types.__doc__}:")
-    for image in iterate_image_creation():
+    for image in iterate_image_creation(
+        preproc=preprocess_image_parameters,
+        postproc=postprocess_image_object,
+    ):
         assert image.data is not None
     execenv.print(f"{test_all_image_types.__doc__}: OK")
 
@@ -162,7 +125,7 @@ def test_image_parameters_interactive() -> None:
 
     with qt_app_context():
         for itype in sigima.objects.ImageTypes:
-            param = sigima.objects.get_image_parameters_class(itype)()
+            param = sigima.objects.create_image_parameters(itype)
             if param.edit():
                 execenv.print(f"  Edited parameters for {itype.value}:")
                 execenv.print(f"    {param}")

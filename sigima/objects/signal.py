@@ -591,7 +591,7 @@ def register_signal_parameters_class(stype: SignalTypes, param_class) -> None:
     SIGNAL_TYPE_PARAM_CLASSES[stype] = param_class
 
 
-def get_signal_parameters_class(stype: SignalTypes) -> Type[NewSignalParam]:
+def __get_signal_parameters_class(stype: SignalTypes) -> Type[NewSignalParam]:
     """Get parameters class for a given signal type.
 
     Args:
@@ -614,7 +614,41 @@ def get_signal_parameters_class(stype: SignalTypes) -> Type[NewSignalParam]:
 def check_all_signal_parameters_classes() -> None:
     """Check all registered parameters classes."""
     for stype, param_class in SIGNAL_TYPE_PARAM_CLASSES.items():
-        assert get_signal_parameters_class(stype) is param_class
+        assert __get_signal_parameters_class(stype) is param_class
+
+
+def create_signal_parameters(
+    stype: SignalTypes,
+    title: str | None = None,
+    xmin: float | None = None,
+    xmax: float | None = None,
+    size: int | None = None,
+    **kwargs: dict,
+) -> NewSignalParam:
+    """Create parameters for a given signal type.
+
+    Args:
+        stype: signal type
+        title: signal title
+        xmin: minimum x value
+        xmax: maximum x value
+        size: signal size (number of points)
+        **kwargs: additional parameters (specific to the signal type)
+
+    Returns:
+        Parameters object for the given signal type
+    """
+    pclass = __get_signal_parameters_class(stype)
+    p = pclass.create(**kwargs)
+    if title is not None:
+        p.title = title
+    if xmin is not None:
+        p.xmin = xmin
+    if xmax is not None:
+        p.xmax = xmax
+    if size is not None:
+        p.size = size
+    return p
 
 
 class ZerosParam(NewSignalParam):

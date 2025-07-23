@@ -11,7 +11,7 @@ Functions creating test data: curves, images, ...
 
 from __future__ import annotations
 
-from typing import Generator
+from typing import Callable, Generator
 
 import guidata.dataset as gds
 import numpy as np
@@ -33,8 +33,10 @@ from sigima.objects import (
     create_image,
     create_image_from_param,
     create_signal_from_param,
-    get_signal_parameters_class,
+    create_signal_parameters,
 )
+from sigima.objects.image import UniformRandom2DParam, create_image_parameters
+from sigima.tests.env import execenv
 from sigima.tests.helpers import get_test_fnames
 
 
@@ -60,6 +62,46 @@ def get_test_image(filename: str) -> ImageObj:
         Image object
     """
     return read_image(get_test_fnames(filename)[0])
+
+
+def iterate_signal_creation(
+    size: int = 500,
+    non_zero: bool = False,
+    verbose: bool = True,
+    preproc: Callable[[NewSignalParam], None] | None = None,
+    postproc: Callable[[SignalObj], None] | None = None,
+) -> Generator[SignalObj, None, None]:
+    """Iterate over all possible signals created from parameters
+
+    Args:
+        size: Size of the data. Defaults to 500.
+        non_zero: If True, skip zero signals. Defaults to False.
+        verbose: If True, print the signal types being created. Defaults to True.
+        preproc: Callback function to preprocess the signal parameters set before
+         creation. Defaults to None.
+        postproc: Callback function to postprocess the signal object after creation.
+         Defaults to None.
+
+    Yields:
+        Signal object created from parameters.
+    """
+    if verbose:
+        execenv.print(
+            f"  Iterating over {len(SignalTypes)} signal types "
+            f"(size={size}, non_zero={non_zero}):"
+        )
+    for stype in SignalTypes:
+        if non_zero and stype in (SignalTypes.ZEROS,):
+            continue
+        if verbose:
+            execenv.print(f"    {stype.value}")
+        param = create_signal_parameters(stype, size=size)
+        if preproc is not None:
+            preproc(param)
+        signal = create_signal_from_param(param)
+        if postproc is not None:
+            postproc(signal, stype)
+        yield signal
 
 
 def create_paracetamol_signal(
@@ -164,7 +206,7 @@ def create_noisy_signal(
 
 
 def create_periodic_signal(
-    shape: SignalTypes,
+    stype: SignalTypes,
     freq: float = 50.0,
     size: int = 10000,
     xmin: float = -10.0,
@@ -174,7 +216,7 @@ def create_periodic_signal(
     """Create a periodic signal
 
     Args:
-        shape: Shape of the signal
+        stype: Type of the signal (shape of the periodic signal).
         freq: Frequency of the signal. Defaults to 50.0.
         size: Size of the signal. Defaults to 10000.
         xmin: Minimum value of the signal. Defaults to None.
@@ -184,9 +226,8 @@ def create_periodic_signal(
     Returns:
         Signal object
     """
-    param_class = get_signal_parameters_class(shape)
-    param = param_class.create(size=size, xmin=xmin, xmax=xmax, freq=freq, a=a)
-    return create_signal_from_param(param)
+    p = create_signal_parameters(stype, size=size, xmin=xmin, xmax=xmax, freq=freq, a=a)
+    return create_signal_from_param(p)
 
 
 def create_2d_steps_data(size: int, width: int, dtype: np.dtype) -> np.ndarray:
@@ -354,6 +395,85 @@ def get_peak2d_data(
         if 0 <= x < p.size and 0 <= y < p.size:
             coords.append((x, y))
     return data, np.array(coords)
+
+
+def __iterate_image_datatypes(
+    itype: ImageTypes,
+    data_size: int,
+    verbose: bool,
+    preproc: Callable[[NewImageParam], None] | None = None,
+    postproc: Callable[[ImageObj, ImageTypes], None] | None = None,
+) -> Generator[ImageObj | None, None, None]:
+    """Iterate over all datatypes for a given image type
+
+    Args:
+        itype: Image type
+        data_size: Size of the data
+        verbose: If True, print the image types being created
+        preproc: Callback function to preprocess the image parameters set before
+         creation. Defaults to None.
+        postproc: Callback function to postprocess the image object after creation.
+         Defaults to None.
+
+    Yields:
+        Image object created from parameters
+    """
+    for idtype in ImageDatatypes:
+        if verbose:
+            execenv.print(f"      {idtype.value}")
+        param = create_image_parameters(
+            itype, idtype=idtype, width=data_size, height=data_size
+        )
+        if itype == ImageTypes.RAMP and idtype is not ImageDatatypes.FLOAT64:
+            continue  # Testing only float64 for ramp
+        if itype == ImageTypes.UNIFORMRANDOM:
+            assert isinstance(param, UniformRandom2DParam)
+            param.set_from_datatype(idtype.value)
+        elif itype == ImageTypes.NORMALRANDOM:
+            assert isinstance(param, NormalRandom2DParam)
+            param.set_from_datatype(idtype.value)
+        if preproc is not None:
+            preproc(param)
+        image = create_image_from_param(param)
+        if postproc is not None:
+            postproc(image, itype)
+        yield image
+
+
+def iterate_image_creation(
+    size: int = 500,
+    non_zero: bool = False,
+    verbose: bool = True,
+    preproc: Callable[[NewImageParam], None] | None = None,
+    postproc: Callable[[ImageObj, ImageTypes], None] | None = None,
+) -> Generator[ImageObj, None, None]:
+    """Iterate over all possible images created from parameters
+
+    Args:
+        size: Size of the data. Defaults to 500.
+        non_zero: If True, skip empty and zero images. Defaults to False.
+        verbose: If True, print the image types being created. Defaults to True.
+        preproc: Callback function to preprocess the image parameters set before
+         creation. Defaults to None.
+        postproc: Callback function to postprocess the image object after creation.
+
+    Yields:
+        Image object created from parameters.
+    """
+    if verbose:
+        execenv.print(
+            f"  Iterating over {len(ImageTypes)} image types "
+            f"(size={size}, non_zero={non_zero}):"
+        )
+    for itype in ImageTypes:
+        if non_zero and itype in (
+            ImageTypes.EMPTY,
+            ImageTypes.ZEROS,
+        ):
+            continue
+        if verbose:
+            execenv.print(f"    {itype.value}")
+        yield from __iterate_image_datatypes(itype, size, verbose, preproc, postproc)
 
 
 def __set_default_size_dtype(
