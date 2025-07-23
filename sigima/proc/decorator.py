@@ -54,38 +54,116 @@ class ComputationMetadata:
     description: str
 
 
+def _make_computation_wrapper(
+    f: Callable,
+    ds_cls: type,
+    ds_param: inspect.Parameter,
+    params: list,
+    ds_items: list,
+    new_sig: inspect.Signature,
+    signature_info: str,
+    metadata: ComputationMetadata,
+) -> Callable:
+    """
+    Create a computation function wrapper supporting both DataSet and expanded-kwarg
+    signatures.
+
+    Args:
+        f: The original function.
+        ds_cls: The DataSet class type.
+        ds_param: The DataSet parameter in the signature.
+        params: The full function signature parameters.
+        ds_items: The DataSet's items (parameters).
+        new_sig: The explicit signature (with kwargs) to expose.
+        signature_info: The Sphinx docstring note to append.
+        metadata: ComputationMetadata to attach to the wrapper.
+
+    Returns:
+        The wrapped function.
+    """
+
+    @makefun.with_signature(new_sig)
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        """
+        Dispatch function supporting both DataSet parameter and expanded keyword
+        arguments.
+
+        Behavior:
+            - If a DataSet object is provided, it is always used and keyword arguments
+              for DataSet items are ignored.
+            - If no DataSet is provided, DataSet items are constructed from keyword
+              arguments.
+
+        Returns:
+            Result of the original computation function.
+        """
+        ba = new_sig.bind(*args, **kwargs)
+        ba.apply_defaults()
+        ds_obj = ba.arguments.get(ds_param.name, None)
+        ds_item_names = set(item.get_name() for item in ds_items)
+
+        if isinstance(ds_obj, ds_cls):
+            # DataSet object provided: ignore any keyword arguments for its items
+            pass
+        else:
+            # DataSet instance not provided: build from keyword arguments
+            ds_kwargs = {
+                k: ba.arguments.pop(k)
+                for k in list(ba.arguments.keys())
+                if k in ds_item_names
+            }
+            ds_obj = ds_cls.create(**ds_kwargs)
+
+        # Build the final positional argument list for the original function
+        final_args = []
+        for p in params:
+            if p is ds_param:
+                final_args.append(ds_obj)
+            else:
+                final_args.append(ba.arguments.get(p.name, None))
+        return f(*final_args)
+
+    # Attach dynamic Sphinx docstring and signature
+    doc = f.__doc__ or ""
+    if not doc.endswith("\n"):
+        doc += "\n"
+    wrapper.__doc__ = doc + signature_info
+    wrapper.__signature__ = new_sig
+    setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
+    return wrapper
+
+
 def computation_function(
     *,
     name: typing.Optional[str] = None,
     description: typing.Optional[str] = None,
-) -> typing.Callable[
-    [typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]
-]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator to mark a function as a Sigima computation function.
 
-    - Adds a marker attribute (ComputationMetadata) to the wrapped function.
-    - Makes the signature explicit: parameters of any guidata DataSet used as argument
-      become keyword-only arguments, so the function can be called as
-      `func(obj, param1=..., param2=..., ...)`.
-    - Maintains backward compatibility: a DataSet instance can still be passed directly.
-    - Signature shown in IDE and help() reflects all available parameters.
+    This decorator enables two calling conventions:
+      1. With a guidata DataSet object as a parameter (classic style).
+      2. With the DataSet items passed as individual keyword arguments (expanded style).
+
+    The decorator ensures:
+      - An explicit and informative function signature (including all DataSet items as
+        keyword arguments).
+      - A Sphinx-friendly docstring documenting both call styles.
+      - Pickle-compatibility (crucial for multiprocessing).
+      - Conflict detection if both DataSet instance and expanded keyword arguments are
+        used simultaneously.
 
     Args:
-        name: Optional name to override the function name in metadata.
-        description: Optional docstring override or additional description.
+        name: Optional custom name for metadata.
+        description: Optional custom description or docstring.
 
     Returns:
-        The wrapped function, tagged with a marker attribute and an explicit signature.
+        The decorated, enhanced computation function.
     """
 
-    def decorator(
-        f: typing.Callable[..., typing.Any],
-    ) -> typing.Callable[..., typing.Any]:
-        metadata = ComputationMetadata(
-            name=name or f.__name__, description=description or f.__doc__
-        )
-
+    def decorator(f: Callable[P, R]) -> Callable[P, R]:
+        # Gather signature and typing information
         sig = inspect.signature(f)
         params = list(sig.parameters.values())
         try:
@@ -93,6 +171,7 @@ def computation_function(
         except Exception:
             type_hints = {}
 
+        # Find DataSet parameter if any
         ds_param = None
         ds_cls = None
         for p in params:
@@ -107,13 +186,16 @@ def computation_function(
                 ds_cls = annot
                 break
 
+        # If a DataSet param is present, expand signature and docstring
         if ds_cls is not None:
-            # Build the signature: expose all DataSet items as keyword-only parameters
-            items: list[inspect.Parameter] = []
+            # Build signature exposing all DataSet items as keyword-only parameters
             ds_items: list[gds.DataItem] = ds_cls._items
+            item_names = [item.get_name() for item in ds_items]
+            items = []
             for item in ds_items:
                 if item.get_name() not in [p.name for p in params]:
-                    if isinstance(item, gds.ChoiceItem):
+                    # Support ChoiceItem as Literal if available
+                    if hasattr(gds, "ChoiceItem") and isinstance(item, gds.ChoiceItem):
                         choice_data = item.get_prop("data", "choices")
                         choices = [v[0] for v in choice_data]
                         item_type = Literal[tuple(choices)]
@@ -127,7 +209,8 @@ def computation_function(
                             default=item.get_default(),
                         )
                     )
-            # Keep DataSet param as positional-or-keyword for backward compatibility
+            # DataSet parameter remains positional-or-keyword, but optional
+            # (default=None)
             base_params = []
             for p in params:
                 if p is ds_param:
@@ -136,87 +219,45 @@ def computation_function(
                             p.name,
                             inspect.Parameter.POSITIONAL_OR_KEYWORD,
                             annotation=p.annotation,
-                            default=None,  # Make param optional!
+                            default=None,
                         )
                     )
                 else:
                     base_params.append(p)
             new_params = base_params + items
             new_sig = sig.replace(parameters=new_params)
-
-            # --- inner, makefun-wrapped implementation ---
-            @makefun.with_signature(new_sig)
-            @functools.wraps(f)
-            def real_wrapper(*args, **kwargs):
-                user_kwarg_keys = getattr(real_wrapper, "_user_kwarg_keys", set())
-                ba = new_sig.bind(*args, **kwargs)
-                ba.apply_defaults()
-                ds_obj = ba.arguments.get(ds_param.name, None)
-                ds_item_names = set([it.get_name() for it in ds_items])
-                if isinstance(ds_obj, ds_cls):
-                    conflict_keys = ds_item_names.intersection(user_kwarg_keys)
-                    if conflict_keys:
-                        raise TypeError(
-                            f"Cannot pass both a {ds_cls.__name__} instance and "
-                            f"keyword arguments for its items "
-                            f"({', '.join(conflict_keys)}). Please use only one style."
-                        )
-                else:
-                    # DataSet instance NOT provided: build from keyword-only arguments
-                    ds_kwargs = {
-                        k: ba.arguments.pop(k)
-                        for k in list(ba.arguments.keys())
-                        if k in ds_item_names
-                    }
-                    ds_obj = ds_cls.create(**ds_kwargs)
-                final_args = []
-                for p in params:
-                    if p is ds_param:
-                        final_args.append(ds_obj)
-                    else:
-                        final_args.append(ba.arguments.get(p.name, None))
-                return f(*final_args)
-
-            # --- outer pre-wrapper: captures user-passed keywords only ---
-            def pre_wrapper(*args, **kwargs):
-                real_wrapper._user_kwarg_keys = set(kwargs.keys())
-                return real_wrapper(*args, **kwargs)
-
-            # --- preserve the original function's docstring ---
-            pre_wrapper.__doc__ = f.__doc__
-            pre_wrapper.__name__ = f.__name__
-
-            # --- Sphinx-style docstring injection with actual parameter names ---
             param_class_name = ds_cls.__name__
-            item_names = [item.get_name() for item in ds_items]
             kwarg_example = ", ".join(f"{name}=..." for name in item_names)
-
+            # Sphinx-style docstring describing both call conventions
             signature_info = (
                 f".. note::\n\n"
                 f"   This computation function can be called in two ways:\n\n"
                 f"   1. With a parameter ``{param_class_name}`` object:\n\n"
-                f"   .. code-block:: python\n\n"
-                f"       param = {param_class_name}.create({kwarg_example})\n"
-                f"       func(obj, param)\n\n"
+                f"      .. code-block:: python\n\n"
+                f"         param = {param_class_name}.create({kwarg_example})\n"
+                f"         func(obj, param)\n\n"
                 f"   2. Or, with keyword arguments directly:\n\n"
-                f"   .. code-block:: python\n\n"
-                f"       func(obj, {kwarg_example})\n\n"
+                f"      .. code-block:: python\n\n"
+                f"         func(obj, {kwarg_example})\n\n"
+                f"   Both styles are fully supported and equivalent.\n\n"
             )
-            doc = f.__doc__ or ""
-            if not doc.endswith("\n"):
-                doc += "\n"
-            pre_wrapper.__doc__ = doc + signature_info
-
-            setattr(pre_wrapper, COMPUTATION_METADATA_ATTR, metadata)
-            pre_wrapper.__signature__ = new_sig
-            return pre_wrapper
-
+            metadata = ComputationMetadata(
+                name=name or f.__name__,
+                description=description or f.__doc__,
+            )
+            return _make_computation_wrapper(
+                f, ds_cls, ds_param, params, ds_items, new_sig, signature_info, metadata
+            )
         else:
-
+            # No DataSet parameter: simple passthrough
             @functools.wraps(f)
             def wrapper(*args, **kwargs):
                 return f(*args, **kwargs)
 
+            metadata = ComputationMetadata(
+                name=name or f.__name__,
+                description=description or f.__doc__,
+            )
             setattr(wrapper, COMPUTATION_METADATA_ATTR, metadata)
             return wrapper
 

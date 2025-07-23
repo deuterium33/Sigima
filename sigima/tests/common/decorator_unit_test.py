@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import guidata.dataset as gds
 import numpy as np
-import pytest
 
 from sigima.objects import ImageObj, SignalObj, create_image, create_signal
 from sigima.proc.base import dst_1_to_1
@@ -115,12 +114,18 @@ def test_signal_decorator_signature() -> None:
     check_array_result(f"{name} x", res_kw.x, orig.x)
     check_array_result(f"{name} y", res_kw.y, orig.y + orig.x * 3.0 + 4.0)
 
-    # Call the functions with both DataSet and keyword arguments: should raise an error
-    with pytest.raises(
-        TypeError,
-        match="Cannot pass both a DummySignalParam instance and keyword arguments",
-    ):
-        dummy_signal_func(orig, p, a=3.0, b=4.0)
+    # Call the function with both DataSet and keyword arguments
+    # The DataSet should take precedence, kwargs for DataSet items are ignored
+    res_both = dummy_signal_func(orig, p, a=100.0, b=200.0, method="linear")
+    # The result should match the DataSet values, not the conflicting kwargs
+    check_array_result(
+        "Signal[DataSet param + kwargs: DataSet wins] x", res_both.x, orig.x
+    )
+    check_array_result(
+        "Signal[DataSet param + kwargs: DataSet wins] y",
+        res_both.y,
+        orig.y + orig.x**2 * 3.0 + 4.0,
+    )
 
 
 def test_image_decorator_marker() -> None:
@@ -150,12 +155,14 @@ def test_image_decorator_signature() -> None:
     res_kw = dummy_image_func(orig, alpha=0.8)
     check_array_result("Image data", res_kw.data, orig.data * 0.8)
 
-    # Call the function with both DataSet and keyword arguments: should raise an error
-    with pytest.raises(
-        TypeError,
-        match="Cannot pass both a DummyImageParam instance and keyword arguments",
-    ):
-        dummy_image_func(orig, p, alpha=0.8)
+    # Call the function with both DataSet and keyword arguments
+    # The DataSet should take precedence, kwargs for DataSet items are ignored
+    res_both = dummy_image_func(orig, p, alpha=0.4)
+    check_array_result(
+        "Image data [DataSet param + kwargs: DataSet wins]",
+        res_both.data,
+        orig.data * p.alpha,
+    )
 
 
 if __name__ == "__main__":
