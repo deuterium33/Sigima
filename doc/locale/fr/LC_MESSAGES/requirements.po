@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-20 11:10+0200\n"
+"POT-Creation-Date: 2025-07-23 09:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -111,6 +111,15 @@ msgstr ""
 
 msgid "Backported and Experimental Type Hints for Python 3.9+"
 msgstr "Extensions de typage rétroportées et expérimentales pour Python 3.9+"
+
+msgid "makefun"
+msgstr ""
+
+msgid ">= 1.13.1"
+msgstr ""
+
+msgid "Small library to dynamically create python functions."
+msgstr ""
 
 msgid "Optional modules for GUI support (Qt):"
 msgstr ""
@@ -231,3 +240,4 @@ msgstr ""
 
 msgid "A pytest plugin to run Xvfb (or Xephyr/Xvnc) for tests."
 msgstr "Un plugin pytest pour exécuter Xvfb (ou Xephyr/Xvnc) pour les tests."
+

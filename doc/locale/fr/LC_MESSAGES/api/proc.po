@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 09:41+0200\n"
+"POT-Creation-Date: 2025-07-23 09:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -381,6 +381,9 @@ msgid "With a parameter ``ConstantParam`` object:"
 msgstr ""
 
 msgid "Or, with keyword arguments directly:"
+msgstr ""
+
+msgid "Both styles are fully supported and equivalent."
 msgstr ""
 
 msgid "Subtract a constant value from a signal"
@@ -2387,25 +2390,37 @@ msgstr ""
 msgid "Decorator to mark a function as a Sigima computation function."
 msgstr ""
 
-msgid "Adds a marker attribute (ComputationMetadata) to the wrapped function."
+msgid "This decorator enables two calling conventions:"
 msgstr ""
 
-msgid "Makes the signature explicit: parameters of any guidata DataSet used as argument become keyword-only arguments, so the function can be called as `func(obj, param1=..., param2=..., ...)`."
+msgid "With a guidata DataSet object as a parameter (classic style)."
 msgstr ""
 
-msgid "Maintains backward compatibility: a DataSet instance can still be passed directly."
+msgid "With the DataSet items passed as individual keyword arguments (expanded style)."
 msgstr ""
 
-msgid "Signature shown in IDE and help() reflects all available parameters."
+msgid "The decorator ensures:"
 msgstr ""
 
-msgid "Optional name to override the function name in metadata."
+msgid "An explicit and informative function signature (including all DataSet items as keyword arguments)."
 msgstr ""
 
-msgid "Optional docstring override or additional description."
+msgid "A Sphinx-friendly docstring documenting both call styles."
 msgstr ""
 
-msgid "The wrapped function, tagged with a marker attribute and an explicit signature."
+msgid "Pickle-compatibility (crucial for multiprocessing)."
+msgstr ""
+
+msgid "Conflict detection if both DataSet instance and expanded keyword arguments are used simultaneously."
+msgstr ""
+
+msgid "Optional custom name for metadata."
+msgstr ""
+
+msgid "Optional custom description or docstring."
+msgstr ""
+
+msgid "The decorated, enhanced computation function."
 msgstr ""
 
 msgid "Check if a function is a Sigima computation function."

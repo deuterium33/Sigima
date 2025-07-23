@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-22 17:58+0200\n"
+"POT-Creation-Date: 2025-07-23 09:52+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -313,38 +313,38 @@ msgstr "Taille"
 msgid "Temperature"
 msgstr "Température"
 
+msgid "Amplitude"
+msgstr "Amplitude"
+
+msgid "Offset"
+msgstr "Décalage"
+
 msgid "Frequency"
 msgstr "Fréquence"
 
 msgid "Phase"
 msgstr "Phase"
 
-msgid "Amplitude"
-msgstr "Amplitude"
+msgid "Initial phase"
+msgstr "Phase initiale"
 
 msgid "Chirp rate (f<sup>-2</sup>)"
 msgstr "Taux de modulation de fréquence"
 
-msgid "Initial frequency (Hz)"
-msgstr "Fréquence intiale (Hz)"
-
-msgid "Initial phase"
-msgstr "Phase initiale"
-
 msgid "Vertical offset"
 msgstr "Décalage vertical"
 
-msgid "Offset"
-msgstr "Décalage"
+msgid "Initial frequency (Hz)"
+msgstr "Fréquence intiale (Hz)"
 
 msgid "Exponent"
 msgstr "Exposant"
 
-msgid "Growth or decay rate"
-msgstr "Taux de croissance ou de décroissance"
-
 msgid "Horizontal offset"
 msgstr "Décalage horizontal"
+
+msgid "Growth or decay rate"
+msgstr "Taux de croissance ou de décroissance"
 
 msgid "Start"
 msgstr "Démarrer"
@@ -1113,3 +1113,4 @@ msgstr "Intensité"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

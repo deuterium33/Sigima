@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-22 14:58+0200\n"
+"POT-Creation-Date: 2025-07-23 11:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -647,6 +647,27 @@ msgstr ""
 msgid "X, Y labels (tuple of strings)"
 msgstr ""
 
+msgid "Create parameters for a given signal type."
+msgstr ""
+
+msgid "signal type"
+msgstr ""
+
+msgid "minimum x value"
+msgstr ""
+
+msgid "maximum x value"
+msgstr ""
+
+msgid "signal size (number of points)"
+msgstr ""
+
+msgid "additional parameters (specific to the signal type)"
+msgstr ""
+
+msgid "Parameters object for the given signal type"
+msgstr ""
+
 msgid "Create a new Signal object from parameters."
 msgstr ""
 
@@ -740,10 +761,10 @@ msgstr ""
 msgid "Default: 'Untitled signal'."
 msgstr ""
 
-msgid "Default: -10.0."
+msgid "x\\ :subscript:`min`\\.  Default: -10.0."
 msgstr ""
 
-msgid "Default: 10.0."
+msgid "x\\ :subscript:`max`\\.  Default: 10.0."
 msgstr ""
 
 msgid "Signal size (total number of points)\\. Default: 500."
@@ -797,7 +818,7 @@ msgstr ""
 msgid "Default: 1.0."
 msgstr ""
 
-msgid "Default: 0.0."
+msgid "y\\ :subscript:`0`\\.  Default: 0.0."
 msgstr ""
 
 msgid "σ\\.  Default: 1.0."
@@ -831,6 +852,12 @@ msgid "New instance of :py:class:`VoigtParam`."
 msgstr ""
 
 msgid "Parameters for sinus function"
+msgstr ""
+
+msgid "Amplitude\\.  Default: 1.0."
+msgstr ""
+
+msgid "Default: 0.0."
 msgstr ""
 
 msgid "Frequency\\.  Default: 1.0."
@@ -899,6 +926,15 @@ msgstr ""
 msgid "Parameters for step function"
 msgstr ""
 
+msgid "A\\ :subscript:`1`\\.  Default: 0.0."
+msgstr ""
+
+msgid "A\\ :subscript:`2`\\.  Default: 1.0."
+msgstr ""
+
+msgid "x\\ :subscript:`0`\\.  Default: 0.0."
+msgstr ""
+
 msgid "Returns a new instance of :py:class:`StepParam` with the fields set to the given values."
 msgstr ""
 
@@ -915,9 +951,6 @@ msgid "New instance of :py:class:`ExponentialParam`."
 msgstr ""
 
 msgid "Parameters for pulse function"
-msgstr ""
-
-msgid "Amplitude\\.  Default: 1.0."
 msgstr ""
 
 msgid "End\\.  Default: 0.0."
@@ -1097,6 +1130,27 @@ msgstr ""
 msgid "X, Y, Z labels (tuple of strings)"
 msgstr ""
 
+msgid "Create parameters for a given image type."
+msgstr ""
+
+msgid "image type"
+msgstr ""
+
+msgid "image height (number of rows)"
+msgstr ""
+
+msgid "image width (number of columns)"
+msgstr ""
+
+msgid "image data type (`ImageDatatypes` member)"
+msgstr ""
+
+msgid "additional parameters (specific to the image type)"
+msgstr ""
+
+msgid "Parameters object for the given image type"
+msgstr ""
+
 msgid "Create a new Image object from parameters."
 msgstr ""
 
@@ -1193,7 +1247,7 @@ msgstr ""
 msgid "2D Gaussian parameters"
 msgstr ""
 
-msgid "Norm\\.  Default: None."
+msgid "z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + (y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))"
 msgstr ""
 
 msgid "Default: -10."
@@ -1215,12 +1269,6 @@ msgid "Define the parameters of a 2D ramp (planar ramp)."
 msgstr ""
 
 msgid "z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c"
-msgstr ""
-
-msgid "x\\ :subscript:`0`\\.  Default: 0.0."
-msgstr ""
-
-msgid "y\\ :subscript:`0`\\.  Default: 0.0."
 msgstr ""
 
 msgid "x\\ :subscript:`min`\\.  Default: -1.0."

@@ -34,6 +34,9 @@ The `sigima` package requires the following Python modules:
     * - typing-extensions
       -  >= 4.0
       - Backported and Experimental Type Hints for Python 3.9+
+    * - makefun
+      -  >= 1.13.1
+      - Small library to dynamically create python functions.
 
 Optional modules for GUI support (Qt):
 
