@@ -1735,7 +1735,6 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     dst.set_xydata(r, theta)
     dst.xlabel = _("Radius")
     dst.ylabel = _("Angle")
-    dst.xunit = src.xunit
     dst.yunit = p.unit
     return dst
 
@@ -1760,14 +1759,12 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
         represents the angle. Negative values are not allowed for the radius, and will
         be clipped to 0 (a warning will be raised).
     """
-    assert p.unit is not None
     dst = dst_1_to_1(src, "Cartesian coordinates", f"unit={p.unit}")
     r, theta = src.get_data()
     x, y = coordinates.to_cartesian(r, theta, p.unit)
     dst.set_xydata(x, y)
     dst.xlabel = _("x")
     dst.ylabel = _("y")
-    dst.xunit = src.xunit
     dst.yunit = src.xunit
     return dst
 
