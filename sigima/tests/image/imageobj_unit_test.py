@@ -153,7 +153,7 @@ def test_hdf5_image_io() -> None:
     execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
 
 
-@pytest.marker.gui
+@pytest.mark.gui
 def test_image_parameters_interactive() -> None:
     """Test interactive creation of image parameters"""
     execenv.print(f"{test_image_parameters_interactive.__doc__}:")
