@@ -95,6 +95,21 @@ def test_signal_average() -> None:
 
 
 @pytest.mark.validation
+def test_signal_standard_deviation() -> None:
+    """Standard Deviation test."""
+    slist = __create_n_signals()
+    n = len(slist)
+    s3 = sigima_signal.standard_deviation(slist)
+    res = s3.y
+    exp = np.zeros_like(s3.y)
+    mean = np.mean([s.y for s in slist], axis=0)
+    for s in slist:
+        exp += (s.y - mean) ** 2
+    exp = np.sqrt(exp / n)
+    check_array_result(f"Standard Deviation of {n} signals", res, exp)
+
+
+@pytest.mark.validation
 def test_signal_product() -> None:
     """Signal multiplication test."""
     slist = __create_n_signals()
