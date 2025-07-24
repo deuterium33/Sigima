@@ -105,6 +105,22 @@ def average(src_list: list[ImageObj]) -> ImageObj:
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
+@computation_function()
+def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
+    """Average **src** signals and return a new result signal object
+
+    Args:
+        src_list: list of source signals
+
+    Returns:
+        Modified **dst** signal (modified in place)
+    """
+    dst = dst_n_to_1(src_list, "𝜎")  # `dst` data is initialized to `src_list[0]` data
+    y_array = np.array([src.data for src in src_list], dtype=dst.data.dtype)
+    dst.data = np.std(y_array, axis=0, ddof=0)  # Sample standard deviation
+
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
 
 @computation_function()
 def product(src_list: list[ImageObj]) -> ImageObj:

@@ -80,6 +80,23 @@ def test_image_average() -> None:
     check_array_result(f"  Average of {n} images", res, exp)
 
 
+
+@pytest.mark.validation
+def test_signal_standard_deviation() -> None:
+    """Standard Deviation test."""
+    slist = __create_n_images()
+    n = len(slist)
+    s3 = sigima_image.standard_deviation(slist)
+    res = s3.data
+    exp = np.zeros_like(s3.data)
+    mean = np.mean([s.data for s in slist], axis=0)
+    for s in slist:
+        exp += (s.data - mean) ** 2
+    exp = np.sqrt(exp / n)
+    check_array_result(f"Standard Deviation of {n} signals", res, exp)
+
+
+
 @pytest.mark.validation
 def test_image_difference() -> None:
     """Image difference test."""

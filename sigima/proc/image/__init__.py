@@ -39,6 +39,7 @@ from sigima.proc.image.arithmetic import (
     difference,
     quadratic_difference,
     division,
+    standard_deviation,
 )
 from sigima.proc.image.detection import (
     BlobDOGParam,
