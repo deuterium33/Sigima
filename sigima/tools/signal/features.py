@@ -81,35 +81,32 @@ def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_value: float) -> float:
     return float(np.interp(x_value, x_valid, y_valid))
 
 
-@check_1d_arrays(x_sorted=True)
-def find_x_at_value(x: np.ndarray, y: np.ndarray, value: float) -> np.ndarray:
-    """Find the x values where the y value is the closest to the given value using
-    linear interpolation to deduce the precise x value.
+def find_x_at_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.ndarray:
+    """Find the :math:`x_n` values where :math:`y(x_n)` intercepts :math:`y_0`
+
+    This function use a linear interpolation to deduce the precise x values.
 
     Args:
         x: X data
         y: Y data
-        value: Value to find
+        y0: intercept value to find the corresponding x values for
 
     Returns:
         An array of x values where the y value is the closest to the given value
         (empty array if no zero crossing is found)
     """
-    leveled_y = y - value
+
+    leveled_y = y - y0
     xi_before = find_zero_crossings(leveled_y)
 
     if len(xi_before) == 0:
         # Return an empty array if no zero crossing is found
         return np.array([])
 
-    # if the zero-crossing is exactly on a point, return the point
-    if np.any(leveled_y == 0):
-        return x[np.where(leveled_y == 0)]
-
     # linear interpolation
     xi_after = xi_before + 1
-    slope = (leveled_y[xi_after] - leveled_y[xi_before]) / (x[xi_after] - x[xi_before])
-    x0 = -leveled_y[xi_before] / slope + x[xi_before]
+    slope = (y[xi_after] - y[xi_before]) / (x[xi_after] - x[xi_before])
+    x0 = (-y[xi_before] + y0) / slope + x[xi_before]
     return x0
 
 
