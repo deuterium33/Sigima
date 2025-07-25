@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 
 import sigima.objects
-import sigima.params as sigima_param
+import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
 from sigima.tests.helpers import check_array_result
@@ -51,13 +51,13 @@ def __create_n_signals(n: int = 100) -> list[sigima.objects.SignalObj]:
 
 
 def __create_one_signal_and_constant() -> tuple[
-    sigima.objects.SignalObj, sigima_param.ConstantParam
+    sigima.objects.SignalObj, sigima.params.ConstantParam
 ]:
     """Create one signal and a constant for testing."""
     s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
     )
-    param = sigima_param.ConstantParam.create(value=-np.pi)
+    param = sigima.params.ConstantParam.create(value=-np.pi)
     return s1, param
 
 
@@ -198,7 +198,7 @@ def test_signal_astype() -> None:
     """Data type conversion validation test."""
     s1 = __create_two_signals()[0]
     for dtype_str in sigima.objects.SignalObj.get_valid_dtypenames():
-        p = sigima_param.DataTypeSParam.create(dtype_str=dtype_str)
+        p = sigima.params.DataTypeSParam.create(dtype_str=dtype_str)
         astype_signal = sigima.proc.signal.astype(s1, p)
         assert astype_signal.y.dtype == np.dtype(dtype_str)
 
@@ -231,7 +231,7 @@ def test_signal_sqrt() -> None:
 def test_signal_power() -> None:
     """Power validation test."""
     s1 = sigima.tests.data.get_test_signal("paracetamol.txt")
-    p = sigima_param.PowerParam.create(power=2.0)
+    p = sigima.params.PowerParam.create(power=2.0)
     power_signal = sigima.proc.signal.power(s1, p)
     check_array_result("Power", power_signal.y, s1.y**p.power)
 
@@ -240,7 +240,7 @@ def test_signal_power() -> None:
 def test_signal_arithmetic() -> None:
     """Arithmetic operations validation test."""
     s1, s2 = __create_two_signals()
-    p = sigima_param.ArithmeticParam.create()
+    p = sigima.params.ArithmeticParam.create()
     for operator in p.operators:
         p.operator = operator
         for factor in (0.0, 1.0, 2.0):

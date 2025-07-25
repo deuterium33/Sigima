@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 import sigima.io
-import sigima.objects as sio
+import sigima.objects
 from sigima.io.signal import SignalIORegistry
 from sigima.tests.data import iterate_signal_creation
 from sigima.tests.env import execenv
@@ -27,7 +27,7 @@ from sigima.tests.helpers import (
 
 
 # pylint: disable=unused-argument
-def preprocess_signal_parameters(param: sio.NewSignalParam) -> None:
+def preprocess_signal_parameters(param: sigima.objects.NewSignalParam) -> None:
     """Preprocess signal parameters before creating the signal.
 
     Args:
@@ -36,14 +36,16 @@ def preprocess_signal_parameters(param: sio.NewSignalParam) -> None:
     # TODO: [P4] Add specific preprocessing for signal parameters if needed
 
 
-def postprocess_signal_object(obj: sio.SignalObj, stype: sio.SignalTypes) -> None:
+def postprocess_signal_object(
+    obj: sigima.objects.SignalObj, stype: sigima.objects.SignalTypes
+) -> None:
     """Postprocess signal object after creation.
 
     Args:
         obj: The signal object to postprocess.
         stype: The type of the signal.
     """
-    if stype == sio.SignalTypes.ZEROS:
+    if stype == sigima.objects.SignalTypes.ZEROS:
         assert (obj.y == 0).all()
 
 
@@ -96,9 +98,9 @@ def test_signal_parameters_interactive() -> None:
     from guidata.qthelpers import qt_app_context
 
     with qt_app_context():
-        for stype in sio.SignalTypes:
-            param = sio.create_signal_parameters(stype)
-            if isinstance(param, sio.CustomSignalParam):
+        for stype in sigima.objects.SignalTypes:
+            param = sigima.objects.create_signal_parameters(stype)
+            if isinstance(param, sigima.objects.CustomSignalParam):
                 param.setup_array()
             if param.edit():
                 execenv.print(f"  Edited parameters for {stype.value}:")

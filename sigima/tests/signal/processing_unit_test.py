@@ -29,7 +29,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-import sigima.tools.coordinates as alg_coords
+import sigima.tools.coordinates
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -89,13 +89,13 @@ def test_to_polar() -> None:
     x = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
 
-    r, theta = alg_coords.to_polar(x, y, "rad")
+    r, theta = sigima.tools.coordinates.to_polar(x, y, "rad")
     exp_r = np.array([0.0, np.sqrt(2.0), np.sqrt(8.0), np.sqrt(18.0), np.sqrt(32.0)])
     exp_theta = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
     check_array_result(f"{title}|r", r, exp_r)
     check_array_result(f"{title}|theta", theta, exp_theta)
 
-    r, theta = alg_coords.to_polar(x, y, unit="deg")
+    r, theta = sigima.tools.coordinates.to_polar(x, y, unit="deg")
     exp_theta = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
     check_array_result(f"{title}|r", r, exp_r)
     check_array_result(f"{title}|theta", theta, exp_theta)
@@ -107,14 +107,14 @@ def test_to_cartesian() -> None:
     r = np.array([0.0, np.sqrt(2.0), np.sqrt(8.0), np.sqrt(18.0), np.sqrt(32.0)])
     theta = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
 
-    x, y = alg_coords.to_cartesian(r, theta, "rad")
+    x, y = sigima.tools.coordinates.to_cartesian(r, theta, "rad")
     exp_x = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     exp_y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     check_array_result(f"{title}|x", x, exp_x)
     check_array_result(f"{title}|y", y, exp_y)
 
     theta = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
-    x, y = alg_coords.to_cartesian(r, theta, unit="deg")
+    x, y = sigima.tools.coordinates.to_cartesian(r, theta, unit="deg")
     check_array_result(f"{title}|x", x, exp_x)
     check_array_result(f"{title}|y", y, exp_y)
 
