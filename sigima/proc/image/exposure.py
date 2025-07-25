@@ -30,7 +30,7 @@ import guidata.dataset as gds
 import numpy as np
 from skimage import exposure
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.base import BaseProcParam
 from sigima.objects.image import ImageObj, ROI2DParam
@@ -314,7 +314,7 @@ def flatfield(src1: ImageObj, src2: ImageObj, p: FlatFieldParam) -> ImageObj:
         Output image object
     """
     dst = dst_2_to_1(src1, src2, "flatfield", f"threshold={p.threshold}")
-    dst.data = alg.flatfield(src1.data, src2.data, p.threshold)
+    dst.data = sigima.tools.image.flatfield(src1.data, src2.data, p.threshold)
     restore_data_outside_roi(dst, src1)
     return dst
 
@@ -337,7 +337,7 @@ def normalize(src: ImageObj, p: NormalizeParam) -> ImageObj:
         Output image object
     """
     dst = dst_1_to_1(src, "normalize", suffix=f"ref={p.method}")
-    dst.data = alg.normalize(src.data, p.method)  # type: ignore
+    dst.data = sigima.tools.image.normalize(src.data, p.method)  # type: ignore
     restore_data_outside_roi(dst, src)
     return dst
 

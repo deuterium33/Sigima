@@ -14,7 +14,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.image
 import sigima.tests.data
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -35,8 +35,8 @@ def test_image_fft_interactive():
 
         # FFT
         execenv.print("Computing FFT of image...", end=" ")
-        f = alg.fft2d(data)
-        data2 = alg.ifft2d(f)
+        f = sigima.tools.image.fft2d(data)
+        data2 = sigima.tools.image.ifft2d(f)
         execenv.print("OK")
         execenv.print("Comparing original and FFT/iFFT images...", end=" ")
         check_array_result(

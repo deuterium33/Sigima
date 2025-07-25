@@ -31,7 +31,7 @@ import guidata.dataset as gds
 import numpy as np
 import scipy.ndimage as spi
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
@@ -307,7 +307,7 @@ class BinningParam(gds.DataSet):
         min=2,
         help=_("Number of adjacent pixels to be combined together along Y-axis."),
     )
-    operations = alg.BINNING_OPERATIONS
+    operations = sigima.tools.image.BINNING_OPERATIONS
     operation = gds.ChoiceItem(
         _("Operation"),
         list(zip(operations, operations)),
@@ -343,7 +343,7 @@ def binning(src: ImageObj, param: BinningParam) -> ImageObj:
         f"{param.sx}x{param.sy},{param.operation},"
         f"change_pixel_size={param.change_pixel_size}",
     )
-    dst.data = alg.binning(
+    dst.data = sigima.tools.image.binning(
         src.data,
         sx=param.sx,
         sy=param.sy,

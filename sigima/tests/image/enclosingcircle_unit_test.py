@@ -11,7 +11,7 @@ Testing enclsoing circle function on various test images.
 
 import pytest
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.proc.image import enclosing_circle
 from sigima.tests.data import RingParam, create_ring_image, get_laser_spot_data
@@ -30,7 +30,7 @@ def __enclosingcircle_test(data):
     items += [make.image(data, interpolation="nearest", eliminate_outliers=1.0)]
 
     # Computing centroid coordinates
-    row, col = alg.get_centroid_fourier(data)
+    row, col = sigima.tools.image.get_centroid_fourier(data)
     label = _("Centroid") + " (%d, %d)"
     execenv.print(label % (row, col))
     cursor = make.xcursor(col, row, label=label)
@@ -38,7 +38,7 @@ def __enclosingcircle_test(data):
     cursor.set_movable(False)
     items.append(cursor)
 
-    x, y, radius = alg.get_enclosing_circle(data)
+    x, y, radius = sigima.tools.image.get_enclosing_circle(data)
     circle = make.circle(x - radius, y - radius, x + radius, y + radius)
     circle.set_readonly(True)
     circle.set_resizable(False)
@@ -74,7 +74,7 @@ def test_image_enclosing_circle():
     # Create a ring image, so that the outer circle radius is radius + thickness:
     obj = create_ring_image(p)
     execenv.print("Testing enclosing circle on a ring image...")
-    x, y, r = alg.get_enclosing_circle(obj.data)
+    x, y, r = sigima.tools.image.get_enclosing_circle(obj.data)
     res = enclosing_circle(obj)
     df = res.to_dataframe()
     execenv.print(df)

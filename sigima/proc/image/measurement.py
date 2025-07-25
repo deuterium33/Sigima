@@ -29,7 +29,7 @@ from __future__ import annotations
 import numpy as np
 from numpy import ma
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.objects.base import ResultProperties, ResultShape
 from sigima.objects.image import ImageObj
 from sigima.proc.base import calc_resultproperties
@@ -53,7 +53,7 @@ def get_centroid_coords(data: np.ndarray) -> np.ndarray:
     Returns:
         Centroid coordinates
     """
-    y, x = alg.get_centroid_fourier(data)
+    y, x = sigima.tools.image.get_centroid_fourier(data)
     return np.array([(x, y)])
 
 
@@ -81,7 +81,7 @@ def get_enclosing_circle_coords(data: np.ndarray) -> np.ndarray:
     Returns:
         Diameter coords
     """
-    x, y, r = alg.get_enclosing_circle(data)
+    x, y, r = sigima.tools.image.get_enclosing_circle(data)
     return np.array([[x, y, r]])
 
 

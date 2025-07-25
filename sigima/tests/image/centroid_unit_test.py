@@ -23,7 +23,7 @@ from numpy import ma
 
 import sigima.objects
 import sigima.proc.image
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.tests.data import create_noisygauss_image, get_laser_spot_data
 from sigima.tests.env import execenv
@@ -64,7 +64,7 @@ def __compare_centroid_funcs(data):
         ("SciPy", spi.center_of_mass),
         ("OpenCV", get_centroid_with_cv2),
         ("Moments", get_centroid_from_moments),
-        ("Fourier", alg.get_centroid_fourier),
+        ("Fourier", sigima.tools.image.get_centroid_fourier),
     ):
         try:
             t0 = time.time()

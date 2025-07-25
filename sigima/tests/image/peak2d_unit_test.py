@@ -70,7 +70,9 @@ def test_peak2d_unit():
     )
     # Absolute tolerance is set to 2 pixels, as coordinates are in pixel units
     # and the algorithm may detect peaks at slightly different pixel locations
-    check_array_result("Peak coords (alg.)", coords, coords_expected, atol=2, sort=True)
+    check_array_result(
+        "Peak coords (sigima.tools.image.)", coords, coords_expected, atol=2, sort=True
+    )
 
 
 @pytest.mark.validation

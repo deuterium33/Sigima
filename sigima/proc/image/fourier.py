@@ -30,7 +30,7 @@ from __future__ import annotations
 import guidata.dataset as gds
 import numpy as np
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import FFTParam, SpectrumParam, dst_1_to_1
@@ -108,7 +108,7 @@ def zero_padding(src: ImageObj, p: ZeroPadding2DParam) -> ImageObj:
         suffix = f"strategy={p.strategy}"
     suffix += f", position={p.position}"
     dst = dst_1_to_1(src, "zero_padding", suffix)
-    result = alg.zero_padding(
+    result = sigima.tools.image.zero_padding(
         src.data,
         rows=p.rows,
         cols=p.cols,
@@ -130,7 +130,7 @@ def fft(src: ImageObj, p: FFTParam | None = None) -> ImageObj:
         Output image object
     """
     dst = dst_1_to_1(src, "fft")
-    dst.data = alg.fft2d(src.data, shift=True if p is None else p.shift)
+    dst.data = sigima.tools.image.fft2d(src.data, shift=True if p is None else p.shift)
     dst.save_attr_to_metadata("xunit", "")
     dst.save_attr_to_metadata("yunit", "")
     dst.save_attr_to_metadata("zunit", "")
@@ -151,7 +151,7 @@ def ifft(src: ImageObj, p: FFTParam | None = None) -> ImageObj:
         Output image object
     """
     dst = dst_1_to_1(src, "ifft")
-    dst.data = alg.ifft2d(src.data, shift=True if p is None else p.shift)
+    dst.data = sigima.tools.image.ifft2d(src.data, shift=True if p is None else p.shift)
     dst.restore_attr_from_metadata("xunit", "")
     dst.restore_attr_from_metadata("yunit", "")
     dst.restore_attr_from_metadata("zunit", "")
@@ -174,7 +174,7 @@ def magnitude_spectrum(src: ImageObj, p: SpectrumParam | None = None) -> ImageOb
     """
     decibel = p is not None and p.decibel
     dst = dst_1_to_1(src, "magnitude_spectrum", f"dB={decibel}")
-    dst.data = alg.magnitude_spectrum(src.data, log_scale=decibel)
+    dst.data = sigima.tools.image.magnitude_spectrum(src.data, log_scale=decibel)
     dst.xunit = dst.yunit = dst.zunit = ""
     dst.xlabel = dst.ylabel = _("Frequency")
     return dst
@@ -191,7 +191,7 @@ def phase_spectrum(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(alg.phase_spectrum)(src)
+    dst = Wrap1to1Func(sigima.tools.image.phase_spectrum)(src)
     dst.xunit = dst.yunit = dst.zunit = ""
     dst.xlabel = dst.ylabel = _("Frequency")
     return dst
@@ -211,7 +211,7 @@ def psd(src: ImageObj, p: SpectrumParam | None = None) -> ImageObj:
     """
     decibel = p is not None and p.decibel
     dst = dst_1_to_1(src, "psd", f"dB={decibel}")
-    dst.data = alg.psd(src.data, log_scale=decibel)
+    dst.data = sigima.tools.image.psd(src.data, log_scale=decibel)
     dst.xunit = dst.yunit = dst.zunit = ""
     dst.xlabel = dst.ylabel = _("Frequency")
     return dst

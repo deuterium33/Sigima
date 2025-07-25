@@ -9,7 +9,7 @@ Image spectrum unit test.
 
 import pytest
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.tests.data import get_test_image
 
 
@@ -24,9 +24,9 @@ def test_image_spectrum_interactive():
     with qt_app_context():
         obj = get_test_image("NF 180338201.scor-data")
         data = obj.data
-        ms = alg.magnitude_spectrum(data, log_scale=True)
-        ps = alg.phase_spectrum(data)
-        psd = alg.psd(data, log_scale=True)
+        ms = sigima.tools.image.magnitude_spectrum(data, log_scale=True)
+        ps = sigima.tools.image.phase_spectrum(data)
+        psd = sigima.tools.image.psd(data, log_scale=True)
         images = [data, ms, ps, psd]
         titles = [
             "Original",

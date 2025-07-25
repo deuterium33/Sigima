@@ -26,7 +26,7 @@ from __future__ import annotations
 import guidata.dataset as gds
 import numpy as np
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.base import ResultShape, ShapeTypes
 from sigima.objects.image import ImageObj, create_image_roi
@@ -99,12 +99,17 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> ResultShape | None
         Peak coordinates
     """
     result = calc_resultshape(
-        "peak", "point", obj, alg.get_2d_peaks_coords, p.size, p.threshold
+        "peak",
+        "point",
+        obj,
+        sigima.tools.image.get_2d_peaks_coords,
+        p.size,
+        p.threshold,
     )
     if result is not None and p.create_rois and result.raw_data.shape[0] > 1:
         # Create a rectangular ROI around each peak, only if there are more than one
         # peak detected (otherwise, it would not make sense to create an ROI)
-        dist = alg.distance_matrix(result.raw_data)
+        dist = sigima.tools.image.distance_matrix(result.raw_data)
         dist_min = dist[dist != 0].min()
         assert dist_min > 0
         radius = int(0.5 * dist_min / np.sqrt(2) - 1)
@@ -144,7 +149,12 @@ def contour_shape(image: ImageObj, p: ContourShapeParam) -> ResultShape | None:
     """Compute contour shape fit
     with :py:func:`sigima.tools.image.get_contour_shapes`"""
     return calc_resultshape(
-        "contour", p.shape, image, alg.get_contour_shapes, p.shape, p.threshold
+        "contour",
+        p.shape,
+        image,
+        sigima.tools.image.get_contour_shapes,
+        p.shape,
+        p.threshold,
     )
 
 
@@ -218,7 +228,7 @@ def blob_dog(image: ImageObj, p: BlobDOGParam) -> ResultShape | None:
         "blob_dog",
         "circle",
         image,
-        alg.find_blobs_dog,
+        sigima.tools.image.find_blobs_dog,
         p.min_sigma,
         p.max_sigma,
         p.overlap,
@@ -257,7 +267,7 @@ def blob_doh(image: ImageObj, p: BlobDOHParam) -> ResultShape | None:
         "blob_doh",
         "circle",
         image,
-        alg.find_blobs_doh,
+        sigima.tools.image.find_blobs_doh,
         p.min_sigma,
         p.max_sigma,
         p.overlap,
@@ -292,7 +302,7 @@ def blob_log(image: ImageObj, p: BlobLOGParam) -> ResultShape | None:
         "blob_log",
         "circle",
         image,
-        alg.find_blobs_log,
+        sigima.tools.image.find_blobs_log,
         p.min_sigma,
         p.max_sigma,
         p.overlap,
@@ -455,7 +465,7 @@ def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> ResultShape | None:
         "blob_opencv",
         "circle",
         image,
-        alg.find_blobs_opencv,
+        sigima.tools.image.find_blobs_opencv,
         p.min_threshold,
         p.max_threshold,
         p.min_repeatability,
@@ -505,7 +515,7 @@ def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> ResultShape | No
         "hough_circle_peak",
         "circle",
         image,
-        alg.get_hough_circle_peaks,
+        sigima.tools.image.get_hough_circle_peaks,
         p.min_radius,
         p.max_radius,
         None,

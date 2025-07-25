@@ -30,7 +30,7 @@ import guidata.dataset as gds
 import numpy as np
 from numpy import ma
 
-import sigima.tools.image as alg
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.image import ImageObj, ImageROI, ROI2DParam
 from sigima.objects.signal import SignalObj
@@ -274,7 +274,9 @@ class RadialProfileParam(gds.DataSet):
     def choice_callback(self, item, value):  # pylint: disable=unused-argument
         """Callback for choice item"""
         if value == "centroid":
-            self.y0, self.x0 = alg.get_centroid_fourier(self.__obj.get_masked_view())
+            self.y0, self.x0 = sigima.tools.image.get_centroid_fourier(
+                self.__obj.get_masked_view()
+            )
         elif value == "center":
             self.x0, self.y0 = self.__obj.xc, self.__obj.yc
 
@@ -309,13 +311,13 @@ def radial_profile(src: ImageObj, p: RadialProfileParam) -> SignalObj:
     """
     data = src.get_masked_view()
     if p.center == "centroid":
-        y0, x0 = alg.get_centroid_fourier(data)
+        y0, x0 = sigima.tools.image.get_centroid_fourier(data)
     elif p.center == "center":
         x0, y0 = src.xc, src.yc
     else:
         x0, y0 = p.x0, p.y0
     suffix = f"center=({x0:.3f}, {y0:.3f})"
     dst = dst_1_to_1_signal(src, "radial_profile", suffix)
-    x, y = alg.get_radial_profile(data, (x0, y0))
+    x, y = sigima.tools.image.get_radial_profile(data, (x0, y0))
     dst.set_xydata(x, y)
     return dst
