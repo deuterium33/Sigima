@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 from sigima.objects.signal import SignalObj, create_signal
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result, check_scalar_result
@@ -20,7 +20,7 @@ from sigima.tools.signal.fourier import brickwall_filter
 
 # TODO: For each test, check all filter methods (brickwall, butterworth, etc.)
 #       by using something like:
-#       for method_name, _method_label in sigima_signal.LowPassFilterParam.methods:
+#       for method_name, _method_label in sigima.proc.signal.LowPassFilterParam.methods:
 
 
 def build_clean_noisy_signals(
@@ -61,13 +61,13 @@ def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
 
     clean, noisy = build_clean_noisy_signals()
 
-    param = sigima_signal.LowPassFilterParam.create(
+    param = sigima.proc.signal.LowPassFilterParam.create(
         method="brickwall",
         cut0=2.0,
         zero_padding=False,
     )
     # Lowpass: should keep the sine, remove most noise
-    filt = sigima_signal.lowpass(noisy, param)
+    filt = sigima.proc.signal.lowpass(noisy, param)
 
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel
@@ -95,12 +95,12 @@ def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
 
     noise_level = 0.2  # Set noise level for the test
     clean, noisy = build_clean_noisy_signals(noise_level=noise_level)
-    param = sigima_signal.HighPassFilterParam.create(
+    param = sigima.proc.signal.HighPassFilterParam.create(
         method="brickwall",
         cut0=2.0,
         zero_padding=False,
     )
-    filt = sigima_signal.highpass(noisy, param)
+    filt = sigima.proc.signal.highpass(noisy, param)
 
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel
@@ -130,13 +130,13 @@ def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([1, 5]), noise_level=0)
 
-    param = sigima_signal.BandStopFilterParam.create(
+    param = sigima.proc.signal.BandStopFilterParam.create(
         method="brickwall",
         cut0=2.0,
         cut1=4.0,
         zero_padding=False,
     )
-    res_sig = sigima_signal.bandstop(tst_sig, param)
+    res_sig = sigima.proc.signal.bandstop(tst_sig, param)
 
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel
@@ -162,13 +162,13 @@ def test_signal_bandpass(request: pytest.FixtureRequest | None = None) -> None:
 
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([3]), noise_level=0)
-    param = sigima_signal.BandPassFilterParam.create(
+    param = sigima.proc.signal.BandPassFilterParam.create(
         method="brickwall",
         cut0=2.0,
         cut1=4.0,
         zero_padding=False,
     )
-    res_sig = sigima_signal.bandpass(tst_sig, param)
+    res_sig = sigima.proc.signal.bandpass(tst_sig, param)
 
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel
@@ -205,9 +205,9 @@ def test_tools_to_proc_interface():
 
     # Lowpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, cut0=2.0, mode="lowpass")
-    proc_res = sigima_signal.lowpass(
+    proc_res = sigima.proc.signal.lowpass(
         tst_sig,
-        sigima_signal.LowPassFilterParam.create(
+        sigima.proc.signal.LowPassFilterParam.create(
             cut0=2.0, method="brickwall", zero_padding=False
         ),
     )
@@ -215,9 +215,9 @@ def test_tools_to_proc_interface():
 
     # Highpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, cut0=2.0, mode="highpass")
-    proc_res = sigima_signal.highpass(
+    proc_res = sigima.proc.signal.highpass(
         tst_sig,
-        sigima_signal.HighPassFilterParam.create(
+        sigima.proc.signal.HighPassFilterParam.create(
             cut0=2.0, method="brickwall", zero_padding=False
         ),
     )
@@ -227,9 +227,9 @@ def test_tools_to_proc_interface():
     tools_res = brickwall_filter(
         tst_sig.x, tst_sig.y, cut0=2.0, cut1=4.0, mode="bandpass"
     )
-    proc_res = sigima_signal.bandpass(
+    proc_res = sigima.proc.signal.bandpass(
         tst_sig,
-        sigima_signal.BandPassFilterParam.create(
+        sigima.proc.signal.BandPassFilterParam.create(
             cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
         ),
     )
@@ -239,9 +239,9 @@ def test_tools_to_proc_interface():
     tools_res = brickwall_filter(
         tst_sig.x, tst_sig.y, cut0=2.0, cut1=4.0, mode="bandstop"
     )
-    proc_res = sigima_signal.bandstop(
+    proc_res = sigima.proc.signal.bandstop(
         tst_sig,
-        sigima_signal.BandStopFilterParam.create(
+        sigima.proc.signal.BandStopFilterParam.create(
             cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
         ),
     )

@@ -13,7 +13,7 @@ import scipy.signal as sps
 
 import sigima.objects
 import sigima.params
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 import sigima.tests.data as ctd
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
@@ -49,7 +49,7 @@ def test_signal_zero_padding() -> None:
         execenv.print(f"Validating zero padding with location = {location}...")
         param.location = location
         param.update_from_obj(s1)
-        s2 = sigima_signal.zero_padding(s1, param)
+        s2 = sigima.proc.signal.zero_padding(s1, param)
         len1 = s1.y.size
         n = param.n
         exp_len2 = len1 + n
@@ -120,8 +120,8 @@ def test_signal_fft() -> None:
     s1 = ctd.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size, xmin=xmin
     )
-    fft = sigima_signal.fft(s1)
-    ifft = sigima_signal.ifft(fft)
+    fft = sigima.proc.signal.fft(s1)
+    ifft = sigima.proc.signal.ifft(fft)
 
     # Check that the inverse FFT reconstructs the original signal.
     check_array_result("Original and recovered x data", s1.y, ifft.y.real)
@@ -191,8 +191,8 @@ def test_signal_magnitude_spectrum(
     s1 = ctd.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
-    fft = sigima_signal.fft(s1)
-    mag = sigima_signal.magnitude_spectrum(s1)
+    fft = sigima.proc.signal.fft(s1)
+    mag = sigima.proc.signal.magnitude_spectrum(s1)
 
     # Check that the peak frequencies are correct.
     ipk1 = np.argmax(mag.y[: size // 2])
@@ -241,8 +241,8 @@ def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> 
     s1 = ctd.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
-    fft = sigima_signal.fft(s1)
-    phase = sigima_signal.phase_spectrum(s1)
+    fft = sigima.proc.signal.fft(s1)
+    phase = sigima.proc.signal.phase_spectrum(s1)
 
     # Check that the phase spectrum is correct.
     check_array_result("Cosine signal phase spectrum X", phase.x, fft.x.real)
@@ -279,7 +279,7 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
     param = sigima.params.SpectrumParam()
     for decibel in (False, True):
         param.decibel = decibel
-        psd = sigima_signal.psd(s1, param)
+        psd = sigima.proc.signal.psd(s1, param)
 
         # Check that the PSD is correct.
         exp_x, exp_y = sps.welch(s1.y, fs=1.0 / (s1.x[1] - s1.x[0]))
@@ -318,11 +318,11 @@ def test_signal_spectrum() -> None:
         sig = get_test_signal("dynamic_parameters.txt")
         view_curves([sig])
         p = sigima.params.SpectrumParam.create(decibel=True)
-        ms = sigima_signal.magnitude_spectrum(sig, p)
+        ms = sigima.proc.signal.magnitude_spectrum(sig, p)
         view_curves([ms], title="Magnitude spectrum")
-        ps = sigima_signal.phase_spectrum(sig)
+        ps = sigima.proc.signal.phase_spectrum(sig)
         view_curves([ps], title="Phase spectrum")
-        psd = sigima_signal.psd(sig, p)
+        psd = sigima.proc.signal.psd(sig, p)
         view_curves([psd], title="Power spectral density")
 
 

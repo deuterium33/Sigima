@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 import sigima.objects
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 from sigima.tests.data import create_paracetamol_signal
 
 
@@ -22,7 +22,7 @@ def test_signal_offset_correction() -> None:
     """Signal offset correction validation test."""
     s1 = create_paracetamol_signal()
     param = sigima.objects.ROI1DParam.create(xmin=10.0, xmax=12.0)
-    s2 = sigima_signal.offset_correction(s1, param)
+    s2 = sigima.proc.signal.offset_correction(s1, param)
 
     # Check that the offset correction has been applied
     imin, imax = np.searchsorted(s1.x, [param.xmin, param.xmax])

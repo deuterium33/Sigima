@@ -14,7 +14,7 @@ import pytest
 from numpy import ma
 
 import sigima.params
-import sigima.proc.image as sigima_image
+import sigima.proc.image
 from sigima.tests.data import get_test_image
 from sigima.tests.env import execenv
 from sigima.tools.image import BINNING_OPERATIONS, binning
@@ -101,7 +101,7 @@ def test_binning() -> None:
                 p.sx = sx
                 p.sy = sy
                 rdata = data[: ny - (ny % sy), : nx - (nx % sx)]
-                dst = sigima_image.binning(src, p)
+                dst = sigima.proc.image.binning(src, p)
                 bdata = dst.data
                 assert bdata.shape == (data.shape[0] // sy, data.shape[1] // sx)
                 assert bdata.dtype == data.dtype
@@ -117,7 +117,7 @@ def test_binning() -> None:
         src.data = data = np.array(src.data[:500, :500], dtype=src_dtype)
         for dtype_str in p.dtypes:
             p.dtype_str = dtype_str
-            dst = sigima_image.binning(src, p)
+            dst = sigima.proc.image.binning(src, p)
             bdata = dst.data
             if dtype_str == "dtype":
                 assert bdata.dtype is data.dtype

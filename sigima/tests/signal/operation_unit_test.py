@@ -20,7 +20,7 @@ import pytest
 
 import sigima.objects
 import sigima.params as sigima_param
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 import sigima.tests.data as ctd
 from sigima.tests.helpers import check_array_result
 
@@ -66,7 +66,7 @@ def test_signal_addition() -> None:
     """Signal addition test."""
     slist = __create_n_signals()
     n = len(slist)
-    s3 = sigima_signal.addition(slist)
+    s3 = sigima.proc.signal.addition(slist)
     res = s3.y
     exp = np.zeros_like(s3.y)
     for s in slist:
@@ -79,7 +79,7 @@ def test_signal_average() -> None:
     """Signal average test."""
     slist = __create_n_signals()
     n = len(slist)
-    s3 = sigima_signal.average(slist)
+    s3 = sigima.proc.signal.average(slist)
     res = s3.y
     exp = np.zeros_like(s3.y)
     for s in slist:
@@ -93,7 +93,7 @@ def test_signal_product() -> None:
     """Signal multiplication test."""
     slist = __create_n_signals()
     n = len(slist)
-    s3 = sigima_signal.product(slist)
+    s3 = sigima.proc.signal.product(slist)
     res = s3.y
     exp = np.ones_like(s3.y)
     for s in slist:
@@ -105,7 +105,7 @@ def test_signal_product() -> None:
 def test_signal_difference() -> None:
     """Signal difference test."""
     s1, s2 = __create_two_signals()
-    s3 = sigima_signal.difference(s1, s2)
+    s3 = sigima.proc.signal.difference(s1, s2)
     check_array_result("Signal difference", s3.y, s1.y - s2.y)
 
 
@@ -113,7 +113,7 @@ def test_signal_difference() -> None:
 def test_signal_quadratic_difference() -> None:
     """Signal quadratic difference validation test."""
     s1, s2 = __create_two_signals()
-    s3 = sigima_signal.quadratic_difference(s1, s2)
+    s3 = sigima.proc.signal.quadratic_difference(s1, s2)
     check_array_result("Signal quadratic difference", s3.y, (s1.y - s2.y) / np.sqrt(2))
 
 
@@ -121,7 +121,7 @@ def test_signal_quadratic_difference() -> None:
 def test_signal_division() -> None:
     """Signal division test."""
     s1, s2 = __create_two_signals()
-    s3 = sigima_signal.division(s1, s2)
+    s3 = sigima.proc.signal.division(s1, s2)
     check_array_result("Signal division", s3.y, s1.y / s2.y)
 
 
@@ -129,7 +129,7 @@ def test_signal_division() -> None:
 def test_signal_addition_constant() -> None:
     """Signal addition with constant test."""
     s1, param = __create_one_signal_and_constant()
-    s2 = sigima_signal.addition_constant(s1, param)
+    s2 = sigima.proc.signal.addition_constant(s1, param)
     check_array_result("Signal addition with constant", s2.y, s1.y + param.value)
 
 
@@ -137,7 +137,7 @@ def test_signal_addition_constant() -> None:
 def test_signal_product_constant() -> None:
     """Signal multiplication by constant test."""
     s1, param = __create_one_signal_and_constant()
-    s2 = sigima_signal.product_constant(s1, param)
+    s2 = sigima.proc.signal.product_constant(s1, param)
     check_array_result("Signal multiplication by constant", s2.y, s1.y * param.value)
 
 
@@ -145,7 +145,7 @@ def test_signal_product_constant() -> None:
 def test_signal_difference_constant() -> None:
     """Signal difference with constant test."""
     s1, param = __create_one_signal_and_constant()
-    s2 = sigima_signal.difference_constant(s1, param)
+    s2 = sigima.proc.signal.difference_constant(s1, param)
     check_array_result("Signal difference with constant", s2.y, s1.y - param.value)
 
 
@@ -153,7 +153,7 @@ def test_signal_difference_constant() -> None:
 def test_signal_division_constant() -> None:
     """Signal division by constant test."""
     s1, param = __create_one_signal_and_constant()
-    s2 = sigima_signal.division_constant(s1, param)
+    s2 = sigima.proc.signal.division_constant(s1, param)
     check_array_result("Signal division by constant", s2.y, s1.y / param.value)
 
 
@@ -161,7 +161,7 @@ def test_signal_division_constant() -> None:
 def test_signal_inverse() -> None:
     """Signal inversion validation test."""
     s1 = __create_two_signals()[0]
-    inv_signal = sigima_signal.inverse(s1)
+    inv_signal = sigima.proc.signal.inverse(s1)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         exp = 1.0 / s1.y
@@ -173,7 +173,7 @@ def test_signal_inverse() -> None:
 def test_signal_absolute() -> None:
     """Absolute value validation test."""
     s1 = __create_two_signals()[0]
-    abs_signal = sigima_signal.absolute(s1)
+    abs_signal = sigima.proc.signal.absolute(s1)
     check_array_result("Absolute value", abs_signal.y, np.abs(s1.y))
 
 
@@ -181,7 +181,7 @@ def test_signal_absolute() -> None:
 def test_signal_real() -> None:
     """Real part validation test."""
     s1 = __create_two_signals()[0]
-    re_signal = sigima_signal.real(s1)
+    re_signal = sigima.proc.signal.real(s1)
     check_array_result("Real part", re_signal.y, np.real(s1.y))
 
 
@@ -189,7 +189,7 @@ def test_signal_real() -> None:
 def test_signal_imag() -> None:
     """Imaginary part validation test."""
     s1 = __create_two_signals()[0]
-    im_signal = sigima_signal.imag(s1)
+    im_signal = sigima.proc.signal.imag(s1)
     check_array_result("Imaginary part", im_signal.y, np.imag(s1.y))
 
 
@@ -199,7 +199,7 @@ def test_signal_astype() -> None:
     s1 = __create_two_signals()[0]
     for dtype_str in sigima.objects.SignalObj.get_valid_dtypenames():
         p = sigima_param.DataTypeSParam.create(dtype_str=dtype_str)
-        astype_signal = sigima_signal.astype(s1, p)
+        astype_signal = sigima.proc.signal.astype(s1, p)
         assert astype_signal.y.dtype == np.dtype(dtype_str)
 
 
@@ -207,7 +207,7 @@ def test_signal_astype() -> None:
 def test_signal_exp() -> None:
     """Exponential validation test."""
     s1 = __create_two_signals()[0]
-    exp_signal = sigima_signal.exp(s1)
+    exp_signal = sigima.proc.signal.exp(s1)
     check_array_result("Exponential", exp_signal.y, np.exp(s1.y))
 
 
@@ -215,7 +215,7 @@ def test_signal_exp() -> None:
 def test_signal_log10() -> None:
     """Logarithm base 10 validation test."""
     s1 = __create_two_signals()[0]
-    log10_signal = sigima_signal.log10(sigima_signal.exp(s1))
+    log10_signal = sigima.proc.signal.log10(sigima.proc.signal.exp(s1))
     check_array_result("Logarithm base 10", log10_signal.y, np.log10(np.exp(s1.y)))
 
 
@@ -223,7 +223,7 @@ def test_signal_log10() -> None:
 def test_signal_sqrt() -> None:
     """Square root validation test."""
     s1 = ctd.get_test_signal("paracetamol.txt")
-    sqrt_signal = sigima_signal.sqrt(s1)
+    sqrt_signal = sigima.proc.signal.sqrt(s1)
     check_array_result("Square root", sqrt_signal.y, np.sqrt(s1.y))
 
 
@@ -232,7 +232,7 @@ def test_signal_power() -> None:
     """Power validation test."""
     s1 = ctd.get_test_signal("paracetamol.txt")
     p = sigima_param.PowerParam.create(power=2.0)
-    power_signal = sigima_signal.power(s1, p)
+    power_signal = sigima.proc.signal.power(s1, p)
     check_array_result("Power", power_signal.y, s1.y**p.power)
 
 
@@ -247,7 +247,7 @@ def test_signal_arithmetic() -> None:
             p.factor = factor
             for constant in (0.0, 1.0, 2.0):
                 p.constant = constant
-                s3 = sigima_signal.arithmetic(s1, s2, p)
+                s3 = sigima.proc.signal.arithmetic(s1, s2, p)
                 if operator == "+":
                     exp = s1.y + s2.y
                 elif operator == "×":

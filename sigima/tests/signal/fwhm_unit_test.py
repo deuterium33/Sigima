@@ -13,7 +13,7 @@ import pytest
 
 import sigima.objects
 import sigima.params
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 import sigima.tests.data as cdltd
 import sigima.tests.helpers
 from sigima.tests.env import execenv
@@ -27,7 +27,7 @@ def __test_fwhm_interactive(obj: sigima.objects.SignalObj, method: str) -> None:
     from sigima.tests.vistools import view_curve_items
 
     param = sigima.params.FWHMParam.create(method=method)
-    df = sigima_signal.fwhm(obj, param).to_dataframe()
+    df = sigima.proc.signal.fwhm(obj, param).to_dataframe()
     x, y = obj.xydata
     view_curve_items(
         [
@@ -71,13 +71,15 @@ def test_signal_fwhm() -> None:
         ("zero-crossing", real_fwhm),
     ):
         param = sigima.params.FWHMParam.create(method=method)
-        df = sigima_signal.fwhm(obj, param).to_dataframe()
+        df = sigima.proc.signal.fwhm(obj, param).to_dataframe()
         sigima.tests.helpers.check_scalar_result(
             f"FWHM[{method}]", df.L[0], exp, rtol=0.05
         )
     obj = cdltd.create_paracetamol_signal()
     with pytest.warns(UserWarning):
-        sigima_signal.fwhm(obj, sigima.params.FWHMParam.create(method="zero-crossing"))
+        sigima.proc.signal.fwhm(
+            obj, sigima.params.FWHMParam.create(method="zero-crossing")
+        )
 
 
 @pytest.mark.validation
@@ -85,7 +87,7 @@ def test_signal_fw1e2() -> None:
     """Validation test for the full width at 1/e^2 maximum computation."""
     obj = cdltd.get_test_signal("fw1e2.txt")
     exp = 4.06  # Manual validation
-    df = sigima_signal.fw1e2(obj).to_dataframe()
+    df = sigima.proc.signal.fw1e2(obj).to_dataframe()
     sigima.tests.helpers.check_scalar_result("FW1E2", df.L[0], exp, rtol=0.005)
 
 
@@ -95,7 +97,7 @@ def test_signal_full_width_at_y() -> None:
     obj = cdltd.get_test_signal("fwhm.txt")
     real_fwhm = 2.675  # Manual validation
     param = sigima.params.OrdinateParam.create(y=0.5)
-    df = sigima_signal.full_width_at_y(obj, param).to_dataframe()
+    df = sigima.proc.signal.full_width_at_y(obj, param).to_dataframe()
     sigima.tests.helpers.check_scalar_result("∆X", df.L[0], real_fwhm, rtol=0.05)
 
 

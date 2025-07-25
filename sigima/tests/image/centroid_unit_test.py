@@ -22,7 +22,7 @@ import scipy.ndimage as spi
 from numpy import ma
 
 import sigima.objects
-import sigima.proc.image as sigima_image
+import sigima.proc.image
 import sigima.tools.image as alg
 from sigima.config import _
 from sigima.tests.data import create_noisygauss_image, get_laser_spot_data
@@ -96,7 +96,7 @@ def test_image_centroid_interactive():
 
 def __check_centroid(image, expected_x, expected_y):
     """Check centroid computation"""
-    df = sigima_image.centroid(image).to_dataframe()
+    df = sigima.proc.image.centroid(image).to_dataframe()
     check_scalar_result("Centroid X", df.x[0], expected_x, atol=1.0)
     check_scalar_result("Centroid Y", df.y[0], expected_y, atol=1.0)
 

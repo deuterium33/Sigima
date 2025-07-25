@@ -12,8 +12,8 @@ from __future__ import annotations
 from typing import Generator
 
 import sigima.objects
-from sigima.proc import image as sigima_image
-from sigima.proc import signal as sigima_signal
+import sigima.proc.image
+import sigima.proc.signal
 from sigima.tests.data import create_multigauss_image, create_paracetamol_signal
 from sigima.tests.env import execenv
 
@@ -186,7 +186,7 @@ def test_signal_roi_merge() -> None:
     obj1.roi = sigima.objects.create_signal_roi([50, 100], indices=True)
 
     # Compute the average of the two objects
-    obj3 = sigima_signal.average([obj1, obj2])
+    obj3 = sigima.proc.signal.average([obj1, obj2])
     assert obj3.roi is not None, "Merged object should have a ROI"
     assert len(obj3.roi) == 2, "Merged object should have two single ROIs"
     for single_roi in obj3.roi:
@@ -270,7 +270,7 @@ def test_image_roi_merge() -> None:
     obj1.roi = sigima.objects.create_image_roi("rectangle", [500, 750, 1000, 1250])
 
     # Compute the average of the two objects
-    obj3 = sigima_image.average([obj1, obj2])
+    obj3 = sigima.proc.image.average([obj1, obj2])
     assert obj3.roi is not None, "Merged object should have a ROI"
     assert len(obj3.roi) == 2, "Merged object should have two single ROIs"
     for single_roi in obj3.roi:

@@ -19,8 +19,8 @@ import pytest
 import scipy.integrate as spt
 
 import sigima.objects
-import sigima.proc.image as sigima_image
-import sigima.proc.signal as sigima_signal
+import sigima.proc.image
+import sigima.proc.signal
 
 
 def get_analytical_stats(data: np.ndarray) -> dict[str, float]:
@@ -82,7 +82,7 @@ def create_reference_image() -> sigima.objects.ImageObj:
 def test_signal_stats_unit() -> None:
     """Validate computed statistics for signals"""
     obj = create_reference_signal()
-    res = sigima_signal.stats(obj)
+    res = sigima.proc.signal.stats(obj)
     df = res.to_dataframe()
     ref = get_analytical_stats(obj.xydata)
     name_map = {
@@ -122,7 +122,7 @@ def test_image_stats_unit() -> None:
     # (this warning is due to the fact that the 2nd ROI has zero sum of pixel values,
     # hence the mean/std is NaN)
     with np.errstate(invalid="ignore"):
-        res = sigima_image.stats(obj)
+        res = sigima.proc.image.stats(obj)
 
     df = res.to_dataframe()
     ref = get_analytical_stats(obj.data)

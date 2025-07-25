@@ -14,7 +14,7 @@ import pytest
 
 import sigima.objects
 import sigima.params
-import sigima.proc.signal as sigima_signal
+import sigima.proc.signal
 from sigima.tests.helpers import check_array_result
 
 
@@ -64,7 +64,7 @@ def test_signal_allan_variance():
     param.max_tau = max(tau_values)
 
     # Compute Allan variance using the high-level function
-    res1 = sigima_signal.allan_variance(sig1, param)
+    res1 = sigima.proc.signal.allan_variance(sig1, param)
     th_av_white = theoretical_allan_variance_white_noise(res1.x, sigma)
 
     check_array_result("White noise Allan variance", res1.y, th_av_white, atol=0.05)
@@ -75,7 +75,7 @@ def test_signal_allan_variance():
     sig2 = sigima.objects.create_signal("Drift Test", time, values)
 
     # Compute Allan variance using the high-level function
-    res2 = sigima_signal.allan_variance(sig2, param)
+    res2 = sigima.proc.signal.allan_variance(sig2, param)
     th_av_drift = theoretical_allan_variance_drift(res2.x, slope)
 
     check_array_result("Drift Allan variance", res2.y, th_av_drift, atol=0.01)
@@ -98,7 +98,7 @@ def test_signal_allan_deviation():
     param.max_tau = max(tau_values)
 
     # Compute Allan deviation using the high-level function
-    res1 = sigima_signal.allan_deviation(sig1, param)
+    res1 = sigima.proc.signal.allan_deviation(sig1, param)
     th_av_white = theoretical_allan_variance_white_noise(res1.x, sigma)
 
     check_array_result(
@@ -111,7 +111,7 @@ def test_signal_allan_deviation():
     sig2 = sigima.objects.create_signal("Drift Test", time, values)
 
     # Compute Allan deviation using the high-level function
-    res2 = sigima_signal.allan_deviation(sig2, param)
+    res2 = sigima.proc.signal.allan_deviation(sig2, param)
     th_av_drift = theoretical_allan_variance_drift(res2.x, slope)
 
     check_array_result("Drift Allan deviation", res2.y, np.sqrt(th_av_drift), atol=0.01)

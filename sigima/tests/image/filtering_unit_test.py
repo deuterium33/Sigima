@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-import sigima.proc.image as sigima_image
+import sigima.proc.image
 from sigima.objects import ImageObj
 from sigima.objects.image import create_image
 from sigima.tests.helpers import check_scalar_result
@@ -75,10 +75,10 @@ def test_freq_fft_filter_bandpass_interactive() -> None:
 def test_computation_freq_fft() -> None:
     """Validation test for freq_fft computation function."""
     clean, noisy = build_clean_noisy_images(freq=0.05)
-    param = sigima_image.FreqFFTParam.create(f0=0.05, sigma=0.05)
+    param = sigima.proc.image.FreqFFTParam.create(f0=0.05, sigma=0.05)
     for result_type in ("real", "abs"):
         param.ifft_result_type = result_type
-        filt = sigima_image.freq_fft(noisy, param)
+        filt = sigima.proc.image.freq_fft(noisy, param)
         clean_area = clean.data[10:-10, 10:-10]
         if result_type == "abs":
             clean_area = np.abs(clean_area)
