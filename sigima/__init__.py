@@ -24,29 +24,12 @@ the DataLab application.
 # the NLnet Foundation.
 
 # -------- Point of no return after creating an independent `sigima` package ----------
-# TODO: In `cdl` Python package, remove modifications related to the inclusion of the
-#       `sigima` module within the `cdl` package (e.g., see TODOs in pyproject.toml,
-#       VSCode tasks, Pylint configuration, etc.)
-# TODO: Move `cdl.tests.sigima_tests` to external `sigima.tests` module
 # TODO: Fix TODO related to `OPTIONS_RST` in 'sigima\config.py'
-# ** Task 1. Core Architecture Redesign **
-# **   Milestone 1.b. Decouple I/O features (including I/O plugins) **
-# TODO: Implement a I/O plugin system similar to the `cdl.plugins` module
-# **   Milestone 1.c. Redesign the API for the new core library **
-#
-# ** Task 2. Technical Validation and Testing **
-# TODO: Add `pytest` infrastructure. Step 2: migrate `cdl/tests/sigima_tests`
-#       to `sigima/tests` directory and create a `conftest.py` file using the
-#       `cdl/tests/conftest.py` file as a template (see TODOs in that file).
-# TODO: Handle the `CDL_DATA` environment variable in the `sigima` package
-#       and its documentation (at the moment, it has been replaced by `SIGIMA_DATA`
-#       in sigima\tests\helpers.py)
+# TODO: Migrate `cdlclient` features to a subpackage of `sigima` (e.g., `sigima.client`)
 #
 # ** Task 3. Documentation and Training Materials **
-# TODO: Add documentation. Step 1: initiate `sigima` package documentation
-# TODO: Add documentation. Step 2: migrate parts of `cdl` package documentation
-#
-# TODO: Migrate `cdlclient` features to a subpackage of `sigima` (e.g., `sigima.client`)
+# TODO: Move DataLab's validation section to sigima's documentation
+# TODO: Add documentation on I/O plugin system (similar to the `cdl.plugins` module)
 # --------------------------------------------------------------------------------------
 
 # pylint:disable=unused-import
