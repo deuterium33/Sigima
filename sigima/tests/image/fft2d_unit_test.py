@@ -13,7 +13,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-import sigima.tests.data as ctd
+import sigima.tests.data
 import sigima.tools.image as alg
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result, check_scalar_result
@@ -30,7 +30,7 @@ def test_image_fft_interactive():
     with qt_app_context():
         # Create a 2D ring image
         execenv.print("Generating 2D ring image...", end=" ")
-        data = ctd.create_ring_image(ctd.RingParam()).data
+        data = sigima.tests.data.create_ring_image().data
         execenv.print("OK")
 
         # FFT
@@ -52,7 +52,7 @@ def test_image_fft_interactive():
 @pytest.mark.validation
 def test_image_zero_padding() -> None:
     """2D FFT zero padding validation test."""
-    ima1 = ctd.create_checkerboard()
+    ima1 = sigima.tests.data.create_checkerboard()
     rows, cols = 2, 2
     param = sigima.params.ZeroPadding2DParam.create(rows=rows, cols=cols)
     assert param.strategy == "custom", (
@@ -120,7 +120,7 @@ def test_image_zero_padding() -> None:
 @pytest.mark.validation
 def test_image_fft() -> None:
     """2D FFT validation test."""
-    ima1 = ctd.create_checkerboard()
+    ima1 = sigima.tests.data.create_checkerboard()
     fft = sigima.proc.image.fft(ima1)
     ifft = sigima.proc.image.ifft(fft)
 
@@ -144,7 +144,7 @@ def test_image_ifft() -> None:
 @pytest.mark.validation
 def test_image_magnitude_spectrum() -> None:
     """2D magnitude spectrum validation test."""
-    ima1 = ctd.create_checkerboard()
+    ima1 = sigima.tests.data.create_checkerboard()
     fft = sigima.proc.image.fft(ima1)
     param = sigima.params.SpectrumParam()
     for decibel in (True, False):
@@ -159,7 +159,7 @@ def test_image_magnitude_spectrum() -> None:
 @pytest.mark.validation
 def test_image_phase_spectrum() -> None:
     """2D phase spectrum validation test."""
-    ima1 = ctd.create_checkerboard()
+    ima1 = sigima.tests.data.create_checkerboard()
     fft = sigima.proc.image.fft(ima1)
     phase = sigima.proc.image.phase_spectrum(ima1)
 
@@ -171,7 +171,7 @@ def test_image_phase_spectrum() -> None:
 @pytest.mark.validation
 def test_image_psd() -> None:
     """2D Power Spectral Density validation test."""
-    ima1 = ctd.create_checkerboard()
+    ima1 = sigima.tests.data.create_checkerboard()
     param = sigima.params.SpectrumParam()
     for decibel in (True, False):
         param.decibel = decibel

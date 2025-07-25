@@ -14,7 +14,7 @@ import scipy.signal as sps
 import sigima.objects
 import sigima.params
 import sigima.proc.signal
-import sigima.tests.data as ctd
+import sigima.tests.data
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv
@@ -25,7 +25,7 @@ from sigima.tools.signal import fourier
 @pytest.mark.validation
 def test_signal_zero_padding() -> None:
     """1D FFT zero padding validation test."""
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=1000
     )
 
@@ -117,7 +117,7 @@ def test_signal_fft() -> None:
     # See note in function `test_signal_ifft` below.
     xmin = 0.0
 
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size, xmin=xmin
     )
     fft = sigima.proc.signal.fft(s1)
@@ -188,7 +188,7 @@ def test_signal_magnitude_spectrum(
     freq = 50.0
     size = 10000
 
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
     fft = sigima.proc.signal.fft(s1)
@@ -238,7 +238,7 @@ def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> 
     freq = 50.0
     size = 10000
 
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
     fft = sigima.proc.signal.fft(s1)
@@ -273,7 +273,7 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
     freq = 50.0
     size = 10000
 
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
     )
     param = sigima.params.SpectrumParam()

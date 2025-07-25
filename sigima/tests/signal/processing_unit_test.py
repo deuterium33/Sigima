@@ -28,7 +28,7 @@ from packaging.version import Version
 import sigima.objects
 import sigima.params
 import sigima.proc.signal
-import sigima.tests.data as ctd
+import sigima.tests.data
 import sigima.tools.coordinates as alg_coords
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_array_result, check_scalar_result
@@ -343,7 +343,7 @@ def test_signal_wiener() -> None:
 @pytest.mark.validation
 def test_signal_resampling() -> None:
     """Validation test for the signal resampling processing."""
-    src1 = ctd.create_periodic_signal(
+    src1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
     )
     x1, y1 = src1.xydata
@@ -355,7 +355,7 @@ def test_signal_resampling() -> None:
     check_array_result("x1new", dst1x, x1)
     check_array_result("y1new", dst1y, y1)
 
-    src2 = ctd.create_periodic_signal(
+    src2 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.SINUS, freq=50.0, size=9
     )
     p2 = sigima.params.ResamplingParam.create(
@@ -370,20 +370,24 @@ def test_signal_resampling() -> None:
 @pytest.mark.validation
 def test_signal_XY_mode() -> None:
     """Validation test for the signal X-Y mode processing."""
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=5
     )
-    s2 = ctd.create_periodic_signal(sigima.objects.SignalTypes.SINUS, freq=50.0, size=5)
+    s2 = sigima.tests.data.create_periodic_signal(
+        sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
+    )
     dst = sigima.proc.signal.xy_mode(s1, s2)
     x, y = dst.xydata
     check_array_result("XYMode", x, s1.y)
     check_array_result("XYMode", y, s2.y)
     check_array_result("XYMode", x**2 + y**2, np.ones_like(x))
 
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=9
     )
-    s2 = ctd.create_periodic_signal(sigima.objects.SignalTypes.SINUS, freq=50.0, size=5)
+    s2 = sigima.tests.data.create_periodic_signal(
+        sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
+    )
     dst = sigima.proc.signal.xy_mode(s1, s2)
     x, y = dst.xydata
     check_array_result("XYMode2", x, s1.y[::2])

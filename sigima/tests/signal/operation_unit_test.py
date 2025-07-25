@@ -21,16 +21,16 @@ import pytest
 import sigima.objects
 import sigima.params as sigima_param
 import sigima.proc.signal
-import sigima.tests.data as ctd
+import sigima.tests.data
 from sigima.tests.helpers import check_array_result
 
 
 def __create_two_signals() -> tuple[sigima.objects.SignalObj, sigima.objects.SignalObj]:
     """Create two signals for testing."""
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
     )
-    s2 = ctd.create_periodic_signal(
+    s2 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.SINUS, freq=25.0, size=100
     )
     return s1, s2
@@ -40,7 +40,7 @@ def __create_n_signals(n: int = 100) -> list[sigima.objects.SignalObj]:
     """Create a list of N different signals for testing."""
     signals = []
     for i in range(n):
-        s = ctd.create_periodic_signal(
+        s = sigima.tests.data.create_periodic_signal(
             sigima.objects.SignalTypes.COSINUS,
             freq=50.0 + i,
             size=100,
@@ -54,7 +54,7 @@ def __create_one_signal_and_constant() -> tuple[
     sigima.objects.SignalObj, sigima_param.ConstantParam
 ]:
     """Create one signal and a constant for testing."""
-    s1 = ctd.create_periodic_signal(
+    s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
     )
     param = sigima_param.ConstantParam.create(value=-np.pi)
@@ -222,7 +222,7 @@ def test_signal_log10() -> None:
 @pytest.mark.validation
 def test_signal_sqrt() -> None:
     """Square root validation test."""
-    s1 = ctd.get_test_signal("paracetamol.txt")
+    s1 = sigima.tests.data.get_test_signal("paracetamol.txt")
     sqrt_signal = sigima.proc.signal.sqrt(s1)
     check_array_result("Square root", sqrt_signal.y, np.sqrt(s1.y))
 
@@ -230,7 +230,7 @@ def test_signal_sqrt() -> None:
 @pytest.mark.validation
 def test_signal_power() -> None:
     """Power validation test."""
-    s1 = ctd.get_test_signal("paracetamol.txt")
+    s1 = sigima.tests.data.get_test_signal("paracetamol.txt")
     p = sigima_param.PowerParam.create(power=2.0)
     power_signal = sigima.proc.signal.power(s1, p)
     check_array_result("Power", power_signal.y, s1.y**p.power)
