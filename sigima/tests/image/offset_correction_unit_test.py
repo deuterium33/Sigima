@@ -15,7 +15,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-from sigima.tests.data import create_noisygauss_image
+from sigima.tests.data import create_noisy_gaussian_image
 
 
 @pytest.mark.gui
@@ -31,7 +31,7 @@ def test_image_offset_correction_interactive() -> None:
     from sigima.tests import vistools
 
     with qt_app_context():
-        i1 = create_noisygauss_image()
+        i1 = create_noisy_gaussian_image()
         shape: RectangleShape = select_with_shape_tool(
             None,
             RectangleTool,
@@ -56,7 +56,7 @@ def test_image_offset_correction_interactive() -> None:
 @pytest.mark.validation
 def test_image_offset_correction() -> None:
     """Image offset correction validation test."""
-    i1 = create_noisygauss_image()
+    i1 = create_noisy_gaussian_image()
     param = sigima.objects.ROI2DParam.create(x0=0, y0=0, dx=10, dy=10)
     i2 = sigima.proc.image.offset_correction(i1, param)
 

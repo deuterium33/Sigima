@@ -25,7 +25,7 @@ import sigima.objects
 import sigima.proc.image
 import sigima.tools.image
 from sigima.config import _
-from sigima.tests.data import create_noisygauss_image, get_laser_spot_data
+from sigima.tests.data import create_noisy_gaussian_image, get_laser_spot_data
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_scalar_result
 
@@ -105,7 +105,7 @@ def __check_centroid(image, expected_x, expected_y):
 def test_image_centroid():
     """Test centroid computation"""
     param = sigima.objects.NewImageParam.create(height=500, width=500)
-    image = create_noisygauss_image(param, center=(-2.0, 3.0), add_annotations=True)
+    image = create_noisy_gaussian_image(param, center=(-2.0, 3.0), add_annotations=True)
     circle_roi = sigima.objects.create_image_roi("circle", [200, 325, 10])
     for roi, x0, y0 in (
         (None, 0, 0),

@@ -608,8 +608,8 @@ def create_ring_image(p: RingParam | None = None) -> ImageObj:
     return obj
 
 
-def create_peak2d_image(p: NewImageParam | None = None) -> ImageObj:
-    """Creating 2D peak image
+def create_peak_image(p: NewImageParam | None = None) -> ImageObj:
+    """Creating image with bright peaks
 
     Args:
         p: Image parameters. Defaults to None
@@ -666,7 +666,7 @@ def add_annotations_from_file(obj: SignalObj | ImageObj, filename: str) -> None:
     obj.annotations = json_str
 
 
-def create_noisygauss_image(
+def create_noisy_gaussian_image(
     p: NewImageParam | None = None,
     center: tuple[float, float] | None = None,
     level: float = 0.1,
@@ -701,7 +701,49 @@ def create_noisygauss_image(
     return obj
 
 
-def create_multigauss_image(p: NewImageParam | None = None) -> ImageObj:
+def iterate_noisy_images(size: int = 128) -> Generator[ImageObj, None, None]:
+    """Iterate over all possible noisy Gaussian images in different datatypes.
+
+    Args:
+        size: Size of the image. Defaults to 128.
+    """
+    for dtype in ImageDatatypes:
+        param = NewImageParam.create(dtype=dtype, height=size, width=size)
+        yield create_noisy_gaussian_image(param, level=0.0)
+
+
+def iterate_noisy_image_couples(
+    size: int = 128,
+) -> Generator[tuple[ImageObj, ImageObj], None, None]:
+    """Iterate over all possible pairs of noisy Gaussian images in different datatypes.
+
+    Args:
+        size: Size of the images. Defaults to 128.
+    """
+    for dtype1 in ImageDatatypes:
+        param1 = NewImageParam.create(dtype=dtype1, height=size, width=size)
+        ima1 = create_noisy_gaussian_image(param1, level=0.0)
+        for dtype2 in ImageDatatypes:
+            param2 = NewImageParam.create(dtype=dtype2, height=size, width=size)
+            ima2 = create_noisy_gaussian_image(param2, level=0.0)
+            yield ima1, ima2
+
+
+def create_n_images(n: int = 100) -> list[ImageObj]:
+    """Create a list of N different images for testing."""
+    images = []
+    for i in range(n):
+        param = NewImageParam.create(
+            dtype=ImageDatatypes.FLOAT32,
+            height=128,
+            width=128,
+        )
+        img = create_noisy_gaussian_image(param, level=(i + 1) * 0.1)
+        images.append(img)
+    return images
+
+
+def create_multigaussian_image(p: NewImageParam | None = None) -> ImageObj:
     """Create test image (multiple 2D-gaussian peaks)
 
     Args:

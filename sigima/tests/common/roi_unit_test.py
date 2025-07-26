@@ -14,7 +14,7 @@ from typing import Generator
 import sigima.objects
 import sigima.proc.image
 import sigima.proc.signal
-from sigima.tests.data import create_multigauss_image, create_paracetamol_signal
+from sigima.tests.data import create_multigaussian_image, create_paracetamol_signal
 from sigima.tests.env import execenv
 
 CLASS_NAME = "class_name"
@@ -218,7 +218,7 @@ def test_image_roi_creation() -> None:
         },
     }
 
-    obj = create_multigauss_image()
+    obj = create_multigaussian_image()
 
     for indices in (True, False):
         execenv.print("indices:", indices)
@@ -264,8 +264,8 @@ def test_image_roi_merge() -> None:
     # Compute the average of the two objects, and check if the resulting object
     # has the expected ROI (i.e. the union of the original object's ROI).
 
-    obj1 = create_multigauss_image()
-    obj2 = create_multigauss_image()
+    obj1 = create_multigaussian_image()
+    obj2 = create_multigaussian_image()
     obj2.roi = sigima.objects.create_image_roi("rectangle", [600, 800, 1000, 1200])
     obj1.roi = sigima.objects.create_image_roi("rectangle", [500, 750, 1000, 1250])
 

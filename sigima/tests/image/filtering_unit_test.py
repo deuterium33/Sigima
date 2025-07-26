@@ -8,12 +8,74 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import scipy.ndimage as spi
+import scipy.signal as sps
+from skimage import filters
 
 import sigima.proc.image
 from sigima.objects import ImageObj
 from sigima.objects.image import create_image
-from sigima.tests.helpers import check_scalar_result
+from sigima.tests.data import get_test_image
+from sigima.tests.helpers import check_array_result, check_scalar_result
 from sigima.tools.image import freq_fft_filter
+
+
+@pytest.mark.validation
+def test_image_gaussian_filter() -> None:
+    """Validation test for the image Gaussian filter processing."""
+    src = get_test_image("flower.npy")
+    for sigma in (10.0, 50.0):
+        p = sigima.params.GaussianParam.create(sigma=sigma)
+        dst = sigima.proc.image.gaussian_filter(src, p)
+        exp = spi.gaussian_filter(src.data, sigma=sigma)
+        check_array_result(f"GaussianFilter[sigma={sigma}]", dst.data, exp)
+
+
+@pytest.mark.validation
+def test_image_moving_average() -> None:
+    """Validation test for the image moving average processing."""
+    src = get_test_image("flower.npy")
+    p = sigima.params.MovingAverageParam.create(n=30)
+    for mode in p.modes:
+        p.mode = mode
+        dst = sigima.proc.image.moving_average(src, p)
+        exp = spi.uniform_filter(src.data, size=p.n, mode=p.mode)
+        check_array_result(f"MovingAvg[n={p.n},mode={p.mode}]", dst.data, exp)
+
+
+@pytest.mark.validation
+def test_image_moving_median() -> None:
+    """Validation test for the image moving median processing."""
+    src = get_test_image("flower.npy")
+    p = sigima.params.MovingMedianParam.create(n=5)
+    for mode in p.modes:
+        p.mode = mode
+        dst = sigima.proc.image.moving_median(src, p)
+        exp = spi.median_filter(src.data, size=p.n, mode=p.mode)
+        check_array_result(f"MovingMed[n={p.n},mode={p.mode}]", dst.data, exp)
+
+
+@pytest.mark.validation
+def test_image_wiener() -> None:
+    """Validation test for the image Wiener filter processing."""
+    src = get_test_image("flower.npy")
+    dst = sigima.proc.image.wiener(src)
+    exp = sps.wiener(src.data)
+    check_array_result("Wiener", dst.data, exp)
+
+
+@pytest.mark.validation
+def test_butterworth() -> None:
+    """Validation test for the image Butterworth filter processing."""
+    src = get_test_image("flower.npy")
+    p = sigima.params.ButterworthParam.create(order=2, cut_off=0.5, high_pass=False)
+    dst = sigima.proc.image.butterworth(src, p)
+    exp = filters.butterworth(src.data, p.cut_off, p.high_pass, p.order)
+    check_array_result(
+        f"Butterworth[order={p.order},cut_off={p.cut_off},high_pass={p.high_pass}]",
+        dst.data,
+        exp,
+    )
 
 
 def build_clean_noisy_images(
@@ -114,6 +176,11 @@ def test_freq_fft_filter_symmetry() -> None:
 
 
 if __name__ == "__main__":
+    test_image_gaussian_filter()
+    test_image_moving_average()
+    test_image_moving_median()
+    test_image_wiener()
+    test_butterworth()
     test_freq_fft_filter_bandpass_interactive()
     test_computation_freq_fft()
     test_freq_fft_filter_constant_image()
