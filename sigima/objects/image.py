@@ -93,6 +93,33 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         "display", hide=_pfp
     )
 
+    def __check_inputs_datatype(self) -> None:
+        """Check if inputs are of the correct datatype.
+
+        This check is necessary to ensure that the parameters have the correct
+        datatype before they are used in computations or passed to other methods,
+        because `guidata.dataset.DataSet` does not enforce the datatype (this is
+        a design choice to allow more flexibility in the parameters, but in this
+        case, it may be seen as a design flaw).
+        """
+        if self.geometry == "rectangle":
+            for attr in ("x0", "y0", "dx", "dy"):
+                if not isinstance(getattr(self, attr), int):
+                    raise TypeError(f"{attr} must be an integer")
+        elif self.geometry == "circle":
+            for attr in ("xc", "yc", "r"):
+                if not isinstance(getattr(self, attr), int):
+                    raise TypeError(f"{attr} must be an integer")
+        elif self.geometry == "polygon":
+            if not isinstance(self.points, np.ndarray):
+                raise TypeError("points must be a NumPy array")
+            if not np.issubdtype(self.points.dtype, np.integer):
+                raise TypeError("points must be an integer NumPy array")
+            if len(self.points) % 2 != 0:
+                raise ValueError("points must contain pairs of coordinates (X, Y)")
+            if not self.points.ndim == 1:
+                raise ValueError("points must be a 1D array of coordinates")
+
     def to_single_roi(
         self, obj: ImageObj, title: str = ""
     ) -> PolygonalROI | RectangularROI | CircularROI:
@@ -105,6 +132,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         Returns:
             Single ROI
         """
+        self.__check_inputs_datatype()
         if self.geometry == "rectangle":
             return RectangularROI.from_param(obj, self)
         if self.geometry == "circle":
@@ -139,6 +167,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         method. It's simply the same as the source ROI, but with coordinates adjusted
         to the destination image. One may called this ROI the "extracted ROI".
         """
+        self.__check_inputs_datatype()
         if self.geometry == "rectangle":
             return None
         single_roi = self.to_single_roi(obj)
@@ -150,6 +179,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     def get_bounding_box_indices(self) -> tuple[int, int, int, int]:
         """Get bounding box (pixel coordinates)"""
+        self.__check_inputs_datatype()
         if self.geometry == "circle":
             x0, y0 = self.xc - self.r, self.yc - self.r
             x1, y1 = self.xc + self.r, self.yc + self.r
@@ -170,6 +200,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         Returns:
             Data in ROI
         """
+        self.__check_inputs_datatype()
         x0, y0, x1, y1 = self.get_bounding_box_indices()
         x0, y0 = max(0, x0), max(0, y0)
         x1, y1 = min(obj.data.shape[1], x1), min(obj.data.shape[0], y1)
