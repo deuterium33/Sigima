@@ -6,13 +6,15 @@ Unit tests for restoration computation functions.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 from skimage import morphology, restoration
 
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-from sigima.tests.data import get_test_image
+from sigima.tests import guiutils
+from sigima.tests.data import create_multigaussian_image, get_test_image
 from sigima.tests.helpers import check_array_result
 
 
@@ -87,8 +89,35 @@ def test_denoise_tophat() -> None:
     check_array_result(f"DenoiseTophat[radius={p.radius}]", dst.data, exp)
 
 
+@pytest.mark.validation
+def test_erase(request: pytest.FixtureRequest = None) -> None:
+    """Validation test for the image erase processing."""
+    guiutils.set_current_request(request)
+    obj = create_multigaussian_image()
+    coords = [600, 800, 300, 200]
+    ix0, iy0, idx, idy = coords
+    ix1, iy1 = ix0 + idx, iy0 + idy
+    p = sigima.objects.ROI2DParam()
+    p.x0, p.y0, p.dx, p.dy = coords
+    dst = sigima.proc.image.erase(obj, p)
+    exp = obj.data.copy()
+    exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_images_side_by_side
+
+        with qt_app_context():
+            view_images_side_by_side(
+                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+            )
+    check_array_result("Erase", dst.data, exp)
+
+
 if __name__ == "__main__":
     test_denoise_tv()
     test_denoise_bilateral()
     test_denoise_wavelet()
     test_denoise_tophat()
+    test_erase(request=guiutils.DummyRequest(gui=True))

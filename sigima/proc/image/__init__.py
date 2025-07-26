@@ -170,6 +170,7 @@ from sigima.proc.image.restoration import (
     denoise_tophat,
     denoise_tv,
     denoise_wavelet,
+    erase,
 )
 from sigima.proc.image.threshold import (
     ThresholdParam,

@@ -18,11 +18,12 @@ Restoration computation module
 from __future__ import annotations
 
 import guidata.dataset as gds
+import numpy as np
 import pywt
 from skimage import morphology, restoration
 
 from sigima.config import _
-from sigima.objects.image import ImageObj
+from sigima.objects.image import ImageObj, ROI2DParam
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
@@ -36,6 +37,7 @@ __all__ = [
     "DenoiseWaveletParam",
     "denoise_wavelet",
     "denoise_tophat",
+    "erase",
 ]
 
 
@@ -185,5 +187,32 @@ def denoise_tophat(src: ImageObj, p: MorphologyParam) -> ImageObj:
     """
     dst = dst_1_to_1(src, "denoise_tophat", f"radius={p.radius}")
     dst.data = src.data - morphology.white_tophat(src.data, morphology.disk(p.radius))
+    restore_data_outside_roi(dst, src)
+    return dst
+
+
+@computation_function()
+def erase(src: ImageObj, p: ROI2DParam) -> ImageObj:
+    """Erase an area of the image using the mean value of the image.
+
+    .. note::
+
+        The erased area is defined by a region of interest (ROI) parameter set.
+        This ROI must not be mistaken with the ROI of the image object. If the
+        image object has a ROI, it is not used in this processing, except to
+        restore the data outside the ROI (as in all other processing).
+
+    Args:
+        src: input image object
+        p: parameters defining the area to erase (region of interest)
+
+    Returns:
+        Output image object
+    """
+    dst = dst_1_to_1(src, "erase", p.get_suffix())
+    value = np.nanmean(p.get_data(src))
+    erase_roi = p.to_single_roi(src)
+    mask = erase_roi.to_mask(src)
+    dst.data[~mask] = value
     restore_data_outside_roi(dst, src)
     return dst

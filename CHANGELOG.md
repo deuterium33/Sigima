@@ -8,12 +8,27 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 💥 New features and enhancements:
 
 * New image processing features:
-  * Added new "Gaussian frequency filter" feature:
+  * New "Gaussian frequency filter" feature:
     * This feature allows to filter an image in the frequency domain using a Gaussian filter.
     * It is implemented in the `sigima.proc.image.freq_fft` function.
+  * New "Erase" feature:
+    * This feature allows to erase an area of the image using the mean value of the image.
+    * It is implemented in the `sigima.proc.image.erase` function.
+    * The erased area is defined by a region of interest (ROI) parameter set.
+    * Example usage:
+
+      ```python
+      import numpy as np
+      import sigima.objects as sio
+      import sigima.proc.image as sip
+
+      obj = sio.create_image("test_image", data=np.random.rand(1024, 1024))
+      p = sio.ROI2DParam.create(x0=600, y0=800, width=300, height=200)
+      dst = sip.erase(obj, p)
+      ```
 
 * New signal processing features:
-  * Added "Brickwall frequency filter" feature:
+  * New "Brickwall frequency filter" feature:
     * This feature allows to filter a signal in the frequency domain using a brickwall filter.
     * It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
