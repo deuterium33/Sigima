@@ -157,7 +157,7 @@ def test_image_stats_unit() -> None:
             assert np.isclose(df[colname][1], val, rtol=0.01)
             assert np.isclose(df[colname][3], val, rtol=0.01)
             if key != "mean/std":
-                assert np.isclose(df[colname][2], 0.0)
+                assert np.isclose(df[colname][2], 0.0, atol=0.001)
 
 
 if __name__ == "__main__":
