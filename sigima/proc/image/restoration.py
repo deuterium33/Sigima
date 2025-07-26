@@ -192,7 +192,7 @@ def denoise_tophat(src: ImageObj, p: MorphologyParam) -> ImageObj:
 
 
 @computation_function()
-def erase(src: ImageObj, p: ROI2DParam) -> ImageObj:
+def erase(src: ImageObj, p: ROI2DParam | list[ROI2DParam]) -> ImageObj:
     """Erase an area of the image using the mean value of the image.
 
     .. note::
@@ -209,10 +209,15 @@ def erase(src: ImageObj, p: ROI2DParam) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = dst_1_to_1(src, "erase", p.get_suffix())
-    value = np.nanmean(p.get_data(src))
-    erase_roi = p.to_single_roi(src)
-    mask = erase_roi.to_mask(src)
-    dst.data[~mask] = value
+    params = [p] if isinstance(p, ROI2DParam) else p
+    suffix = None
+    if len(params) == 1:
+        suffix = params[0].get_suffix()
+    dst = dst_1_to_1(src, "erase", suffix)
+    for param in params:
+        value = np.nanmean(param.get_data(src))
+        erase_roi = param.to_single_roi(src)
+        mask = erase_roi.to_mask(src)
+        dst.data[~mask] = value
     restore_data_outside_roi(dst, src)
     return dst

@@ -19,6 +19,10 @@ the DataLab application.
 # can be safely required (e.g. after raising the minimum required version of
 # scikit-image to >= 0.19).
 
+# TODO: Should we use `ImageROI` instead of `ROI2DParam` as input parameter type
+# for the `erase`, `extract_roi`, and `extract_rois` functions? (same for signal
+# ROI extraction functions)
+
 # The following comments are used to track the migration process of the `sigima`
 # package, in the context of the DataLab Core Architecture Redesign project funded by
 # the NLnet Foundation.

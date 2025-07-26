@@ -94,6 +94,8 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
     """Validation test for the image erase processing."""
     guiutils.set_current_request(request)
     obj = create_multigaussian_image()
+
+    # Single ROI erase
     coords = [600, 800, 300, 200]
     ix0, iy0, idx, idy = coords
     ix1, iy1 = ix0 + idx, iy0 + idy
@@ -102,6 +104,35 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
     dst = sigima.proc.image.erase(obj, p)
     exp = obj.data.copy()
     exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_images_side_by_side
+
+        with qt_app_context():
+            view_images_side_by_side(
+                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+            )
+    check_array_result("Erase", dst.data, exp)
+
+    # Multiple ROIs erase
+    coords = [
+        [600, 800, 300, 200],
+        [100, 200, 300, 200],
+        [400, 500, 300, 200],
+    ]
+    params = []
+    for c in coords:
+        p = sigima.objects.ROI2DParam()
+        p.x0, p.y0, p.dx, p.dy = c
+        params.append(p)
+    dst = sigima.proc.image.erase(obj, params)
+    exp = obj.data.copy()
+    for p in params:
+        ix0, iy0, idx, idy = p.x0, p.y0, p.dx, p.dy
+        ix1, iy1 = ix0 + idx, iy0 + idy
+        exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel
         from guidata.qthelpers import qt_app_context
