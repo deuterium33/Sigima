@@ -419,3 +419,22 @@ def check_scalar_result(
         )
     else:
         assert np.isclose(res, exp, rtol=rtol, atol=atol), restxt
+
+
+def print_obj_data_dimensions(obj: SignalObj | ImageObj, indent: int = 0) -> None:
+    """Print data array shape for the given signal or image object,
+    including ROI data if available.
+
+    Args:
+        obj: Signal or image object to print data dimensions for.
+        indent: Indentation level for printing (default: 0)
+    """
+    indent_str = "  " * indent
+    execenv.print(f"{indent_str}Accessing object '{obj.title}':")
+    execenv.print(f"{indent_str}  data: {__array_to_str(obj.data)}")
+    if obj.roi is not None:
+        for idx in range(len(obj.roi)):
+            roi_data = obj.get_data(idx)
+            if isinstance(obj, SignalObj):
+                roi_data = roi_data[1]  # y data
+            execenv.print(f"{indent_str}  ROI[{idx}]: {__array_to_str(roi_data)}")
