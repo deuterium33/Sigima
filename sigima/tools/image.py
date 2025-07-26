@@ -368,6 +368,87 @@ def get_centroid_fourier(data: np.ndarray) -> tuple[float, float]:
     return row, col
 
 
+@check_2d_array
+def get_projected_profile_centroid(
+    data: np.ndarray, smooth_ratio: float = 1 / 40, method: str = "median"
+) -> tuple[float, float]:
+    """
+    Estimate centroid from smoothed 1D projections.
+
+    Args:
+        data: 2D image array
+        smooth_ratio: Ratio of smoothing window size (default: 1/40)
+        method: 'median' (default) or 'barycenter'
+
+    Returns:
+        (y, x) coordinates
+    """
+    x_profile = data.sum(axis=0)
+    y_profile = data.sum(axis=1)
+    window_size = max(1, int(min(data.shape) * smooth_ratio))
+    kernel = np.ones(window_size) / window_size
+    x_profile = np.convolve(x_profile, kernel, mode="same")
+    y_profile = np.convolve(y_profile, kernel, mode="same")
+    x_profile -= np.min(x_profile)
+    y_profile -= np.min(y_profile)
+
+    if method == "median":
+        x_integral = np.cumsum(x_profile)
+        y_integral = np.cumsum(y_profile)
+        x_center = np.interp(
+            0.5 * x_integral[-1], x_integral, np.arange(len(x_integral))
+        )
+        y_center = np.interp(
+            0.5 * y_integral[-1], y_integral, np.arange(len(y_integral))
+        )
+    elif method == "barycenter":
+        x_center = np.sum(np.arange(len(x_profile)) * x_profile) / np.sum(x_profile)
+        y_center = np.sum(np.arange(len(y_profile)) * y_profile) / np.sum(y_profile)
+    else:
+        raise ValueError("Unknown method: choose 'median' or 'barycenter'")
+
+    return float(y_center), float(x_center)
+
+
+@check_2d_array
+def get_centroid_auto(
+    data: np.ndarray,
+    return_method: bool = False,
+) -> tuple[float, float] | tuple[float, float, Literal["fourier", "skimage"]]:
+    """
+    Automatically select the most reliable centroid estimation method:
+    - Prefer Fourier if it is more consistent with the projected median.
+    - Fallback to scikit-image centroid if Fourier is less coherent.
+
+    Args:
+        data: 2D image array.
+        return_method: If True, also return the name of the selected method.
+
+    Returns:
+        (row, col): Estimated centroid coordinates (float).
+        Optionally, the selected method as string: "fourier" or "skimage".
+    """
+    try:
+        row_f, col_f = get_centroid_fourier(data)
+    except Exception:
+        row_f, col_f = float("nan"), float("nan")
+
+    row_m, col_m = get_projected_profile_centroid(data, method="median")
+    row_s, col_s = measure.centroid(data)
+
+    dist_f = np.hypot(row_f - row_m, col_f - col_m)
+    dist_s = np.hypot(row_s - row_m, col_s - col_m)
+
+    if not (np.isnan(row_f) or np.isnan(col_f)) and dist_f < dist_s:
+        result = (row_f, col_f)
+        method = "fourier"
+    else:
+        result = (row_s, col_s)
+        method = "skimage"
+
+    return result + (method,) if return_method else result
+
+
 @check_2d_array(non_constant=True)
 def get_absolute_level(data: np.ndarray, level: float) -> float:
     """Return absolute level

@@ -45,7 +45,7 @@ __all__ = [
 
 def get_centroid_coords(data: np.ndarray) -> np.ndarray:
     """Return centroid coordinates
-    with :py:func:`sigima.tools.image.get_centroid_fourier`
+    with :py:func:`sigima.tools.image.get_centroid_auto`
 
     Args:
         data: input data
@@ -53,7 +53,7 @@ def get_centroid_coords(data: np.ndarray) -> np.ndarray:
     Returns:
         Centroid coordinates
     """
-    y, x = sigima.tools.image.get_centroid_fourier(data)
+    y, x = sigima.tools.image.get_centroid_auto(data)
     return np.array([(x, y)])
 
 

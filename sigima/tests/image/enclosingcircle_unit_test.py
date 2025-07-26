@@ -30,7 +30,7 @@ def __enclosingcircle_test(data):
     items += [make.image(data, interpolation="nearest", eliminate_outliers=1.0)]
 
     # Computing centroid coordinates
-    row, col = sigima.tools.image.get_centroid_fourier(data)
+    row, col = sigima.tools.image.get_centroid_auto(data)
     label = _("Centroid") + " (%d, %d)"
     execenv.print(label % (row, col))
     cursor = make.xcursor(col, row, label=label)
