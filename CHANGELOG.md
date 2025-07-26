@@ -27,6 +27,12 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
       dst = sip.erase(obj, p)
       ```
 
+  * Improved centroid estimation:
+    * New `get_centroid_auto` method implements an adaptive strategy that chooses between the Fourier-based centroid and a more robust fallback (scikit-image), based on agreement with a projected profile-based reference.
+    * Introduced `get_projected_profile_centroid` function for robust estimation via 1D projections (median or barycentric), offering high accuracy even with truncated or noisy images.
+    * These changes improve centroid accuracy and stability in edge cases (e.g. truncated disks or off-center spots), while preserving noise robustness.
+    * See [DataLab issue #251](https://github.com/DataLab-Platform/DataLab/issues/251) for more details.
+
 * New signal processing features:
   * New "Brickwall frequency filter" feature:
     * This feature allows to filter a signal in the frequency domain using a brickwall filter.
