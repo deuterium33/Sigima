@@ -104,16 +104,14 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         """
         if self.geometry == "rectangle":
             for attr in ("x0", "y0", "dx", "dy"):
-                if not isinstance(getattr(self, attr), int):
-                    raise TypeError(
-                        f"{attr} must be an integer (got value: {getattr(self, attr)})"
-                    )
+                value = getattr(self, attr)
+                if not np.issubdtype(type(value), np.integer):
+                    raise TypeError(f"{attr} must be an integer (got value: {value})")
         elif self.geometry == "circle":
             for attr in ("xc", "yc", "r"):
-                if not isinstance(getattr(self, attr), int):
-                    raise TypeError(
-                        f"{attr} must be an integer (got value: {getattr(self, attr)})"
-                    )
+                value = getattr(self, attr)
+                if not np.issubdtype(type(value), np.integer):
+                    raise TypeError(f"{attr} must be an integer (got value: {value})")
         elif self.geometry == "polygon":
             if not isinstance(self.points, np.ndarray):
                 raise TypeError("points must be a NumPy array")
