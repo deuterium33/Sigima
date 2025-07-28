@@ -55,7 +55,6 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.githubpages",
     "sphinx.ext.viewcode",
-    "sphinx_sitemap",
     "myst_parser",
     "sphinx_design",
     "sphinx_copybutton",
@@ -63,11 +62,6 @@ extensions = [
 ]
 templates_path = ["_templates"]
 exclude_patterns = []
-
-# -- Options for sitemap extension -------------------------------------------
-html_baseurl = sigima.__homeurl__  # for sitemap extension
-sitemap_locales = ["en", "fr"]
-sitemap_filename = "../sitemap.xml"
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"

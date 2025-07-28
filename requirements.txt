@@ -22,7 +22,6 @@ ruff
 scikit-image >= 0.19.2
 sphinx
 sphinx-copybutton
-sphinx-sitemap
 sphinx_design
 sphinx_intl
 typing-extensions >= 4.0
