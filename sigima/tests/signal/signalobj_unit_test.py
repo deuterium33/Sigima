@@ -110,6 +110,72 @@ def test_signal_parameters_interactive() -> None:
     execenv.print(f"{test_signal_parameters_interactive.__doc__}: OK")
 
 
+def test_create_signal() -> None:
+    """Test creation of a signal object using `create_signal` function"""
+    execenv.print(f"{test_create_signal.__doc__}:")
+    # pylint: disable=import-outside-toplevel
+
+    # Test all combinations of input parameters
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x)
+    dx = np.full_like(x, 0.1)
+    dy = np.full_like(y, 0.01)
+    metadata = {"source": "test", "description": "Test signal"}
+    units = ("s", "V")
+    labels = ("Time", "Amplitude")
+
+    # 1. Create signal with all parameters
+    title = "Some Signal"
+    signal = sigima.objects.create_signal(
+        title=title,
+        x=x,
+        y=y,
+        dx=dx,
+        dy=dy,
+        metadata=metadata,
+        units=units,
+        labels=labels,
+    )
+    assert isinstance(signal, sigima.objects.SignalObj)
+    assert signal.title == title
+    assert np.array_equal(signal.x, x)
+    assert np.array_equal(signal.y, y)
+    assert np.array_equal(signal.dx, dx)
+    assert np.array_equal(signal.dy, dy)
+    assert signal.metadata == metadata
+    assert (signal.xunit, signal.yunit) == units
+    assert (signal.xlabel, signal.ylabel) == labels
+
+    # 2. Create signal with only x and y
+    signal = sigima.objects.create_signal("", x=x, y=y)
+    assert isinstance(signal, sigima.objects.SignalObj)
+    assert np.array_equal(signal.x, x)
+    assert np.array_equal(signal.y, y)
+    assert signal.dx is None
+    assert signal.dy is None
+    assert signal.metadata == {}
+    assert (signal.xunit, signal.yunit) == ("", "")
+    assert (signal.xlabel, signal.ylabel) == ("", "")
+
+    # 3. Create signal with only x, y, and dx
+    signal = sigima.objects.create_signal("", x=x, y=y, dx=dx)
+    assert isinstance(signal, sigima.objects.SignalObj)
+    assert np.array_equal(signal.x, x)
+    assert np.array_equal(signal.y, y)
+    assert np.array_equal(signal.dx, dx)
+    assert signal.dy is None
+
+    # 4. Create signal with only x, y, and dy
+    signal = sigima.objects.create_signal("", x=x, y=y, dy=dy)
+    assert isinstance(signal, sigima.objects.SignalObj)
+    assert np.array_equal(signal.x, x)
+    assert np.array_equal(signal.y, y)
+    assert signal.dx is None
+    assert np.array_equal(signal.dy, dy)
+
+    execenv.print(f"{test_create_signal.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_signal_parameters_interactive()
     test_all_signal_types()

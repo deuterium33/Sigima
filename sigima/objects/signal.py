@@ -336,9 +336,9 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             self.xydata = np.vstack([x, y])
         else:
             if dx is None:
-                dx = np.zeros_like(dy)
+                dx = np.full_like(x, np.nan)
             if dy is None:
-                dy = np.zeros_like(dx)
+                dy = np.full_like(y, np.nan)
             assert x is not None and y is not None
             self.xydata = np.vstack((x, y, dx, dy))
 
@@ -352,7 +352,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             return x.real.astype(float)
         return None
 
-    def __set_x(self, data) -> None:
+    def __set_x(self, data: np.ndarray | list[float] | None) -> None:
         """Set x data"""
         assert isinstance(self.xydata, np.ndarray)
         assert isinstance(data, (list, np.ndarray))
@@ -370,7 +370,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             return self.xydata[1]
         return None
 
-    def __set_y(self, data) -> None:
+    def __set_y(self, data: np.ndarray | list[float] | None) -> None:
         """Set y data"""
         assert isinstance(self.xydata, np.ndarray)
         assert isinstance(data, (list, np.ndarray))
@@ -383,30 +383,45 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
 
     def __get_dx(self) -> np.ndarray | None:
         """Get dx data"""
-        if self.xydata is not None and len(self.xydata) > 2:
+        if self.xydata is not None and len(self.xydata) == 4:
             dx: np.ndarray = self.xydata[2]
+            if np.all(np.isnan(dx)):
+                return None
             return dx.real.astype(float)
         return None
 
-    def __set_dx(self, data) -> None:
+    def __set_dx(self, data: np.ndarray | list[float] | None) -> None:
         """Set dx data"""
-        if self.xydata is not None and len(self.xydata) > 2:
-            self.xydata[2] = np.array(data)
-        else:
-            raise ValueError("dx data not available")
+        assert isinstance(data, (list, np.ndarray))
+        if self.xydata is None:
+            raise ValueError("Signal data not initialized")
+        assert data.shape[0] == self.xydata.shape[1], (
+            "dx data size must match X data size"
+        )
+        if len(self.xydata) == 2:
+            self.xydata = np.vstack((self.xydata, np.zeros((2, self.xydata.shape[1]))))
+        self.xydata[2] = np.array(data)
 
     def __get_dy(self) -> np.ndarray | None:
         """Get dy data"""
-        if self.xydata is not None and len(self.xydata) > 3:
-            return self.xydata[3]
+        if self.xydata is not None and len(self.xydata) == 4:
+            dy: np.ndarray = self.xydata[3]
+            if np.all(np.isnan(dy)):
+                return None
+            return dy
         return None
 
-    def __set_dy(self, data) -> None:
+    def __set_dy(self, data: np.ndarray | list[float] | None) -> None:
         """Set dy data"""
-        if self.xydata is not None and len(self.xydata) > 3:
-            self.xydata[3] = np.array(data)
-        else:
-            raise ValueError("dy data not available")
+        assert isinstance(data, (list, np.ndarray))
+        if self.xydata is None:
+            raise ValueError("Signal data not initialized")
+        assert data.shape[0] == self.xydata.shape[1], (
+            "dy data size must match X data size"
+        )
+        if len(self.xydata) == 2:
+            self.xydata = np.vstack((self.xydata, np.zeros((2, self.xydata.shape[1]))))
+        self.xydata[3] = np.array(data)
 
     x = property(__get_x, __set_x)
     y = data = property(__get_y, __set_y)
