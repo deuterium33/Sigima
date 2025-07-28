@@ -134,7 +134,46 @@ def test_image_parameters_interactive() -> None:
     execenv.print(f"{test_image_parameters_interactive.__doc__}: OK")
 
 
+def test_create_image() -> None:
+    """Test creation of an image object using `create_image` function"""
+    execenv.print(f"{test_create_image.__doc__}:")
+    # pylint: disable=import-outside-toplevel
+
+    # Test all combinations of input parameters
+    title = "Some Image"
+    data = np.random.rand(10, 10)
+    metadata = {"key": "value"}
+    units = ("x unit", "y unit", "z unit")
+    labels = ("x label", "y label", "z label")
+
+    # 1. Create image with all parameters
+    image = sigima.objects.create_image(
+        title=title,
+        data=data,
+        metadata=metadata,
+        units=units,
+        labels=labels,
+    )
+    assert isinstance(image, sigima.objects.ImageObj)
+    assert image.title == title
+    assert image.data is data  # Data should be the same object (not a copy)
+    assert image.metadata == metadata
+    assert (image.xunit, image.yunit, image.zunit) == units
+    assert (image.xlabel, image.ylabel, image.zlabel) == labels
+
+    # 2. Create image with only data
+    image = sigima.objects.create_image("", data=data)
+    assert isinstance(image, sigima.objects.ImageObj)
+    assert np.array_equal(image.data, data)
+    assert image.metadata == {}
+    assert (image.xunit, image.yunit, image.zunit) == ("", "", "")
+    assert (image.xlabel, image.ylabel, image.zlabel) == ("", "", "")
+
+    execenv.print(f"{test_create_image.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_image_parameters_interactive()
     test_all_image_types()
     test_hdf5_image_io()
+    test_create_image()
