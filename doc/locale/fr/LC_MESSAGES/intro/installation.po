@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-28 17:29+0200\n"
+"POT-Creation-Date: 2025-07-28 17:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -279,12 +279,6 @@ msgstr ""
 
 msgid "Sphinx utility that make it easy to translate and to apply translation."
 msgstr "Utilitaire pour la traduction de la documentation générée par Sphinx."
-
-msgid "sphinx-sitemap"
-msgstr ""
-
-msgid "Sitemap generator for Sphinx"
-msgstr ""
 
 msgid "myst_parser"
 msgstr ""
