@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-22 15:10+0200\n"
+"POT-Creation-Date: 2025-07-28 17:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -34,8 +34,8 @@ msgstr "💥 Nouvelles fonctionnalités et améliorations:"
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
 
-msgid "Added new \"Gaussian frequency filter\" feature:"
-msgstr "Ajout de la nouvelle fonctionnalité \"Filtrage fréquentiel gaussien\":"
+msgid "New \"Gaussian frequency filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\":"
 
 msgid "This feature allows to filter an image in the frequency domain using a Gaussian filter."
 msgstr "Cette fonctionnalité permet de filtrer une image dans le domaine fréquentiel à l'aide d'un filtre gaussien."
@@ -43,11 +43,41 @@ msgstr "Cette fonctionnalité permet de filtrer une image dans le domaine fréqu
 msgid "It is implemented in the `sigima.proc.image.freq_fft` function."
 msgstr "Elle est implémentée dans la fonction `sigima.proc.image.freq_fft`."
 
+msgid "New \"Erase\" feature:"
+msgstr "Nouvelle fonctionnalité \"Gommage\":"
+
+msgid "This feature allows to erase an area of the image using the mean value of the image."
+msgstr "Cette fonctionnalité permet de gommer une zone de l'image en utilisant la valeur moyenne de l'image."
+
+msgid "It is implemented in the `sigima.proc.image.erase` function."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.image.erase`."
+
+msgid "The erased area is defined by a region of interest (ROI) parameter set."
+msgstr "La zone gommée est définie par un paramètre de région d'intérêt (ROI)."
+
+msgid "Example usage:"
+msgstr "Exemple d'utilisation:"
+
+msgid "Improved centroid estimation:"
+msgstr "Amélioration de l'estimation du centroïde:"
+
+msgid "New `get_centroid_auto` method implements an adaptive strategy that chooses between the Fourier-based centroid and a more robust fallback (scikit-image), based on agreement with a projected profile-based reference."
+msgstr "La nouvelle méthode `get_centroid_auto` implémente une stratégie adaptative qui choisit entre le centroïde basé sur Fourier et un repli plus robuste (scikit-image), en fonction de l'accord avec une référence basée sur le profil projeté."
+
+msgid "Introduced `get_projected_profile_centroid` function for robust estimation via 1D projections (median or barycentric), offering high accuracy even with truncated or noisy images."
+msgstr "Introduction de la fonction `get_projected_profile_centroid` pour une estimation robuste via des projections 1D (médiane ou barycentrique), offrant une grande précision même avec des images tronquées ou bruyantes."
+
+msgid "These changes improve centroid accuracy and stability in edge cases (e.g. truncated disks or off-center spots), while preserving noise robustness."
+msgstr "Ces changements améliorent la précision et la stabilité du centroïde dans les cas extrêmes (par exemple, disques tronqués ou taches décentrées), tout en préservant la robustesse au bruit."
+
+msgid "See [DataLab issue #251](https://github.com/DataLab-Platform/DataLab/issues/251) for more details."
+msgstr "Voir l'[issue DataLab #251](https://github.com/DataLab-Platform/DataLab/issues/251) pour plus de détails."
+
 msgid "New signal processing features:"
 msgstr "Nouvelles fonctionnalités de traitement du signal:"
 
-msgid "Added \"Brickwall frequency filter\" feature:"
-msgstr "Ajout de la fonctionnalité \"Filtre fréquentiel Brickwall\":"
+msgid "New \"Brickwall frequency filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel Brickwall\":"
 
 msgid "This feature allows to filter a signal in the frequency domain using a brickwall filter."
 msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre Brickwall."
@@ -66,9 +96,6 @@ msgstr "Cette fonctionnalité permet de générer une image de rampe 2D: z = a(x
 
 msgid "It is implemented in the `sigima.objects.Ramp2DParam` parameter class."
 msgstr "Elle est implémentée dans la classe de paramètres `sigima.objects.Ramp2DParam`."
-
-msgid "Example usage:"
-msgstr "Exemple d'utilisation:"
 
 msgid "New signal generators: linear chirp, logistic function, Planck function."
 msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique, fonction de Planck."

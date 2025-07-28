@@ -49,8 +49,9 @@ Sigima has been funded by the following stakeholders:
    :maxdepth: 2
    :caption: Contents
 
+   intro/index
    api/index
-   installation
+   contributing/index
    changelog
 
 

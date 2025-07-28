@@ -140,4 +140,4 @@ without handling dependencies (because it would reinstall all dependencies):
 Dependencies
 ------------
 
-.. include:: requirements.rst
+.. include:: ../requirements.rst

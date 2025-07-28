@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-23 09:52+0200\n"
+"POT-Creation-Date: 2025-07-28 17:35+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -1039,6 +1039,15 @@ msgstr "Radian"
 msgid "Angle unit"
 msgstr "Unité de l'angle"
 
+msgid "Angle"
+msgstr "Angle"
+
+msgid "x"
+msgstr "x"
+
+msgid "y"
+msgstr "y"
+
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
 
@@ -1113,4 +1122,3 @@ msgstr "Intensité"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

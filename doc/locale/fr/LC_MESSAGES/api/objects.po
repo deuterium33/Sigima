@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 11:22+0200\n"
+"POT-Creation-Date: 2025-07-28 17:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -187,32 +187,35 @@ msgstr ""
 msgid "Signal object"
 msgstr ""
 
-msgid "Default: None."
+msgid "Titre du signal\\.  Chaîne\\. Default: 'Sans titre'."
 msgstr ""
 
 msgid "type"
+msgstr ""
+
+msgid "guidata.dataset.dataitems.StringItem"
+msgstr ""
+
+msgid "Données\\.  Default: None."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.FloatArrayItem"
 msgstr ""
 
 #, python-brace-format
-msgid "Default: {}."
+msgid "Métadonnées\\.  Default: {}."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.DictItem"
 msgstr ""
 
-msgid "Default: ''."
+msgid "Chaîne\\. Default: ''."
 msgstr ""
 
-msgid "guidata.dataset.dataitems.StringItem"
+msgid "Titre\\.  Chaîne\\. Default: ''."
 msgstr ""
 
-msgid "Signal title\\.  Default: 'Untitled'."
-msgstr ""
-
-msgid "Title\\.  Default: ''."
+msgid "Unité\\.  Chaîne\\. Default: ''."
 msgstr ""
 
 msgid "Default: True."
@@ -224,13 +227,13 @@ msgstr ""
 msgid "Default: False."
 msgstr ""
 
-msgid "Lower bound\\.  Default: None."
+msgid "Borne inférieure\\.  Flottant\\. Default: None."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.FloatItem"
 msgstr ""
 
-msgid "Upper bound\\.  Default: None."
+msgid "Borne supérieure\\.  Flottant\\. Default: None."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`SignalObj` with the fields set to the given values."
@@ -758,16 +761,16 @@ msgstr ""
 msgid "Parameters for zero signal"
 msgstr ""
 
-msgid "Default: 'Untitled signal'."
+msgid "Titre\\.  Chaîne\\. Default: 'Signal sans titre'."
 msgstr ""
 
-msgid "x\\ :subscript:`min`\\.  Default: -10.0."
+msgid "x\\ :subscript:`min`\\.  Flottant\\. Default: -10.0."
 msgstr ""
 
-msgid "x\\ :subscript:`max`\\.  Default: 10.0."
+msgid "x\\ :subscript:`max`\\.  Flottant\\. Default: 10.0."
 msgstr ""
 
-msgid "Signal size (total number of points)\\. Default: 500."
+msgid "Taille\\. Nombre de points\\. Entier\\. Default: 500."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.IntItem"
@@ -782,13 +785,13 @@ msgstr ""
 msgid "Uniform-law random signal/image parameters"
 msgstr ""
 
-msgid "Default: 1."
+msgid "Graine\\.  Entier\\. Default: 1."
 msgstr ""
 
-msgid "V\\ :subscript:`min`\\. Uniform distribution lower bound\\. Default: -0.5."
+msgid "V\\ :subscript:`min`\\. Borne inférieure de la distribution uniforme\\. Flottant\\. Default: -0.5."
 msgstr ""
 
-msgid "V\\ :subscript:`max`\\. Uniform distribution higher bound\\. Default: 0.5."
+msgid "V\\ :subscript:`max`\\. Borne supérieure de la distribution uniforme\\. Flottant\\. Default: 0.5."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`UniformRandomParam` with the fields set to the given values."
@@ -800,10 +803,10 @@ msgstr ""
 msgid "Normal-law random signal/image parameters"
 msgstr ""
 
-msgid "μ\\. Normal distribution mean\\. Default: 0.1."
+msgid "μ\\. Moyenne de la distribution normale\\. Flottant\\. Default: 0.1."
 msgstr ""
 
-msgid "σ\\. Normal distribution standard deviation\\. Default: 0.02."
+msgid "σ\\. Ecart-type de la distribution normale\\. Flottant\\. Default: 0.02."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`NormalRandomParam` with the fields set to the given values."
@@ -815,16 +818,16 @@ msgstr ""
 msgid "Parameters for Gaussian function"
 msgstr ""
 
-msgid "Default: 1.0."
+msgid "Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "y\\ :subscript:`0`\\.  Default: 0.0."
+msgid "y\\ :subscript:`0`\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
-msgid "σ\\.  Default: 1.0."
+msgid "σ\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "μ\\.  Default: 0.0."
+msgid "μ\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`GaussParam` with the fields set to the given values."
@@ -854,22 +857,22 @@ msgstr ""
 msgid "Parameters for sinus function"
 msgstr ""
 
-msgid "Amplitude\\.  Default: 1.0."
+msgid "Amplitude\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "Default: 0.0."
+msgid "Décalage\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
-msgid "Frequency\\.  Default: 1.0."
+msgid "Fréquence\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "Single choice from: FreqUnits.HZ, FreqUnits.KHZ, FreqUnits.MHZ, FreqUnits.GHZ. Default: FreqUnits.HZ."
+msgid "Unité\\.  Single choice from: FreqUnits.HZ, FreqUnits.KHZ, FreqUnits.MHZ, FreqUnits.GHZ. Default: FreqUnits.HZ."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.ChoiceItem"
 msgstr ""
 
-msgid "Float, unit: °\\. Default: 0.0."
+msgid "Flottant, unité : °\\. Default: 0.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`SinusParam` with the fields set to the given values."
@@ -926,13 +929,13 @@ msgstr ""
 msgid "Parameters for step function"
 msgstr ""
 
-msgid "A\\ :subscript:`1`\\.  Default: 0.0."
+msgid "A\\ :subscript:`1`\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
-msgid "A\\ :subscript:`2`\\.  Default: 1.0."
+msgid "A\\ :subscript:`2`\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "x\\ :subscript:`0`\\.  Default: 0.0."
+msgid "x\\ :subscript:`0`\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`StepParam` with the fields set to the given values."
@@ -944,6 +947,9 @@ msgstr ""
 msgid "Parameters for exponential function"
 msgstr ""
 
+msgid "Exposant\\.  Flottant\\. Default: 1.0."
+msgstr ""
+
 msgid "Returns a new instance of :py:class:`ExponentialParam` with the fields set to the given values."
 msgstr ""
 
@@ -953,7 +959,10 @@ msgstr ""
 msgid "Parameters for pulse function"
 msgstr ""
 
-msgid "End\\.  Default: 0.0."
+msgid "Démarrer\\.  Flottant\\. Default: 0.0."
+msgstr ""
+
+msgid "Fin\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`PulseParam` with the fields set to the given values."
@@ -963,6 +972,9 @@ msgid "New instance of :py:class:`PulseParam`."
 msgstr ""
 
 msgid "Parameters for polynomial function"
+msgstr ""
+
+msgid "Flottant\\. Default: 0.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`PolyParam` with the fields set to the given values."
@@ -998,10 +1010,10 @@ msgstr ""
 msgid "Signal ROI parameters"
 msgstr ""
 
-msgid "First point coordinate\\.  Default: None."
+msgid "Coordonnée du premier point\\.  Flottant\\. Default: None."
 msgstr ""
 
-msgid "Last point coordinate\\.  Default: None."
+msgid "Coordonnée du dernier point\\.  Flottant\\. Default: None."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`ROI1DParam` with the fields set to the given values."
@@ -1049,19 +1061,19 @@ msgstr ""
 msgid "Image object"
 msgstr ""
 
-msgid "X\\ :subscript:`0`\\.  Default: 0.0."
+msgid "X\\ :subscript:`0`\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
-msgid "Y\\ :subscript:`0`\\.  Default: 0.0."
+msgid "Y\\ :subscript:`0`\\.  Flottant\\. Default: 0.0."
 msgstr ""
 
-msgid "Δx\\.  Float, non zero\\. Default: 1.0."
+msgid "Δx\\.  Flottant, non nul\\. Default: 1.0."
 msgstr ""
 
-msgid "Δy\\.  Float, non zero\\. Default: 1.0."
+msgid "Δy\\.  Flottant, non nul\\. Default: 1.0."
 msgstr ""
 
-msgid "Image title\\.  Default: 'Untitled'."
+msgid "Titre de l'image\\.  Chaîne\\. Default: 'Sans titre'."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`ImageObj` with the fields set to the given values."
@@ -1199,16 +1211,16 @@ msgstr ""
 msgid "Image parameters for a 2D image filled with zeros"
 msgstr ""
 
-msgid "Default: 'Untitled image'."
+msgid "Titre\\.  Chaîne\\. Default: 'Image sans titre'."
 msgstr ""
 
-msgid "Image height: number of rows\\. Default: 1024."
+msgid "Hauteur\\. Hauteur de l'image : nombre de lignes\\. Entier\\. Default: 1024."
 msgstr ""
 
-msgid "Image width: number of columns\\. Default: 1024."
+msgid "Largeur\\. Largeur de l'image : nombre de colonnes\\. Entier\\. Default: 1024."
 msgstr ""
 
-msgid "Data type\\.  Single choice from: ImageDatatypes.UINT8, ImageDatatypes.UINT16, ImageDatatypes.INT16, ImageDatatypes.FLOAT32, ImageDatatypes.FLOAT64. Default: ImageDatatypes.UINT8."
+msgid "Type de données\\.  Single choice from: ImageDatatypes.UINT8, ImageDatatypes.UINT16, ImageDatatypes.INT16, ImageDatatypes.FLOAT32, ImageDatatypes.FLOAT64. Default: ImageDatatypes.FLOAT64."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`Zeros2DParam` with the fields set to the given values."
@@ -1250,13 +1262,16 @@ msgstr ""
 msgid "z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + (y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))"
 msgstr ""
 
-msgid "Default: -10."
+msgid "Flottant\\. Default: None."
 msgstr ""
 
-msgid "Default: 10."
+msgid "Flottant\\. Default: -10."
 msgstr ""
 
-msgid "Default: 0."
+msgid "Flottant\\. Default: 10."
+msgstr ""
+
+msgid "Flottant\\. Default: 0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`Gauss2DParam` with the fields set to the given values."
@@ -1271,16 +1286,16 @@ msgstr ""
 msgid "z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c"
 msgstr ""
 
-msgid "x\\ :subscript:`min`\\.  Default: -1.0."
+msgid "x\\ :subscript:`min`\\.  Flottant\\. Default: -1.0."
 msgstr ""
 
-msgid "x\\ :subscript:`max`\\.  Default: 1.0."
+msgid "x\\ :subscript:`max`\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
-msgid "y\\ :subscript:`min`\\.  Default: -1.0."
+msgid "y\\ :subscript:`min`\\.  Flottant\\. Default: -1.0."
 msgstr ""
 
-msgid "y\\ :subscript:`max`\\.  Default: 1.0."
+msgid "y\\ :subscript:`max`\\.  Flottant\\. Default: 1.0."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`Ramp2DParam` with the fields set to the given values."
@@ -1292,31 +1307,31 @@ msgstr ""
 msgid "Image ROI parameters"
 msgstr ""
 
-msgid "Single choice from: 'rectangle', 'circle', 'polygon'. Default: 'rectangle'."
+msgid "Géométrie\\.  Single choice from: 'rectangle', 'circle', 'polygon'. Default: 'rectangle'."
 msgstr ""
 
-msgid "X\\ :subscript:`0`\\.  Integer, unit: pixels\\. Default: None."
+msgid "X\\ :subscript:`0`\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "Y\\ :subscript:`0`\\.  Integer, unit: pixels\\. Default: None."
+msgid "Y\\ :subscript:`0`\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "ΔX\\.  Integer, unit: pixels\\. Default: None."
+msgid "ΔX\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "ΔY\\.  Integer, unit: pixels\\. Default: None."
+msgid "ΔY\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "X\\ :subscript:`C`\\.  Integer, unit: pixels\\. Default: None."
+msgid "X\\ :subscript:`C`\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "Y\\ :subscript:`C`\\.  Integer, unit: pixels\\. Default: None."
+msgid "Y\\ :subscript:`C`\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "Radius\\.  Integer, unit: pixels\\. Default: None."
+msgid "Rayon\\.  Entier, unité : pixels\\. Default: None."
 msgstr ""
 
-msgid "Coordinates (pixels)\\.  Default: None."
+msgid "Coordonnées (pixels)\\.  Default: None."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`ROI2DParam` with the fields set to the given values."

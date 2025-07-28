@@ -1,0 +1,110 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, DataLab Platform Developers
+# This file is distributed under the same license as the DataLab package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: DataLab \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-28 17:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "About Dependencies"
+msgstr "A propos des dépendances"
+
+msgid "Dependencies are an important part of any software project, and they can significantly affect the development process. In this section, we will discuss the dependencies used in our project, how to manage them, and best practices for keeping them up to date."
+msgstr "Les dépendances sont une partie importante de tout projet logiciel, et elles peuvent affecter considérablement le processus de développement. Dans cette section, nous allons discuter des dépendances utilisées dans notre projet, comment les gérer et les meilleures pratiques pour les maintenir à jour."
+
+msgid "Managing Dependencies"
+msgstr "Gérer les dépendances"
+
+msgid "Dependencies are defined in the `pyproject.toml` file, as officially recommended by the Python packaging authority (see `Writing your pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_)."
+msgstr "Les dépendances sont définies dans le fichier `pyproject.toml`, comme recommandé officiellement par l'autorité de packaging Python (voir `Writing your pyproject.toml <https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_)."
+
+msgid "The `pyproject.toml` file contains many sections, but the most relevant for dependencies are:"
+msgstr "\"Le fichier `pyproject.toml` contient de nombreuses sections, mais les plus pertinentes pour les dépendances sont :"
+
+msgid "`[project.dependencies]`: This section lists the direct dependencies of the application. These are the packages that the application needs to run."
+msgstr "`[project.dependencies]`: Cette section liste les dépendances directes de l'application. Ce sont les paquets dont l'application a besoin pour fonctionner."
+
+msgid "`[project.optional-dependencies]`: This section lists optional dependencies that can be installed to enable additional features. These dependencies are not required for the core functionality of the application but can enhance its capabilities."
+msgstr "`[project.optional-dependencies]`: Cette section liste les dépendances optionnelles qui peuvent être installées pour activer des fonctionnalités supplémentaires. Ces dépendances ne sont pas nécessaires au fonctionnement de base de l'application, mais peuvent améliorer ses capacités."
+
+msgid "Among the optional dependencies, we have the following groups:"
+msgstr "Parmi les dépendances optionnelles, nous avons les groupes suivants :"
+
+msgid "`opencv`: computer vision tasks requiring OpenCV."
+msgstr "`opencv`: tâches de traitement d'image nécessitant OpenCV."
+
+msgid "`dev`: development and testing (linters, formatters, etc.)."
+msgstr "`dev`: développement et tests (analyseurs de code, formateurs, etc.)."
+
+msgid "`doc`: building the documentation (Sphinx, etc.)."
+msgstr "`doc`: construction de la documentation (Sphinx, etc.)."
+
+msgid "`test`: running the tests (pytest, etc.)."
+msgstr "`test`: exécution des tests (pytest, etc.)."
+
+msgid "`qt`: Qt-based graphical user interface (for interactive testing purposes)."
+msgstr "`qt`: interface graphique basée sur Qt (pour les tests interactifs)."
+
+msgid "Deploying Dependencies"
+msgstr "Déployer les dépendances"
+
+msgid "Production"
+msgstr "En production"
+
+msgid "In production, we recommend using the package manager that is most suitable for your environment and that you are most comfortable with. All package managers (e.g., `pip`, `conda`) are directly or indirectly using the information from the `pyproject.toml` file to install the dependencies."
+msgstr "En production, nous recommandons d'utiliser le gestionnaire de paquets qui convient le mieux à votre environnement et avec lequel vous êtes le plus à l'aise. Tous les gestionnaires de paquets (par exemple, `pip`, `conda`) utilisent directement ou indirectement les informations du fichier `pyproject.toml` pour installer les dépendances."
+
+msgid "See :ref:`installation` for more information on how to install DataLab and its dependencies."
+msgstr "Voir :ref:`installation` pour plus d'informations sur la façon d'installer DataLab et ses dépendances."
+
+msgid "Development"
+msgstr "En développement"
+
+msgid "In development, you may also use the requirements text files to make it easier to install the dependencies in a virtual environment or container."
+msgstr "En développement, vous pouvez également utiliser les fichiers de texte des exigences pour faciliter l'installation des dépendances dans un environnement virtuel ou un conteneur."
+
+msgid "Two requirements files are provided:"
+msgstr "Deux fichiers de dépendances sont fournis :"
+
+msgid "`requirements.txt`: This file lists all the dependencies needed for the project, including both direct and optional dependencies. This is the exact list of dependencies that are defined in the `pyproject.toml` file, but formatted for use with `pip` or other package managers that support requirements files."
+msgstr "`requirements.txt`: Ce fichier liste toutes les dépendances nécessaires au projet, y compris les dépendances directes et optionnelles. C'est la liste exacte des dépendances définies dans le fichier `pyproject.toml`, mais formatée pour être utilisée avec `pip` ou d'autres gestionnaires de paquets qui prennent en charge les fichiers de dépendances."
+
+msgid "`requirements-min.txt`: This file lists the dependencies with minimum versions required to run the project. It is useful for executing the project with the maximum compatibility, ensuring that the project runs with the least restrictive versions of the dependencies. *This is the recommended file to use when developing the project.*"
+msgstr "`requirements-min.txt`: Ce fichier liste les dépendances avec les versions minimales requises pour exécuter le projet. Il est utile pour exécuter le projet avec la compatibilité maximale, garantissant que le projet s'exécute avec les versions les moins restrictives des dépendances. *C'est le fichier recommandé à utiliser lors du développement du projet.*"
+
+msgid "The requirements files are generated from the `pyproject.toml` file using a tool provided by the `guidata` package."
+msgstr "Les fichiers de dépendances sont générés à partir du fichier `pyproject.toml` à l'aide d'un outil fourni par le package `guidata`."
+
+msgid "Adding New Dependencies"
+msgstr "Ajouter de nouvelles dépendances"
+
+msgid "When adding new dependencies to the project, please follow these rules:"
+msgstr "Lors de l'ajout de nouvelles dépendances au projet, veuillez suivre ces règles :"
+
+msgid "If it is a direct dependency, that is a package that the application needs to run, add it to the `[project.dependencies]` section in the `pyproject.toml` file, and specify the version range that is compatible with the application, in order to avoid breaking changes."
+msgstr "Si c'est une dépendance directe, c'est-à-dire un paquet dont l'application a besoin pour fonctionner, ajoutez-le à la section `[project.dependencies]` dans le fichier `pyproject.toml`, et spécifiez la plage de versions compatible avec l'application, afin d'éviter les changements incompatibles."
+
+msgid "If it is an optional dependency, that is a package that can be installed to enable additional features, add it to the appropriate section in the `[project.optional-dependencies]` section in the `pyproject.toml` file."
+msgstr "Si c'est une dépendance optionnelle, c'est-à-dire un paquet qui peut être installé pour activer des fonctionnalités supplémentaires, ajoutez-le à la section appropriée dans la section `[project.optional-dependencies]` du fichier `pyproject.toml`."
+
+msgid "For the `dev` dependencies, unless it's absolutely necessary, do not specify a version range, as it may limit the ability to use the latest version of the package."
+msgstr "Pour les dépendances `dev`, sauf si c'est absolument nécessaire, ne spécifiez pas de plage de versions, car cela peut limiter la capacité à utiliser la dernière version du paquet."
+
+msgid "For the other optional dependencies, specify the version range that is compatible with the application, in order to avoid breaking changes."
+msgstr "Pour les autres dépendances optionnelles, spécifiez la plage de versions compatible avec l'application, afin d'éviter les changements incompatibles."
+
+msgid "In other words, except for the `dev` dependencies, always specify a version range that is compatible with the application."
+msgstr "En d'autres termes, sauf pour les dépendances `dev`, spécifiez toujours une plage de versions compatible avec l'application."
