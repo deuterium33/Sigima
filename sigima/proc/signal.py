@@ -2859,6 +2859,96 @@ def compute_geometry_from_obj(
     return None
 
 
+class ParametersParam(gds.DataSet):
+    """Parameters for get parameters function."""
+
+    signal_shape = gds.ChoiceItem(
+        _("Signal shape"),
+        [
+            (None, _("Auto")),
+            (pulse.SignalShape.STEP, _("Step")),
+            (pulse.SignalShape.SQUARE, _("Square")),
+        ],
+        default="auto",
+        help=_("Signal type: auto-detect, step, or square."),
+    )
+    start_basement_range_min = gds.FloatItem(
+        _("Start basement min"),
+        default=0.0,
+        help=_("Interval for the first plateau, xmin."),
+    )
+    start_basement_range_max = gds.FloatItem(
+        _("Start basement max"),
+        default=0.0,
+        help=_("Interval for the first plateau, xmax."),
+    )
+    end_basement_range_min = gds.FloatItem(
+        _("End basement min"),
+        default=1.0,
+        help=_("Interval for the last plateau, xmin."),
+    )
+    end_basement_range_max = gds.FloatItem(
+        _("End basement max"),
+        default=1.0,
+        help=_("Interval for the last plateau, xmax."),
+    )
+    start_rise_ratio = gds.FloatItem(
+        _("Start rise ratio"),
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        help=_("Fraction for rise start (0 to 1)."),
+    )
+    stop_rise_ratio = gds.FloatItem(
+        _("Stop rise ratio"),
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        help=_("Fraction for rise end (0 to 1)."),
+    )
+
+    def update_from_obj(self, obj: SignalObj) -> None:
+        """Update the filter parameters from a signal object"""
+        self.start_basement_range_min = obj.x[0]
+        self.start_basement_range_max = obj.x[int(obj.x.size * 0.1)]
+        self.end_basement_range_min = obj.x[int(obj.x.size * 0.9)]
+        self.end_basement_range_max = obj.x[-1]
+
+
+@computation_function()
+def get_parameters(obj: SignalObj, p: ParametersParam) -> ResultProperties:
+    """Get parameters from a signal object.
+
+    This function retrieves the parameters of a signal object and returns them as a
+    ResultProperties object.
+
+    Args:
+        obj: The signal object from which to retrieve parameters.
+        p: Parameters for the function (not used in this case).
+
+    Returns:
+        A ResultProperties object containing the parameters of the signal object.
+    """
+
+    x, y = obj.get_data()
+
+    param = pulse.get_parameters(
+        x,
+        y,
+        signal_shape=p.signal_shape,
+        start_basement_range=[p.start_basement_range_min, p.start_basement_range_max],
+        end_basement_range=[p.end_basement_range_min, p.end_basement_range_max],
+        start_rise_ratio=p.start_rise_ratio,
+        stop_rise_ratio=p.stop_rise_ratio,
+    )
+
+    return calc_resultproperties(
+        f"parameters | {obj.title}",
+        obj,
+        {k + " = %s": lambda x, v=v: v for k, v in param.items()},
+    )
+
+
 class FWHMParam(gds.DataSet):
     """FWHM parameters"""
 
