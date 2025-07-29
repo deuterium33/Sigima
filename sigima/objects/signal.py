@@ -782,14 +782,18 @@ register_signal_parameters_class(SignalTypes.VOIGT, VoigtParam)
 class PlanckParam(NewSignalParam):
     """Planck radiation law.
 
-    y = (2 h c<sup>2</sup>) / (λ<sup>5</sup> * (exp(h c / (λ k<sub>B</sub> T)) - 1))
+    y = (2 h c<sup>2</sup>) / (λ<sup>5</sup> (exp(h c / (λ k<sub>B</sub> T)) - 1))
     """
 
-    xmin = gds.FloatItem("x<sub>min</sub>", default=1e-7, unit="m", nonzero=True)
-    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-4, unit="m").set_prop(
-        "display", col=1
+    xmin = gds.FloatItem(
+        "λ<sub>min</sub>", default=1e-7, unit="m", min=0.0, nonzero=True
     )
-    T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
+    xmax = gds.FloatItem(
+        "λ<sub>max</sub>", default=1e-4, unit="m", min=0.0, nonzero=True
+    ).set_prop("display", col=1)
+    T = gds.FloatItem(
+        "T", default=293.0, unit="K", min=0.0, nonzero=True, help=_("Temperature")
+    )
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters.
