@@ -11,6 +11,7 @@ concurrency = multiprocessing,thread
 omit =
     */sigima/tests/*
     */guidata/*
+    */plotpy/*
 
     #--- Workaround for certain builds of python-opencv package:
     ./config-3.9.py
