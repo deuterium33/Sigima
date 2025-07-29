@@ -786,7 +786,7 @@ class PlanckParam(NewSignalParam):
     """
 
     xmin = gds.FloatItem("x<sub>min</sub>", default=1e-7, unit="m", nonzero=True)
-    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-5, unit="m").set_prop(
+    xmax = gds.FloatItem("x<sub>max</sub>", default=1e-4, unit="m").set_prop(
         "display", col=1
     )
     T = gds.FloatItem("T", default=293.0, unit="K", help=_("Temperature"))
