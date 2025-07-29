@@ -29,7 +29,7 @@ from typing import Any, Generator
 
 from guidata.env import ExecEnv as GuiDataExecEnv
 
-# We could import DEBUG from cdl.config, but is it really worth it?
+# We could import DEBUG from sigima.config, but is it really worth it?
 DEBUG = os.environ.get("DEBUG", "").lower() in ("1", "true")
 
 

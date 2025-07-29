@@ -50,9 +50,9 @@ REM ======================================================
     del _tmp_.txt
     goto:eof
 
-:GetCDLProjectPath
+:GetSigimaProjectPath
 call:SetPythonPath
-python -c "import cdl, os;print(os.path.abspath(os.path.join(cdl.__path__[0], os.pardir)))" > _tmp_.txt
+python -c "import sigima, os;print(os.path.abspath(os.path.join(sigima.__path__[0], os.pardir)))" > _tmp_.txt
 set /p %1=<_tmp_.txt
 del _tmp_.txt
 goto:eof
