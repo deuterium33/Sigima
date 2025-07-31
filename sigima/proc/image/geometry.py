@@ -293,7 +293,7 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
 
 
 class BinningParam(gds.DataSet):
-    """Binning parameters"""
+    """Binning parameters."""
 
     sx = gds.IntItem(
         _("Cluster size (X)"),
@@ -321,8 +321,11 @@ class BinningParam(gds.DataSet):
     )
     change_pixel_size = gds.BoolItem(
         _("Change pixel size"),
-        default=False,
-        help=_("Change pixel size so that overall image size remains the same."),
+        default=True,
+        help=_(
+            "If checked, pixel size is updated according to binning factors. "
+            "Users who prefer to work with pixel coordinates may want to uncheck this."
+        ),
     )
 
 

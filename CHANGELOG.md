@@ -27,6 +27,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
       dst = sip.erase(obj, p)
       ```
 
+  * By default, pixel binning changes the pixel size.
+
   * Improved centroid estimation:
     * New `get_centroid_auto` method implements an adaptive strategy that chooses between the Fourier-based centroid and a more robust fallback (scikit-image), based on agreement with a projected profile-based reference.
     * Introduced `get_projected_profile_centroid` function for robust estimation via 1D projections (median or barycentric), offering high accuracy even with truncated or noisy images.

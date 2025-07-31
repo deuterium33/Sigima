@@ -841,8 +841,8 @@ msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
 msgid "Change pixel size"
 msgstr "Modifier la taille des pixels"
 
-msgid "Change pixel size so that overall image size remains the same."
-msgstr "Modification de la taille des pixels de sorte que les dimensions de l'images restent les mêmes après l'opération."
+msgid "If checked, pixel size is updated according to binning factors. Users who prefer to work with pixel coordinates may want to uncheck this."
+msgstr "Si coché, la taille des pixels est mise à jour en fonction de la taille des agrégats. Les utilisateurs qui préfèrent travailler avec les coordonnées de pixels peuvent vouloir décocher cette option."
 
 msgid "Footprint (disk) radius."
 msgstr "Rayon de l'ouverture circulaire (disque)."
@@ -1122,4 +1122,3 @@ msgstr "Intensité"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

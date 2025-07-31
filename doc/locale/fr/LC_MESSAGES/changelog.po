@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-28 17:57+0200\n"
+"POT-Creation-Date: 2025-07-31 17:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -57,6 +57,9 @@ msgstr "La zone gommée est définie par un paramètre de région d'intérêt (R
 
 msgid "Example usage:"
 msgstr "Exemple d'utilisation:"
+
+msgid "By default, pixel binning changes the pixel size."
+msgstr "Par défaut, le regroupement de pixels modifie la taille des pixels."
 
 msgid "Improved centroid estimation:"
 msgstr "Amélioration de l'estimation du centroïde:"
