@@ -1432,6 +1432,7 @@ def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
     )
     dst.set_xydata(x, y)
     dst.set_metadata_option("shade", 0.5)
+    dst.set_metadata_option("curvestyle", "Steps")
     return dst
 
 
