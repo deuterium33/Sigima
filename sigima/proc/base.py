@@ -232,9 +232,7 @@ def dst_1_to_1(src: Obj, name: str, suffix: str | None = None) -> Obj:
     return cast(Obj, dst)
 
 
-def dst_n_to_1(
-    src_list: list[SignalObj | ImageObj], name: str, suffix: str | None = None
-) -> SignalObj | ImageObj:
+def dst_n_to_1(src_list: list[Obj], name: str, suffix: str | None = None) -> Obj:
     """Create a result object, for processing functions that take a list of signal or
     image objects as input and return a single signal or image object (n-to-1).
 
@@ -293,12 +291,7 @@ def dst_n_to_1(
 # This may be useful in the future if we want to extend the functionality.
 #
 # pylint: disable=unused-argument
-def dst_2_to_1(
-    src1: SignalObj | ImageObj,
-    src2: SignalObj | ImageObj,
-    name: str,
-    suffix: str | None = None,
-) -> SignalObj | ImageObj:
+def dst_2_to_1(src1: Obj, src2: Obj, name: str, suffix: str | None = None) -> Obj:
     """Create a result  object, for processing functions that take two signal or
     image objects as input and return a single signal or image object (2-to-1).
 
