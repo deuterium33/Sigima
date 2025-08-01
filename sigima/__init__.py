@@ -23,6 +23,16 @@ the DataLab application.
 # for the `erase`, `extract_roi`, and `extract_rois` functions? (same for signal
 # ROI extraction functions)
 
+# TODO: Should we use an unified approach for handling enum types or similar choices?
+# For example, see `BINNING_OPERATIONS` which currently is a simple tuple of strings,
+# whereas it could be a more structured enum type. There are several other examples
+# in the codebase where choices are defined as tuples or tuples of tuples instead of
+# using a dedicated enum class. ⚠️ Maybe we should use a more standard Python enum
+# class, such as `enum.Enum`, instead of a custom object like `ChoiceEnum` because
+# the latter is (for now) only used in the `sigima.objects` module (high-level API
+# related to `sigima.proc` computation functions) and not in the `sigima.tools` module
+# (low-level API).
+
 # The following comments are used to track the migration process of the `sigima`
 # package, in the context of the DataLab Core Architecture Redesign project funded by
 # the NLnet Foundation.
