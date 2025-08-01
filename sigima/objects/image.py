@@ -93,6 +93,11 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         "display", hide=_pfp
     )
 
+    # TODO [P1]: Remove this method while enabling the `ValidationMode.STRICT` option
+    # in guidata.config (latest development version of guidata).
+    # ⚠️ BEFORE THAT: implement a unit test that will fail unless this input check
+    # is done. Then remove this method and enable the `ValidationMode.STRICT` option.
+    # And check that the unit test passes.
     def __check_inputs_datatype(self) -> None:
         """Check if inputs are of the correct datatype.
 
