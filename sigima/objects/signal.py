@@ -509,7 +509,7 @@ def create_signal(
     return signal
 
 
-class SignalTypes(base.Choices):
+class SignalTypes(base.ChoiceEnum):
     """Signal types"""
 
     #: Signal filled with zeros
@@ -838,7 +838,7 @@ class PlanckParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.PLANCK, PlanckParam)
 
 
-class FreqUnits(base.Choices):
+class FreqUnits(base.ChoiceEnum):
     """Frequency units"""
 
     HZ = "Hz"
@@ -868,7 +868,7 @@ class BasePeriodicParam(NewSignalParam):
     offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
     freq = gds.FloatItem(_("Frequency"), default=1.0)
     freq_unit = gds.ChoiceItem(
-        _("Unit"), FreqUnits.get_choices(), default=FreqUnits.HZ
+        _("Unit"), FreqUnits.choices(), default=FreqUnits.HZ
     ).set_pos(col=1)
     phase = gds.FloatItem(_("Phase"), default=0.0, unit="°")
 

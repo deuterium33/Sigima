@@ -1033,7 +1033,7 @@ def create_image(
     return image
 
 
-class ImageDatatypes(base.Choices):
+class ImageDatatypes(base.ChoiceEnum):
     """Image data types"""
 
     @classmethod
@@ -1062,7 +1062,7 @@ class ImageDatatypes(base.Choices):
 ImageDatatypes.check()
 
 
-class ImageTypes(base.Choices):
+class ImageTypes(base.ChoiceEnum):
     """Image types."""
 
     #: Image filled with zeros
@@ -1097,7 +1097,7 @@ class NewImageParam(gds.DataSet):
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
     )
     dtype = gds.ChoiceItem(
-        _("Data type"), ImageDatatypes.get_choices(), default=ImageDatatypes.FLOAT64
+        _("Data type"), ImageDatatypes.choices(), default=ImageDatatypes.FLOAT64
     ).set_prop("display", hide=gds.GetAttrProp("hide_image_dtype"))
 
     def generate_title(self) -> str:

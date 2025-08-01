@@ -60,8 +60,8 @@ def deepcopy_metadata(
 
 
 @enum.unique
-class Choices(enum.Enum):
-    """Object associating an enum to guidata.dataset.ChoiceItem choices"""
+class ChoiceEnum(enum.Enum):
+    """Object associating an enum to `guidata.dataset.ChoiceItem` choices"""
 
     # Reimplement enum.Enum method as suggested by Python documentation:
     # https://docs.python.org/3/library/enum.html#enum.Enum._generate_next_value_
@@ -71,9 +71,9 @@ class Choices(enum.Enum):
         return str(name).lower()
 
     @classmethod
-    def get_choices(cls):
+    def choices(cls):
         """Return tuple of (key, value) choices to be used as parameter of
-        guidata.dataset.ChoiceItem"""
+        `guidata.dataset.ChoiceItem`"""
         return tuple((member, member.value) for member in cls)
 
 
