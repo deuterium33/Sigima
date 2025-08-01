@@ -93,6 +93,11 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         "display", hide=_pfp
     )
 
+    # TODO [P1]: Remove this method while enabling the `ValidationMode.STRICT` option
+    # in guidata.config (latest development version of guidata).
+    # ⚠️ BEFORE THAT: implement a unit test that will fail unless this input check
+    # is done. Then remove this method and enable the `ValidationMode.STRICT` option.
+    # And check that the unit test passes.
     def __check_inputs_datatype(self) -> None:
         """Check if inputs are of the correct datatype.
 
@@ -1028,7 +1033,7 @@ def create_image(
     return image
 
 
-class ImageDatatypes(base.Choices):
+class ImageDatatypes(base.ChoiceEnum):
     """Image data types"""
 
     @classmethod
@@ -1057,7 +1062,7 @@ class ImageDatatypes(base.Choices):
 ImageDatatypes.check()
 
 
-class ImageTypes(base.Choices):
+class ImageTypes(base.ChoiceEnum):
     """Image types."""
 
     #: Image filled with zeros
@@ -1092,7 +1097,7 @@ class NewImageParam(gds.DataSet):
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
     )
     dtype = gds.ChoiceItem(
-        _("Data type"), ImageDatatypes.get_choices(), default=ImageDatatypes.FLOAT64
+        _("Data type"), ImageDatatypes.choices(), default=ImageDatatypes.FLOAT64
     ).set_prop("display", hide=gds.GetAttrProp("hide_image_dtype"))
 
     def generate_title(self) -> str:

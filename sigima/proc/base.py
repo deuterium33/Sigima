@@ -164,6 +164,7 @@ class HistogramParam(gds.DataSet):
             suffix += f", ymax={self.upper:.3f}"
         else:
             self.upper = np.max(data)
+        return suffix
 
     bins = gds.IntItem(_("Number of bins"), default=256, min=1)
     lower = gds.FloatItem(_("Lower limit"), default=None, check=False)
