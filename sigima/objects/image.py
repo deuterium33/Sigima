@@ -74,6 +74,8 @@ class IntCoordsItem(gds.FloatArrayItem):
 class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
     """Image ROI parameters"""
 
+    title = gds.StringItem(_("ROI title"), default="")
+
     # Note: the ROI coordinates are expressed in pixel coordinates (integers)
     # => That is the only way to handle ROI parametrization for image objects.
     #    Otherwise, we would have to ask the user to systematically provide the
@@ -127,13 +129,12 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
     )
 
     def to_single_roi(
-        self, obj: ImageObj, title: str = ""
+        self, obj: ImageObj
     ) -> PolygonalROI | RectangularROI | CircularROI:
         """Convert parameters to single ROI
 
         Args:
             obj: image object (used for conversion of pixel to physical coordinates)
-            title: ROI title
 
         Returns:
             Single ROI
@@ -278,7 +279,7 @@ class PolygonalROI(BaseSingleImageROI):
             param: parameters
         """
         indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls(param.points, indices=indices, title=param.get_title())
+        return cls(param.points, indices=indices, title=param.title)
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -319,14 +320,16 @@ class PolygonalROI(BaseSingleImageROI):
         roi_mask[rr, cc] = False
         return roi_mask
 
-    def to_param(self, obj: ImageObj, title: str | None = None) -> ROI2DParam:
+    def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
         """Convert ROI to parameters
 
         Args:
             obj: object (image), for physical-indices coordinates conversion
-            title: ROI title
+            index: ROI index
         """
-        param = ROI2DParam(title=self.title if title is None else title)
+        generic_title = f"ROI{index:02d}"
+        param = ROI2DParam(generic_title)
+        param.title = self.title or generic_title
         param.geometry = "polygon"
         param.points = np.array(self.get_indices_coords(obj))
         return param
@@ -365,7 +368,7 @@ class RectangularROI(BaseSingleImageROI):
         ix0, iy0, ix1, iy1 = param.get_bounding_box_indices()
         coords = [ix0, iy0, ix1 - ix0, iy1 - iy0]
         indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls(coords, indices=indices, title=param.get_title())
+        return cls(coords, indices=indices, title=param.title)
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -446,14 +449,16 @@ class RectangularROI(BaseSingleImageROI):
         roi_mask[max(y0, 0) : y0 + dy, max(x0, 0) : x0 + dx] = False
         return roi_mask
 
-    def to_param(self, obj: ImageObj, title: str | None = None) -> ROI2DParam:
+    def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
         """Convert ROI to parameters
 
         Args:
             obj: object (image), for physical-indices coordinates conversion
-            title: ROI title
+            index: ROI index
         """
-        param = ROI2DParam(title=self.title if title is None else title)
+        generic_title = f"ROI{index:02d}"
+        param = ROI2DParam(generic_title)
+        param.title = self.title or generic_title
         param.geometry = "rectangle"
         param.x0, param.y0, param.dx, param.dy = self.get_indices_coords(obj)
         return param
@@ -499,7 +504,7 @@ class CircularROI(BaseSingleImageROI):
         ixc, iyc = (ix0 + ix1) * 0.5, (iy0 + iy1) * 0.5
         ir = (ix1 - ix0) * 0.5
         indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls([ixc, iyc, ir], indices=indices, title=param.get_title())
+        return cls([ixc, iyc, ir], indices=indices, title=param.title)
 
     def check_coords(self) -> None:
         """Check if coords are valid
@@ -597,14 +602,16 @@ class CircularROI(BaseSingleImageROI):
         roi_mask[rr, cc] = False
         return roi_mask
 
-    def to_param(self, obj: ImageObj, title: str | None = None) -> ROI2DParam:
+    def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
         """Convert ROI to parameters
 
         Args:
             obj: object (image), for physical-indices coordinates conversion
-            title: ROI title
+            index: ROI index
         """
-        param = ROI2DParam(title=self.title if title is None else title)
+        generic_title = f"ROI{index:02d}"
+        param = ROI2DParam(generic_title)
+        param.title = self.title or generic_title
         param.geometry = "circle"
         param.xc, param.yc, param.r = self.get_indices_coords(obj)
         return param

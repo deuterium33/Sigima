@@ -32,21 +32,21 @@ class ROI1DParam(base.BaseROIParam["SignalObj", "SegmentROI"]):
 
     # Note: in this class, the ROI parameters are stored as X coordinates
 
+    title = gds.StringItem(_("ROI title"), default="")
     xmin = gds.FloatItem(_("First point coordinate"), default=0.0)
     xmax = gds.FloatItem(_("Last point coordinate"), default=1.0)
 
-    def to_single_roi(self, obj: SignalObj, title: str = "") -> SegmentROI:
+    def to_single_roi(self, obj: SignalObj) -> SegmentROI:
         """Convert parameters to single ROI
 
         Args:
             obj: signal object
-            title: ROI title
 
         Returns:
             Single ROI
         """
         assert isinstance(self.xmin, float) and isinstance(self.xmax, float)
-        return SegmentROI([self.xmin, self.xmax], False, title=title)
+        return SegmentROI([self.xmin, self.xmax], False, title=self.title)
 
     def get_data(self, obj: SignalObj) -> np.ndarray:
         """Get signal data in ROI
@@ -110,15 +110,16 @@ class SegmentROI(base.BaseSingleROI["SignalObj", ROI1DParam]):
         return mask
 
     # pylint: disable=unused-argument
-    def to_param(self, obj: SignalObj, title: str | None = None) -> ROI1DParam:
+    def to_param(self, obj: SignalObj, index: int) -> ROI1DParam:
         """Convert ROI to parameters
 
         Args:
             obj: object (signal), for physical-indices coordinates conversion
-            title: ROI title
+            index: ROI index
         """
-        title = title or self.title
-        param = ROI1DParam(title)
+        generic_title = f"ROI{index:02d}"
+        param = ROI1DParam(generic_title)
+        param.title = self.title or generic_title
         param.xmin, param.xmax = self.get_physical_coords(obj)
         return param
 

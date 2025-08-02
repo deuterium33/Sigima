@@ -1139,12 +1139,11 @@ class BaseROIParam(
     """Base class for ROI parameters"""
 
     @abc.abstractmethod
-    def to_single_roi(self, obj: TypeObj, title: str = "") -> TypeSingleROI:
+    def to_single_roi(self, obj: TypeObj) -> TypeSingleROI:
         """Convert parameters to single ROI
 
         Args:
             obj: object (signal/image)
-            title: ROI title
 
         Returns:
             Single ROI
@@ -1235,12 +1234,12 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
         """
 
     @abc.abstractmethod
-    def to_param(self, obj: TypeObj, title: str | None = None) -> TypeROIParam:
+    def to_param(self, obj: TypeObj, index: int) -> TypeROIParam:
         """Convert ROI to parameters
 
         Args:
             obj: object (signal/image), for physical-indices coordinates conversion
-            title: ROI title
+            index: ROI index
         """
 
     def to_dict(self) -> dict:
@@ -1382,7 +1381,7 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         Returns:
             ROI parameters
         """
-        return [iroi.to_param(obj, f"ROI{idx:02d}") for idx, iroi in enumerate(self)]
+        return [iroi.to_param(obj, index=idx) for idx, iroi in enumerate(self)]
 
     @classmethod
     def from_params(
