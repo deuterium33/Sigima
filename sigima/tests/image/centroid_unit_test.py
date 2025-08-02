@@ -154,10 +154,10 @@ def test_image_centroid() -> None:
     image = create_noisy_gaussian_image(param, center=(-2.0, 3.0), add_annotations=True)
     circle_roi = sigima.objects.create_image_roi("circle", [200, 325, 10])
     for roi, x0, y0 in (
-        (None, 0, 0),
-        (None, 100, 100),
-        (circle_roi, 0, 0),
-        (circle_roi, 100, 100),  # Test for regression like #106
+        (None, 0.0, 0.0),
+        (None, 100.0, 100.0),
+        (circle_roi, 0.0, 0.0),
+        (circle_roi, 100.0, 100.0),  # Test for regression like #106
     ):
         image.roi, image.x0, image.y0 = roi, x0, y0
         __check_centroid(image, 200.0 + x0, 325.0 + y0)

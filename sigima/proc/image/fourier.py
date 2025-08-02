@@ -79,8 +79,10 @@ class ZeroPadding2DParam(gds.DataSet):
     ).set_prop("display", store=_prop, callback=choice_callback)
 
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
-    rows = gds.IntItem(_("Rows to add"), min=0).set_prop("display", active=_func_prop)
-    cols = gds.IntItem(_("Columns to add"), min=0).set_prop(
+    rows = gds.IntItem(_("Rows to add"), min=0, default=0).set_prop(
+        "display", active=_func_prop
+    )
+    cols = gds.IntItem(_("Columns to add"), min=0, default=0).set_prop(
         "display", active=_func_prop
     )
 

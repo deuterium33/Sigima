@@ -43,8 +43,8 @@ def preprocess_image_parameters(param: sigima.objects.NewImageParam) -> None:
         param.ymin = -5.0
         param.ymax = 4.0
     elif isinstance(param, Gauss2DParam):
-        param.x0 = param.y0 = 3
-        param.sigma = 5
+        param.x0 = param.y0 = 3.0
+        param.sigma = 5.0
 
 
 def postprocess_image_object(

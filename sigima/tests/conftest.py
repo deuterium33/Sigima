@@ -18,10 +18,14 @@ import numpy
 import pytest
 import scipy
 import skimage
+from guidata.config import ValidationMode, set_validation_mode
 
 import sigima
 from sigima.proc.validation import ValidationStatistics
 from sigima.tests import env, helpers
+
+# Set validation mode to STRICT for all tests
+set_validation_mode(ValidationMode.STRICT)
 
 # Turn on unattended mode for executing tests without user interaction
 env.execenv.unattended = True

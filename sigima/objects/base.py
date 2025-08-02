@@ -80,8 +80,17 @@ class ChoiceEnum(enum.Enum):
 class BaseProcParam(gds.DataSet):
     """Base class for processing parameters"""
 
-    def __init__(self, title=None, comment=None, icon=""):
-        super().__init__(title, comment, icon)
+    def __init__(
+        self,
+        title: str | None = None,
+        comment: str | None = None,
+        icon: str = "",
+        readonly: bool = False,
+        skip_defaults: bool = False,
+    ) -> None:
+        super().__init__(
+            title, comment, icon, readonly=readonly, skip_defaults=skip_defaults
+        )
         self.set_global_prop("data", min=None, max=None)
 
     def apply_integer_range(self, vmin, vmax):  # pylint: disable=unused-argument
@@ -112,7 +121,7 @@ class BaseUniformRandomParam(BaseRandomParam):
 
     def apply_integer_range(self, vmin, vmax):
         """Do something in case of integer min-max range"""
-        self.vmin, self.vmax = vmin, vmax
+        self.vmin, self.vmax = float(vmin), float(vmax)
 
     vmin = gds.FloatItem(
         "V<sub>min</sub>", default=-0.5, help=_("Uniform distribution lower bound")
@@ -135,8 +144,8 @@ class BaseNormalRandomParam(BaseRandomParam):
     def apply_integer_range(self, vmin, vmax):
         """Do something in case of integer min-max range"""
         delta = vmax - vmin
-        self.mu = int(self.DEFAULT_RELATIVE_MU * delta + vmin)
-        self.sigma = int(self.DEFAULT_RELATIVE_SIGMA * delta)
+        self.mu = float(self.DEFAULT_RELATIVE_MU * delta + vmin)
+        self.sigma = float(self.DEFAULT_RELATIVE_SIGMA * delta)
 
     mu = gds.FloatItem(
         "μ", default=DEFAULT_RELATIVE_MU, help=_("Normal distribution mean")

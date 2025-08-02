@@ -113,7 +113,7 @@ class DenoiseBilateralParam(gds.DataSet):
     mode = gds.ChoiceItem(_("Mode"), list(zip(modes, modes)), default="constant")
     cval = gds.FloatItem(
         "cval",
-        default=0,
+        default=0.0,
         help=_(
             "Used in conjunction with mode 'constant', "
             "the value outside the image boundaries."

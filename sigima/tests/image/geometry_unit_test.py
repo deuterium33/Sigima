@@ -73,7 +73,7 @@ def test_image_rotate() -> None:
     """Image rotation test."""
     execenv.print("*** Testing image rotation:")
     for ima1 in iterate_noisy_images(size=128):
-        for angle in (30, 45, 60, 120):
+        for angle in (30.0, 45.0, 60.0, 120.0):
             execenv.print(f"  rotate{angle}({ima1.data.dtype}): ", end="")
             ima2 = sigima.proc.image.rotate(
                 ima1, sigima.params.RotateParam.create(angle=angle)

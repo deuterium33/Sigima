@@ -164,7 +164,7 @@ def __iterate_image_with_constant() -> Generator[
             dtype=dtype, height=size, width=size
         )
         ima = create_noisy_gaussian_image(param, level=0.0)
-        for value in (-1.0, 3.14, 5):
+        for value in (-1.0, 3.14, 5.0):
             p = __constparam(value)
             yield ima, p
 
@@ -361,7 +361,7 @@ def test_image_logp1() -> None:
     with np.errstate(over="ignore"):
         for ima1 in iterate_noisy_images(size=128):
             execenv.print(f"  log1p({ima1.data.dtype}): ", end="")
-            p = sigima.params.LogP1Param.create(n=2)
+            p = sigima.params.LogP1Param.create(n=2.0)
             exp = np.log10(ima1.data + p.n)
             ima2 = sigima.proc.image.logp1(ima1, p)
             check_array_result("Image log1p", ima2.data, exp)

@@ -158,7 +158,7 @@ class FreqFFTParam(gds.DataSet):
 
     f0 = gds.FloatItem(
         _("Center frequency"),
-        default=1,
+        default=1.0,
         unit="pixels⁻¹",
         min=0.0,
         help=_("Center frequency of the Gaussian filter"),

@@ -48,6 +48,29 @@ def to_builtin(obj) -> str | int | float | list | dict | np.ndarray | None:
     return None
 
 
+class IntCoordsItem(gds.FloatArrayItem):
+    """Item representing a pair of coordinates (X, Y)"""
+
+    def check_value(self, value: np.ndarray, raise_exception: bool = False) -> bool:
+        """Override DataItem method"""
+        valid = super().check_value(value, raise_exception)
+        if not valid:
+            return False
+        if not np.issubdtype(value.dtype, np.integer):
+            if raise_exception:
+                raise TypeError("Coordinates must be integers")
+            return False
+        if value.ndim != 1:
+            if raise_exception:
+                raise ValueError("Coordinates must be a 1D array")
+            return False
+        if len(value) % 2 != 0:
+            if raise_exception:
+                raise ValueError("Coordinates must contain pairs (X, Y)")
+            return False
+        return True
+
+
 class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
     """Image ROI parameters"""
 
@@ -75,57 +98,33 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     # Parameters for rectangular ROI geometry:
     _tlcorner = gds.BeginGroup(_("Top left corner")).set_prop("display", hide=_rfp)
-    x0 = gds.IntItem(_lbl("X", 0), unit=_ut).set_prop("display", hide=_rfp)
-    y0 = gds.IntItem(_lbl("Y", 0), unit=_ut).set_pos(1).set_prop("display", hide=_rfp)
+    x0 = gds.IntItem(_lbl("X", 0), default=0, unit=_ut).set_prop("display", hide=_rfp)
+    y0 = (
+        gds.IntItem(_lbl("Y", 0), default=0, unit=_ut)
+        .set_pos(1)
+        .set_prop("display", hide=_rfp)
+    )
     _e_tlcorner = gds.EndGroup(_("Top left corner"))
-    dx = gds.IntItem("ΔX", unit=_ut).set_prop("display", hide=_rfp)
-    dy = gds.IntItem("ΔY", unit=_ut).set_pos(1).set_prop("display", hide=_rfp)
+    dx = gds.IntItem("ΔX", default=0, unit=_ut).set_prop("display", hide=_rfp)
+    dy = (
+        gds.IntItem("ΔY", default=0, unit=_ut).set_pos(1).set_prop("display", hide=_rfp)
+    )
 
     # Parameters for circular ROI geometry:
     _cgroup = gds.BeginGroup(_("Center coordinates")).set_prop("display", hide=_cfp)
-    xc = gds.IntItem(_lbl("X", "C"), unit=_ut).set_prop("display", hide=_cfp)
-    yc = gds.IntItem(_lbl("Y", "C"), unit=_ut).set_pos(1).set_prop("display", hide=_cfp)
+    xc = gds.IntItem(_lbl("X", "C"), default=0, unit=_ut).set_prop("display", hide=_cfp)
+    yc = (
+        gds.IntItem(_lbl("Y", "C"), default=0, unit=_ut)
+        .set_pos(1)
+        .set_prop("display", hide=_cfp)
+    )
     _e_cgroup = gds.EndGroup(_("Center coordinates"))
-    r = gds.IntItem(_("Radius"), unit=_ut).set_prop("display", hide=_cfp)
+    r = gds.IntItem(_("Radius"), default=0, unit=_ut).set_prop("display", hide=_cfp)
 
     # Parameters for polygonal ROI geometry:
-    points = gds.FloatArrayItem(_("Coordinates") + f" ({_ut})").set_prop(
+    points = IntCoordsItem(_("Coordinates") + f" ({_ut})").set_prop(
         "display", hide=_pfp
     )
-
-    # TODO [P1]: Remove this method while enabling the `ValidationMode.STRICT` option
-    # in guidata.config (latest development version of guidata).
-    # ⚠️ BEFORE THAT: implement a unit test that will fail unless this input check
-    # is done. Then remove this method and enable the `ValidationMode.STRICT` option.
-    # And check that the unit test passes.
-    def __check_inputs_datatype(self) -> None:
-        """Check if inputs are of the correct datatype.
-
-        This check is necessary to ensure that the parameters have the correct
-        datatype before they are used in computations or passed to other methods,
-        because `guidata.dataset.DataSet` does not enforce the datatype (this is
-        a design choice to allow more flexibility in the parameters, but in this
-        case, it may be seen as a design flaw).
-        """
-        if self.geometry == "rectangle":
-            for attr in ("x0", "y0", "dx", "dy"):
-                value = getattr(self, attr)
-                if not np.issubdtype(type(value), np.integer):
-                    raise TypeError(f"{attr} must be an integer (got value: {value})")
-        elif self.geometry == "circle":
-            for attr in ("xc", "yc", "r"):
-                value = getattr(self, attr)
-                if not np.issubdtype(type(value), np.integer):
-                    raise TypeError(f"{attr} must be an integer (got value: {value})")
-        elif self.geometry == "polygon":
-            if not isinstance(self.points, np.ndarray):
-                raise TypeError("points must be a NumPy array")
-            if not np.issubdtype(self.points.dtype, np.integer):
-                raise TypeError("points must be an integer NumPy array")
-            if len(self.points) % 2 != 0:
-                raise ValueError("points must contain pairs of coordinates (X, Y)")
-            if not self.points.ndim == 1:
-                raise ValueError("points must be a 1D array of coordinates")
 
     def to_single_roi(
         self, obj: ImageObj, title: str = ""
@@ -139,7 +138,6 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         Returns:
             Single ROI
         """
-        self.__check_inputs_datatype()
         if self.geometry == "rectangle":
             return RectangularROI.from_param(obj, self)
         if self.geometry == "circle":
@@ -174,7 +172,6 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         method. It's simply the same as the source ROI, but with coordinates adjusted
         to the destination image. One may called this ROI the "extracted ROI".
         """
-        self.__check_inputs_datatype()
         if self.geometry == "rectangle":
             return None
         single_roi = self.to_single_roi(obj)
@@ -186,7 +183,6 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     def get_bounding_box_indices(self) -> tuple[int, int, int, int]:
         """Get bounding box (pixel coordinates)"""
-        self.__check_inputs_datatype()
         if self.geometry == "circle":
             x0, y0 = self.xc - self.r, self.yc - self.r
             x1, y1 = self.xc + self.r, self.yc + self.r
@@ -207,7 +203,6 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         Returns:
             Data in ROI
         """
-        self.__check_inputs_datatype()
         x0, y0, x1, y1 = self.get_bounding_box_indices()
         x0, y0 = max(0, x0), max(0, y0)
         x1, y1 = min(obj.data.shape[1], x1), min(obj.data.shape[0], y1)
@@ -1279,14 +1274,14 @@ class Gauss2DParam(NewImageParam):
     """
 
     a = gds.FloatItem("A", default=None, check=False)
-    xmin = gds.FloatItem("Xmin", default=-10).set_pos(col=1)
+    xmin = gds.FloatItem("Xmin", default=-10.0).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
-    xmax = gds.FloatItem("Xmax", default=10).set_pos(col=1)
+    xmax = gds.FloatItem("Xmax", default=10.0).set_pos(col=1)
     mu = gds.FloatItem("μ", default=0.0)
-    ymin = gds.FloatItem("Ymin", default=-10).set_pos(col=1)
-    x0 = gds.FloatItem("X0", default=0)
-    ymax = gds.FloatItem("Ymax", default=10).set_pos(col=1)
-    y0 = gds.FloatItem("Y0", default=0).set_pos(col=0, colspan=1)
+    ymin = gds.FloatItem("Ymin", default=-10.0).set_pos(col=1)
+    x0 = gds.FloatItem("X0", default=0.0)
+    ymax = gds.FloatItem("Ymax", default=10.0).set_pos(col=1)
+    y0 = gds.FloatItem("Y0", default=0.0).set_pos(col=0, colspan=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""

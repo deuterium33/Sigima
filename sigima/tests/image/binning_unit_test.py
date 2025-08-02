@@ -96,8 +96,8 @@ def test_binning() -> None:
     p = sigima.params.BinningParam()
     for operation in p.operations:
         p.operation = operation
-        for sx in range(1, 3):
-            for sy in range(1, 5):
+        for sx in range(2, 3):
+            for sy in range(2, 5):
                 p.sx = sx
                 p.sy = sy
                 rdata = data[: ny - (ny % sy), : nx - (nx % sx)]

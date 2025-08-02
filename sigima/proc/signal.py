@@ -947,9 +947,11 @@ class BaseHighLowBandParam(gds.DataSet):
         "display",
         active=gds.FuncProp(_method_prop, lambda x: x not in ("brickwall",)),
     )
-    cut0 = gds.FloatItem(_("Low cutoff frequency"), min=0, nonzero=True, unit="Hz")
+    cut0 = gds.FloatItem(
+        _("Low cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
+    )
     cut1 = gds.FloatItem(
-        _("High cutoff frequency"), min=0, nonzero=True, unit="Hz"
+        _("High cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
     ).set_prop(
         "display",
         hide=gds.FuncProp(
@@ -957,13 +959,13 @@ class BaseHighLowBandParam(gds.DataSet):
         ),
     )
     rp = gds.FloatItem(
-        _("Passband ripple"), min=0, default=1, nonzero=True, unit="dB"
+        _("Passband ripple"), min=0.0, default=1.0, nonzero=True, unit="dB"
     ).set_prop(
         "display",
         active=gds.FuncProp(_method_prop, lambda x: x in ("cheby1", "ellip")),
     )
     rs = gds.FloatItem(
-        _("Stopband attenuation"), min=0, default=1, nonzero=True, unit="dB"
+        _("Stopband attenuation"), min=0.0, default=1.0, nonzero=True, unit="dB"
     ).set_prop(
         "display",
         active=gds.FuncProp(_method_prop, lambda x: x in ("cheby2", "ellip")),
@@ -1244,7 +1246,7 @@ class ZeroPadding1DParam(gds.DataSet):
     )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
     n = gds.IntItem(
-        _("Number of points"), min=1, help=_("Number of points to add")
+        _("Number of points"), min=1, default=1, help=_("Number of points to add")
     ).set_prop("display", active=_func_prop)
 
 
@@ -1486,17 +1488,17 @@ def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> Sign
 class ResamplingParam(InterpolationParam):
     """Resample parameters"""
 
-    xmin = gds.FloatItem(_("X<sub>min</sub>"))
-    xmax = gds.FloatItem(_("X<sub>max</sub>"))
+    xmin = gds.FloatItem(_("X<sub>min</sub>"), allow_none=True)
+    xmax = gds.FloatItem(_("X<sub>max</sub>"), allow_none=True)
     _prop = gds.GetAttrProp("dx_or_nbpts")
     _modes = (("dx", "ΔX"), ("nbpts", _("Number of points")))
     mode = gds.ChoiceItem(_("Mode"), _modes, default="nbpts", radio=True).set_prop(
         "display", store=_prop
     )
-    dx = gds.FloatItem("ΔX").set_prop(
+    dx = gds.FloatItem("ΔX", allow_none=True).set_prop(
         "display", active=gds.FuncProp(_prop, lambda x: x == "dx")
     )
-    nbpts = gds.IntItem(_("Number of points")).set_prop(
+    nbpts = gds.IntItem(_("Number of points"), allow_none=True).set_prop(
         "display", active=gds.FuncProp(_prop, lambda x: x == "nbpts")
     )
 
@@ -2033,7 +2035,7 @@ def fw1e2(obj: SignalObj) -> ResultShape | None:
 class OrdinateParam(gds.DataSet):
     """Ordinate parameter"""
 
-    y = gds.FloatItem(_("Ordinate"), default=0)
+    y = gds.FloatItem(_("Ordinate"), default=0.0)
 
 
 @computation_function()
@@ -2079,7 +2081,7 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
 class AbscissaParam(gds.DataSet):
     """Abscissa parameter"""
 
-    x = gds.FloatItem(_("Abscissa"), default=0)
+    x = gds.FloatItem(_("Abscissa"), default=0.0)
 
 
 @computation_function()

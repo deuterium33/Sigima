@@ -97,6 +97,10 @@ from sigima.objects import (
     create_signal_from_param,
     create_signal_roi,
 )
+from guidata.config import ValidationMode, set_validation_mode
+
+# Set validation mode to ENABLED by default (issue warnings for invalid inputs)
+set_validation_mode(ValidationMode.ENABLED)
 
 __version__ = "0.3.0"
 __docurl__ = "https://sigima.readthedocs.io/en/latest/"

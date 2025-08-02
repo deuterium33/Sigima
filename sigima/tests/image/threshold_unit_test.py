@@ -19,7 +19,7 @@ from sigima.tests.helpers import check_array_result
 def test_threshold() -> None:
     """Validation test for the image threshold processing."""
     src = get_test_image("flower.npy")
-    p = sigima.params.ThresholdParam.create(value=100)
+    p = sigima.params.ThresholdParam.create(value=100.0)
     dst = sigima.proc.image.threshold(src, p)
     exp = util.img_as_ubyte(src.data > p.value)
     check_array_result(f"Threshold[{p.value}]", dst.data, exp)
