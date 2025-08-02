@@ -45,14 +45,14 @@
             },
             "symbol": {
                 "marker": "Ellipse",
-                "size": 6.0,
+                "size": 6,
                 "edgecolor": "#808080",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Ellipse",
-                "size": 6.0,
+                "size": 6,
                 "edgecolor": "#808080",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
@@ -90,7 +90,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
@@ -169,14 +169,14 @@
             },
             "symbol": {
                 "marker": "Ellipse",
-                "size": 6.0,
+                "size": 6,
                 "edgecolor": "#808080",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Ellipse",
-                "size": 6.0,
+                "size": 6,
                 "edgecolor": "#808080",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
@@ -214,7 +214,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
@@ -293,14 +293,14 @@
             },
             "symbol": {
                 "marker": "Rect",
-                "size": 3.0,
+                "size": 3,
                 "edgecolor": "#ffff00",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Rect",
-                "size": 9.0,
+                "size": 9,
                 "edgecolor": "#00aa00",
                 "facecolor": "#00ff00",
                 "alpha": 0.7
@@ -346,7 +346,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
@@ -425,14 +425,14 @@
             },
             "symbol": {
                 "marker": "Rect",
-                "size": 3.0,
+                "size": 3,
                 "edgecolor": "#ffff00",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Rect",
-                "size": 9.0,
+                "size": 9,
                 "edgecolor": "#00aa00",
                 "facecolor": "#00ff00",
                 "alpha": 0.7
@@ -482,7 +482,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
@@ -561,14 +561,14 @@
             },
             "symbol": {
                 "marker": "Rect",
-                "size": 3.0,
+                "size": 3,
                 "edgecolor": "#ffff00",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Rect",
-                "size": 9.0,
+                "size": 9,
                 "edgecolor": "#00aa00",
                 "facecolor": "#00ff00",
                 "alpha": 0.7
@@ -618,7 +618,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
@@ -697,14 +697,14 @@
             },
             "symbol": {
                 "marker": "Rect",
-                "size": 3.0,
+                "size": 3,
                 "edgecolor": "#ffff00",
                 "facecolor": "#ffff00",
                 "alpha": 1.0
             },
             "sel_symbol": {
                 "marker": "Rect",
-                "size": 9.0,
+                "size": 9,
                 "edgecolor": "#00aa00",
                 "facecolor": "#00ff00",
                 "alpha": 0.7
@@ -754,7 +754,7 @@
         "z": 0.0,
         "labelparam": {
             "label": "",
-            "contents": null,
+            "contents": "",
             "symbol": {
                 "marker": "NoSymbol",
                 "size": 0,
