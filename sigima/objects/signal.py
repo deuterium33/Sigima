@@ -32,8 +32,8 @@ class ROI1DParam(base.BaseROIParam["SignalObj", "SegmentROI"]):
 
     # Note: in this class, the ROI parameters are stored as X coordinates
 
-    xmin = gds.FloatItem(_("First point coordinate"))
-    xmax = gds.FloatItem(_("Last point coordinate"))
+    xmin = gds.FloatItem(_("First point coordinate"), default=0.0)
+    xmax = gds.FloatItem(_("Last point coordinate"), default=1.0)
 
     def to_single_roi(self, obj: SignalObj, title: str = "") -> SegmentROI:
         """Convert parameters to single ROI
