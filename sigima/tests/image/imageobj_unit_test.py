@@ -18,7 +18,11 @@ import sigima.io
 import sigima.objects
 from sigima.io.image import ImageIORegistry
 from sigima.objects.image import Gauss2DParam, Ramp2DParam
-from sigima.tests.data import create_test_image_with_metadata, iterate_image_creation
+from sigima.tests.data import (
+    create_annotated_image,
+    create_test_image_with_metadata,
+    iterate_image_creation,
+)
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
     WorkdirRestoringTempDir,
@@ -87,6 +91,7 @@ def __get_filenames_and_images() -> list[tuple[str, sigima.objects.ImageObj]]:
         if obj is not None
     ]
     fi_list.append(("test_image_with_metadata", create_test_image_with_metadata()))
+    fi_list.append(("annotated_image", create_annotated_image()))
     return fi_list
 
 
@@ -111,6 +116,7 @@ def test_hdf5_image_io() -> None:
             assert isinstance(orig_data, np.ndarray)
             assert data.shape == orig_data.shape
             assert data.dtype == orig_data.dtype
+            assert fetch_image.annotations == orig_image.annotations
             assert np.isclose(data, orig_data, atol=0.0).all()
             assert compare_metadata(fetch_image.metadata, orig_image.metadata.copy())
     execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
