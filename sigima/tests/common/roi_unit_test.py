@@ -100,11 +100,11 @@ def test_signal_roi_combine() -> None:
     roi2 = sigima.objects.create_signal_roi(coords2, indices=True)
     exp_combined = sigima.objects.create_signal_roi([coords1, coords2], indices=True)
     # Check that combining two ROIs results in a new ROI with both coordinates:
-    roi1.combine_with(roi2)
-    assert roi1 == exp_combined, "Combined ROI should match expected"
+    roi3 = roi1.combine_with(roi2)
+    assert roi3 == exp_combined, "Combined ROI should match expected"
     # Check that combining again with the same ROI does not change it:
-    roi1.combine_with(roi2)
-    assert roi1 == exp_combined, "Combining with the same ROI should not change it"
+    roi3 = roi1.combine_with(roi2)
+    assert roi3 == exp_combined, "Combining with the same ROI should not change it"
     # Check that combining with an image ROI raises an error:
     with pytest.raises(
         TypeError, match=r"Cannot combine([\S ]*)SignalROI([\S ]*)ImageROI"
@@ -206,11 +206,11 @@ def test_image_roi_combine() -> None:
         "rectangle", [coords1, coords2], indices=True
     )
     # Check that combining two ROIs results in a new ROI with both coordinates:
-    roi1.combine_with(roi2)
-    assert roi1 == exp_combined, "Combined ROI should match expected"
+    roi3 = roi1.combine_with(roi2)
+    assert roi3 == exp_combined, "Combined ROI should match expected"
     # Check that combining again with the same ROI does not change it:
-    roi1.combine_with(roi2)
-    assert roi1 == exp_combined, "Combining with the same ROI should not change it"
+    roi3 = roi1.combine_with(roi2)
+    assert roi3 == exp_combined, "Combining with the same ROI should not change it"
     # Check that combining with a signal ROI raises an error:
     with pytest.raises(
         TypeError, match=r"Cannot combine([\S ]*)ImageROI([\S ]*)SignalROI"

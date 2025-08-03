@@ -1353,18 +1353,23 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
 
     def combine_with(
         self, other: BaseROI[TypeObj, TypeSingleROI, TypeROIParam]
-    ) -> None:
+    ) -> BaseROI[TypeObj, TypeSingleROI, TypeROIParam]:
         """Combine ROIs with another ROI object, by merging single ROIs (and ignoring
-        duplicate single ROIs).
+        duplicate single ROIs) and returning a new combined ROI object.
 
         Args:
             other: other ROI object
+
+        Returns:
+            Combined ROIs object
         """
         if not isinstance(other, type(self)):
             raise TypeError(f"Cannot combine {type(self)} with {type(other)}")
+        combined_roi = self.copy()
         for roi in other.single_rois:
             if all([s_roi != roi for s_roi in self.single_rois]):
-                self.single_rois.append(roi)
+                combined_roi.single_rois.append(roi)
+        return combined_roi
 
     def add_roi(
         self, roi: TypeSingleROI | BaseROI[TypeObj, TypeSingleROI, TypeROIParam]
