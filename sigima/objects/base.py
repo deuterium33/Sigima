@@ -1461,6 +1461,11 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             ROIs
         """
         instance = cls()
+        if not all(key in dictdata for key in ["singleobj", "inverse", "single_rois"]):
+            raise ValueError(
+                "Invalid ROI: dictionary must contain 'singleobj', 'inverse', "
+                "and 'single_rois' keys"
+            )
         instance.singleobj = dictdata["singleobj"]
         instance.inverse = dictdata["inverse"]
         instance.single_rois = []
