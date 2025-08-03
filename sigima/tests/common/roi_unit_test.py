@@ -9,6 +9,8 @@ ROI creation and conversion unit tests
 
 from __future__ import annotations
 
+import pytest
+
 import sigima.objects
 import sigima.proc.image
 import sigima.proc.signal
@@ -89,6 +91,25 @@ def test_signal_roi_merge() -> None:
         assert single_roi.get_indices_coords(obj3) in ([50, 100], [60, 120]), (
             "Merged object should have the union of the original object's ROIs"
         )
+
+
+def test_signal_roi_combine() -> None:
+    """Test `SignalROI.combine_with` method"""
+    coords1, coords2 = [60, 120], [50, 100]
+    roi1 = sigima.objects.create_signal_roi(coords1, indices=True)
+    roi2 = sigima.objects.create_signal_roi(coords2, indices=True)
+    exp_combined = sigima.objects.create_signal_roi([coords1, coords2], indices=True)
+    # Check that combining two ROIs results in a new ROI with both coordinates:
+    roi1.combine_with(roi2)
+    assert roi1 == exp_combined, "Combined ROI should match expected"
+    # Check that combining again with the same ROI does not change it:
+    roi1.combine_with(roi2)
+    assert roi1 == exp_combined, "Combining with the same ROI should not change it"
+    # Check that combining with an image ROI raises an error:
+    with pytest.raises(
+        TypeError, match=r"Cannot combine([\S ]*)SignalROI([\S ]*)ImageROI"
+    ):
+        roi1.combine_with(sigima.objects.create_image_roi("rectangle", [0, 0, 10, 10]))
 
 
 def test_image_roi_creation() -> None:
@@ -176,8 +197,31 @@ def test_image_roi_merge() -> None:
         ), "Merged object should have the union of the original object's ROIs"
 
 
+def test_image_roi_combine() -> None:
+    """Test `ImageROI.combine_with` method"""
+    coords1, coords2 = [600, 800, 1000, 1200], [500, 750, 1000, 1250]
+    roi1 = sigima.objects.create_image_roi("rectangle", coords1, indices=True)
+    roi2 = sigima.objects.create_image_roi("rectangle", coords2, indices=True)
+    exp_combined = sigima.objects.create_image_roi(
+        "rectangle", [coords1, coords2], indices=True
+    )
+    # Check that combining two ROIs results in a new ROI with both coordinates:
+    roi1.combine_with(roi2)
+    assert roi1 == exp_combined, "Combined ROI should match expected"
+    # Check that combining again with the same ROI does not change it:
+    roi1.combine_with(roi2)
+    assert roi1 == exp_combined, "Combining with the same ROI should not change it"
+    # Check that combining with a signal ROI raises an error:
+    with pytest.raises(
+        TypeError, match=r"Cannot combine([\S ]*)ImageROI([\S ]*)SignalROI"
+    ):
+        roi1.combine_with(sigima.objects.create_signal_roi([50, 100], indices=True))
+
+
 if __name__ == "__main__":
     test_signal_roi_creation()
     test_signal_roi_merge()
+    test_signal_roi_combine()
     test_image_roi_merge()
     test_image_roi_creation()
+    test_image_roi_combine()
