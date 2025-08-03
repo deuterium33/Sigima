@@ -23,6 +23,11 @@ the DataLab application.
 # for the `erase`, `extract_roi`, and `extract_rois` functions? (same for signal
 # ROI extraction functions)
 
+# TODO: Add `read_roi` and `write_roi` functions to read/write ROIs from/to files.
+# (this implies some code refactoring from DataLab)
+# TODO: Add `read_metadata` and `write_metadata` functions to read/write metadata
+# from/to files (this implies some code refactoring from DataLab)
+
 # TODO: Should we use an unified approach for handling enum types or similar choices?
 # For example, see `BINNING_OPERATIONS` which currently is a simple tuple of strings,
 # whereas it could be a more structured enum type. There are several other examples
