@@ -25,7 +25,7 @@ class HDF5SignalFormat(SignalFormatBase):
 
     FORMAT_INFO = FormatInfo(
         name=_("HDF5 files"),
-        extensions="*.hdf5 *.h5",
+        extensions="*.h5sig",
         readable=True,
         writeable=True,
     )

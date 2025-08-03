@@ -68,7 +68,7 @@ def test_hdf5_signal_io() -> None:
                 execenv.print(f"  Skipping {fname} (not implemented)")
                 continue
             # Save to HDF5
-            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5")
+            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5sig")
             sigima.io.write_signal(filename, orig_signal)
             execenv.print(f"  Saved {filename}")
             # Read back
