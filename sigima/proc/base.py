@@ -93,9 +93,14 @@ class ArithmeticParam(gds.DataSet):
 
 
 class GaussianParam(gds.DataSet):
-    """Gaussian filter parameters"""
+    """Gaussian filter parameters."""
 
-    sigma = gds.FloatItem("σ", default=1.0)
+    sigma = gds.FloatItem(
+        _("σ"),
+        default=1.0,
+        min=0.0,
+        help=_("Standard deviation of the Gaussian filter"),
+    )
 
 
 HELP_MODE = _("""Mode of the filter:
