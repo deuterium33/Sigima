@@ -23,10 +23,10 @@ Main features include:
 
 from __future__ import annotations
 
-import guidata.dataset as gds
-import scipy.ndimage as spi
-import scipy.signal as sps
-from skimage import filters
+import guidata.dataset as gds  # type: ignore[import]
+import scipy.ndimage as spi  # type: ignore[import]
+import scipy.signal as sps  # type: ignore[import]
+from skimage import filters  # type: ignore[import]
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
