@@ -53,20 +53,20 @@ from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 __all__ = [
     "CannyParam",
     "canny",
-    "roberts",
-    "prewitt",
-    "prewitt_h",
-    "prewitt_v",
-    "sobel",
-    "sobel_h",
-    "sobel_v",
-    "scharr",
-    "scharr_h",
-    "scharr_v",
     "farid",
     "farid_h",
     "farid_v",
     "laplace",
+    "prewitt",
+    "prewitt_h",
+    "prewitt_v",
+    "roberts",
+    "scharr",
+    "scharr_h",
+    "scharr_v",
+    "sobel",
+    "sobel_h",
+    "sobel_v",
 ]
 
 
@@ -145,136 +145,6 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
 
 
 @computation_function()
-def roberts(src: ImageObj) -> ImageObj:
-    """Compute Roberts filter with :py:func:`skimage.filters.roberts`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.roberts)(src)
-
-
-@computation_function()
-def prewitt(src: ImageObj) -> ImageObj:
-    """Compute Prewitt filter with :py:func:`skimage.filters.prewitt`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.prewitt)(src)
-
-
-@computation_function()
-def prewitt_h(src: ImageObj) -> ImageObj:
-    """Compute horizontal Prewitt filter with :py:func:`skimage.filters.prewitt_h`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.prewitt_h)(src)
-
-
-@computation_function()
-def prewitt_v(src: ImageObj) -> ImageObj:
-    """Compute vertical Prewitt filter with :py:func:`skimage.filters.prewitt_v`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.prewitt_v)(src)
-
-
-@computation_function()
-def sobel(src: ImageObj) -> ImageObj:
-    """Compute Sobel filter with :py:func:`skimage.filters.sobel`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.sobel)(src)
-
-
-@computation_function()
-def sobel_h(src: ImageObj) -> ImageObj:
-    """Compute horizontal Sobel filter with :py:func:`skimage.filters.sobel_h`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.sobel_h)(src)
-
-
-@computation_function()
-def sobel_v(src: ImageObj) -> ImageObj:
-    """Compute vertical Sobel filter with :py:func:`skimage.filters.sobel_v`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.sobel_v)(src)
-
-
-@computation_function()
-def scharr(src: ImageObj) -> ImageObj:
-    """Compute Scharr filter with :py:func:`skimage.filters.scharr`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.scharr)(src)
-
-
-@computation_function()
-def scharr_h(src: ImageObj) -> ImageObj:
-    """Compute horizontal Scharr filter with :py:func:`skimage.filters.scharr_h`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.scharr_h)(src)
-
-
-@computation_function()
-def scharr_v(src: ImageObj) -> ImageObj:
-    """Compute vertical Scharr filter with :py:func:`skimage.filters.scharr_v`.
-
-    Args:
-        src: Input image object.
-
-    Returns:
-        Output image object.
-    """
-    return Wrap1to1Func(filters.scharr_v)(src)
-
-
-@computation_function()
 def farid(src: ImageObj) -> ImageObj:
     """Compute Farid filter with :py:func:`skimage.filters.farid`.
 
@@ -324,3 +194,133 @@ def laplace(src: ImageObj) -> ImageObj:
         Output image object.
     """
     return Wrap1to1Func(filters.laplace)(src)
+
+
+@computation_function()
+def prewitt(src: ImageObj) -> ImageObj:
+    """Compute Prewitt filter with :py:func:`skimage.filters.prewitt`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.prewitt)(src)
+
+
+@computation_function()
+def prewitt_h(src: ImageObj) -> ImageObj:
+    """Compute horizontal Prewitt filter with :py:func:`skimage.filters.prewitt_h`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.prewitt_h)(src)
+
+
+@computation_function()
+def prewitt_v(src: ImageObj) -> ImageObj:
+    """Compute vertical Prewitt filter with :py:func:`skimage.filters.prewitt_v`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.prewitt_v)(src)
+
+
+@computation_function()
+def roberts(src: ImageObj) -> ImageObj:
+    """Compute Roberts filter with :py:func:`skimage.filters.roberts`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.roberts)(src)
+
+
+@computation_function()
+def scharr(src: ImageObj) -> ImageObj:
+    """Compute Scharr filter with :py:func:`skimage.filters.scharr`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.scharr)(src)
+
+
+@computation_function()
+def scharr_h(src: ImageObj) -> ImageObj:
+    """Compute horizontal Scharr filter with :py:func:`skimage.filters.scharr_h`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.scharr_h)(src)
+
+
+@computation_function()
+def sobel(src: ImageObj) -> ImageObj:
+    """Compute Sobel filter with :py:func:`skimage.filters.sobel`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.sobel)(src)
+
+
+@computation_function()
+def sobel_h(src: ImageObj) -> ImageObj:
+    """Compute horizontal Sobel filter with :py:func:`skimage.filters.sobel_h`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.sobel_h)(src)
+
+
+@computation_function()
+def sobel_v(src: ImageObj) -> ImageObj:
+    """Compute vertical Sobel filter with :py:func:`skimage.filters.sobel_v`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.sobel_v)(src)
+
+
+@computation_function()
+def scharr_v(src: ImageObj) -> ImageObj:
+    """Compute vertical Scharr filter with :py:func:`skimage.filters.scharr_v`.
+
+    Args:
+        src: Input image object.
+
+    Returns:
+        Output image object.
+    """
+    return Wrap1to1Func(filters.scharr_v)(src)
