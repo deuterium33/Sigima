@@ -113,13 +113,13 @@ from sigima.proc.image.extraction import (
 )
 from sigima.proc.image.filtering import (
     ButterworthParam,
+    FreqDomainGaussianParam,
     butterworth,
+    freq_domain_gaussian_filter,
     gaussian_filter,
     moving_average,
     moving_median,
     wiener,
-    freq_fft,
-    FreqFFTParam,
 )
 from sigima.proc.image.fourier import (
     ZeroPadding2DParam,

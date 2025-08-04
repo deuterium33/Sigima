@@ -24,9 +24,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
       * `xdirection` / `ydirection`: Direction of the grid (increasing/decreasing).
 
 * New image processing features:
-  * New "Gaussian frequency filter" feature:
+  * New "Frequency domain Gaussian filter" feature:
     * This feature allows to filter an image in the frequency domain using a Gaussian filter.
-    * It is implemented in the `sigima.proc.image.freq_fft` function.
+    * It is implemented in the `sigima.proc.image.frequency_domain_gaussian_filter` function.
   * New "Erase" feature:
     * This feature allows to erase an area of the image using the mean value of the image.
     * It is implemented in the `sigima.proc.image.erase` function.

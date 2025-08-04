@@ -12,12 +12,14 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 from skimage import filters
 
+import sigima.params
 import sigima.proc.image
+import sigima.tools.image
 from sigima.objects import ImageObj
 from sigima.objects.image import create_image
+from sigima.tests import guiutils
 from sigima.tests.data import get_test_image
 from sigima.tests.helpers import check_array_result, check_scalar_result
-from sigima.tools.image import freq_fft_filter
 
 
 @pytest.mark.validation
@@ -110,58 +112,44 @@ def build_clean_noisy_images(
     return create_image("clean", low_freq), create_image("noisy", img)
 
 
-@pytest.mark.gui
-def test_freq_fft_filter_bandpass_interactive() -> None:
-    """Test freq_fft_filter with dtype argument."""
-    from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-    clean, noisy = build_clean_noisy_images(freq=0.05)
-    for result_type in ("real", "abs"):
-        zout_filt = freq_fft_filter(
-            zin=noisy.data, f0=0.05, sigma=0.05, ifft_result_type=result_type
-        )
-        clean_area = clean.data[10:-10, 10:-10]
-        if result_type == "abs":
-            clean_area = np.abs(clean_area)
-        mean_noise = float(np.mean(np.abs(clean_area - zout_filt[10:-10, 10:-10])))
-        check_scalar_result(
-            f"fft filter noise reduction ({result_type})", mean_noise, 0, atol=0.1
-        )
-        vistools.view_images_side_by_side(
-            [clean, noisy, zout_filt],
-            titles=["Start image", "Noisy Image", f"Filtered ({result_type})"],
-        )
-
-
 @pytest.mark.validation
-def test_computation_freq_fft() -> None:
-    """Validation test for freq_fft computation function."""
+def test_freq_domain_gaussian_filter(request: pytest.FixtureRequest = None) -> None:
+    """Validation test for :py:func:`sigima.tools.image.freq_domain_gaussian_filter`."""
     clean, noisy = build_clean_noisy_images(freq=0.05)
-    param = sigima.proc.image.FreqFFTParam.create(f0=0.05, sigma=0.05)
-    for result_type in ("real", "abs"):
-        param.ifft_result_type = result_type
-        filt = sigima.proc.image.freq_fft(noisy, param)
-        clean_area = clean.data[10:-10, 10:-10]
-        if result_type == "abs":
-            clean_area = np.abs(clean_area)
-        mean_noise = float(np.mean(np.abs(clean_area - filt.data[10:-10, 10:-10])))
-        check_scalar_result(
-            f"fft filter noise reduction ({result_type})", mean_noise, 0, atol=0.1
-        )
+    param = sigima.proc.image.FreqDomainGaussianParam.create(f0=0.05, sigma=0.05)
+    filt = sigima.proc.image.freq_domain_gaussian_filter(noisy, param)
+    clean_area = clean.data[10:-10, 10:-10]
+
+    guiutils.set_current_request(request)
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_images_side_by_side
+
+        with qt_app_context():
+            view_images_side_by_side(
+                [clean, noisy, filt], titles=["Clean", "Noisy", "Filtered"]
+            )
+
+    mean_noise = float(np.mean(np.abs(clean_area - filt.data[10:-10, 10:-10])))
+    check_scalar_result(
+        "freq_domain_gaussian_filter noise reduction", mean_noise, 0.0, atol=0.1
+    )
 
 
-def test_freq_fft_filter_constant_image() -> None:
+def test_freq_domain_gaussian_filter_constant_image() -> None:
     """Edge case: filtering a constant image must preserve the constant value
     (DC component)."""
     img_const = np.full((64, 64), fill_value=7.42)
-    zout = freq_fft_filter(img_const, f0=0.0, sigma=0.05)
+    zout = sigima.tools.image.freq_domain_gaussian_filter(img_const, f0=0.0, sigma=0.05)
     # Ignore borders
     center = zout[10:-10, 10:-10]
     # Assert that all values are (almost) equal to the original constant
     assert np.allclose(center, 7.42, atol=1e-10), "Filtering constant image failed"
 
 
-def test_freq_fft_filter_symmetry() -> None:
+def test_freq_domain_gaussian_filter_symmetry() -> None:
     """Test: filtering a symmetric image yields a symmetric result."""
     # Create a symmetric image (e.g., a centered 2D Gaussian)
     x = np.linspace(-1, 1, 64)
@@ -169,7 +157,7 @@ def test_freq_fft_filter_symmetry() -> None:
     xv, yv = np.meshgrid(x, y)
     img = np.exp(-(xv**2 + yv**2) / 0.1)
 
-    zout = freq_fft_filter(img, f0=0.05, sigma=0.02)
+    zout = sigima.tools.image.freq_domain_gaussian_filter(img, f0=0.05, sigma=0.02)
     # Symmetry check: image must be (almost) symmetric along both axes
     assert np.allclose(zout, zout[::-1, :], atol=1e-10), "Vertical symmetry lost"
     assert np.allclose(zout, zout[:, ::-1], atol=1e-10), "Horizontal symmetry lost"
@@ -181,7 +169,6 @@ if __name__ == "__main__":
     test_image_moving_median()
     test_image_wiener()
     test_butterworth()
-    test_freq_fft_filter_bandpass_interactive()
-    test_computation_freq_fft()
-    test_freq_fft_filter_constant_image()
-    test_freq_fft_filter_symmetry()
+    test_freq_domain_gaussian_filter(request=guiutils.DummyRequest(gui=True))
+    test_freq_domain_gaussian_filter_constant_image()
+    test_freq_domain_gaussian_filter_symmetry()

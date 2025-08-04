@@ -376,6 +376,12 @@ msgstr "Convertir vers le type de données de `obj1`"
 msgid "Result"
 msgstr "Résultat"
 
+msgid "σ"
+msgstr "σ"
+
+msgid "Standard deviation of the Gaussian filter"
+msgstr "Ecart-type du filtre gaussien"
+
 msgid ""
 "Mode of the filter:\n"
 "- 'reflect': Reflect the data at the boundary\n"
@@ -819,24 +825,6 @@ msgstr "Fréquence centrale"
 
 msgid "Center frequency of the Gaussian filter"
 msgstr "Fréquence centrale du filtre gaussien"
-
-msgid "σ"
-msgstr "σ"
-
-msgid "Standard deviation of the Gaussian filter"
-msgstr "Ecart-type du filtre gaussien"
-
-msgid "Inverse FFT result"
-msgstr "Résultat de la FFT inverse"
-
-msgid "Real part"
-msgstr "Partie réelle"
-
-msgid "Absolute value"
-msgstr "Valeur absolue"
-
-msgid "How to return the inverse FFT result"
-msgstr "Comment retourner le résultat de la FFT inverse"
 
 msgid "Padding strategy"
 msgstr "Stratégie de complément de zéros"

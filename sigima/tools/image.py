@@ -198,33 +198,26 @@ def psd(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
 
 
 @check_2d_array
-def freq_fft_filter(
-    zin: np.ndarray,
-    f0: float = 0.1,
-    sigma: float = 0.05,
-    ifft_result_type: Literal["real", "abs"] = "real",
+def freq_domain_gaussian_filter(
+    data: np.ndarray, f0: float = 0.1, sigma: float = 0.05
 ) -> np.ndarray:
     """
     Apply a 2D Gaussian bandpass filter in the frequency domain to an image.
 
     This function performs a 2D Fast Fourier Transform (FFT) on the input image,
-    applies a Gaussian filter centered at frequency `f0` with standard deviation
-    `sigma` (both expressed in cycles per pixel, 0 <= f < 0.5), and then transforms
-    the result back to the spatial domain.
+    applies a Gaussian filter centered at frequency `f0` with standard deviation `sigma`
+    (both expressed in cycles per pixel), and then transforms the result back to the
+    spatial domain.
 
     Args:
-        zin: Input image data as a 2D NumPy array.
-        f0: Center frequency of the Gaussian filter (cycles/pixel, 0 = DC).
+        data: Input image data.
+        f0: Center frequency of the Gaussian filter (cycles/pixel).
         sigma: Standard deviation of the Gaussian filter (cycles/pixel).
-        ifft_result_type: Specifies how to return the inverse FFT result.
 
     Returns:
-        zout: The filtered image as a 2D NumPy array.
-
-    Raises:
-        ValueError: If 'zin' is not 2D or if 'ifft_result_type' is invalid.
+        The filtered image.
     """
-    n, m = zin.shape
+    n, m = data.shape
     fx = np.fft.fftshift(np.fft.fftfreq(m, d=1))
     fy = np.fft.fftshift(np.fft.fftfreq(n, d=1))
     fx_grid, fy_grid = np.meshgrid(fx, fy)
@@ -234,17 +227,10 @@ def freq_fft_filter(
     gaussian_filter = np.exp(-0.5 * ((freq_radius - f0) / sigma) ** 2)
 
     # Apply FFT, filter in frequency domain, and inverse FFT
-    fft_data = fft2d(zin, shift=True)
+    fft_data = fft2d(data, shift=True)
     filtered_fft = fft_data * gaussian_filter
     zout = ifft2d(filtered_fft, shift=True)
-
-    if ifft_result_type == "real":
-        return zout.real
-    if ifft_result_type == "abs":
-        return np.abs(zout)
-    raise ValueError(
-        f"Invalid ifft_result_type: {ifft_result_type!r} (must be 'real' or 'abs')"
-    )
+    return zout.real
 
 
 # MARK: Binning ------------------------------------------------------------------------

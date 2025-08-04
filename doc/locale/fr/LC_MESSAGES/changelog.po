@@ -79,14 +79,14 @@ msgstr "`xdirection` / `ydirection`: Direction de la grille (croissante/décrois
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
 
-msgid "New \"Gaussian frequency filter\" feature:"
-msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\":"
+msgid "New \"Frequency domain Gaussian filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\" :"
 
 msgid "This feature allows to filter an image in the frequency domain using a Gaussian filter."
 msgstr "Cette fonctionnalité permet de filtrer une image dans le domaine fréquentiel à l'aide d'un filtre gaussien."
 
-msgid "It is implemented in the `sigima.proc.image.freq_fft` function."
-msgstr "Elle est implémentée dans la fonction `sigima.proc.image.freq_fft`."
+msgid "It is implemented in the `sigima.proc.image.frequency_domain_gaussian_filter` function."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.image.frequency_domain_gaussian_filter`."
 
 msgid "New \"Erase\" feature:"
 msgstr "Nouvelle fonctionnalité \"Gommage\":"
