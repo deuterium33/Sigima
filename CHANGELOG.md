@@ -7,6 +7,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* New ROI features:
+  * Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs.
+
 * New image processing features:
   * New "Gaussian frequency filter" feature:
     * This feature allows to filter an image in the frequency domain using a Gaussian filter.
@@ -55,6 +58,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 * New signal generators: linear chirp, logistic function, Planck function.
 
 * New I/O features:
+  * Added HDF5 format for signal and image objects (extensions `.h5sig` and `.h5ima`) that may be opened with any HDF5 viewer.
   * Added support for FT-Lab signal and image format.
   * Added functions to read and write metadata and ROIs in JSON format:
     * `sigima.io.read_metadata` and `sigima.io.write_metadata` for metadata.
