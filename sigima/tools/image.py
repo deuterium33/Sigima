@@ -430,7 +430,7 @@ def get_centroid_auto(
     """
     try:
         row_f, col_f = get_centroid_fourier(data)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         row_f, col_f = float("nan"), float("nan")
 
     row_m, col_m = get_projected_profile_centroid(data, method="median")

@@ -108,7 +108,7 @@ def read_roi(filepath: str) -> SignalROI | ImageROI:
     roi_type = roi_dict.pop(ROI_TYPE_FIELD, None)
     if roi_type == "signal":
         return SignalROI.from_dict(roi_dict)
-    elif roi_type == "image":
+    if roi_type == "image":
         return ImageROI.from_dict(roi_dict)
     raise ValueError(f"Unsupported or missing ROI type: {roi_type}")
 

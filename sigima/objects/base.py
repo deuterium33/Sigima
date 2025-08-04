@@ -1366,7 +1366,7 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             raise TypeError(f"Cannot combine {type(self)} with {type(other)}")
         combined_roi = self.copy()
         for roi in other.single_rois:
-            if all([s_roi != roi for s_roi in self.single_rois]):
+            if all(s_roi != roi for s_roi in self.single_rois):
                 combined_roi.single_rois.append(roi)
         return combined_roi
 
