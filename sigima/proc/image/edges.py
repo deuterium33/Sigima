@@ -27,9 +27,9 @@ extraction.
 
 from __future__ import annotations
 
-import guidata.dataset as gds
-import skimage
-from skimage import feature, filters
+import guidata.dataset as gds  # type: ignore[import]
+from skimage import feature, filters  # type: ignore[import]
+from skimage.util import img_as_ubyte  # type: ignore[import]
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
@@ -117,7 +117,7 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
         f"high_threshold={p.high_threshold}, use_quantiles={p.use_quantiles}, "
         f"mode={mode}, cval={p.cval}",
     )
-    dst.data = skimage.util.img_as_ubyte(
+    dst.data = img_as_ubyte(
         feature.canny(
             src.data,
             sigma=p.sigma,
