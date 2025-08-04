@@ -79,6 +79,8 @@ include = ["sigima*"]
     "*.txt",
     "*.json",
     "*_test.h5",
+    "*.h5ima",
+    "*.h5sig",
     "*.npy",
     "*.dcm",
     "*.scor-data",

@@ -77,10 +77,26 @@ Example of a new image format plugin:
 
 from __future__ import annotations
 
+from sigima.io.common.objmeta import read_metadata, read_roi, write_metadata, write_roi
 from sigima.io.image.base import ImageIORegistry
 from sigima.io.signal.base import SignalIORegistry
 from sigima.objects.image import ImageObj
 from sigima.objects.signal import SignalObj
+
+__all__ = [
+    "read_metadata",
+    "write_metadata",
+    "read_roi",
+    "write_roi",
+    "read_signals",
+    "read_signal",
+    "write_signal",
+    "read_images",
+    "read_image",
+    "write_image",
+    "SignalIORegistry",
+    "ImageIORegistry",
+]
 
 SIGNAL_FORMAT_INFO = SignalIORegistry.get_format_info(rst=True)
 IMAGE_FORMAT_INFO = ImageIORegistry.get_format_info(rst=True)

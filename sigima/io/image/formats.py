@@ -34,7 +34,7 @@ class HDF5ImageFormat(ImageFormatBase):
 
     FORMAT_INFO = FormatInfo(
         name="HDF5",
-        extensions="*.hdf5 *.h5",
+        extensions="*.h5ima",
         readable=True,
         writeable=True,
     )

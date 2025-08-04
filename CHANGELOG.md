@@ -56,6 +56,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * New I/O features:
   * Added support for FT-Lab signal and image format.
+  * Added functions to read and write metadata and ROIs in JSON format:
+    * `sigima.io.read_metadata` and `sigima.io.write_metadata` for metadata.
+    * `sigima.io.read_roi` and `sigima.io.write_roi` for ROIs.
 
 🛠️ Bug fixes:
 

@@ -1170,8 +1170,12 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
         self.title = title
         self.check_coords()
 
-    def __eq__(self, other: BaseSingleROI) -> bool:
+    def __eq__(self, other: BaseSingleROI | None) -> bool:
         """Test equality with another single ROI"""
+        if other is None:
+            return False
+        if not isinstance(other, BaseSingleROI):
+            raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
         return (
             np.array_equal(self.coords, other.coords) and self.indices == other.indices
         )
@@ -1302,6 +1306,14 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         """Iterate over single ROIs"""
         return iter(self.single_rois)
 
+    def __eq__(self, other: BaseROI | None) -> bool:
+        """Test equality with another ROI"""
+        if other is None:
+            return False
+        if not isinstance(other, BaseROI):
+            raise TypeError(f"Cannot compare {type(self)} with {type(other)}")
+        return self.single_rois == other.single_rois
+
     def get_single_roi(self, index: int) -> TypeSingleROI:
         """Return single ROI at index
 
@@ -1337,6 +1349,26 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
     def empty(self) -> None:
         """Empty ROIs"""
         self.single_rois.clear()
+
+    def combine_with(
+        self, other: BaseROI[TypeObj, TypeSingleROI, TypeROIParam]
+    ) -> BaseROI[TypeObj, TypeSingleROI, TypeROIParam]:
+        """Combine ROIs with another ROI object, by merging single ROIs (and ignoring
+        duplicate single ROIs) and returning a new combined ROI object.
+
+        Args:
+            other: other ROI object
+
+        Returns:
+            Combined ROIs object
+        """
+        if not isinstance(other, type(self)):
+            raise TypeError(f"Cannot combine {type(self)} with {type(other)}")
+        combined_roi = self.copy()
+        for roi in other.single_rois:
+            if all([s_roi != roi for s_roi in self.single_rois]):
+                combined_roi.single_rois.append(roi)
+        return combined_roi
 
     def add_roi(
         self, roi: TypeSingleROI | BaseROI[TypeObj, TypeSingleROI, TypeROIParam]
@@ -1433,6 +1465,11 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             ROIs
         """
         instance = cls()
+        if not all(key in dictdata for key in ["singleobj", "inverse", "single_rois"]):
+            raise ValueError(
+                "Invalid ROI: dictionary must contain 'singleobj', 'inverse', "
+                "and 'single_rois' keys"
+            )
         instance.singleobj = dictdata["singleobj"]
         instance.inverse = dictdata["inverse"]
         instance.single_rois = []
