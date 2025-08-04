@@ -65,20 +65,20 @@ class CannyParam(gds.DataSet):
         "Sigma",
         default=1.0,
         unit="pixels",
-        min=0,
+        min=0.0,
         nonzero=True,
         help=_("Standard deviation of the Gaussian filter."),
     )
     low_threshold = gds.FloatItem(
         _("Low threshold"),
         default=0.1,
-        min=0,
+        min=0.0,
         help=_("Lower bound for hysteresis thresholding (linking edges)."),
     )
     high_threshold = gds.FloatItem(
         _("High threshold"),
         default=0.9,
-        min=0,
+        min=0.0,
         help=_("Upper bound for hysteresis thresholding (linking edges)."),
     )
     use_quantiles = gds.BoolItem(
