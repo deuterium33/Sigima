@@ -161,7 +161,7 @@ class FreqDomainGaussianParam(GaussianParam):
 
     sigma = gds.FloatItem(
         _("σ"),
-        default=0.5,
+        default=1.0,
         unit="pixel⁻¹",
         min=0.0,
         help=_("Standard deviation of the Gaussian filter"),
