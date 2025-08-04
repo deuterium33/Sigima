@@ -1,26 +1,24 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
-"""
-Filtering computation module
-----------------------------
+"""Filtering computation module.
+--------------------------------
 
 This module provides spatial and frequency-based filtering operations for images.
+Filtering functions are essential for enhancing image quality and removing noise.
 
 Main features include:
-- Gaussian, median, moving average, Wiener, and Butterworth filters
-- Noise reduction and image smoothing
+    * Gaussian, median, moving average and Wiener filters
+    * Butterworth and frequency domain Gaussian filters.
 
-Filtering functions are essential for enhancing image quality
-and removing noise prior to further analysis.
 """
 
-# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+# pylint: disable=invalid-name  # Allows short names like x, y...
 
 # Note:
 # ----
-# - All `guidata.dataset.DataSet` parameter classes must also be imported
-#   in the `sigima.params` module.
-# - All functions decorated by `computation_function` must be imported in the upper
+# - All `guidata.dataset.DataSet` parameter classes must also be imported in the
+#   `sigima.params` module.
+# - All functions decorated with `computation_function` must be imported in the upper
 #   level `sigima.proc.image` module.
 
 from __future__ import annotations
@@ -56,61 +54,61 @@ __all__ = [
 
 @computation_function()
 def gaussian_filter(src: ImageObj, p: GaussianParam) -> ImageObj:
-    """Compute gaussian filter with :py:func:`scipy.ndimage.gaussian_filter`
+    """Compute gaussian filter with :py:func:`scipy.ndimage.gaussian_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(spi.gaussian_filter, sigma=p.sigma)(src)
 
 
 @computation_function()
 def moving_average(src: ImageObj, p: MovingAverageParam) -> ImageObj:
-    """Compute moving average with :py:func:`scipy.ndimage.uniform_filter`
+    """Compute moving average with :py:func:`scipy.ndimage.uniform_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
 
 
 @computation_function()
 def moving_median(src: ImageObj, p: MovingMedianParam) -> ImageObj:
-    """Compute moving median with :py:func:`scipy.ndimage.median_filter`
+    """Compute moving median with :py:func:`scipy.ndimage.median_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
 
 
 @computation_function()
 def wiener(src: ImageObj) -> ImageObj:
-    """Compute Wiener filter with :py:func:`scipy.signal.wiener`
+    """Compute Wiener filter with :py:func:`scipy.signal.wiener`.
 
     Args:
-        src: input image object
+        src: Input image object.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(sps.wiener)(src)
 
 
 class ButterworthParam(gds.DataSet):
-    """Butterworth filter parameters"""
+    """Butterworth filter parameters."""
 
     cut_off = gds.FloatItem(
         _("Cut-off frequency ratio"),
@@ -134,14 +132,14 @@ class ButterworthParam(gds.DataSet):
 
 @computation_function()
 def butterworth(src: ImageObj, p: ButterworthParam) -> ImageObj:
-    """Compute Butterworth filter with :py:func:`skimage.filters.butterworth`
+    """Compute Butterworth filter with :py:func:`skimage.filters.butterworth`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     dst = dst_1_to_1(
         src,
@@ -183,11 +181,11 @@ def freq_fft(src: ImageObj, p: FreqFFTParam) -> ImageObj:
     """Apply a 2D Gaussian bandpass filter in the frequency domain to an image.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Source image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     dst = dst_1_to_1(
         src,
