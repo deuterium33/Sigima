@@ -927,11 +927,11 @@ class BaseHighLowBandParam(gds.DataSet):
 
     methods = (
         ("bessel", _("Bessel")),
+        ("brick_wall", _("Brick wall")),
         ("butter", _("Butterworth")),
         ("cheby1", _("Chebyshev type 1")),
         ("cheby2", _("Chebyshev type 2")),
         ("ellip", _("Elliptic")),
-        ("brick_wall", _("Brick wall")),
     )
 
     TYPE: FilterType = FilterType.LOWPASS
