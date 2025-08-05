@@ -21,7 +21,6 @@ import numpy as np
 from guidata.configtools import get_module_data_path
 
 from sigima.config import MOD_NAME
-from sigima.io.base import BaseIORegistry
 from sigima.io.image import ImageIORegistry
 from sigima.io.signal import SignalIORegistry
 from sigima.objects.image import ImageObj
@@ -101,7 +100,9 @@ def get_test_fnames(pattern: str, in_folder: str | None = None) -> list[str]:
 
 
 def read_test_objects(
-    registry: BaseIORegistry, pattern: str = "*.*", in_folder: str | None = None
+    registry: SignalIORegistry | ImageIORegistry,
+    pattern: str = "*.*",
+    in_folder: str | None = None,
 ) -> Generator[tuple[str, ImageObj | None] | tuple[str, SignalObj | None], None, None]:
     """Read test images and yield their file names and objects
 

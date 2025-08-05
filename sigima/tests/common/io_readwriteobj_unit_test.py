@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os.path as osp
 
-from sigima.io.base import BaseIORegistry
 from sigima.io.image import ImageIORegistry
 from sigima.io.signal import SignalIORegistry
 from sigima.tests.env import execenv
@@ -19,11 +18,11 @@ from sigima.tests.helpers import WorkdirRestoringTempDir, read_test_objects, red
 
 def __testfunc(
     title: str,
-    registry: BaseIORegistry,
+    registry: SignalIORegistry | ImageIORegistry,
     pattern: str = "*.*",
     in_folder: str | None = None,
 ) -> None:
-    """Test I/O features
+    """Test I/O features: read and write objects, and check registry functionality
 
     Args:
         title: Title of the test
@@ -57,12 +56,12 @@ def __testfunc(
                 execenv.print("Skipped (not implemented)")
 
 
-def test_io2():
-    """I/O test"""
+def test_read_write_obj():
+    """I/O test: read and write objects, check registry functionality"""
     execenv.print("I/O unit test:")
     __testfunc("Signals", SignalIORegistry)
     __testfunc("Images", ImageIORegistry)
 
 
 if __name__ == "__main__":
-    test_io2()
+    test_read_write_obj()

@@ -143,8 +143,8 @@ def test_open_imadata(
 
 
 @pytest.mark.gui
-def test_io1_interactive() -> None:
-    """Interactive test for I/O"""
+def test_read_obj_interactive() -> None:
+    """Interactive test for I/O: read and view objects from various formats."""
     request = guiutils.DummyRequest(gui=True)
     test_open_txt(request=request)
     test_open_csv(request=request)
@@ -156,4 +156,4 @@ def test_io1_interactive() -> None:
 
 
 if __name__ == "__main__":
-    test_io1_interactive()
+    test_read_obj_interactive()
