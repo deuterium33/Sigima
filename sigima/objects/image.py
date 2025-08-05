@@ -58,9 +58,9 @@ def check_points(value: np.ndarray, raise_exception: bool = False) -> bool:
     Returns:
         True if value is valid, False otherwise
     """
-    if not np.issubdtype(value.dtype, np.floating):
+    if not np.issubdtype(value.dtype, np.integer):
         if raise_exception:
-            raise TypeError("Coordinates must be floating-point numbers")
+            raise TypeError("Coordinates must be integers")
         return False
     if value.ndim != 1:
         if raise_exception:
