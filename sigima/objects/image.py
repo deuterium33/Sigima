@@ -476,7 +476,7 @@ class RectangularROI(BaseSingleImageROI):
             y1: y1 (bottom-right corner)
 
         Returns:
-            Rectangle coordinates
+            Rectangle coordinates (x0, y0, Δx, Δy)
         """
         return np.array([x0, y0, x1 - x0, y1 - y0], dtype=type(x0))
 
@@ -629,7 +629,7 @@ class CircularROI(BaseSingleImageROI):
             y1: y1 (bottom-right corner)
 
         Returns:
-            Circle coordinates
+            Circle coordinates (xc, yc, r)
         """
         xc, yc, r = 0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (x1 - x0)
         return np.array([xc, yc, r], dtype=type(x0))
