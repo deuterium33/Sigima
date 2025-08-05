@@ -81,7 +81,7 @@ class FormatBase:
                         f"Format {self.info.name} requires {package} package"
                     ) from exc
 
-    def get_filter(self, action: IOAction) -> str:
+    def get_filter(self, action: IOAction) -> str | None:
         """Return file filter for Qt file dialog
 
         Args:
@@ -92,9 +92,9 @@ class FormatBase:
         """
         assert action in (IOAction.LOAD, IOAction.SAVE)
         if action == IOAction.LOAD and not self.info.readable:
-            return ""
+            return None
         if action == IOAction.SAVE and not self.info.writeable:
-            return ""
+            return None
         return f"{self.info.name} ({self.info.extensions})"
 
     def read(
@@ -178,14 +178,14 @@ class BaseIORegistry(type):
         return txt
 
     @classmethod
-    def get_all_filters(cls, action: IOAction) -> str:
-        """Return all file filters for Qt file dialog
+    def __get_all_supported_filter(cls, action: IOAction) -> str:
+        """Return all supported file filter for Qt file dialog
 
         Args:
             action: I/O action type
 
         Returns:
-            File filters
+            File filter
         """
         extlist = []  # file extension list
         for fmt in cls.get_formats():
@@ -209,10 +209,12 @@ class BaseIORegistry(type):
             File filters
         """
         flist = []  # file filter list
-        flist.append(cls.get_all_filters(action))
+        flist.append(cls.__get_all_supported_filter(action))
         for fmt in cls.get_formats():
             fmt: FormatBase
-            flist.append(fmt.get_filter(action))
+            flt = fmt.get_filter(action)
+            if flt is not None:
+                flist.append(flt)
         return "\n".join(flist)
 
     @classmethod
