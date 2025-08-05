@@ -48,27 +48,29 @@ def to_builtin(obj) -> str | int | float | list | dict | np.ndarray | None:
     return None
 
 
-class IntCoordsItem(gds.FloatArrayItem):
-    """Item representing a pair of coordinates (X, Y)"""
+def check_points(value: np.ndarray, raise_exception: bool = False) -> bool:
+    """Check if value is a valid 1D array of coordinates (X, Y) pairs.
 
-    def check_value(self, value: np.ndarray, raise_exception: bool = False) -> bool:
-        """Override DataItem method"""
-        valid = super().check_value(value, raise_exception)
-        if not valid:
-            return False
-        if not np.issubdtype(value.dtype, np.integer):
-            if raise_exception:
-                raise TypeError("Coordinates must be integers")
-            return False
-        if value.ndim != 1:
-            if raise_exception:
-                raise ValueError("Coordinates must be a 1D array")
-            return False
-        if len(value) % 2 != 0:
-            if raise_exception:
-                raise ValueError("Coordinates must contain pairs (X, Y)")
-            return False
-        return True
+    Args:
+        value: value to check
+        raise_exception: if True, raise an exception on invalid value
+
+    Returns:
+        True if value is valid, False otherwise
+    """
+    if not np.issubdtype(value.dtype, np.floating):
+        if raise_exception:
+            raise TypeError("Coordinates must be floating-point numbers")
+        return False
+    if value.ndim != 1:
+        if raise_exception:
+            raise ValueError("Coordinates must be a 1D array")
+        return False
+    if len(value) % 2 != 0:
+        if raise_exception:
+            raise ValueError("Coordinates must contain pairs (X, Y)")
+        return False
+    return True
 
 
 class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
@@ -124,9 +126,9 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
     r = gds.IntItem(_("Radius"), default=0, unit=_ut).set_prop("display", hide=_cfp)
 
     # Parameters for polygonal ROI geometry:
-    points = IntCoordsItem(_("Coordinates") + f" ({_ut})").set_prop(
-        "display", hide=_pfp
-    )
+    points = gds.FloatArrayItem(
+        _("Coordinates") + f" ({_ut})", check_callback=check_points
+    ).set_prop("display", hide=_pfp)
 
     def to_single_roi(
         self, obj: ImageObj
