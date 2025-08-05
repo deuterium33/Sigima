@@ -20,7 +20,9 @@ from sigima.tools.signal.dynamic import sampling_rate
 def zero_padding(
     x: np.ndarray, y: np.ndarray, n_prepend: int = 0, n_append: int = 0
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Append n zeros at the end of the signal.
+    """Prepend and append zeros.
+
+    This function pads the input signal with zeros at the beginning and end.
 
     Args:
         x: X data.
