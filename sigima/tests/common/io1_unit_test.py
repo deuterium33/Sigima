@@ -8,8 +8,6 @@ Testing `sigima` specific formats.
 
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 import pytest
 
@@ -30,10 +28,7 @@ def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
         if np.all(np.isnan(obj.data)):
             raise ValueError("Data is all NaNs")
     for obj in objs:
-        # Ignore warnings for complex numbers (workaround for guidata)
-        with np.errstate(all="ignore"), warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            execenv.print(obj)
+        execenv.print(obj)
     return objs
 
 
