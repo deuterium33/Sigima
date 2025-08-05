@@ -1097,17 +1097,22 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
     dst = dst_1_to_1(src, name, suffix)
 
     if p.method == "brick_wall":
-        x_pad, y_pad = src.get_data()
-        if p.zero_padding:
-            min_lenght = max(len(src.y), p.nfft) if p.nfft is not None else len(src.y)
-            lenght = 2 ** int(np.ceil(np.log2(min_lenght)))
-
-            if len(src.y) < lenght:
-                # Zero-pad the signal to the specified nfft length
-                x_pad, y_pad = fourier.zero_padding(
-                    src.x, src.y, int(lenght - len(src.y))
+        src_padded = src.copy()
+        if p.zero_padding and p.nfft is not None:
+            size_padded = ZeroPadding1DParam.next_power_of_two(max(p.nfft, src.y.size))
+            if size_padded > 1:
+                src_padded = zero_padding(
+                    src_padded,
+                    ZeroPadding1DParam.create(
+                        location="append",
+                        strategy="custom",
+                        n=size_padded,
+                    ),
                 )
-        x, y = fourier.brick_wall_filter(x_pad, y_pad, p.TYPE.value, p.cut0, p.cut1)
+        x_padded, y_padded = src_padded.get_data()
+        x, y = fourier.brick_wall_filter(
+            x_padded, y_padded, p.TYPE.value, p.cut0, p.cut1
+        )
         dst.set_xydata(x, y)
     else:
         b, a = p.get_filter_params(dst)
