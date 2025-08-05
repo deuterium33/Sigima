@@ -190,16 +190,11 @@ def brickwall_filter(
         Tuple (x, y_filtered), where y_filtered is the filtered signal.
 
     Raises:
-        ValueError: If x is not uniformly spaced, if cutoff frequencies are invalid,
-         or if required parameters are missing.
+        ValueError: If cutoff frequencies are invalid or if required parameters are
+        missing.
     """
     if mode not in {"lowpass", "highpass", "bandpass", "bandstop"}:
         raise ValueError(f"Unknown filter mode: {mode!r}")
-
-    # TODO: Replace by a mutualized function (e.g. a decorator) in sigima.proc
-    dx = np.diff(x)
-    if not np.allclose(dx, dx[0]):
-        raise ValueError("x must be uniformly spaced.")
 
     freqs, ffty = fft1d(x, y, shift=False)
 
