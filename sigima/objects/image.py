@@ -972,17 +972,23 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
 
         Returns:
             Indices
+
+        Raises:
+            ValueError: if coords does not contain an even number of elements
         """
+        if len(coords) % 2 != 0:
+            raise ValueError(
+                "coords must contain an even number of elements (x, y pairs)."
+            )
         indices = np.array(coords, float)
         if indices.size > 0:
-            indices[::2] -= self.x0 + 0.5 * self.dx
-            indices[::2] /= self.dx
-            indices[1::2] -= self.y0 + 0.5 * self.dy
-            indices[1::2] /= self.dy
+            indices[::2] = (indices[::2] - self.x0) / self.dx
+            indices[1::2] = (indices[1::2] - self.y0) / self.dy
+
         if clip:
             indices[::2] = np.clip(indices[::2], 0, self.data.shape[1] - 1)
             indices[1::2] = np.clip(indices[1::2], 0, self.data.shape[0] - 1)
-        return np.array(indices, int).tolist()
+        return np.rint(indices).astype(int).tolist()
 
     def indices_to_physical(self, indices: list[float]) -> list[int]:
         """Convert coordinates from indices to physical (real world)
@@ -992,13 +998,18 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
 
         Returns:
             Coordinates
+
+        Raises:
+            ValueError: if indices does not contain an even number of elements
         """
+        if len(indices) % 2 != 0:
+            raise ValueError(
+                "indices must contain an even number of elements (x, y pairs)."
+            )
         coords = np.array(indices, float)
         if coords.size > 0:
-            coords[::2] *= self.dx
-            coords[::2] += self.x0 + 0.5 * self.dx
-            coords[1::2] *= self.dy
-            coords[1::2] += self.y0 + 0.5 * self.dy
+            coords[::2] = coords[::2] * self.dx + self.x0
+            coords[1::2] = coords[1::2] * self.dy + self.y0
         return coords.tolist()
 
 

@@ -15,9 +15,10 @@ import sigima.objects
 import sigima.proc.image
 import sigima.proc.signal
 from sigima.tests.data import (
-    CLASS_NAME,
     create_multigaussian_image,
     create_paracetamol_signal,
+    create_test_image_rois,
+    create_test_signal_rois,
 )
 from sigima.tests.env import execenv
 
@@ -35,40 +36,9 @@ def __conversion_methods(
 
 def test_signal_roi_creation() -> None:
     """Test signal ROI creation and conversion methods"""
-
-    # ROI coordinates: for each ROI type, the coordinates are given for indices=True
-    # and indices=False (physical coordinates)
-    roi_coords = {
-        "segment": {
-            CLASS_NAME: "SegmentROI",
-            True: [50, 100],  # indices [x0, dx]
-            False: [7.5, 10.0],  # physical
-        },
-    }
-
     obj = create_paracetamol_signal()
-
-    for indices in (True, False):
-        execenv.print("indices:", indices)
-
-        for geometry, coords in roi_coords.items():
-            execenv.print("  geometry:", geometry)
-
-            roi = sigima.objects.create_signal_roi(coords[indices], indices=indices)
-
-            sroi = roi.get_single_roi(0)
-            assert sroi.__class__.__name__ == coords[CLASS_NAME]
-
-            cds_ind = [int(val) for val in sroi.get_indices_coords(obj)]
-            assert cds_ind == coords[True]
-
-            cds_phys = [float(val) for val in sroi.get_physical_coords(obj)]
-            assert cds_phys == coords[False]
-
-            execenv.print("    get_physical_coords:", cds_phys)
-            execenv.print("    get_indices_coords: ", cds_ind)
-
-            __conversion_methods(roi, obj)
+    for roi in create_test_signal_rois(obj):
+        __conversion_methods(roi, obj)
 
 
 def test_signal_roi_merge() -> None:
@@ -114,64 +84,9 @@ def test_signal_roi_combine() -> None:
 
 def test_image_roi_creation() -> None:
     """Test image ROI creation and conversion methods"""
-
-    # ROI coordinates: for each ROI type, the coordinates are given for indices=True
-    # and indices=False (physical coordinates)
-    roi_coords = {
-        "rectangle": {
-            CLASS_NAME: "RectangularROI",
-            True: [500, 750, 1000, 1250],  # indices [x0, y0, dx, dy]
-            False: [500.5, 750.5, 1000.0, 1250.0],  # physical
-        },
-        "circle": {
-            CLASS_NAME: "CircularROI",
-            True: [1500, 1500, 500],  # indices [x0, y0, radius]
-            False: [1500.5, 1500.5, 500.0],  # physical
-        },
-        "polygon": {
-            CLASS_NAME: "PolygonalROI",
-            True: [450, 150, 1300, 350, 1250, 950, 400, 1350],  # indices [x0, y0, ,...]
-            False: [450.5, 150.5, 1300.5, 350.5, 1250.5, 950.5, 400.5, 1350.5],  # phys.
-        },
-    }
-
     obj = create_multigaussian_image()
-
-    for indices in (True, False):
-        execenv.print("indices:", indices)
-
-        for geometry, coords in roi_coords.items():
-            execenv.print("  geometry:", geometry)
-
-            roi = sigima.objects.create_image_roi(
-                geometry, coords[indices], indices=indices
-            )
-
-            sroi = roi.get_single_roi(0)
-            assert sroi.__class__.__name__ == coords[CLASS_NAME]
-
-            bbox_phys = [float(val) for val in sroi.get_bounding_box(obj)]
-            if geometry in ("rectangle", "circle"):
-                # pylint: disable=unbalanced-tuple-unpacking
-                x0, y0, x1, y1 = obj.physical_to_indices(bbox_phys)
-                if geometry == "rectangle":
-                    coords_from_bbox = [int(xy) for xy in [x0, y0, x1 - x0, y1 - y0]]
-                else:
-                    coords_from_bbox = [
-                        int(xy) for xy in [(x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2]
-                    ]
-                assert coords_from_bbox == coords[True]
-
-            cds_phys = [float(val) for val in sroi.get_physical_coords(obj)]
-            assert cds_phys == coords[False]
-            cds_ind = [int(val) for val in sroi.get_indices_coords(obj)]
-            assert cds_ind == coords[True]
-
-            execenv.print("    get_bounding_box:   ", bbox_phys)
-            execenv.print("    get_physical_coords:", cds_phys)
-            execenv.print("    get_indices_coords: ", cds_ind)
-
-            __conversion_methods(roi, obj)
+    for roi in create_test_image_rois(obj):
+        __conversion_methods(roi, obj)
 
 
 def test_image_roi_merge() -> None:

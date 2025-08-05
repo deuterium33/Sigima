@@ -456,17 +456,17 @@ def create_test_image_rois(obj: ImageObj) -> Generator[ImageROI, None, None]:
         "rectangle": {
             CLASS_NAME: "RectangularROI",
             True: [500, 750, 1000, 1250],  # indices [x0, y0, dx, dy]
-            False: [500.5, 750.5, 1000.0, 1250.0],  # physical
+            False: [500.0, 750.0, 1000.0, 1250.0],  # physical
         },
         "circle": {
             CLASS_NAME: "CircularROI",
             True: [1500, 1500, 500],  # indices [x0, y0, radius]
-            False: [1500.5, 1500.5, 500.0],  # physical
+            False: [1500.0, 1500.0, 500.0],  # physical
         },
         "polygon": {
             CLASS_NAME: "PolygonalROI",
             True: [450, 150, 1300, 350, 1250, 950, 400, 1350],  # indices [x0, y0, ,...]
-            False: [450.5, 150.5, 1300.5, 350.5, 1250.5, 950.5, 400.5, 1350.5],  # phys.
+            False: [450.0, 150.0, 1300.0, 350.0, 1250.0, 950.0, 400.0, 1350.0],  # phys.
         },
     }
     for indices in (True, False):

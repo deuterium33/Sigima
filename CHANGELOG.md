@@ -72,6 +72,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Because of this, when storing complex Y data, the data type is propagated to the x data, which is not always desired.
   * As a workaround, the `x` property now returns the real part of the x data.
   * Furthermore, the `get_data` method now returns a tuple of numpy arrays instead of a single array, allowing to access both x and y data separately, keeping the original data type.
+* Fix ROI conversion between physical and indices coordinates:
+  * The conversion between physical coordinates and indices has been corrected (half pixel error was removed).
+  * The `indices_to_physical` and `physical_to_indices` methods now raise a `ValueError` if the input does not contain an even number of elements (x, y pairs).
 
 ## sigima 0.2.0 ##
 
