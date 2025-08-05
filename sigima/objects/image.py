@@ -102,28 +102,32 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     # Parameters for rectangular ROI geometry:
     _tlcorner = gds.BeginGroup(_("Top left corner")).set_prop("display", hide=_rfp)
-    x0 = gds.IntItem(_lbl("X", 0), default=0, unit=_ut).set_prop("display", hide=_rfp)
+    x0 = gds.FloatItem(_lbl("X", 0), default=0, unit=_ut).set_prop("display", hide=_rfp)
     y0 = (
-        gds.IntItem(_lbl("Y", 0), default=0, unit=_ut)
+        gds.FloatItem(_lbl("Y", 0), default=0, unit=_ut)
         .set_pos(1)
         .set_prop("display", hide=_rfp)
     )
     _e_tlcorner = gds.EndGroup(_("Top left corner"))
-    dx = gds.IntItem("ΔX", default=0, unit=_ut).set_prop("display", hide=_rfp)
+    dx = gds.FloatItem("ΔX", default=0, unit=_ut).set_prop("display", hide=_rfp)
     dy = (
-        gds.IntItem("ΔY", default=0, unit=_ut).set_pos(1).set_prop("display", hide=_rfp)
+        gds.FloatItem("ΔY", default=0, unit=_ut)
+        .set_pos(1)
+        .set_prop("display", hide=_rfp)
     )
 
     # Parameters for circular ROI geometry:
     _cgroup = gds.BeginGroup(_("Center coordinates")).set_prop("display", hide=_cfp)
-    xc = gds.IntItem(_lbl("X", "C"), default=0, unit=_ut).set_prop("display", hide=_cfp)
+    xc = gds.FloatItem(_lbl("X", "C"), default=0, unit=_ut).set_prop(
+        "display", hide=_cfp
+    )
     yc = (
-        gds.IntItem(_lbl("Y", "C"), default=0, unit=_ut)
+        gds.FloatItem(_lbl("Y", "C"), default=0, unit=_ut)
         .set_pos(1)
         .set_prop("display", hide=_cfp)
     )
     _e_cgroup = gds.EndGroup(_("Center coordinates"))
-    r = gds.IntItem(_("Radius"), default=0, unit=_ut).set_prop("display", hide=_cfp)
+    r = gds.FloatItem(_("Radius"), default=0, unit=_ut).set_prop("display", hide=_cfp)
 
     # Parameters for polygonal ROI geometry:
     points = gds.FloatArrayItem(
@@ -178,14 +182,12 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         if self.geometry == "rectangle":
             return None
         single_roi = self.to_single_roi(obj)
-        x0, y0, _x1, _y1 = self.get_bounding_box_indices()
-        single_roi.translate(obj, -x0, -y0)
         roi = ImageROI()
         roi.add_roi(single_roi)
         return roi
 
-    def get_bounding_box_indices(self) -> tuple[int, int, int, int]:
-        """Get bounding box (pixel coordinates)"""
+    def get_bounding_box_physical(self) -> tuple[int, int, int, int]:
+        """Get bounding box (physical coordinates)"""
         if self.geometry == "circle":
             x0, y0 = self.xc - self.r, self.yc - self.r
             x1, y1 = self.xc + self.r, self.yc + self.r
@@ -197,6 +199,13 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
             x1, y1 = self.points[::2].max(), self.points[1::2].max()
         return x0, y0, x1, y1
 
+    def get_bounding_box_indices(self, obj: ImageObj) -> tuple[int, int, int, int]:
+        """Get bounding box (pixel coordinates)"""
+        x0, y0, x1, y1 = self.get_bounding_box_physical()
+        ix0, iy0 = obj.physical_to_indices((x0, y0))
+        ix1, iy1 = obj.physical_to_indices((x1, y1))
+        return ix0, iy0, ix1, iy1
+
     def get_data(self, obj: ImageObj) -> np.ndarray:
         """Get data in ROI
 
@@ -206,10 +215,10 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         Returns:
             Data in ROI
         """
-        x0, y0, x1, y1 = self.get_bounding_box_indices()
-        x0, y0 = max(0, x0), max(0, y0)
-        x1, y1 = min(obj.data.shape[1], x1), min(obj.data.shape[0], y1)
-        return obj.data[y0:y1, x0:x1]
+        ix0, iy0, ix1, iy1 = self.get_bounding_box_indices(obj)
+        ix0, iy0 = max(0, ix0), max(0, iy0)
+        ix1, iy1 = min(obj.data.shape[1], ix1), min(obj.data.shape[0], iy1)
+        return obj.data[iy0:iy1, ix0:ix1]
 
 
 class BaseSingleImageROI(base.BaseSingleROI["ImageObj", ROI2DParam], abc.ABC):
@@ -236,16 +245,6 @@ class BaseSingleImageROI(base.BaseSingleROI["ImageObj", ROI2DParam], abc.ABC):
 
         Args:
             obj: image object
-        """
-
-    @abc.abstractmethod
-    def translate(self, obj: ImageObj, dx: int, dy: int) -> None:
-        """Translate ROI
-
-        Args:
-            obj: image object
-            dx: translation along X-axis
-            dy: translation along Y-axis
         """
 
 
@@ -280,8 +279,7 @@ class PolygonalROI(BaseSingleImageROI):
             obj: image object
             param: parameters
         """
-        indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls(param.points, indices=indices, title=param.title)
+        return cls(param.points, indices=False, title=param.title)
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -292,19 +290,6 @@ class PolygonalROI(BaseSingleImageROI):
         coords = self.get_physical_coords(obj)
         x_edges, y_edges = coords[::2], coords[1::2]
         return min(x_edges), min(y_edges), max(x_edges), max(y_edges)
-
-    def translate(self, obj: ImageObj, dx: int, dy: int) -> None:
-        """Translate ROI
-
-        Args:
-            obj: image object
-            dx: translation along X-axis
-            dy: translation along Y-axis
-        """
-        coords = np.array(self.get_indices_coords(obj))
-        coords[::2] += int(dx)
-        coords[1::2] += int(dy)
-        self.set_indices_coords(obj, coords)
 
     def to_mask(self, obj: ImageObj) -> np.ndarray:
         """Create mask from ROI
@@ -317,7 +302,8 @@ class PolygonalROI(BaseSingleImageROI):
         """
         roi_mask = np.ones_like(obj.data, dtype=bool)
         indices = self.get_indices_coords(obj)
-        rows, cols = indices[1::2], indices[::2]
+        rows = np.array(indices[1::2], dtype=float)
+        cols = np.array(indices[::2], dtype=float)
         rr, cc = draw.polygon(rows, cols, shape=obj.data.shape)
         roi_mask[rr, cc] = False
         return roi_mask
@@ -333,7 +319,7 @@ class PolygonalROI(BaseSingleImageROI):
         param = ROI2DParam(generic_title)
         param.title = self.title or generic_title
         param.geometry = "polygon"
-        param.points = np.array(self.get_indices_coords(obj))
+        param.points = np.array(self.get_physical_coords(obj))
         return param
 
 
@@ -367,10 +353,8 @@ class RectangularROI(BaseSingleImageROI):
             obj: image object
             param: parameters
         """
-        ix0, iy0, ix1, iy1 = param.get_bounding_box_indices()
-        coords = [ix0, iy0, ix1 - ix0, iy1 - iy0]
-        indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls(coords, indices=indices, title=param.title)
+        x0, y0, x1, y1 = param.get_bounding_box_physical()
+        return cls([x0, y0, x1 - x0, y1 - y0], indices=False, title=param.title)
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -380,19 +364,6 @@ class RectangularROI(BaseSingleImageROI):
         """
         x0, y0, dx, dy = self.get_physical_coords(obj)
         return x0, y0, x0 + dx, y0 + dy
-
-    def translate(self, obj: ImageObj, dx: int, dy: int) -> None:
-        """Translate ROI
-
-        Args:
-            obj: image object
-            dx: translation along X-axis
-            dy: translation along Y-axis
-        """
-        coords = self.get_indices_coords(obj)
-        coords[0] += int(dx)
-        coords[1] += int(dy)
-        self.set_indices_coords(obj, coords)
 
     def get_physical_coords(self, obj: ImageObj) -> list[float]:
         """Return physical coords
@@ -408,6 +379,20 @@ class RectangularROI(BaseSingleImageROI):
             x0, y0, x1, y1 = obj.indices_to_physical([ix0, iy0, ix0 + idx, iy0 + idy])
             return [x0, y0, x1 - x0, y1 - y0]
         return self.coords
+
+    def set_physical_coords(self, obj: ImageObj, coords: np.ndarray) -> None:
+        """Set physical coords
+
+        Args:
+            obj: object (signal/image)
+            coords: physical coords
+        """
+        if self.indices:
+            x0, y0, dx, dy = coords
+            ix0, iy0, idx, idy = obj.physical_to_indices([x0, y0, x0 + dx, y0 + dy])
+            self.coords = np.array([ix0, iy0, idx, idy], dtype=int)
+        else:
+            self.coords = np.array(coords, dtype=float)
 
     def get_indices_coords(self, obj: ImageObj) -> list[int]:
         """Return indices coords
@@ -447,8 +432,9 @@ class RectangularROI(BaseSingleImageROI):
             Mask (boolean array where True values are inside the ROI)
         """
         roi_mask = np.ones_like(obj.data, dtype=bool)
-        x0, y0, dx, dy = self.get_indices_coords(obj)
-        roi_mask[max(y0, 0) : y0 + dy, max(x0, 0) : x0 + dx] = False
+        ix0, iy0, idx, idy = self.get_indices_coords(obj)
+        rr, cc = draw.rectangle((iy0, ix0), extent=(idy, idx), shape=obj.data.shape)
+        roi_mask[rr, cc] = False
         return roi_mask
 
     def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
@@ -462,7 +448,7 @@ class RectangularROI(BaseSingleImageROI):
         param = ROI2DParam(generic_title)
         param.title = self.title or generic_title
         param.geometry = "rectangle"
-        param.x0, param.y0, param.dx, param.dy = self.get_indices_coords(obj)
+        param.x0, param.y0, param.dx, param.dy = self.get_physical_coords(obj)
         return param
 
     @staticmethod
@@ -502,11 +488,10 @@ class CircularROI(BaseSingleImageROI):
             obj: image object
             param: parameters
         """
-        ix0, iy0, ix1, iy1 = param.get_bounding_box_indices()
-        ixc, iyc = (ix0 + ix1) * 0.5, (iy0 + iy1) * 0.5
-        ir = (ix1 - ix0) * 0.5
-        indices = True  # ROI coordinates are in pixel coordinates in `ROI2DParam`
-        return cls([ixc, iyc, ir], indices=indices, title=param.title)
+        x0, y0, x1, y1 = param.get_bounding_box_physical()
+        ixc, iyc = (x0 + x1) * 0.5, (y0 + y1) * 0.5
+        ir = (x1 - x0) * 0.5
+        return cls([ixc, iyc, ir], indices=False, title=param.title)
 
     def check_coords(self) -> None:
         """Check if coords are valid
@@ -526,19 +511,6 @@ class CircularROI(BaseSingleImageROI):
         xc, yc, r = self.get_physical_coords(obj)
         return xc - r, yc - r, xc + r, yc + r
 
-    def translate(self, obj: ImageObj, dx: int, dy: int) -> None:
-        """Translate ROI
-
-        Args:
-            obj: image object
-            dx: translation along X-axis
-            dy: translation along Y-axis
-        """
-        coords = self.get_indices_coords(obj)
-        coords[0] += int(dx)
-        coords[1] += int(dy)
-        self.set_indices_coords(obj, coords)
-
     def get_physical_coords(self, obj: ImageObj) -> np.ndarray:
         """Return physical coords
 
@@ -556,7 +528,25 @@ class CircularROI(BaseSingleImageROI):
             return [0.5 * (x0 + x1), 0.5 * (y0 + y1), 0.5 * (x1 - x0)]
         return self.coords
 
-    def get_indices_coords(self, obj: ImageObj) -> list[int]:
+    def set_physical_coords(self, obj: ImageObj, coords: np.ndarray) -> None:
+        """Set physical coords
+
+        Args:
+            obj: object (signal/image)
+            coords: physical coords
+        """
+        if self.indices:
+            xc, yc, r = coords
+            ix0, iy0, ix1, iy1 = obj.physical_to_indices(
+                [xc - r, yc - r, xc + r, yc + r]
+            )
+            self.coords = np.array(
+                [0.5 * (ix0 + ix1), 0.5 * (iy0 + iy1), 0.5 * (ix1 - ix0)]
+            )
+        else:
+            self.coords = np.array(coords, dtype=float)
+
+    def get_indices_coords(self, obj: ImageObj) -> list[float]:
         """Return indices coords
 
         Args:
@@ -567,9 +557,11 @@ class CircularROI(BaseSingleImageROI):
         """
         if self.indices:
             return self.coords
-        ix0, iy0, ix1, iy1 = obj.physical_to_indices(self.get_bounding_box(obj))
-        ixc, iyc = int((ix0 + ix1) * 0.5), int((iy0 + iy1) * 0.5)
-        ir = int((ix1 - ix0) * 0.5)
+        ix0, iy0, ix1, iy1 = obj.physical_to_indices(
+            self.get_bounding_box(obj), as_float=True
+        )
+        ixc, iyc = (ix0 + ix1) * 0.5, (iy0 + iy1) * 0.5
+        ir = (ix1 - ix0) * 0.5
         return [ixc, iyc, ir]
 
     def set_indices_coords(self, obj: ImageObj, coords: np.ndarray) -> None:
@@ -615,7 +607,7 @@ class CircularROI(BaseSingleImageROI):
         param = ROI2DParam(generic_title)
         param.title = self.title or generic_title
         param.geometry = "circle"
-        param.xc, param.yc, param.r = self.get_indices_coords(obj)
+        param.xc, param.yc, param.r = self.get_physical_coords(obj)
         return param
 
     @staticmethod
@@ -965,12 +957,15 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         """
         self.data = clip_astype(self.data, dtype)
 
-    def physical_to_indices(self, coords: list[float], clip: bool = False) -> list[int]:
+    def physical_to_indices(
+        self, coords: list[float], clip: bool = False, as_float: bool = False
+    ) -> list[int] | list[float]:
         """Convert coordinates from physical (real world) to indices (pixel)
 
         Args:
             coords: flat list of physical coordinates [x0, y0, x1, y1, ...]
             clip: if True, clip values to image boundaries
+            as_float: if True, return float indices (i.e. without rounding)
 
         Returns:
             Indices
@@ -990,7 +985,10 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         if clip:
             indices[::2] = np.clip(indices[::2], 0, self.data.shape[1] - 1)
             indices[1::2] = np.clip(indices[1::2], 0, self.data.shape[0] - 1)
-        return np.rint(indices).astype(int).tolist()
+        if as_float:
+            return indices.tolist()
+        else:
+            return np.floor(indices + 0.5).astype(int).tolist()
 
     def indices_to_physical(self, indices: list[float]) -> list[int]:
         """Convert coordinates from indices to physical (real world)

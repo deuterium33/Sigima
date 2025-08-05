@@ -1193,6 +1193,18 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
             return obj.indices_to_physical(self.coords.tolist())
         return self.coords.tolist()
 
+    def set_physical_coords(self, obj: TypeObj, coords: np.ndarray) -> None:
+        """Set physical coords
+
+        Args:
+            obj: object (signal/image)
+            coords: physical coords
+        """
+        if self.indices:
+            self.coords = np.array(obj.physical_to_indices(coords.tolist()))
+        else:
+            self.coords = np.array(coords, float)
+
     def get_indices_coords(self, obj: TypeObj) -> list[int]:
         """Return indices coords
 

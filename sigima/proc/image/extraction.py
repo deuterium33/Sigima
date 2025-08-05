@@ -68,7 +68,7 @@ def extract_rois(src: ImageObj, params: list[ROI2DParam]) -> ImageObj:
     # Initialize x1, y1 with minimum values:
     y1, x1 = ymin, xmin = 0, 0
     for p in params:
-        x0i, y0i, x1i, y1i = p.get_bounding_box_indices()
+        x0i, y0i, x1i, y1i = p.get_bounding_box_indices(src)
         x0, y0, x1, y1 = min(x0, x0i), min(y0, y0i), max(x1, x1i), max(y1, y1i)
     x0, y0 = max(x0, xmin), max(y0, ymin)
     x1, y1 = min(x1, xmax), min(y1, ymax)
@@ -103,9 +103,9 @@ def extract_roi(src: ImageObj, p: ROI2DParam) -> ImageObj:
     dst = dst_1_to_1(src, "extract_roi", p.get_suffix())
     dst.data = p.get_data(src).copy()
     dst.roi = p.get_extracted_roi(src)
-    x0, y0, _x1, _y1 = p.get_bounding_box_indices()
-    dst.x0 += x0 * src.dx
-    dst.y0 += y0 * src.dy
+    x0, y0, _x1, _y1 = p.get_bounding_box_physical()
+    dst.x0 += x0
+    dst.y0 += y0
     return dst
 
 

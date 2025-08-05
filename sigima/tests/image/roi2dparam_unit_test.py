@@ -26,7 +26,7 @@ def __create_roi_2d_parameters() -> gds.DataSetGroup:
     p_rect.x0, p_rect.y0, p_rect.dx, p_rect.dy = 50, 150, 150, 250
     p_poly = ROI2DParam("Polygonal")
     p_poly.geometry = "polygon"
-    p_poly.points = np.array([50, 150, 150, 150, 150, 250, 50, 250])
+    p_poly.points = np.array([50.0, 150.0, 150.0, 150.0, 150.0, 250.0, 50.0, 250.0])
     params = [p_circ, p_rect, p_poly]
     return gds.DataSetGroup(params, title="ROI Parameters")
 
