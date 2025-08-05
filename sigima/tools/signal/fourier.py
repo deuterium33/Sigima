@@ -171,55 +171,56 @@ def psd(
 
 
 @check_1d_arrays(x_evenly_spaced=True)
-def brickwall_filter(
+def brick_wall_filter(
     x: np.ndarray,
     y: np.ndarray,
-    cut0: float,
-    cut1: float | None = None,
-    mode: Literal["lowpass", "highpass", "bandpass", "bandstop"] = "lowpass",
+    mode: Literal["lowpass", "highpass", "bandpass", "bandstop"],
+    cutoff0: float,
+    cutoff1: float | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Apply a brickwall filter (ideal frequency filter) to a 1D signal.
+    Apply an ideal frequency filter ("brick wall" filter) to a signal.
 
     Args:
-        x: 1D uniformly spaced axis (e.g. time or sample number).
+        x: Time domain axis (evenly spaced).
         y: Signal values (same length as x).
-        cut0: First cutoff frequency (Hz).
-        cut1: Second cutoff frequency (Hz), required for band filters.
         mode: Type of filter to apply.
+        cutoff0: First cutoff frequency.
+        cutoff1: Second cutoff frequency, required for band-pass and band-stop filters.
 
     Returns:
         Tuple (x, y_filtered), where y_filtered is the filtered signal.
 
     Raises:
-        ValueError: If cutoff frequencies are invalid or if required parameters are
-        missing.
+        ValueError: If mode is unknown.
+        ValueError: If cutoff0 is not positive.
+        ValueError: If cutoff1 is missing for band-pass and band-stop filters.
+        ValueError: If cutoff0 > cutoff1 for band-pass and band-stop filters.
     """
-    if mode not in {"lowpass", "highpass", "bandpass", "bandstop"}:
+    if mode not in ("lowpass", "highpass", "bandpass", "bandstop"):
         raise ValueError(f"Unknown filter mode: {mode!r}")
+
+    if cutoff0 <= 0.0:
+        raise ValueError("Cutoff frequency must be positive.")
+
+    if mode in ("bandpass", "bandstop"):
+        if cutoff1 is None:
+            raise ValueError(f"cut1 must be specified for mode '{mode}'")
+        if cutoff0 > cutoff1:
+            raise ValueError("cut0 must be less than or equal to cut1.")
 
     freqs, ffty = fft1d(x, y, shift=False)
 
-    if mode in {"bandpass", "bandstop"}:
-        if cut1 is None:
-            raise ValueError(f"cut1 must be specified for mode '{mode}'")
-        f_low, f_high = sorted([cut0, cut1])
-        if f_low <= 0 or f_high <= 0:
-            raise ValueError("Cutoff frequencies must be positive.")
-        if mode == "bandpass":
-            mask = (np.abs(freqs) >= f_low) & (np.abs(freqs) <= f_high)
-        else:  # bandstop
-            mask = (np.abs(freqs) <= f_low) | (np.abs(freqs) >= f_high)
-    else:
-        if cut0 <= 0:
-            raise ValueError("Cutoff frequency must be positive.")
-        if mode == "lowpass":
-            mask = np.abs(freqs) <= cut0
-        else:  # highpass
-            mask = np.abs(freqs) >= cut0
+    if mode == "lowpass":
+        frequency_mask = np.abs(freqs) <= cutoff0
+    elif mode == "highpass":
+        frequency_mask = np.abs(freqs) >= cutoff0
+    elif mode == "bandpass":
+        frequency_mask = (np.abs(freqs) >= cutoff0) & (np.abs(freqs) <= cutoff1)
+    else:  # bandstop
+        frequency_mask = (np.abs(freqs) <= cutoff0) | (np.abs(freqs) >= cutoff1)
 
-    y_filtered = np.zeros_like(ffty)
-    y_filtered[mask] = ffty[mask]
-
-    _, y_out = ifft1d(freqs, y_filtered)
-    return x, y_out.real
+    ffty_filtered = ffty * frequency_mask
+    _, y_filtered = ifft1d(freqs, ffty_filtered)
+    y_filtered = y_filtered.real
+    return x, y_filtered

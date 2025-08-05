@@ -52,9 +52,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * See [DataLab issue #251](https://github.com/DataLab-Platform/DataLab/issues/251) for more details.
 
 * New signal processing features:
-  * New "Brickwall frequency filter" feature:
-    * This feature allows to filter a signal in the frequency domain using a brickwall filter.
-    * It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.).
+  * New "Brick wall filter" feature:
+    * This feature allows to filter a signal in the frequency domain using an ideal ("brick wall") filter.
+    * It is implemented in `sigima.proc.signal.frequency_filter`, along the other frequency domain filtering features (`Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
 
 * New 2D ramp image generator:

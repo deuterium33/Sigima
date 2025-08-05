@@ -931,7 +931,7 @@ class BaseHighLowBandParam(gds.DataSet):
         ("cheby1", _("Chebyshev type 1")),
         ("cheby2", _("Chebyshev type 2")),
         ("ellip", _("Elliptic")),
-        ("brickwall", _("Brickwall")),
+        ("brick_wall", _("Brick wall")),
     )
 
     TYPE: FilterType = FilterType.LOWPASS
@@ -945,7 +945,7 @@ class BaseHighLowBandParam(gds.DataSet):
 
     order = gds.IntItem(_("Filter order"), default=3, min=1).set_prop(
         "display",
-        active=gds.FuncProp(_method_prop, lambda x: x not in ("brickwall",)),
+        active=gds.FuncProp(_method_prop, lambda x: x not in ("brick_wall",)),
     )
     cut0 = gds.FloatItem(
         _("Low cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
@@ -977,7 +977,7 @@ class BaseHighLowBandParam(gds.DataSet):
         default=True,
     ).set_prop(
         "display",
-        active=gds.FuncProp(_method_prop, lambda x: x == "brickwall"),
+        active=gds.FuncProp(_method_prop, lambda x: x == "brick_wall"),
         store=_zp_prop,
     )
     nfft = gds.IntItem(
@@ -987,7 +987,7 @@ class BaseHighLowBandParam(gds.DataSet):
         "display",
         active=gds.FuncPropMulti(
             [_method_prop, _zp_prop],
-            lambda x, y: x == "brickwall" and y,
+            lambda x, y: x == "brick_wall" and y,
         ),
     )
 
@@ -1089,14 +1089,14 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         Result signal object
     """
     name = f"{p.TYPE.value}"
-    suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
+    suffix = "" if p.method == "brick_wall" else f"order={p.order:d}, "
     if p.TYPE in (FilterType.LOWPASS, FilterType.HIGHPASS):
         suffix += f"cutoff={p.cut0:.2f}"
     else:
         suffix += f"cutoff={p.cut0:.2f}:{p.cut1:.2f}"
     dst = dst_1_to_1(src, name, suffix)
 
-    if p.method == "brickwall":
+    if p.method == "brick_wall":
         x_pad, y_pad = src.get_data()
         if p.zero_padding:
             min_lenght = max(len(src.y), p.nfft) if p.nfft is not None else len(src.y)
@@ -1107,7 +1107,7 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
                 x_pad, y_pad = fourier.zero_padding(
                     src.x, src.y, int(lenght - len(src.y))
                 )
-        x, y = fourier.brickwall_filter(x_pad, y_pad, p.cut0, p.cut1, p.TYPE.value)
+        x, y = fourier.brick_wall_filter(x_pad, y_pad, p.TYPE.value, p.cut0, p.cut1)
         dst.set_xydata(x, y)
     else:
         b, a = p.get_filter_params(dst)

@@ -124,14 +124,14 @@ msgstr "Voir l'[issue DataLab #251](https://github.com/DataLab-Platform/DataLab/
 msgid "New signal processing features:"
 msgstr "Nouvelles fonctionnalités de traitement du signal:"
 
-msgid "New \"Brickwall frequency filter\" feature:"
-msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel Brickwall\":"
+msgid "New \"Brick wall filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel idéal\" :"
 
-msgid "This feature allows to filter a signal in the frequency domain using a brickwall filter."
-msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre Brickwall."
+msgid "This feature allows to filter a signal in the frequency domain using an ideal (\"brick wall\") filter."
+msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre idéal."
 
-msgid "It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.)."
-msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.freq_fft`."
+msgid "It is implemented in `sigima.proc.signal.frequency_filter`, along the other frequency domain filtering features (`Bessel`, `Butterworth`, etc.)."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.frequency_filter`, parmi les autres fonctionnalités de filtrage dans le domaine fréquentiel (`Bessel`, `Butterworth`, etc.)."
 
 msgid "Enhanced zero padding to support prepend and append. Change default strategy to next power of 2."
 msgstr "Amélioration du remplissage de zéros pour prendre en charge l'ajout au début et à la fin. Changement de la stratégie par défaut vers la prochaine puissance de 2."

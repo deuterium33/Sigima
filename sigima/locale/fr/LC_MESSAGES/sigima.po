@@ -970,8 +970,8 @@ msgstr "Chebyshev de type 2"
 msgid "Elliptic"
 msgstr "Elliptique"
 
-msgid "Brickwall"
-msgstr "Brickwall"
+msgid "Brick wall"
+msgstr "Filtre idéal"
 
 msgid "Filter method"
 msgstr "Méthode de filtrage"
