@@ -85,6 +85,7 @@ def test_signal_roi_combine() -> None:
 def test_image_roi_creation() -> None:
     """Test image ROI creation and conversion methods"""
     obj = create_multigaussian_image()
+    obj.dx = obj.dy = 0.035
     for roi in create_test_image_rois(obj):
         __conversion_methods(roi, obj)
 
