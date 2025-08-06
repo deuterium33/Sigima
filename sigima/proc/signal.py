@@ -252,13 +252,29 @@ class Wrap1to1Func:
 
 @computation_function()
 def addition(src_list: list[SignalObj]) -> SignalObj:
-    """Add **src** signals and return a new result signal object
+    """Compute the element-wise sum of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are added
+    element-wise to the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the sum is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source signals.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Signal object representing the sum of the source signals.
     """
     dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data
     for src in src_list[1:]:
@@ -271,13 +287,29 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
 
 @computation_function()
 def average(src_list: list[SignalObj]) -> SignalObj:
-    """Average **src** signals and return a new result signal object
+    """Compute the element-wise average of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are
+    averaged element-wise with the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the average is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source signals.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Signal object representing the average of the source signals.
     """
     dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data
     for src in src_list[1:]:
@@ -291,13 +323,29 @@ def average(src_list: list[SignalObj]) -> SignalObj:
 
 @computation_function()
 def product(src_list: list[SignalObj]) -> SignalObj:
-    """Multiply **dst** by **src** signals and return a new result signal object
+    """Compute the element-wise product of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are
+    multiplied element-wise with the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the product is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source signals.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Signal object representing the product of the source signals.
     """
     dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data
     for src in src_list[1:]:
@@ -310,14 +358,25 @@ def product(src_list: list[SignalObj]) -> SignalObj:
 
 @computation_function()
 def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Add **dst** and a constant value and return a the new result signal object
+    """Compute the sum of a signal and a constant value.
+
+    The function adds a constant value to each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the addition is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** + **p.value** (new object)
+        Result signal object representing the sum of the input signal and the constant.
     """
     dst = dst_1_to_1(src, "+", str(p.value))
     dst.y += p.value
@@ -327,14 +386,26 @@ def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 @computation_function()
 def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Subtract a constant value from a signal
+    """Compute the difference between a signal and a constant value.
+
+    The function subtracts a constant value from each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the subtraction is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** - **p.value** (new object)
+        Result signal object representing the difference between the input signal and
+        the constant.
     """
     dst = dst_1_to_1(src, "-", str(p.value))
     dst.y -= p.value
@@ -344,14 +415,26 @@ def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 @computation_function()
 def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Multiply **dst** by a constant value and return the new result signal object
+    """Compute the product of a signal and a constant value.
+
+    The function multiplies each element of the input signal by a constant value.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the multiplication is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** * **p.value** (new object)
+        Result signal object representing the product of the input signal and the
+        constant.
     """
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
@@ -361,14 +444,26 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 @computation_function()
 def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Divide a signal by a constant value
+    """Compute the division of a signal by a constant value.
+
+    The function divides each element of the input signal by a constant value.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the division is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** / **p.value** (new object)
+        Result signal object representing the division of the input signal by the
+        constant.
     """
     dst = dst_1_to_1(src, "/", str(p.value))
     dst.y /= p.value
@@ -377,21 +472,36 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 
 # MARK: 2_to_1 functions -------------------------------------------------------
-# Functions with N input images + 1 input image and N output images
+# Functions with N input signals + 1 input signal and N output signals
 # --------------------------------------------------------------------------------------
 
 
 @computation_function()
 def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalObj:
-    """Perform arithmetic operation on two signals
+    """Perform an arithmetic operation on two signals.
+
+    The function applies the specified arithmetic operation to each element of the input
+    signals.
+
+    .. note::
+
+        The operation is performed only within the region of interest of `src1`.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
-        p: parameters
+        src1: First input signal.
+        src2: Second input signal.
+        p: Arithmetic operation parameters.
 
     Returns:
-        Result signal object
+        Result signal object representing the arithmetic operation on the input signals.
     """
     initial_dtype = src1.xydata.dtype
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
@@ -422,18 +532,30 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
 
 @computation_function()
 def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute difference between two signals
+    """Compute the element-wise difference between two signals.
+
+    The function subtracts each element of the second signal from the corresponding
+    element of the first signal.
 
     .. note::
 
-        If uncertainty is available, it is propagated.
+        If both signals share the same region of interest (ROI), the difference is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object **src1** - **src2**
+        Result signal object representing the difference between the input signals.
     """
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
@@ -445,18 +567,33 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
 @computation_function()
 def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute quadratic difference between two signals
+    """Compute the normalized difference between two signals.
+
+    The function computes the element-wise difference between the two signals and
+    divides the result by sqrt(2.0).
 
     .. note::
 
-        If uncertainty is available, it is propagated.
+        If both signals share the same region of interest (ROI), the operation is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated. For two input signals with identical standard
+        deviations, the standard deviation of the output signal equals the standard
+        deviation of each of the input signals.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object (**src1** - **src2**) / sqrt(2.0)
+        Result signal object representing the quadratic difference between the input
+        signals.
     """
     dst = dst_2_to_1(src1, src2, "quadratic_difference")
     x1, y1 = src1.get_data()
@@ -472,14 +609,30 @@ def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
 @computation_function()
 def division(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute division between two signals
+    """Compute the element-wise division between two signals.
+
+    The function divides each element of the first signal by the corresponding element
+    of the second signal.
+
+    .. note::
+
+        If both signals share the same region of interest (ROI), the division is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object **src1** / **src2**
+        Result signal object representing the division of the input signals.
     """
     dst = dst_2_to_1(src1, src2, "/")
     x1, y1 = src1.get_data()
