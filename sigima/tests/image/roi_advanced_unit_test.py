@@ -12,6 +12,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.image
 from sigima.objects import ImageObj, ImageROI, NewImageParam, create_image_roi
+from sigima.tests import guiutils, vistools
 from sigima.tests.data import create_multigaussian_image
 from sigima.tests.helpers import print_obj_data_dimensions
 
@@ -205,7 +206,55 @@ def test_image_roi_extraction() -> None:
             __test_extracting_from_roi(src, singleobj)
 
 
+def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> None:
+    """Test ROI coordinates validation"""
+    guiutils.set_current_request(request)
+
+    # Create a 20x20 Gaussian image
+    param = sigima.objects.Gauss2DParam.create(a=10.0, height=20, width=20)
+    src = sigima.objects.create_image_from_param(param)
+
+    # Create ROI coordinates
+    rect_coords = np.array([4.5, 4.5, 10.0, 10.0])
+    circ_coords = np.array([9.5, 9.5, 5.0])
+    poly_coords = np.array([5.1, 15.1, 14.7, 12.0, 12.5, 7.0, 5.2, 4.9])
+
+    # Create ROIs
+    rect_roi = create_image_roi("rectangle", rect_coords, title="rectangular")
+    circ_roi = create_image_roi("circle", circ_coords, title="circular")
+    poly_roi = create_image_roi("polygon", poly_coords, title="polygonal")
+
+    # Check that coordinates are correct
+    assert np.all(rect_roi.get_single_roi(0).get_physical_coords(src) == rect_coords)
+    assert np.all(circ_roi.get_single_roi(0).get_physical_coords(src) == circ_coords)
+    assert np.all(poly_roi.get_single_roi(0).get_physical_coords(src) == poly_coords)
+
+    # Check that extracted images have correct data
+    for roi in (rect_roi, circ_roi, poly_roi):
+        extracted = sigima.proc.image.extract_roi(src, roi.to_params(src)[0])
+        assert np.all(extracted.data != 0), "Extracted image should have non-zero data"
+        assert extracted.data.shape == (10, 10), "Extracted image shape mismatch"
+
+    # Display the original image and the ROIs
+    if guiutils.is_gui_enabled():
+        images = [src]
+        titles = ["Original Image"]
+        for roi in (rect_roi, circ_roi, poly_roi):
+            src2 = src.copy()
+            src2.roi = roi
+            images.append(src2)
+            titles.append(f"Image with {roi.get_single_roi(0).title} ROI")
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        with qt_app_context():
+            vistools.view_images_side_by_side(
+                images, titles, rows=2, title="Image ROIs"
+            )
+
+
 if __name__ == "__main__":
+    test_roi_coordinates_validation(request=guiutils.DummyRequest(gui=True))
     test_image_roi_merge()
     test_image_roi_combine()
     test_image_roi_processing()
