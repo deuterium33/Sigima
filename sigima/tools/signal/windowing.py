@@ -29,7 +29,6 @@ def get_window(
         "lanczos",
         "nuttall",
         "parzen",
-        "rectangular",
         "taylor",
     ],
 ) -> Callable[[int], np.ndarray]:
@@ -65,7 +64,6 @@ def get_window(
         "lanczos": scipy.signal.windows.lanczos,
         "nuttall": scipy.signal.windows.nuttall,
         "parzen": scipy.signal.windows.parzen,
-        "rectangular": np.ones,
         "taylor": scipy.signal.windows.taylor,
     }.get(method)
     if win_func is not None:
@@ -90,7 +88,6 @@ def apply_window(
         "lanczos",
         "nuttall",
         "parzen",
-        "rectangular",
         "taylor",
         "tukey",
         "kaiser",

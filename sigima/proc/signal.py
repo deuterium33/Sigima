@@ -1637,7 +1637,6 @@ class WindowingParam(gds.DataSet):
         ("lanczos", "Lanczos"),
         ("nuttall", "Nuttall"),
         ("parzen", "Parzen"),
-        ("rectangular", _("Rectangular")),
         ("taylor", "Taylor"),
         ("tukey", "Tukey"),
     )
