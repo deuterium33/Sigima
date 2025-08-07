@@ -674,7 +674,7 @@ class ImageROI(
 def create_image_roi(
     geometry: Literal["rectangle", "circle", "polygon"],
     coords: np.ndarray | list[float] | list[list[float]],
-    indices: bool = True,
+    indices: bool = False,
     singleobj: bool | None = None,
     inverse: bool = False,
     title: str = "",
@@ -690,7 +690,7 @@ def create_image_roi(
          accepted but with a common geometry type (e.g.
          `[[xc1, yc1, r1], [xc2, yc2, r2], ...]` for circles).
         indices: if True, coordinates are indices, if False, they are physical values
-         (default to True for images)
+         (default to False)
         singleobj: if True, when extracting data defined by ROIs, only one object
          is created (default to True). If False, one object is created per single ROI.
          If None, the value is get from the user configuration
