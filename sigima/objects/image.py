@@ -93,8 +93,6 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         """Returns name<sub>index</sub>"""
         return f"{name}<sub>{index}</sub>"
 
-    _ut = "pixels"
-
     geometries = ("rectangle", "circle", "polygon")
     geometry = gds.ChoiceItem(
         _("Geometry"), list(zip(geometries, geometries)), default="rectangle"
@@ -102,37 +100,29 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     # Parameters for rectangular ROI geometry:
     _tlcorner = gds.BeginGroup(_("Top left corner")).set_prop("display", hide=_rfp)
-    x0 = gds.FloatItem(_lbl("X", 0), default=0, unit=_ut).set_prop("display", hide=_rfp)
+    x0 = gds.FloatItem(_lbl("X", 0), default=0).set_prop("display", hide=_rfp)
     y0 = (
-        gds.FloatItem(_lbl("Y", 0), default=0, unit=_ut)
-        .set_pos(1)
-        .set_prop("display", hide=_rfp)
+        gds.FloatItem(_lbl("Y", 0), default=0).set_pos(1).set_prop("display", hide=_rfp)
     )
     _e_tlcorner = gds.EndGroup(_("Top left corner"))
-    dx = gds.FloatItem("ΔX", default=0, unit=_ut).set_prop("display", hide=_rfp)
-    dy = (
-        gds.FloatItem("ΔY", default=0, unit=_ut)
-        .set_pos(1)
-        .set_prop("display", hide=_rfp)
-    )
+    dx = gds.FloatItem("ΔX", default=0).set_prop("display", hide=_rfp)
+    dy = gds.FloatItem("ΔY", default=0).set_pos(1).set_prop("display", hide=_rfp)
 
     # Parameters for circular ROI geometry:
     _cgroup = gds.BeginGroup(_("Center coordinates")).set_prop("display", hide=_cfp)
-    xc = gds.FloatItem(_lbl("X", "C"), default=0, unit=_ut).set_prop(
-        "display", hide=_cfp
-    )
+    xc = gds.FloatItem(_lbl("X", "C"), default=0).set_prop("display", hide=_cfp)
     yc = (
-        gds.FloatItem(_lbl("Y", "C"), default=0, unit=_ut)
+        gds.FloatItem(_lbl("Y", "C"), default=0)
         .set_pos(1)
         .set_prop("display", hide=_cfp)
     )
     _e_cgroup = gds.EndGroup(_("Center coordinates"))
-    r = gds.FloatItem(_("Radius"), default=0, unit=_ut).set_prop("display", hide=_cfp)
+    r = gds.FloatItem(_("Radius"), default=0).set_prop("display", hide=_cfp)
 
     # Parameters for polygonal ROI geometry:
-    points = gds.FloatArrayItem(
-        _("Coordinates") + f" ({_ut})", check_callback=check_points
-    ).set_prop("display", hide=_pfp)
+    points = gds.FloatArrayItem(_("Coordinates"), check_callback=check_points).set_prop(
+        "display", hide=_pfp
+    )
 
     def to_single_roi(
         self, obj: ImageObj
