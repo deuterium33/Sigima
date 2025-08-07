@@ -10,7 +10,7 @@ import numpy as np
 import plotpy.tools
 from guidata.qthelpers import exec_dialog, qt_app_context
 from plotpy.builder import make
-from plotpy.items import CurveItem, ImageItem
+from plotpy.items import AnnotatedPolygon, CurveItem, ImageItem
 from plotpy.plot import (
     BasePlot,
     BasePlotOptions,
@@ -21,6 +21,7 @@ from plotpy.plot import (
 
 from sigima.config import _
 from sigima.objects import ImageObj, SignalObj
+from sigima.objects.image import CircularROI, PolygonalROI, RectangularROI
 from sigima.tests.helpers import get_default_test_name
 
 TEST_NB = {}
@@ -344,17 +345,54 @@ def view_images_side_by_side(
             row = idx // cols
             col = idx % cols
             plot = BasePlot(options=BasePlotOptions(title=imtitle))
+            other_items = []
             if isinstance(img, ImageItem):
                 item = img
             else:
                 if isinstance(img, ImageObj):
                     data = img.data
+                    mask = img.maskdata
                 elif isinstance(img, np.ndarray):
                     data = img
+                    mask = np.zeros_like(data, dtype=bool)
                 else:
                     raise TypeError(f"Unsupported image type: {type(img)}")
-                item = make.image(data, interpolation="nearest", eliminate_outliers=0.1)
+                item = make.maskedimage(
+                    data,
+                    mask,
+                    title=img.title,
+                    interpolation="nearest",
+                    colormap="viridis",
+                    eliminate_outliers=0.1,
+                    show_mask=True,
+                )
+                x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
+                item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
+                item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
+                item.param.update_item(item)
+                if img.roi is not None and not img.roi.is_empty():
+                    for single_roi in img.roi:
+                        if isinstance(single_roi, RectangularROI):
+                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
+                            roi_item = make.annotated_rectangle(
+                                x0, y0, x1, y1, single_roi.title
+                            )
+                        elif isinstance(single_roi, CircularROI):
+                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
+                            roi_item = make.annotated_circle(
+                                x0, y0, x1, y1, single_roi.title
+                            )
+                        elif isinstance(single_roi, PolygonalROI):
+                            coords = single_roi.get_physical_coords(img)
+                            points = np.array(coords).reshape(-1, 2)
+                            roi_item = AnnotatedPolygon(points)
+                            roi_item.annotationparam.title = single_roi.title
+                            roi_item.set_style("plot", "shape/drag")
+                            roi_item.annotationparam.update_item(roi_item)
+                        other_items.append(roi_item)
             plot.add_item(item)
+            for other_item in other_items:
+                plot.add_item(other_item)
             win.add_plot(row, col, plot, sync=share_axes)
         win.finalize_configuration()
         if maximized:
