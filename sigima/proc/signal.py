@@ -1618,7 +1618,7 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
 
 class WindowingParam(gds.DataSet):
-    """Windowing parameters"""
+    """Windowing parameters."""
 
     methods = (
         ("barthann", "Barthann"),
@@ -1668,21 +1668,23 @@ def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
     Available methods are listed in :py:attr:`WindowingParam.methods`.
 
     Args:
-        dst: destination signal
-        src: source signal
+        src: Source signal.
+        p: Parameters for windowing.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     suffix = f"method={p.method}"
-    if p.method == "tukey":
-        suffix += f", alpha={p.alpha:.3f}"
+    if p.method == "gaussian":
+        suffix += f", sigma={p.sigma:.3f}"
     elif p.method == "kaiser":
         suffix += f", beta={p.beta:.3f}"
-    elif p.method == "gaussian":
-        suffix += f", sigma={p.sigma:.3f}"
-    dst = dst_1_to_1(src, "apply_window", suffix)  # type: ignore
-    dst.y = windowing.apply_window(dst.y, p.method, p.alpha)  # type: ignore
+    elif p.method == "tukey":
+        suffix += f", alpha={p.alpha:.3f}"
+    dst = dst_1_to_1(src, "apply_window", suffix)
+    assert p.method is not None
+    assert p.alpha is not None
+    dst.y = windowing.apply_window(dst.y, p.method, p.alpha)
     restore_data_outside_roi(dst, src)
     return dst
 
