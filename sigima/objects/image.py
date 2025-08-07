@@ -991,8 +991,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             indices[1::2] = np.clip(indices[1::2], 0, self.data.shape[0] - 1)
         if as_float:
             return indices.tolist()
-        else:
-            return np.floor(indices + 0.5).astype(int).tolist()
+        return np.floor(indices + 0.5).astype(int).tolist()
 
     def indices_to_physical(self, indices: list[float]) -> list[int]:
         """Convert coordinates from indices to physical (real world)

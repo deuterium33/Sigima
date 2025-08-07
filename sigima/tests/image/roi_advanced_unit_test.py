@@ -168,7 +168,7 @@ def __test_extracting_from_roi(src: ImageObj, singleobj: bool | None = None) -> 
                 image = sigima.proc.image.extract_roi(src, roiparam)
                 images.append(image)
             assert len(images) == 3, "Three images expected"
-            im1, im2, im3 = images
+            im1, im2 = images[:2]
             assert np.all(im1.data != 0), nzroi
             assert im1.data.shape == (IROI1[3], IROI1[2]), roisham
             assert np.all(im2.data != 0), nzroi
@@ -190,9 +190,8 @@ def test_image_roi_processing() -> None:
     base_roi = __create_test_roi()
     empty_roi = ImageROI()
     for roi in (empty_roi, base_roi):
-        for singleobj in (False, True):
-            src.roi = roi
-            __test_processing_in_roi(src)
+        src.roi = roi
+        __test_processing_in_roi(src)
 
 
 def test_image_roi_extraction() -> None:
