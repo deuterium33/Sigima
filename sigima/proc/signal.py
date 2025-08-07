@@ -1632,7 +1632,7 @@ class WindowingParam(gds.DataSet):
         ("flat-top", _("Flat top")),
         ("gaussian", _("Gaussian")),
         ("hamming", "Hamming"),
-        ("hanning", "Hanning"),
+        ("hann", "Hann"),
         ("kaiser", "Kaiser"),
         ("lanczos", "Lanczos"),
         ("nuttall", "Nuttall"),
@@ -1664,8 +1664,9 @@ class WindowingParam(gds.DataSet):
 
 @computation_function()
 def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
-    """Compute windowing (available methods: hamming, hanning, bartlett, blackman,
-    tukey, rectangular) with :py:func:`sigima.tools.signal.windowing.apply_window`
+    """Compute windowing with :py:func:`sigima.tools.signal.windowing.apply_window`.
+
+    Available methods are listed in :py:attr:`WindowingParam.methods`.
 
     Args:
         dst: destination signal
