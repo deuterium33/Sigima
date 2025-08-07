@@ -22,6 +22,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
+from sigima.proc.signal import dst_1_to_1
 from sigima.tests.helpers import check_array_result
 
 
@@ -73,6 +74,12 @@ def test_signal_addition() -> None:
         exp += s.y
     check_array_result(f"Addition of {n} signals", res, exp)
 
+    for s in slist:
+        s.set_xydata(s.x, s.y, dy=np.ones_like(s.y) * 0.5)
+    s3_err = sigima.proc.signal.addition(slist)
+    expected_dy = np.sqrt(sum(s.dy**2 for s in slist))
+    check_array_result("Addition error propagation", s3_err.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_average() -> None:
@@ -87,6 +94,13 @@ def test_signal_average() -> None:
     exp /= n
     check_array_result(f"Average of {n} signals", res, exp)
 
+    # Error propagation test
+    for s in slist:
+        s.set_xydata(s.x, s.y, dy=np.ones_like(s.y) * 0.5)
+    s3_err = sigima.proc.signal.average(slist)
+    expected_dy = np.sqrt(sum(s.dy**2 for s in slist)) / n
+    check_array_result("Average error propagation", s3_err.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_product() -> None:
@@ -100,6 +114,16 @@ def test_signal_product() -> None:
         exp *= s.y
     check_array_result(f"Product of {n} signals", res, exp)
 
+    # Error propagation test
+    for s in slist:
+        s.set_xydata(s.x, s.y, dy=np.ones_like(s.y) * 0.5)
+    s3_err = sigima.proc.signal.product(slist)
+    prod = np.ones_like(s3_err.y)
+    for s in slist:
+        prod *= s.y
+    expected_dy = np.sqrt(sum((s.dy / s.y) ** 2 for s in slist)) * prod
+    check_array_result("Product error propagation", s3_err.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_difference() -> None:
@@ -107,6 +131,14 @@ def test_signal_difference() -> None:
     s1, s2 = __create_two_signals()
     s3 = sigima.proc.signal.difference(s1, s2)
     check_array_result("Signal difference", s3.y, s1.y - s2.y)
+
+    # Error propagation test
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2.set_xydata(s2.x, s2.y, dy=np.ones_like(s2.y) * 0.8)
+
+    s3_err = sigima.proc.signal.difference(s1, s2)
+    expected_dy = np.sqrt(s1.dy**2 + s2.dy**2)
+    check_array_result("Difference error propagation", s3_err.dy, expected_dy)
 
 
 @pytest.mark.validation
@@ -124,6 +156,13 @@ def test_signal_division() -> None:
     s3 = sigima.proc.signal.division(s1, s2)
     check_array_result("Signal division", s3.y, s1.y / s2.y)
 
+    # Error propagation test
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2.set_xydata(s2.x, s2.y, dy=np.ones_like(s2.y) * 0.8)
+    s3_err = sigima.proc.signal.division(s1, s2)
+    expected_dy = np.sqrt((s1.dy / s1.y) ** 2 + (s2.dy / s2.y) ** 2) * (s1.y / s2.y)
+    check_array_result("Division error propagation", s3_err.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_addition_constant() -> None:
@@ -131,6 +170,12 @@ def test_signal_addition_constant() -> None:
     s1, param = __create_one_signal_and_constant()
     s2 = sigima.proc.signal.addition_constant(s1, param)
     check_array_result("Signal addition with constant", s2.y, s1.y + param.value)
+
+    # Error propagation test
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2 = sigima.proc.signal.addition_constant(s1, param)
+    # Error should be unchanged after addition of a constant
+    check_array_result("Addition constant error propagation", s2.dy, s1.dy)
 
 
 @pytest.mark.validation
@@ -140,6 +185,13 @@ def test_signal_product_constant() -> None:
     s2 = sigima.proc.signal.product_constant(s1, param)
     check_array_result("Signal multiplication by constant", s2.y, s1.y * param.value)
 
+    # Error propagation test
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2 = sigima.proc.signal.product_constant(s1, param)
+    # Error should be scaled by the absolute value of the constant
+    expected_dy = s1.dy * param.value if s1.dy is not None else None
+    check_array_result("Product constant error propagation", s2.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_difference_constant() -> None:
@@ -148,6 +200,12 @@ def test_signal_difference_constant() -> None:
     s2 = sigima.proc.signal.difference_constant(s1, param)
     check_array_result("Signal difference with constant", s2.y, s1.y - param.value)
 
+    # Error propagation test for difference_constant
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2 = sigima.proc.signal.difference_constant(s1, param)
+    # Error should be unchanged after subtraction of a constant
+    check_array_result("Difference constant error propagation", s2.dy, s1.dy)
+
 
 @pytest.mark.validation
 def test_signal_division_constant() -> None:
@@ -155,6 +213,13 @@ def test_signal_division_constant() -> None:
     s1, param = __create_one_signal_and_constant()
     s2 = sigima.proc.signal.division_constant(s1, param)
     check_array_result("Signal division by constant", s2.y, s1.y / param.value)
+
+    # Error propagation test for division_constant
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    s2 = sigima.proc.signal.division_constant(s1, param)
+    # Error should be scaled by the absolute value of the constant
+    expected_dy = s1.dy / param.value if s1.dy is not None else None
+    check_array_result("Division constant error propagation", s2.dy, expected_dy)
 
 
 @pytest.mark.validation
@@ -167,6 +232,16 @@ def test_signal_inverse() -> None:
         exp = 1.0 / s1.y
         exp[np.isinf(exp)] = np.nan
     check_array_result("Signal inverse", inv_signal.y, exp)
+
+    # Error propagation test
+    s1.set_xydata(s1.x, s1.y, dy=np.ones_like(s1.y) * 0.5)
+    inv_signal_err = sigima.proc.signal.inverse(s1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        # Analytical error propagation for inverse: dy_inv = dy / y^2
+        expected_dy = s1.dy / (s1.y**2)
+        expected_dy[np.isinf(expected_dy)] = np.nan
+    check_array_result("Inverse error propagation", inv_signal_err.dy, expected_dy)
 
 
 @pytest.mark.validation
@@ -226,6 +301,18 @@ def test_signal_sqrt() -> None:
     sqrt_signal = sigima.proc.signal.sqrt(s1)
     check_array_result("Square root", sqrt_signal.y, np.sqrt(s1.y))
 
+    # Test error propagation for sqrt
+    # Create a signal with known error
+    s1_err = dst_1_to_1(s1, "s1 with error")
+    # Assign a constant error to all points
+    s1_err.set_xydata(s1_err.x, s1_err.y, dy=np.ones_like(s1_err.y) * 0.5)
+    sqrt_signal_err = sigima.proc.signal.sqrt(s1_err)
+    # Analytical error propagation for sqrt: dy_sqrt = dy / (2 * sqrt(y))
+    expected_dy = s1_err.dy / (2 * np.sqrt(s1_err.y))
+    # If y == 0, avoid division by zero
+    expected_dy = np.where(s1_err.y != 0, expected_dy, np.sqrt(s1_err.dy))
+    check_array_result("Square root error propagation", sqrt_signal_err.dy, expected_dy)
+
 
 @pytest.mark.validation
 def test_signal_power() -> None:
@@ -256,6 +343,8 @@ def test_signal_arithmetic() -> None:
                     exp = s1.y - s2.y
                 elif operator == "/":
                     exp = s1.y / s2.y
+                else:
+                    raise ValueError(f"Unknown operator {operator}")
                 exp = exp * factor + constant
                 check_array_result(f"Arithmetic [{p.get_operation()}]", s3.y, exp)
 

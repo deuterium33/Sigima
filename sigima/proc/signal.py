@@ -250,6 +250,18 @@ class Wrap1to1Func:
 # the modified object from the worker processes.
 
 
+def __error_propagation_needed(src_list: list[SignalObj]) -> bool:
+    """Check if error propagation is needed for the given source signals.
+
+    Args:
+        src_list: List of source signals
+
+    Returns:
+        True if at least one signal has uncertainty, False otherwise
+    """
+    return all(src.dy is not None for src in src_list)
+
+
 @computation_function()
 def addition(src_list: list[SignalObj]) -> SignalObj:
     """Compute the element-wise sum of multiple signals.
@@ -277,10 +289,16 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the sum of the source signals.
     """
     dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y += np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = np.sqrt(dst.dy**2 + src.dy**2)
+    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
+    dst.y = np.sum(y_array, axis=0)
+
+    err = None
+    if __error_propagation_needed(src_list):
+        dy_array = np.array([src.dy for src in src_list])
+        err = np.sqrt(np.sum(dy_array**2, axis=0))
+
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -312,11 +330,16 @@ def average(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the average of the source signals.
     """
     dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y += np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = np.sqrt(dst.dy**2 + src.dy**2)
-    dst.y /= len(src_list)
+    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
+    dst.y = np.mean(y_array, axis=0)
+
+    err = None
+    if __error_propagation_needed(src_list):
+        dy_array = np.array([src.dy for src in src_list])
+        err = np.sqrt(np.sum(dy_array**2, axis=0)) / len(dy_array)
+
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -348,10 +371,16 @@ def product(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the product of the source signals.
     """
     dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y *= np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = dst.y * np.sqrt((dst.dy / dst.y) ** 2 + (src.dy / src.y) ** 2)
+    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
+    dst.y = np.prod(y_array, axis=0)
+
+    err = None
+    if __error_propagation_needed(src_list):
+        dy_array = np.array([src.dy for src in src_list])
+        err = np.sqrt(np.sum(dy_array**2 / y_array**2, axis=0)) * dst.y
+
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -380,6 +409,10 @@ def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "+", str(p.value))
     dst.y += p.value
+
+    err = src.dy
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -409,6 +442,10 @@ def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "-", str(p.value))
     dst.y -= p.value
+
+    err = src.dy
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -438,6 +475,10 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
+
+    err = src.dy * p.value if src.dy is not None else None
+    dst.set_xydata(dst.x, dst.y, dy=err)
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -467,6 +508,9 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "/", str(p.value))
     dst.y /= p.value
+
+    err = src.dy / p.value if src.dy is not None else None
+    dst.set_xydata(dst.x, dst.y, dy=err)
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -509,20 +553,26 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
     if not options.keep_results.get():
         dst.delete_results()  # Remove any previous results
     o, a, b = p.operator, p.factor, p.constant
+    a_param = ConstantParam.create(value=a)
+    b_param = ConstantParam.create(value=b)
     if o in ("×", "/") and a == 0.0:
         dst.y = np.ones_like(src1.y) * b
     elif p.operator == "+":
-        dst.y = (src1.y + src2.y) * a + b
+        dst = addition_constant(
+            product_constant(addition([src1, src2]), a_param), b_param
+        )
     elif p.operator == "-":
-        dst.y = (src1.y - src2.y) * a + b
+        dst = addition_constant(
+            product_constant(difference(src1, src2), a_param), b_param
+        )
     elif p.operator == "×":
-        dst.y = (src1.y * src2.y) * a + b
+        dst = addition_constant(
+            product_constant(product([src1, src2]), a_param), b_param
+        )
     elif p.operator == "/":
-        dst.y = (src1.y / src2.y) * a + b
-    if dst.dy is not None and p.operator in ("+", "-"):
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
-    if dst.dy is not None:
-        dst.dy *= p.factor
+        dst = addition_constant(
+            product_constant(division(src1, src2), a_param), b_param
+        )
     # Eventually convert to initial data type
     if p.restore_dtype:
         dst.xydata = dst.xydata.astype(initial_dtype)
@@ -559,8 +609,12 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
-    if dst.dy is not None:
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
+    err = None
+    if __error_propagation_needed([src1, src2]):
+        dy_array = np.array([src1.dy, src2.dy])
+        err = np.sqrt(np.sum(dy_array**2, axis=0))
+
+    dst.set_xydata(dst.x, dst.y, dy=err)
     restore_data_outside_roi(dst, src1)
     return dst
 
@@ -593,18 +647,11 @@ def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
     Returns:
         Result signal object representing the quadratic difference between the input
-        signals.
+        signals: (**src1** - **src2**) / sqrt(2.0)
     """
-    dst = dst_2_to_1(src1, src2, "quadratic_difference")
-    x1, y1 = src1.get_data()
-    _x2, y2 = src2.get_data()
-    dst.set_xydata(x1, (y1 - np.array(y2, dtype=y1.dtype)) / np.sqrt(2.0))
-    if np.issubdtype(dst.data.dtype, np.unsignedinteger):
-        dst.data[src1.data < src2.data] = 0
-    if dst.dy is not None:
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
-    restore_data_outside_roi(dst, src1)
-    return dst
+    norm = ConstantParam.create(value=1 / np.sqrt(2.0))
+
+    return product_constant(difference(src1, src2), norm)
 
 
 @computation_function()
@@ -635,12 +682,7 @@ def division(src1: SignalObj, src2: SignalObj) -> SignalObj:
         Result signal object representing the division of the input signals.
     """
     dst = dst_2_to_1(src1, src2, "/")
-    x1, y1 = src1.get_data()
-    _x2, y2 = src2.get_data()
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        dst.set_xydata(x1, y1 / np.array(y2, dtype=y1.dtype))
-    restore_data_outside_roi(dst, src1)
+    dst = product([src1, inverse(src2)])
     return dst
 
 
@@ -729,9 +771,19 @@ def inverse(src: SignalObj) -> SignalObj:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         dst.set_xydata(x, np.reciprocal(y))
         dst.y[np.isinf(dst.y)] = np.nan
-    if dst.dy is not None:
-        dst.dy = dst.y * src.dy / (src.y**2)
-        dst.dy[np.isinf(dst.dy)] = np.nan
+
+    err = None
+    if __error_propagation_needed([src]):
+        if np.any(src.y == 0):
+            warnings.warn(
+                "Some signal values are zero, in such cases inverse error is"
+                "returned as 'not a number' (nan)"
+            )
+        err = src.dy / (src.y**2)
+        err[np.isinf(err)] = np.nan
+
+    dst.set_xydata(dst.x, dst.y, dy=err)
+    # Restore data outside the ROI, if any
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -837,7 +889,24 @@ def sqrt(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(np.sqrt)(src)
+    result = Wrap1to1Func(np.sqrt)(src)
+
+    err = None
+    if __error_propagation_needed([src]):
+        diff = np.abs(src.y) - src.dy
+        if np.any(diff < 0):
+            warnings.warn(
+                "Some errors are larger than the signal values, in such cases"
+                "square root error is optimistically estimated as sqrt(dy) instead"
+                "of dy / (2 * sqrt(abs(y)))"
+            )
+        err = np.where(
+            src.y == 0, np.sqrt(src.dy), src.dy / (2 * np.sqrt(np.abs(src.y)))
+        )
+
+    result.set_xydata(result.x, result.y, dy=err)
+
+    return result
 
 
 class PowerParam(gds.DataSet):
