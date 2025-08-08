@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import abc
 import enum
+import re
 import sys
 from collections.abc import Callable, Generator, Iterable
 from copy import deepcopy
@@ -218,8 +219,6 @@ class BaseResult(abc.ABC):
         assert isinstance(title, str)
         self.title = title
         self.array = array
-        self.xunit: str = ""
-        self.yunit: str = ""
         if labels is None:
             labels = []
         self.__labels = labels
@@ -336,7 +335,10 @@ class BaseResult(abc.ABC):
         """Return text representation of result"""
         text = ""
         for i_row in range(self.array.shape[0]):
-            suffix = f"|ROI{i_row}" if i_row > 0 else ""
+            suffix = ""
+            i_roi = i_row - 1
+            if i_roi >= 0:
+                suffix = f"|{get_obj_roi_title(obj, i_roi)}"
             text += f"<u>{self.title}{suffix}</u>:"
             for i_col, label in self.label_contents:
                 # "label" may contains "<" and ">" characters which are interpreted
@@ -1193,6 +1195,18 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
             return obj.indices_to_physical(self.coords.tolist())
         return self.coords.tolist()
 
+    def set_physical_coords(self, obj: TypeObj, coords: np.ndarray) -> None:
+        """Set physical coords
+
+        Args:
+            obj: object (signal/image)
+            coords: physical coords
+        """
+        if self.indices:
+            self.coords = np.array(obj.physical_to_indices(coords.tolist()))
+        else:
+            self.coords = np.array(coords, float)
+
     def get_indices_coords(self, obj: TypeObj) -> list[int]:
         """Return indices coords
 
@@ -1481,3 +1495,30 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             else:
                 raise ValueError(f"Unsupported single ROI type: {single_roi['type']}")
         return instance
+
+
+GENERIC_ROI_TITLE_REGEXP = r"ROI(\d+)"
+
+
+def get_generic_roi_title(index: int) -> None:
+    """Return a generic title for the ROI"""
+    title = f"ROI{index:02d}"
+    assert re.match(GENERIC_ROI_TITLE_REGEXP, title)
+    return title
+
+
+def get_obj_roi_title(obj: TypeObj, index: int) -> str:
+    """Get ROI title for an object
+
+    Args:
+        obj: object (signal/image)
+        index: ROI index
+
+    Returns:
+        ROI title
+    """
+    roi: BaseROI = obj.roi
+    assert roi is not None, "Object has no ROI defined"
+    single_roi: BaseSingleROI = roi.get_single_roi(index)
+    title = single_roi.title or get_generic_roi_title(index)
+    return title

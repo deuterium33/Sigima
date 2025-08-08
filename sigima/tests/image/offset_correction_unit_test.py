@@ -57,13 +57,13 @@ def test_image_offset_correction_interactive() -> None:
 def test_image_offset_correction() -> None:
     """Image offset correction validation test."""
     i1 = create_noisy_gaussian_image()
-    param = sigima.objects.ROI2DParam.create(x0=0, y0=0, dx=10, dy=10)
-    i2 = sigima.proc.image.offset_correction(i1, param)
+    p = sigima.objects.ROI2DParam.create(x0=0, y0=0, dx=10, dy=10)
+    i2 = sigima.proc.image.offset_correction(i1, p)
 
     # Check that the offset correction has been applied
-    x0, y0 = param.x0, param.y0
-    x1, y1 = x0 + param.dx, y0 + param.dy
-    offset = np.mean(i1.data[y0:y1, x0:x1])
+    ix0, iy0 = int(p.x0), int(p.y0)
+    ix1, iy1 = int(p.x0 + p.dx), int(p.y0 + p.dy)
+    offset = np.mean(i1.data[iy0:iy1, ix0:ix1])
     assert np.allclose(i2.data, i1.data - offset), "Offset correction failed"
 
 

@@ -122,7 +122,7 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
         [100, 200, 300, 200],
         [400, 500, 300, 200],
     ]
-    params = []
+    params: list[sigima.objects.ROI2DParam] = []
     for c in coords:
         p = sigima.objects.ROI2DParam()
         p.x0, p.y0, p.dx, p.dy = c
@@ -130,8 +130,8 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
     dst = sigima.proc.image.erase(obj, params)
     exp = obj.data.copy()
     for p in params:
-        ix0, iy0, idx, idy = p.x0, p.y0, p.dx, p.dy
-        ix1, iy1 = ix0 + idx, iy0 + idy
+        ix0, iy0 = int(p.x0), int(p.y0)
+        ix1, iy1 = int(p.x0 + p.dx), int(p.y0 + p.dy)
         exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
     if guiutils.is_gui_enabled():
         # pylint: disable=import-outside-toplevel

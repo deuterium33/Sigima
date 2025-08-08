@@ -444,6 +444,22 @@ def create_test_signal_rois(
             yield roi
 
 
+def __idx_to_phys(obj: ImageObj, idx_coords: list[int]) -> list[float]:
+    """Convert index coordinates to physical coordinates.
+
+    Args:
+        obj: Image object
+        idx_coords: List of index coordinates [x0, y0, dx, dy].
+
+    Returns:
+        List of physical coordinates [x0, y0, dx, dy].
+    """
+    coords_array = np.array(idx_coords, dtype=float)
+    coords_array[::2] = coords_array[::2] * obj.dx + obj.x0
+    coords_array[1::2] = coords_array[1::2] * obj.dy + obj.y0
+    return coords_array.tolist()
+
+
 def create_test_image_rois(obj: ImageObj) -> Generator[ImageROI, None, None]:
     """Create test image ROIs (sigima.objects.ImageROI test object)
 
@@ -452,21 +468,24 @@ def create_test_image_rois(obj: ImageObj) -> Generator[ImageROI, None, None]:
     """
     # ROI coordinates: for each ROI type, the coordinates are given for indices=True
     # and indices=False (physical coordinates)
+    rect_idx = [500, 750, 1000, 1250]  # [x0, y0, dx, dy]
+    circ_idx = [1500, 1500, 500]  # [x0, y0, radius]
+    poly_idx = [450, 150, 1300, 350, 1250, 950, 400, 1350]  # [x0, y0, ...]
     roi_coords = {
         "rectangle": {
             CLASS_NAME: "RectangularROI",
-            True: [500, 750, 1000, 1250],  # indices [x0, y0, dx, dy]
-            False: [500.0, 750.0, 1000.0, 1250.0],  # physical
+            True: rect_idx,  # indices [x0, y0, dx, dy]
+            False: __idx_to_phys(obj, rect_idx),  # physical
         },
         "circle": {
             CLASS_NAME: "CircularROI",
-            True: [1500, 1500, 500],  # indices [x0, y0, radius]
-            False: [1500.0, 1500.0, 500.0],  # physical
+            True: circ_idx,  # indices [x0, y0, radius]
+            False: __idx_to_phys(obj, circ_idx),  # physical
         },
         "polygon": {
             CLASS_NAME: "PolygonalROI",
-            True: [450, 150, 1300, 350, 1250, 950, 400, 1350],  # indices [x0, y0, ,...]
-            False: [450.0, 150.0, 1300.0, 350.0, 1250.0, 950.0, 400.0, 1350.0],  # phys.
+            True: poly_idx,  # indices [x0, y0, ...]
+            False: __idx_to_phys(obj, poly_idx),  # physical
         },
     }
     for indices in (True, False):
@@ -492,10 +511,10 @@ def create_test_image_rois(obj: ImageObj) -> Generator[ImageROI, None, None]:
                     ]
                 assert coords_from_bbox == coords[True]
 
-            cds_phys = [float(val) for val in sroi.get_physical_coords(obj)]
-            assert cds_phys == coords[False]
-            cds_ind = [int(val) for val in sroi.get_indices_coords(obj)]
-            assert cds_ind == coords[True]
+            cds_phys = np.array(sroi.get_physical_coords(obj), float)
+            assert all(np.isclose(cds_phys, coords[False]))
+            cds_ind = np.rint(sroi.get_indices_coords(obj))
+            assert all(np.isclose(cds_ind, coords[True]))
 
             execenv.print("    get_bounding_box:   ", bbox_phys)
             execenv.print("    get_physical_coords:", cds_phys)
@@ -974,10 +993,10 @@ def create_resultproperties() -> Generator[ResultProperties, None, None]:
         ResultProperties object
     """
     for title, data, labels in (
-        ("TestProperties1", [0, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
+        ("TestProperties1", [-1, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
         (
             "TestProperties2",
-            [[0, 1.232325, -9, 0, 10], [0, 250, -3, 12.0, 530.0]],
+            [[-1, 1.232325, -9, 0, 10], [-1, 250, -3, 12.0, 530.0]],
             ["P1", "P2", "P3", "P4"],
         ),
     ):

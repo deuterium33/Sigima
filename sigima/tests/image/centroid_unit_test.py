@@ -133,7 +133,7 @@ def test_image_centroid_interactive() -> None:
 
 
 def __check_centroid(
-    image: sigima.objects.ImageObj, expected_x: float, expected_y: float
+    image: sigima.objects.ImageObj, expected_x: float, expected_y: float, debug_str: str
 ) -> None:
     """Check centroid computation
 
@@ -141,10 +141,11 @@ def __check_centroid(
         image: Image object to compute centroid from
         expected_x: Expected x coordinate of the centroid
         expected_y: Expected y coordinate of the centroid
+        debug_str: Debug string for logging
     """
     df = sigima.proc.image.centroid(image).to_dataframe()
-    check_scalar_result("Centroid X", df.x[0], expected_x, atol=1.0)
-    check_scalar_result("Centroid Y", df.y[0], expected_y, atol=1.0)
+    check_scalar_result(f"Centroid X [{debug_str}]", df.x[0], expected_x, atol=1.0)
+    check_scalar_result(f"Centroid Y [{debug_str}]", df.y[0], expected_y, atol=1.0)
 
 
 @pytest.mark.validation
@@ -152,7 +153,7 @@ def test_image_centroid() -> None:
     """Test centroid computation"""
     param = sigima.objects.NewImageParam.create(height=500, width=500)
     image = create_noisy_gaussian_image(param, center=(-2.0, 3.0), add_annotations=True)
-    circle_roi = sigima.objects.create_image_roi("circle", [200, 325, 10])
+    circle_roi = sigima.objects.create_image_roi("circle", [200, 325, 10], indices=True)
     for roi, x0, y0 in (
         (None, 0.0, 0.0),
         (None, 100.0, 100.0),
@@ -160,7 +161,8 @@ def test_image_centroid() -> None:
         (circle_roi, 100.0, 100.0),  # Test for regression like #106
     ):
         image.roi, image.x0, image.y0 = roi, x0, y0
-        __check_centroid(image, 200.0 + x0, 325.0 + y0)
+        debug_str = f"{roi}, x0: {x0}, y0: {y0}"
+        __check_centroid(image, 200.0 + x0, 325.0 + y0, debug_str)
 
 
 if __name__ == "__main__":

@@ -117,9 +117,9 @@ class SegmentROI(base.BaseSingleROI["SignalObj", ROI1DParam]):
             obj: object (signal), for physical-indices coordinates conversion
             index: ROI index
         """
-        generic_title = f"ROI{index:02d}"
-        param = ROI1DParam(generic_title)
-        param.title = self.title or generic_title
+        gtitle = base.get_generic_roi_title(index)
+        param = ROI1DParam(gtitle)
+        param.title = self.title or gtitle
         param.xmin, param.xmax = self.get_physical_coords(obj)
         return param
 

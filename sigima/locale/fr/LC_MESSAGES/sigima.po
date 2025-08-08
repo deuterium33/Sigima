@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-07-28 17:57+0200\n"
+"POT-Creation-Date: 2025-08-08 11:28+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -102,6 +102,12 @@ msgstr "Ecart-type de la distribution normale"
 
 msgid "Properties"
 msgstr "Propriétés"
+
+msgid "This is a set of parameters defining a <b>Region of Interest</b> (ROI) in an image. The parameters can be used to create a ROI object or to extract data from an image using the ROI.<br><br>All values are expressed in physical coordinates (floats). The conversion to pixel coordinates is done by taking into account the image pixel size and origin.<br>"
+msgstr "Ceci est un ensemble de paramètres définissant une <b>Région d'Intérêt</b> (ROI) dans une image. Les paramètres peuvent être utilisés pour créer un objet ROI ou pour extraire des données d'une image en utilisant la ROI.<br><br>Toutes les valeurs sont exprimées en coordonnées physiques (flottantes). La conversion en coordonnées de pixels est effectuée en tenant compte de la taille des pixels et de l'origine de l'image.<br>"
+
+msgid "ROI title"
+msgstr "Titre de la ROI"
 
 msgid "Geometry"
 msgstr "Géométrie"
