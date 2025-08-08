@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:27+0200\n"
+"POT-Creation-Date: 2025-08-08 16:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -39,6 +39,18 @@ msgstr "Amélioration de la gestion du titre de la ROI unique, en utilisant un t
 
 msgid "Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs."
 msgstr "Ajout de la méthode `combine_with` aux objets ROI (`SignalROI` et `ImageROI`) pour renvoyer un nouvel ROI qui combine le ROI actuel avec un autre (union) et gère les ROIs en double."
+
+msgid "Image ROI coordinates:"
+msgstr "Coordonnées de ROI d'image:"
+
+msgid "Before this change, image ROI coordinates were defined using indices by default."
+msgstr "Avant ce changement, les coordonnées de ROI d'image étaient définies par défaut à l'aide d'indices."
+
+msgid "Now, `ROI2DParam` uses physical coordinates by default."
+msgstr "Maintenant, `ROI2DParam` utilise des coordonnées physiques par défaut."
+
+msgid "Note that ROI may still be defined using indices instead (using `create_image_roi` function)."
+msgstr "Les ROI peuvent toujours être définies à l'aide d'indices (en utilisant la fonction `create_image_roi`)."
 
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
