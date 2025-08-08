@@ -334,7 +334,10 @@ class BaseResult(abc.ABC):
         """Return text representation of result"""
         text = ""
         for i_row in range(self.array.shape[0]):
-            suffix = f"|ROI{i_row - 1:02d}" if i_row > 0 else ""
+            suffix = ""
+            i_roi = i_row - 1
+            if i_roi >= 0:
+                suffix = f"|ROI{i_roi:02d}"
             text += f"<u>{self.title}{suffix}</u>:"
             for i_col, label in self.label_contents:
                 # "label" may contains "<" and ">" characters which are interpreted

@@ -993,10 +993,10 @@ def create_resultproperties() -> Generator[ResultProperties, None, None]:
         ResultProperties object
     """
     for title, data, labels in (
-        ("TestProperties1", [0, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
+        ("TestProperties1", [-1, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
         (
             "TestProperties2",
-            [[0, 1.232325, -9, 0, 10], [0, 250, -3, 12.0, 530.0]],
+            [[-1, 1.232325, -9, 0, 10], [-1, 250, -3, 12.0, 530.0]],
             ["P1", "P2", "P3", "P4"],
         ),
     ):
