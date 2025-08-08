@@ -76,6 +76,17 @@ def check_points(value: np.ndarray, raise_exception: bool = False) -> bool:
 class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
     """Image ROI parameters"""
 
+    def get_comment(self) -> str | None:
+        """Get comment for ROI parameters"""
+        return _(
+            "This is a set of parameters defining a <b>Region of Interest</b> "
+            "(ROI) in an image. The parameters can be used to create a ROI object "
+            "or to extract data from an image using the ROI.<br><br>"
+            "All values are expressed in physical coordinates (floats). "
+            "The conversion to pixel coordinates is done by taking into account "
+            "the image pixel size and origin.<br>"
+        )
+
     title = gds.StringItem(_("ROI title"), default="")
 
     # Note: the ROI coordinates are expressed in pixel coordinates (integers)
@@ -145,6 +156,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     def get_suffix(self) -> str:
         """Get suffix text representation for ROI extraction"""
+        # TODO: Suffix: use ROI title? (possible only when there is a single ROI)
         if self.geometry == "rectangle":
             return f"x0={self.x0},y0={self.y0},dx={self.dx},dy={self.dy}"
         if self.geometry == "circle":
