@@ -22,7 +22,6 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-from sigima.proc.signal import dst_1_to_1
 from sigima.tests.helpers import check_array_result
 
 
@@ -300,18 +299,6 @@ def test_signal_sqrt() -> None:
     s1 = sigima.tests.data.get_test_signal("paracetamol.txt")
     sqrt_signal = sigima.proc.signal.sqrt(s1)
     check_array_result("Square root", sqrt_signal.y, np.sqrt(s1.y))
-
-    # Test error propagation for sqrt
-    # Create a signal with known error
-    s1_err = dst_1_to_1(s1, "s1 with error")
-    # Assign a constant error to all points
-    s1_err.set_xydata(s1_err.x, s1_err.y, dy=np.ones_like(s1_err.y) * 0.5)
-    sqrt_signal_err = sigima.proc.signal.sqrt(s1_err)
-    # Analytical error propagation for sqrt: dy_sqrt = dy / (2 * sqrt(y))
-    expected_dy = s1_err.dy / (2 * np.sqrt(s1_err.y))
-    # If y == 0, avoid division by zero
-    expected_dy = np.where(s1_err.y != 0, expected_dy, np.sqrt(s1_err.dy))
-    check_array_result("Square root error propagation", sqrt_signal_err.dy, expected_dy)
 
 
 @pytest.mark.validation

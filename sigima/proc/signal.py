@@ -647,7 +647,7 @@ def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
     Returns:
         Result signal object representing the quadratic difference between the input
-        signals: (**src1** - **src2**) / sqrt(2.0)
+        signals.
     """
     norm = ConstantParam.create(value=1 / np.sqrt(2.0))
 
@@ -889,24 +889,7 @@ def sqrt(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    result = Wrap1to1Func(np.sqrt)(src)
-
-    err = None
-    if __error_propagation_needed([src]):
-        diff = np.abs(src.y) - src.dy
-        if np.any(diff < 0):
-            warnings.warn(
-                "Some errors are larger than the signal values, in such cases"
-                "square root error is optimistically estimated as sqrt(dy) instead"
-                "of dy / (2 * sqrt(abs(y)))"
-            )
-        err = np.where(
-            src.y == 0, np.sqrt(src.dy), src.dy / (2 * np.sqrt(np.abs(src.y)))
-        )
-
-    result.set_xydata(result.x, result.y, dy=err)
-
-    return result
+    return Wrap1to1Func(np.sqrt)(src)
 
 
 class PowerParam(gds.DataSet):
