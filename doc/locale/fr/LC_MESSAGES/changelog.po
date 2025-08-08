@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-31 17:44+0200\n"
+"POT-Creation-Date: 2025-08-08 11:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,15 @@ msgstr "sigima 0.3.0"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "New ROI features:"
+msgstr "Nouvelles fonctionnalités de ROI:"
+
+msgid "Improved single ROI title handling, using default title based on the index of the ROI when no title is provided."
+msgstr "Amélioration de la gestion du titre de la ROI unique, en utilisant un titre par défaut basé sur l'index de la ROI lorsque aucun titre n'est fourni."
+
+msgid "Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs."
+msgstr "Ajout de la méthode `combine_with` aux objets ROI (`SignalROI` et `ImageROI`) pour renvoyer un nouvel ROI qui combine le ROI actuel avec un autre (union) et gère les ROIs en double."
 
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
@@ -106,8 +115,20 @@ msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique,
 msgid "New I/O features:"
 msgstr "Nouvelles fonctionnalités d'E/S:"
 
+msgid "Added HDF5 format for signal and image objects (extensions `.h5sig` and `.h5ima`) that may be opened with any HDF5 viewer."
+msgstr "Ajout du format HDF5 pour les objets de signal et d'image (extensions `.h5sig` et `.h5ima`) qui peuvent être ouverts avec n'importe quel visualiseur HDF5."
+
 msgid "Added support for FT-Lab signal and image format."
 msgstr "Ajout de la prise en charge du format de signal et d'image FT-Lab."
+
+msgid "Added functions to read and write metadata and ROIs in JSON format:"
+msgstr "Ajout de fonctions pour lire et écrire des métadonnées et des ROIs au format JSON:"
+
+msgid "`sigima.io.read_metadata` and `sigima.io.write_metadata` for metadata."
+msgstr "`sigima.io.read_metadata` et `sigima.io.write_metadata` pour les métadonnées."
+
+msgid "`sigima.io.read_roi` and `sigima.io.write_roi` for ROIs."
+msgstr "`sigima.io.read_roi` et `sigima.io.write_roi` pour les ROIs."
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Corrections de bogues:"
@@ -126,6 +147,15 @@ msgstr "En guise de solution de contournement, la propriété `x` renvoie désor
 
 msgid "Furthermore, the `get_data` method now returns a tuple of numpy arrays instead of a single array, allowing to access both x and y data separately, keeping the original data type."
 msgstr "De plus, la méthode `get_data` renvoie désormais un tuple de tableaux numpy au lieu d'un seul tableau, permettant d'accéder séparément aux données x et y, tout en conservant le type de données d'origine."
+
+msgid "Fix ROI conversion between physical and indices coordinates:"
+msgstr "Correction de la conversion des coordonnées physiques et des indices de ROI:"
+
+msgid "The conversion between physical coordinates and indices has been corrected (half pixel error was removed)."
+msgstr "La conversion entre les coordonnées physiques et les indices a été corrigée (l'erreur de demi-pixel a été supprimée)."
+
+msgid "The `indices_to_physical` and `physical_to_indices` methods now raise a `ValueError` if the input does not contain an even number of elements (x, y pairs)."
+msgstr "La méthode `indices_to_physical` et `physical_to_indices` lèvent désormais une `ValueError` si l'entrée ne contient pas un nombre pair d'éléments (paires x, y)."
 
 msgid "sigima 0.2.0"
 msgstr "sigima 0.2.0"
