@@ -12,7 +12,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.image
 from sigima.objects import ImageObj, ImageROI, NewImageParam, create_image_roi
-from sigima.tests import guiutils, vistools
+from sigima.tests import guiutils
 from sigima.tests.data import create_multigaussian_image
 from sigima.tests.helpers import print_obj_data_dimensions
 
@@ -245,6 +245,8 @@ def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> No
             titles.append(f"Image with {roi.get_single_roi(0).title} ROI")
         # pylint: disable=import-outside-toplevel
         from guidata.qthelpers import qt_app_context
+
+        from sigima.tests import vistools
 
         with qt_app_context():
             vistools.view_images_side_by_side(
