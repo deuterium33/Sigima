@@ -156,14 +156,15 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     def get_suffix(self) -> str:
         """Get suffix text representation for ROI extraction"""
-        # TODO: Suffix: use ROI title? (possible only when there is a single ROI)
-        if self.geometry == "rectangle":
-            return f"x0={self.x0},y0={self.y0},dx={self.dx},dy={self.dy}"
-        if self.geometry == "circle":
-            return f"xc={self.xc},yc={self.yc},r={self.r}"
-        if self.geometry == "polygon":
-            return "polygon"
-        raise ValueError(f"Unknown ROI geometry type: {self.geometry}")
+        if re.match(base.GENERIC_ROI_TITLE_REGEXP, self.title):
+            if self.geometry == "rectangle":
+                return f"x0={self.x0},y0={self.y0},dx={self.dx},dy={self.dy}"
+            if self.geometry == "circle":
+                return f"xc={self.xc},yc={self.yc},r={self.r}"
+            if self.geometry == "polygon":
+                return "polygon"
+            raise ValueError(f"Unknown ROI geometry type: {self.geometry}")
+        return self.title
 
     def get_extracted_roi(self, obj: ImageObj) -> ImageROI | None:
         """Get extracted ROI, i.e. the remaining ROI after extracting ROI from image.
@@ -317,9 +318,9 @@ class PolygonalROI(BaseSingleImageROI):
             obj: object (image), for physical-indices coordinates conversion
             index: ROI index
         """
-        generic_title = f"ROI{index:02d}"
-        param = ROI2DParam(generic_title)
-        param.title = self.title or generic_title
+        gtitle = base.get_generic_roi_title(index)
+        param = ROI2DParam(gtitle)
+        param.title = self.title or gtitle
         param.geometry = "polygon"
         param.points = np.array(self.get_physical_coords(obj))
         return param
@@ -446,9 +447,9 @@ class RectangularROI(BaseSingleImageROI):
             obj: object (image), for physical-indices coordinates conversion
             index: ROI index
         """
-        generic_title = f"ROI{index:02d}"
-        param = ROI2DParam(generic_title)
-        param.title = self.title or generic_title
+        gtitle = base.get_generic_roi_title(index)
+        param = ROI2DParam(gtitle)
+        param.title = self.title or gtitle
         param.geometry = "rectangle"
         param.x0, param.y0, param.dx, param.dy = self.get_physical_coords(obj)
         return param
@@ -605,9 +606,9 @@ class CircularROI(BaseSingleImageROI):
             obj: object (image), for physical-indices coordinates conversion
             index: ROI index
         """
-        generic_title = f"ROI{index:02d}"
-        param = ROI2DParam(generic_title)
-        param.title = self.title or generic_title
+        gtitle = base.get_generic_roi_title(index)
+        param = ROI2DParam(gtitle)
+        param.title = self.title or gtitle
         param.geometry = "circle"
         param.xc, param.yc, param.r = self.get_physical_coords(obj)
         return param
