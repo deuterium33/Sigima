@@ -218,8 +218,6 @@ class BaseResult(abc.ABC):
         assert isinstance(title, str)
         self.title = title
         self.array = array
-        self.xunit: str = ""
-        self.yunit: str = ""
         if labels is None:
             labels = []
         self.__labels = labels
