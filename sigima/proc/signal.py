@@ -250,16 +250,79 @@ class Wrap1to1Func:
 # the modified object from the worker processes.
 
 
-def __error_propagation_needed(src_list: list[SignalObj]) -> bool:
-    """Check if error propagation is needed for the given source signals.
+def __is_uncertainty_data_available(signals: SignalObj | list[SignalObj]) -> bool:
+    """Check if all signals have uncertainty data.
+
+    This functions is used to determine whether enough information is available to
+    propagate uncertainty.
 
     Args:
-        src_list: List of source signals
+        signals: Signal object or list of signal objects.
 
     Returns:
-        True if at least one signal has uncertainty, False otherwise
+        True if all signals have uncertainty data, False otherwise.
     """
-    return all(src.dy is not None for src in src_list)
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return all(sig.dy is not None for sig in signals)
+
+
+def signals_to_array(
+    signals: list[SignalObj], attr: str = "y", dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals.
+
+    Args:
+        signals: List of signal objects.
+        attr: Name of the attribute to extract ("y", "dy", etc.). Defaults to "y".
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
+
+    Returns:
+        A NumPy array stacking the specified attribute from all signals.
+
+    Raises:
+        ValueError: If the signals list is empty.
+    """
+    if not signals:
+        raise ValueError("The signal list is empty.")
+    if dtype is None:
+        dtype = getattr(signals[0], attr).dtype
+    arr = np.array([getattr(sig, attr) for sig in signals], dtype=dtype)
+    return arr
+
+
+def signals_y_to_array(
+    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `y` attribute.
+
+    Args:
+        signals: List of signal objects.
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
+
+    Returns:
+        A NumPy array stacking the `y` attribute from all signals.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return signals_to_array(signals, attr="y", dtype=dtype)
+
+
+def signals_dy_to_array(
+    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `dy` attribute.
+
+    Args:
+        signals: List of signal objects.
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
+
+    Returns:
+        A NumPy array stacking the `dy` attribute from all signals.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return signals_to_array(signals, attr="dy", dtype=dtype)
 
 
 @computation_function()
@@ -288,17 +351,11 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
     Returns:
         Signal object representing the sum of the source signals.
     """
-    dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data
-    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
-    dst.y = np.sum(y_array, axis=0)
-
-    err = None
-    if __error_propagation_needed(src_list):
-        dy_array = np.array([src.dy for src in src_list])
-        err = np.sqrt(np.sum(dy_array**2, axis=0))
-
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
+    dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.sum(signals_y_to_array(src_list), axis=0)
+    dst.dy = None  # ! In case of missing uncertainty data.
+    if __is_uncertainty_data_available(src_list):
+        dst.dy = np.sqrt(np.sum(signals_dy_to_array(src_list) ** 2, axis=0))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -329,17 +386,12 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     Returns:
         Signal object representing the average of the source signals.
     """
-    dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data
-    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
-    dst.y = np.mean(y_array, axis=0)
-
-    err = None
-    if __error_propagation_needed(src_list):
-        dy_array = np.array([src.dy for src in src_list])
-        err = np.sqrt(np.sum(dy_array**2, axis=0)) / len(dy_array)
-
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
+    dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.mean(signals_y_to_array(src_list), axis=0)
+    dst.dy = None  # ! In case of missing uncertainty data.
+    if __is_uncertainty_data_available(src_list):
+        dy_array = signals_dy_to_array(src_list)
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0)) / len(dy_array)
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -370,17 +422,13 @@ def product(src_list: list[SignalObj]) -> SignalObj:
     Returns:
         Signal object representing the product of the source signals.
     """
-    dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data
-    y_array = np.array([src.y for src in src_list], dtype=dst.y.dtype)
+    dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data.
+    y_array = signals_y_to_array(src_list)
     dst.y = np.prod(y_array, axis=0)
-
-    err = None
-    if __error_propagation_needed(src_list):
-        dy_array = np.array([src.dy for src in src_list])
-        err = np.sqrt(np.sum(dy_array**2 / y_array**2, axis=0)) * dst.y
-
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
+    dst.dy = None  # ! In case of missing uncertainty data.
+    if __is_uncertainty_data_available(src_list):
+        dy_array = signals_dy_to_array(src_list)
+        dst.dy = np.sqrt(np.sum((dy_array / y_array) ** 2, axis=0)) * dst.y
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -409,10 +457,6 @@ def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "+", str(p.value))
     dst.y += p.value
-
-    err = src.dy
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -442,10 +486,6 @@ def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "-", str(p.value))
     dst.y -= p.value
-
-    err = src.dy
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -475,10 +515,8 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
-
-    err = src.dy * p.value if src.dy is not None else None
-    dst.set_xydata(dst.x, dst.y, dy=err)
-
+    if __is_uncertainty_data_available(src):
+        dst.dy = src.dy * p.value
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -508,9 +546,8 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "/", str(p.value))
     dst.y /= p.value
-
-    err = src.dy / p.value if src.dy is not None else None
-    dst.set_xydata(dst.x, dst.y, dy=err)
+    if __is_uncertainty_data_available(src):
+        dst.dy = src.dy / p.value
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -552,27 +589,16 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
     dst = src1.copy(title=title)
     if not options.keep_results.get():
         dst.delete_results()  # Remove any previous results
-    o, a, b = p.operator, p.factor, p.constant
-    a_param = ConstantParam.create(value=a)
-    b_param = ConstantParam.create(value=b)
-    if o in ("×", "/") and a == 0.0:
-        dst.y = np.ones_like(src1.y) * b
-    elif p.operator == "+":
-        dst = addition_constant(
-            product_constant(addition([src1, src2]), a_param), b_param
-        )
+    a = ConstantParam.create(value=p.factor)
+    b = ConstantParam.create(value=p.constant)
+    if p.operator == "+":
+        dst = addition_constant(product_constant(addition([src1, src2]), a), b)
     elif p.operator == "-":
-        dst = addition_constant(
-            product_constant(difference(src1, src2), a_param), b_param
-        )
+        dst = addition_constant(product_constant(difference(src1, src2), a), b)
     elif p.operator == "×":
-        dst = addition_constant(
-            product_constant(product([src1, src2]), a_param), b_param
-        )
+        dst = addition_constant(product_constant(product([src1, src2]), a), b)
     elif p.operator == "/":
-        dst = addition_constant(
-            product_constant(division(src1, src2), a_param), b_param
-        )
+        dst = addition_constant(product_constant(division(src1, src2), a), b)
     # Eventually convert to initial data type
     if p.restore_dtype:
         dst.xydata = dst.xydata.astype(initial_dtype)
@@ -609,12 +635,10 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
-    err = None
-    if __error_propagation_needed([src1, src2]):
-        dy_array = np.array([src1.dy, src2.dy])
-        err = np.sqrt(np.sum(dy_array**2, axis=0))
-
-    dst.set_xydata(dst.x, dst.y, dy=err)
+    dst.dy = None  # ! In case of missing uncertainty data.
+    if __is_uncertainty_data_available([src1, src2]):
+        dy_array = signals_dy_to_array([src1, src2])
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0))
     restore_data_outside_roi(dst, src1)
     return dst
 
@@ -649,8 +673,7 @@ def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
         Result signal object representing the quadratic difference between the input
         signals.
     """
-    norm = ConstantParam.create(value=1 / np.sqrt(2.0))
-
+    norm = ConstantParam.create(value=1.0 / np.sqrt(2.0))
     return product_constant(difference(src1, src2), norm)
 
 
@@ -681,7 +704,6 @@ def division(src1: SignalObj, src2: SignalObj) -> SignalObj:
     Returns:
         Result signal object representing the division of the input signals.
     """
-    dst = dst_2_to_1(src1, src2, "/")
     dst = product([src1, inverse(src2)])
     return dst
 
@@ -757,13 +779,24 @@ def swap_axes(src: SignalObj) -> SignalObj:
 
 @computation_function()
 def inverse(src: SignalObj) -> SignalObj:
-    """Compute inverse with :py:data:`numpy.invert`
+    """Compute the element-wise inverse of a signal.
+
+    The function computes the reciprocal (1/y) of each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the inverse is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: source signal
+        src: Input signal object.
 
     Returns:
-        Result signal object
+        Result signal object representing the inverse of the input signal.
     """
     dst = dst_1_to_1(src, "invert")
     x, y = src.get_data()
@@ -771,19 +804,10 @@ def inverse(src: SignalObj) -> SignalObj:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         dst.set_xydata(x, np.reciprocal(y))
         dst.y[np.isinf(dst.y)] = np.nan
-
-    err = None
-    if __error_propagation_needed([src]):
-        if np.any(src.y == 0):
-            warnings.warn(
-                "Some signal values are zero, in such cases inverse error is"
-                "returned as 'not a number' (nan)"
-            )
-        err = src.dy / (src.y**2)
-        err[np.isinf(err)] = np.nan
-
-    dst.set_xydata(dst.x, dst.y, dy=err)
-    # Restore data outside the ROI, if any
+        if __is_uncertainty_data_available(src):
+            err = src.dy / (src.y**2)
+            err[np.isinf(err)] = np.nan
+            dst.dy = err
     restore_data_outside_roi(dst, src)
     return dst
 
