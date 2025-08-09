@@ -869,26 +869,33 @@ def create_n_images(n: int = 100) -> list[ImageObj]:
     return images
 
 
-def create_grid_image(nrows: int = 3, ncols: int = 3) -> ImageObj:
+class GridOfGaussianImages(gds.DataSet):
+    """Grid of Gaussian images"""
+
+    nrows = gds.IntItem(_("Number of rows"), default=3, min=1)
+    ncols = gds.IntItem(_("Number of columns"), default=3, min=1)
+
+
+def create_grid_of_gaussian_images(p: GridOfGaussianImages | None = None) -> ImageObj:
     """Create a grid image with multiple noisy Gaussian images.
 
     Args:
-        nrows: Number of rows in the grid. Defaults to 3.
-        ncols: Number of columns in the grid. Defaults to 3.
+        p: Grid of Gaussian images parameters. Defaults to None.
 
     Returns:
         Image object containing the grid of images.
     """
+    p = p or GridOfGaussianImages()
     size = 512
     grid_data = np.zeros((size, size), dtype=np.float32)
     xmin, xmax = -10.0, 10.0
     ymin, ymax = -10.0, 10.0
-    xstep = (xmax - xmin) / ncols
-    ystep = (ymax - ymin) / nrows
+    xstep = (xmax - xmin) / p.ncols
+    ystep = (ymax - ymin) / p.nrows
     sigma = 0.1
     amp = 1.0
-    for j in range(ncols):
-        for i in range(nrows):
+    for j in range(p.ncols):
+        for i in range(p.nrows):
             grid_data += create_2d_gaussian(
                 size,
                 dtype=float,

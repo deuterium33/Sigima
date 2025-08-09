@@ -17,7 +17,7 @@ from sigima.proc.image.extraction import (
     extract_roi,
     generate_image_grid_roi,
 )
-from sigima.tests.data import create_grid_image
+from sigima.tests.data import create_grid_of_gaussian_images
 
 
 def _roi_by_title(roi: list[ImageROI], title: str) -> ImageROI:
@@ -30,7 +30,7 @@ def _roi_by_title(roi: list[ImageROI], title: str) -> ImageROI:
 
 def test_roi_grid_basic_geometry() -> None:
     """2x2 grid, 50% size, centered (50% translations)."""
-    img = create_grid_image()  # synthetic image with known geometry
+    img = create_grid_of_gaussian_images()  # synthetic image with known geometry
     p = ROIGridParam()
     p.nx = p.ny = 2
     p.xsize = p.ysize = 50
@@ -66,7 +66,7 @@ def test_roi_grid_basic_geometry() -> None:
 def test_labeling_changes_with_direction_but_geometry_set_is_invariant() -> None:
     """Flipping directions relabels cells
     but the set of rectangles (geometry) stays the same."""
-    img = create_grid_image()
+    img = create_grid_of_gaussian_images()
     base = ROIGridParam()
     base.nx = base.ny = 2
     base.xsize = base.ysize = 50
@@ -100,7 +100,7 @@ def test_labeling_changes_with_direction_but_geometry_set_is_invariant() -> None
 
 def test_translation_semantics_delta() -> None:
     """Changing translation by +10% moves rectangles by 10% of image size."""
-    img = create_grid_image()
+    img = create_grid_of_gaussian_images()
     p1 = ROIGridParam()
     p1.nx = p1.ny = 2
     p1.xsize = p1.ysize = 50
@@ -128,7 +128,7 @@ def test_translation_semantics_delta() -> None:
 
 def test_invalid_name_pattern_falls_back() -> None:
     """Malformed pattern should not break: titles fall back to 'ROI(r,c)'."""
-    img = create_grid_image()
+    img = create_grid_of_gaussian_images()
     p = ROIGridParam()
     p.nx = p.ny = 1
     p.xsize = p.ysize = 50
@@ -144,7 +144,7 @@ def test_invalid_name_pattern_falls_back() -> None:
 
 def test_zero_size_is_allowed_currently() -> None:
     """Current behavior: 0% sizes produce degenerate rectangles (dx==0 or dy==0)."""
-    img = create_grid_image()
+    img = create_grid_of_gaussian_images()
     p = ROIGridParam()
     p.nx = p.ny = 2
     p.xsize = 0

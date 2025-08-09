@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-09 15:59+0200\n"
+"POT-Creation-Date: 2025-08-09 16:13+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -1165,6 +1165,11 @@ msgstr "Epaisseur"
 msgid "Intensity"
 msgstr "Intensité"
 
+msgid "Number of rows"
+msgstr "Nombre de lignes"
+
+msgid "Number of columns"
+msgstr "Nombre de colonnes"
+
 msgid "Centroid"
 msgstr "Barycentre"
-
