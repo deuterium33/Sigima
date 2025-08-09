@@ -30,7 +30,7 @@ def __create_two_signals() -> tuple[sigima.objects.SignalObj, sigima.objects.Sig
     s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
     )
-    s1.dy = 0.5 * np.ones_like(s1.y)
+    s1.dy = 0.05 * np.ones_like(s1.y)
     s2 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.SINUS, freq=25.0, size=100
     )
@@ -90,7 +90,7 @@ def test_signal_average() -> None:
         exp_y += s.y
     exp_y /= n
     check_array_result(f"Average of {n} signals", s1.y, exp_y)
-    expected_dy = np.sqrt(sum(s.dy**2 for s in slist)) / n
+    expected_dy = np.sqrt(sum(s.dy**2 for s in slist) / n)
     check_array_result("Average error propagation", s1.dy, expected_dy)
 
 
@@ -104,7 +104,7 @@ def test_signal_product() -> None:
     for s in slist:
         exp_y *= s.y
     check_array_result(f"Product of {n} signals", s1.y, exp_y)
-    expected_dy = np.sqrt(sum((s.dy / s.y) ** 2 for s in slist)) * exp_y
+    expected_dy = np.abs(exp_y) * np.sqrt(sum((s.dy / s.y) ** 2 for s in slist))
     check_array_result("Product error propagation", s1.dy, expected_dy)
 
 
@@ -132,7 +132,9 @@ def test_signal_division() -> None:
     s1, s2 = __create_two_signals()
     s3 = sigima.proc.signal.division(s1, s2)
     check_array_result("Signal division", s3.y, s1.y / s2.y)
-    expected_dy = np.sqrt((s1.dy / s1.y) ** 2 + (s2.dy / s2.y) ** 2) * (s1.y / s2.y)
+    expected_dy = np.abs(s1.y / s2.y) * np.sqrt(
+        (s1.dy / s1.y) ** 2 + (s2.dy / s2.y) ** 2
+    )
     check_array_result("Division error propagation", s3.dy, expected_dy)
 
 
@@ -152,8 +154,9 @@ def test_signal_product_constant() -> None:
     s1, param = __create_one_signal_and_constant()
     s2 = sigima.proc.signal.product_constant(s1, param)
     check_array_result("Signal multiplication by constant", s2.y, s1.y * param.value)
-    # Error should be scaled by the absolute value of the constant
-    expected_dy = s1.dy * param.value if s1.dy is not None else None
+    # Error is scaled by the absolute value of the constant
+    assert param.value is not None
+    expected_dy = np.abs(param.value) * s1.dy
     check_array_result("Product constant error propagation", s2.dy, expected_dy)
 
 
@@ -173,8 +176,8 @@ def test_signal_division_constant() -> None:
     s1, param = __create_one_signal_and_constant()
     s2 = sigima.proc.signal.division_constant(s1, param)
     check_array_result("Signal division by constant", s2.y, s1.y / param.value)
-    # Error should be scaled by the absolute value of the constant
-    expected_dy = s1.dy / param.value if s1.dy is not None else None
+    assert param.value is not None
+    expected_dy = s1.dy / np.abs(param.value)
     check_array_result("Division constant error propagation", s2.dy, expected_dy)
 
 
@@ -187,8 +190,7 @@ def test_signal_inverse() -> None:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         exp_y = 1.0 / s1.y
         exp_y[np.isinf(exp_y)] = np.nan
-        # Analytical error propagation for inverse: dy_inv = dy / y^2
-        expected_dy = s1.dy / (s1.y**2)
+        expected_dy = np.abs(exp_y) * s1.dy / np.abs(s1.y)
         expected_dy[np.isinf(expected_dy)] = np.nan
     check_array_result("Signal inverse", inv_signal.y, exp_y)
     check_array_result("Inverse error propagation", inv_signal.dy, expected_dy)

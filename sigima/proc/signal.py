@@ -391,7 +391,7 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     dst.dy = None  # ! In case of missing uncertainty data.
     if __is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
-        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0)) / len(dy_array)
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -428,7 +428,13 @@ def product(src_list: list[SignalObj]) -> SignalObj:
     dst.dy = None  # ! In case of missing uncertainty data.
     if __is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
-        dst.dy = np.sqrt(np.sum((dy_array / y_array) ** 2, axis=0)) * dst.y
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            uncertainty = np.abs(dst.y) * np.sqrt(
+                np.sum((dy_array / y_array) ** 2, axis=0)
+            )
+            uncertainty[np.isinf(uncertainty)] = np.nan
+            dst.dy = uncertainty
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -513,10 +519,11 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         Result signal object representing the product of the input signal and the
         constant.
     """
+    assert p.value is not None
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
     if __is_uncertainty_data_available(src):
-        dst.dy = src.dy * p.value
+        dst.dy = np.abs(p.value) * src.dy
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -544,10 +551,16 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         Result signal object representing the division of the input signal by the
         constant.
     """
+    assert p.value is not None
     dst = dst_1_to_1(src, "/", str(p.value))
-    dst.y /= p.value
-    if __is_uncertainty_data_available(src):
-        dst.dy = src.dy / p.value
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        dst.y /= p.value
+        dst.y[np.isinf(dst.y)] = np.nan
+        if __is_uncertainty_data_available(src):
+            uncertainty = src.dy / np.abs(p.value)
+            uncertainty[np.isinf(uncertainty)] = np.nan
+            dst.dy = uncertainty
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -805,7 +818,7 @@ def inverse(src: SignalObj) -> SignalObj:
         dst.set_xydata(x, np.reciprocal(y))
         dst.y[np.isinf(dst.y)] = np.nan
         if __is_uncertainty_data_available(src):
-            err = src.dy / (src.y**2)
+            err = np.abs(dst.y) * (src.dy / np.abs(src.y))
             err[np.isinf(err)] = np.nan
             dst.dy = err
     restore_data_outside_roi(dst, src)
