@@ -869,6 +869,39 @@ def create_n_images(n: int = 100) -> list[ImageObj]:
     return images
 
 
+def create_grid_image(nrows: int = 3, ncols: int = 3) -> ImageObj:
+    """Create a grid image with multiple noisy Gaussian images.
+
+    Args:
+        nrows: Number of rows in the grid. Defaults to 3.
+        ncols: Number of columns in the grid. Defaults to 3.
+
+    Returns:
+        Image object containing the grid of images.
+    """
+    size = 512
+    grid_data = np.zeros((size, size), dtype=np.float32)
+    xmin, xmax = -10.0, 10.0
+    ymin, ymax = -10.0, 10.0
+    xstep = (xmax - xmin) / ncols
+    ystep = (ymax - ymin) / nrows
+    sigma = 0.1
+    amp = 1.0
+    for j in range(ncols):
+        for i in range(nrows):
+            grid_data += create_2d_gaussian(
+                size,
+                dtype=float,
+                x0=(i + 0.5) * xstep + xmin,
+                y0=(j + 0.5) * ystep + ymin,
+                sigma=sigma,
+                amp=amp,
+            )
+            sigma += 0.05
+            amp *= 1.1
+    return create_image("Grid Image", grid_data)
+
+
 def create_multigaussian_image(p: NewImageParam | None = None) -> ImageObj:
     """Create test image (multiple 2D-gaussian peaks)
 
