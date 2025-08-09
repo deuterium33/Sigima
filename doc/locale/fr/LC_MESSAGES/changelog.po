@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 16:14+0200\n"
+"POT-Creation-Date: 2025-08-09 15:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -51,6 +51,30 @@ msgstr "Maintenant, `ROI2DParam` utilise des coordonnées physiques par défaut.
 
 msgid "Note that ROI may still be defined using indices instead (using `create_image_roi` function)."
 msgstr "Les ROI peuvent toujours être définies à l'aide d'indices (en utilisant la fonction `create_image_roi`)."
+
+msgid "Image ROI grid:"
+msgstr "Grille de ROI d'image:"
+
+msgid "New `generate_image_grid_roi` function: create a grid of ROIs from an image, with customizable parameters for grid size, spacing, and naming."
+msgstr "Nouvelle fonction `generate_image_grid_roi`: crée une grille de ROIs à partir d'une image, avec des paramètres personnalisables pour la taille de la grille, l'espacement et la nomination."
+
+msgid "This function allows for easy extraction of multiple ROIs from an image in a structured manner."
+msgstr "Cette fonction permet d'extraire facilement plusieurs ROIs d'une image de manière structurée."
+
+msgid "Parameters are handled via the `ROIGridParam` class, which provides a convenient way to specify grid properties:"
+msgstr "Les paramètres sont gérés via la classe `ROIGridParam`, qui fournit un moyen pratique de spécifier les propriétés de la grille:"
+
+msgid "`nx` / `ny`: Number of grid cells in the X/Y direction."
+msgstr "`nx` / `ny`: Nombre de cellules de grille dans la direction X/Y."
+
+msgid "`xsize` / `ysize`: Size of each grid cell in pixels."
+msgstr "`xsize` / `ysize`: Taille de chaque cellule de grille en pixels."
+
+msgid "`xtranslation` / `ytranslation`: Translation of the grid in pixels."
+msgstr "`xtranslation` / `ytranslation`: Translation de la grille en pixels."
+
+msgid "`xdirection` / `ydirection`: Direction of the grid (increasing/decreasing)."
+msgstr "`xdirection` / `ydirection`: Direction de la grille (croissante/décroissante)."
 
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"

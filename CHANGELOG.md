@@ -14,6 +14,14 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * Before this change, image ROI coordinates were defined using indices by default.
     * Now, `ROI2DParam` uses physical coordinates by default.
     * Note that ROI may still be defined using indices instead (using `create_image_roi` function).
+  * Image ROI grid:
+    * New `generate_image_grid_roi` function: create a grid of ROIs from an image, with customizable parameters for grid size, spacing, and naming.
+    * This function allows for easy extraction of multiple ROIs from an image in a structured manner.
+    * Parameters are handled via the `ROIGridParam` class, which provides a convenient way to specify grid properties:
+      * `nx` / `ny`: Number of grid cells in the X/Y direction.
+      * `xsize` / `ysize`: Size of each grid cell in pixels.
+      * `xtranslation` / `ytranslation`: Translation of the grid in pixels.
+      * `xdirection` / `ydirection`: Direction of the grid (increasing/decreasing).
 
 * New image processing features:
   * New "Gaussian frequency filter" feature:

@@ -118,35 +118,7 @@ Image parameters
 Base image parameters
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autodataset:: sigima.params.AverageProfileParam
-    :no-index:
-.. autodataset:: sigima.params.BinningParam
-    :no-index:
-.. autodataset:: sigima.params.ButterworthParam
-    :no-index:
-.. autodataset:: sigima.params.DataTypeIParam
-    :no-index:
-.. autodataset:: sigima.params.FlatFieldParam
-    :no-index:
 .. autodataset:: sigima.params.GridParam
-    :no-index:
-.. autodataset:: sigima.params.HoughCircleParam
-    :no-index:
-.. autodataset:: sigima.params.LineProfileParam
-    :no-index:
-.. autodataset:: sigima.params.LogP1Param
-    :no-index:
-.. autodataset:: sigima.params.RadialProfileParam
-    :no-index:
-.. autodataset:: sigima.params.ResizeParam
-    :no-index:
-.. autodataset:: sigima.params.RotateParam
-    :no-index:
-.. autodataset:: sigima.params.SegmentProfileParam
-    :no-index:
-.. autodataset:: sigima.params.XYZCalibrateParam
-    :no-index:
-.. autodataset:: sigima.params.ZeroPadding2DParam
     :no-index:
 
 Detection parameters
@@ -163,6 +135,8 @@ Detection parameters
 .. autodataset:: sigima.params.ContourShapeParam
     :no-index:
 .. autodataset:: sigima.params.Peak2DDetectionParam
+    :no-index:
+.. autodataset:: sigima.params.HoughCircleParam
     :no-index:
 
 Edge detection parameters
@@ -185,6 +159,56 @@ Exposure correction parameters
 .. autodataset:: sigima.params.EqualizeHistParam
     :no-index:
 .. autodataset:: sigima.params.RescaleIntensityParam
+    :no-index:
+.. autodataset:: sigima.params.FlatFieldParam
+    :no-index:
+.. autodataset:: sigima.params.XYZCalibrateParam
+    :no-index:
+
+Extraction parameters
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autodataset:: sigima.params.AverageProfileParam
+    :no-index:
+.. autodataset:: sigima.params.LineProfileParam
+    :no-index:
+.. autodataset:: sigima.params.RadialProfileParam
+    :no-index:
+.. autodataset:: sigima.params.SegmentProfileParam
+    :no-index:
+.. autoclass:: sigima.params.Direction
+    :no-index:
+.. autodataset:: sigima.params.ROIGridParam
+    :no-index:
+
+Filtering parameters
+~~~~~~~~~~~~~~~~~~~~
+
+.. autodataset:: sigima.params.ButterworthParam
+    :no-index:
+
+Fourier analysis parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autodataset:: sigima.params.ZeroPadding2DParam
+    :no-index:
+
+Geometry parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. autodataset:: sigima.params.BinningParam
+    :no-index:
+.. autodataset:: sigima.params.ResizeParam
+    :no-index:
+.. autodataset:: sigima.params.RotateParam
+    :no-index:
+
+Mathematical operation parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autodataset:: sigima.params.DataTypeIParam
+    :no-index:
+.. autodataset:: sigima.params.LogP1Param
     :no-index:
 
 Morphological parameters
@@ -250,8 +274,6 @@ from sigima.proc.signal import (
 
 from sigima.proc.image import (
     GridParam,
-)
-from sigima.proc.image import (
     BlobDOGParam,
     BlobDOHParam,
     BlobLOGParam,
@@ -259,9 +281,7 @@ from sigima.proc.image import (
     ContourShapeParam,
     HoughCircleParam,
     Peak2DDetectionParam,
-)
-from sigima.proc.image import CannyParam
-from sigima.proc.image import (
+    CannyParam,
     AdjustGammaParam,
     AdjustLogParam,
     AdjustSigmoidParam,
@@ -270,21 +290,22 @@ from sigima.proc.image import (
     FlatFieldParam,
     RescaleIntensityParam,
     XYZCalibrateParam,
-)
-from sigima.proc.image import (
     AverageProfileParam,
     LineProfileParam,
     RadialProfileParam,
     SegmentProfileParam,
-)
-from sigima.proc.image import ButterworthParam
-from sigima.proc.image import ZeroPadding2DParam
-from sigima.proc.image import BinningParam, ResizeParam, RotateParam
-from sigima.proc.image import DataTypeIParam, LogP1Param
-from sigima.proc.image import MorphologyParam
-from sigima.proc.image import (
+    ROIGridParam,
+    Direction,
+    ButterworthParam,
+    ZeroPadding2DParam,
+    BinningParam,
+    ResizeParam,
+    RotateParam,
+    DataTypeIParam,
+    LogP1Param,
+    MorphologyParam,
     DenoiseBilateralParam,
     DenoiseTVParam,
     DenoiseWaveletParam,
+    ThresholdParam,
 )
-from sigima.proc.image import ThresholdParam

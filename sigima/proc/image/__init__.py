@@ -105,8 +105,11 @@ from sigima.proc.image.extraction import (
     extract_roi,
     extract_rois,
     line_profile,
+    generate_image_grid_roi,
     radial_profile,
     segment_profile,
+    ROIGridParam,
+    Direction,
 )
 from sigima.proc.image.filtering import (
     ButterworthParam,

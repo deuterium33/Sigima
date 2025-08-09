@@ -26,13 +26,16 @@ intensity along defined paths.
 
 from __future__ import annotations
 
+from typing import Callable
+
 import guidata.dataset as gds
 import numpy as np
 from numpy import ma
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.image import ImageObj, ImageROI, ROI2DParam
+from sigima.objects.base import ChoiceEnum
+from sigima.objects.image import ImageObj, ImageROI, RectangularROI, ROI2DParam
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
@@ -107,6 +110,122 @@ def extract_roi(src: ImageObj, p: ROI2DParam) -> ImageObj:
     dst.x0 += x0
     dst.y0 += y0
     return dst
+
+
+class Direction(ChoiceEnum):
+    """Direction choice"""
+
+    INCREASING = _("increasing")
+    DECREASING = _("decreasing")
+
+
+class ROIGridParam(gds.DataSet):
+    """ROI Grid parameters"""
+
+    # optional Python-level hook, no Qt
+    on_geometry_changed: Callable | None = None
+
+    # pylint: disable=unused-argument
+    def geometry_changed(self, item, value) -> None:
+        """Notify host (if any) that geometry changed."""
+        if callable(self.on_geometry_changed):
+            self.on_geometry_changed()
+
+    _b_group0 = gds.BeginGroup(_("Geometry"))
+    ny = gds.IntItem(
+        "N<sub>y</sub> (%s)" % _("rows"), default=3, nonzero=True
+    ).set_prop("display", callback=geometry_changed)
+    nx = (
+        gds.IntItem("N<sub>x</sub> (%s)" % _("columns"), default=3, nonzero=True)
+        .set_prop("display", callback=geometry_changed)
+        .set_pos(col=1)
+    )
+    xtranslation = gds.IntItem(
+        _("X translation"),
+        default=50,
+        min=0,
+        max=100,
+        unit="%",
+        slider=True,
+    ).set_prop("display", callback=geometry_changed)
+    ytranslation = gds.IntItem(
+        _("Y translation"),
+        default=50,
+        min=0,
+        max=100,
+        unit="%",
+        slider=True,
+    ).set_prop("display", callback=geometry_changed)
+    xsize = gds.IntItem(
+        "X size (%s)" % _("column size"),
+        default=50,
+        min=0,
+        max=100,
+        unit="%",
+        slider=True,
+    ).set_prop("display", callback=geometry_changed)
+    ysize = gds.IntItem(
+        "Y size (%s)" % _("row size"),
+        default=50,
+        min=0,
+        max=100,
+        unit="%",
+        slider=True,
+    ).set_prop("display", callback=geometry_changed)
+    _e_group0 = gds.EndGroup(_("Geometry"))
+    _b_group1 = gds.BeginGroup(_("ROI titles"))
+    base_name = gds.StringItem(_("Base name"), default="ROI").set_prop(
+        "display", callback=geometry_changed
+    )
+    name_pattern = gds.StringItem(
+        _("Name pattern"), default="{base}({r},{c})"
+    ).set_prop("display", callback=geometry_changed)
+    xdirection = gds.ChoiceItem(_("X direction"), Direction.choices()).set_prop(
+        "display", callback=geometry_changed
+    )
+    ydirection = (
+        gds.ChoiceItem(_("Y direction"), Direction.choices())
+        .set_prop("display", callback=geometry_changed)
+        .set_pos(col=1)
+    )
+    _e_group1 = gds.EndGroup(_("ROI titles"))
+
+
+def generate_image_grid_roi(src: ImageObj, p: ROIGridParam) -> ImageROI:
+    """Create a grid of rectangular ROIs from an image object.
+
+    Args:
+        obj: The image object to create the ROI for.
+        p: ROIGridParam object containing the grid parameters.
+
+    Returns:
+        The created ROI object.
+    """
+    dx_cell = src.width / p.nx
+    dy_cell = src.height / p.ny
+    dx = dx_cell * p.xsize / 100.0
+    dy = dy_cell * p.ysize / 100.0
+    xtrans = src.width * (p.xtranslation - 50.0) / 100.0
+    ytrans = src.height * (p.ytranslation - 50.0) / 100.0
+    lbl_rows = range(p.ny)
+    if p.ydirection == Direction.DECREASING:
+        lbl_rows = range(p.ny - 1, -1, -1)
+    lbl_cols = range(p.nx)
+    if p.xdirection == Direction.DECREASING:
+        lbl_cols = range(p.nx - 1, -1, -1)
+    ptn: str = p.name_pattern
+    roi = ImageROI()
+    for ir in range(p.ny):
+        for ic in range(p.nx):
+            x0 = src.x0 + (ic + 0.5) * dx_cell + xtrans - 0.5 * dx
+            y0 = src.y0 + (ir + 0.5) * dy_cell + ytrans - 0.5 * dy
+            nir, nic = lbl_rows[ir], lbl_cols[ic]
+            try:
+                title = ptn.format(base=p.base_name, r=nir + 1, c=nic + 1)
+            except Exception:  # pylint: disable=broad-except
+                title = f"ROI({nir + 1},{nic + 1})"
+            roi.add_roi(RectangularROI([x0, y0, dx, dy], indices=False, title=title))
+    return roi
 
 
 class LineProfileParam(gds.DataSet):
