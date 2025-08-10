@@ -105,22 +105,36 @@ def average(src_list: list[ImageObj]) -> ImageObj:
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
+
 @computation_function()
 def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
-    """Average **src** signals and return a new result signal object
+    """Compute the element-wise standard deviation of multiple images.
+
+    The first image in the list defines the "base" image. All other images are
+    used to compute the element-wise standard deviation with the base image.
+
+    .. note::
+
+        If all images share the same region of interest (ROI), the standard deviation
+        is computed only within the ROI.
+
+    .. warning::
+
+        It is assumed that all images have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source images.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Image object representing the standard deviation of the source images.
     """
     dst = dst_n_to_1(src_list, "𝜎")  # `dst` data is initialized to `src_list[0]` data
+    assert dst.data is not None
     y_array = np.array([src.data for src in src_list], dtype=dst.data.dtype)
-    dst.data = np.std(y_array, axis=0, ddof=0)  # Sample standard deviation
-
+    dst.data = np.std(y_array, axis=0, ddof=0)
     restore_data_outside_roi(dst, src_list[0])
     return dst
+
 
 @computation_function()
 def product(src_list: list[ImageObj]) -> ImageObj:

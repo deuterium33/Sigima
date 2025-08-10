@@ -80,21 +80,19 @@ def test_image_average() -> None:
     check_array_result(f"  Average of {n} images", res, exp)
 
 
-
 @pytest.mark.validation
-def test_signal_standard_deviation() -> None:
-    """Standard Deviation test."""
-    slist = __create_n_images()
-    n = len(slist)
-    s3 = sigima_image.standard_deviation(slist)
-    res = s3.data
-    exp = np.zeros_like(s3.data)
-    mean = np.mean([s.data for s in slist], axis=0)
-    for s in slist:
-        exp += (s.data - mean) ** 2
+def test_image_standard_deviation() -> None:
+    """Image standard deviation test."""
+    imalist = __create_n_images()
+    n = len(imalist)
+    s1 = sigima.proc.image.standard_deviation(imalist)
+    assert s1.data is not None
+    exp = np.zeros_like(s1.data)
+    average = np.mean([ima.data for ima in imalist if ima.data is not None], axis=0)
+    for ima in imalist:
+        exp += (ima.data - average) ** 2
     exp = np.sqrt(exp / n)
-    check_array_result(f"Standard Deviation of {n} signals", res, exp)
-
+    check_array_result(f"Standard Deviation of {n} images", s1.data, exp)
 
 
 @pytest.mark.validation
