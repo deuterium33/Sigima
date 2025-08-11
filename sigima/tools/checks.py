@@ -6,54 +6,145 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable
 
 import numpy as np
 
 
+@dataclass(frozen=True)
+class ArrayValidationRules:
+    """Hold 1-D array validation rules."""
+
+    #: Label used in error messages (e.g., "x" or "y")
+    label: str
+    #: Whether to enforce 1-D.
+    require_1d: bool = True
+    #: Check minimum size
+    min_size: int | None = None
+    #: Expected dtype (np.issubdtype). Use None to skip.
+    dtype: type | None = None
+    #: Whether to enforce non-decreasing order.
+    sorted_: bool = False
+    #: Whether to enforce constant spacing (within rtol).
+    evenly_spaced: bool = False
+    #: Relative tolerance for regular spacing.
+    rtol: float = 1e-5
+
+
+def _validate_array_1d(arr: np.ndarray, *, rules: ArrayValidationRules) -> None:
+    """Validate a single 1D NumPy array according to the provided rules.
+
+    Args:
+        arr: Array to validate.
+        rules: Validation rules to apply.
+
+    Raises:
+        ValueError: If shape constraint is violated.
+        ValueError: If size constraint is violated.
+        ValueError: If order constraint is violated.
+        ValueError: If spacing constraint is violated.
+        TypeError: If dtype does not match.
+    """
+    if rules.require_1d and arr.ndim != 1:
+        raise ValueError(f"{rules.label} must be 1-D.")
+    if rules.min_size is not None and arr.size < rules.min_size:
+        raise ValueError(f"{rules.label} must have at least {rules.min_size} elements.")
+    if rules.dtype is not None and not np.issubdtype(arr.dtype, rules.dtype):
+        raise TypeError(
+            f"{rules.label} must be of type {rules.dtype}, but got {arr.dtype}."
+        )
+    if rules.sorted_ and arr.size > 1 and not np.all(np.diff(arr) >= 0.0):
+        raise ValueError(f"{rules.label} must be sorted in ascending order.")
+    if rules.evenly_spaced and arr.size > 1:
+        dx = np.diff(arr)
+        if not np.allclose(dx, np.mean(dx), rtol=rules.rtol):
+            raise ValueError(f"{rules.label} must be evenly spaced.")
+
+
+def check_1d_array(
+    func: Callable[..., Any] | None = None,
+    *,
+    require_1d: bool = True,
+    min_size: int | None = None,
+    dtype: type | None = np.inexact,
+    sorted_: bool = False,
+    evenly_spaced: bool = False,
+    rtol: float = 1e-5,
+    label: str = "array",
+) -> Callable:
+    """Decorator to check a single 1D NumPy array.
+
+    Can be used with or without parentheses.
+
+    Args:
+        require_1d: Whether to check if the array is 1-D.
+        min_size: Minimum size of the array.
+        dtype: Expected dtype of the array (np.issubdtype). Use None to skip.
+        sorted_: Whether to check if the array is sorted in ascending order.
+        evenly_spaced: Whether to check if the array is evenly spaced.
+        rtol: Relative tolerance for regular spacing.
+        label: Label for error messages (e.g., "x", "y").
+
+    Returns:
+        Decorated function with pre-checks on the single array.
+    """
+
+    def decorator(inner_func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(inner_func)
+        def wrapper(arr: np.ndarray, *args: Any, **kwargs: Any) -> Any:
+            _validate_array_1d(
+                arr,
+                rules=ArrayValidationRules(
+                    label=label,
+                    require_1d=require_1d,
+                    min_size=min_size,
+                    dtype=dtype,
+                    sorted_=sorted_,
+                    evenly_spaced=evenly_spaced,
+                    rtol=rtol,
+                ),
+            )
+            return inner_func(arr, *args, **kwargs)
+
+        return wrapper
+
+    if func is not None:
+        return decorator(func)
+    return decorator
+
+
 def check_1d_arrays(
     func: Callable[..., Any] | None = None,
     *,
-    x_1d: bool = True,
-    x_dtype: type | None = np.floating,  # Default to floating point types
+    x_require_1d: bool = True,
+    x_min_size: int | None = None,
+    x_dtype: type | None = np.floating,
     x_sorted: bool = False,
     x_evenly_spaced: bool = False,
-    y_1d: bool = True,
-    y_dtype: type | None = np.inexact,  # Default to inexact types (float or complex)
-    x_y_same_size: bool = True,
+    y_require_1d: bool = True,
+    y_min_size: int | None = None,
+    y_dtype: type | None = np.inexact,
+    same_size: bool = True,
     rtol: float = 1e-5,
 ) -> Callable:
-    """
-    Decorator to check inputs of functions operating on 1D NumPy arrays (x/y).
+    """Decorator to check paired 1D NumPy arrays (x, y).
 
-    Can be used with parentheses:
-
-    .. code-block:: python
-
-        @check_1d_arrays(x_1d=True, y_1d=True)
-        def process_signals(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-            # Process the signals
-            return x + y
-
-    Or without parentheses (default arguments):
-
-    .. code-block:: python
-
-        @check_1d_arrays
-        def process_signals(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-            # Process the signals
-            return x + y
+    Can be used with or without parentheses.
 
     Args:
-        x_1d: Whether to check if x is 1-D.
-        x_dtype: Expected dtype of x.
-        x_sorted: Whether to check if x is sorted.
+        func: Function to decorate.
+        x_require_1d: Whether to check if x is 1-D.
+        x_min_size: Minimum size of x.
+        x_dtype: Expected dtype of x (np.issubdtype). Use None to skip.
+        x_sorted: Whether to check if x is sorted in ascending order.
         x_evenly_spaced: Whether to check if x is evenly spaced.
-        y_1d: Whether to check if y is 1-D.
-        y_dtype: Expected dtype of y.
-        x_y_same_size: Whether to check if x and y have same size.
-        rtol: Relative tolerance for regular spacing.
+        y_require_1d: Whether to check if y is 1-D.
+        y_min_size: Minimum size of y.
+        y_dtype: Expected dtype of y (np.issubdtype). Use None to skip.
+        same_size: Whether to check that x and y have the same size.
+        rtol: Relative tolerance for regular spacing (used for x).
 
     Returns:
         Decorated function with pre-checks on x/y.
@@ -62,33 +153,38 @@ def check_1d_arrays(
     def decorator(inner_func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(inner_func)
         def wrapper(x: np.ndarray, y: np.ndarray, *args: Any, **kwargs: Any) -> Any:
-            # === Check x array
-            if x_1d and x.ndim != 1:
-                raise ValueError("x must be 1-D.")
-            if x_dtype is not None and not np.issubdtype(x.dtype, x_dtype):
-                raise TypeError(f"x must be of type {x_dtype}, but got {x.dtype}.")
-            if x_sorted and x.size > 1 and not np.all(np.diff(x) >= 0.0):
-                raise ValueError("x must be sorted in ascending order.")
-            if x_evenly_spaced and x.size > 1:
-                dx = np.diff(x)
-                if not np.allclose(dx, np.mean(dx), rtol=rtol):
-                    raise ValueError("x must be evenly spaced.")
-            # === Check y array
-            if y_1d and y.ndim != 1:
-                raise ValueError("y must be 1-D.")
-            if y_dtype is not None and not np.issubdtype(y.dtype, y_dtype):
-                raise TypeError(f"y must be of type {y_dtype}, but got {y.dtype}.")
-            if x_y_same_size and x.size != y.size:
+            _validate_array_1d(
+                x,
+                rules=ArrayValidationRules(
+                    label="x",
+                    require_1d=x_require_1d,
+                    min_size=x_min_size,
+                    dtype=x_dtype,
+                    sorted_=x_sorted,
+                    evenly_spaced=x_evenly_spaced,
+                    rtol=rtol,
+                ),
+            )
+            _validate_array_1d(
+                y,
+                rules=ArrayValidationRules(
+                    label="y",
+                    require_1d=y_require_1d,
+                    min_size=y_min_size,
+                    dtype=y_dtype,
+                    sorted_=False,
+                    evenly_spaced=False,
+                    rtol=rtol,
+                ),
+            )
+            if same_size and x.size != y.size:
                 raise ValueError("x and y must have the same size.")
-            # === Call the original function
             return inner_func(x, y, *args, **kwargs)
 
         return wrapper
 
     if func is not None:
-        # Usage: `@check_1d_arrays`
         return decorator(func)
-    # Usage: `@check_1d_arrays(...)`
     return decorator
 
 
