@@ -390,6 +390,8 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
 
     def __set_dx(self, data: np.ndarray | list[float] | None) -> None:
         """Set dx data"""
+        if data is None:
+            data = np.full_like(self.x, np.nan)
         assert isinstance(data, (list, np.ndarray))
         data = np.array(data)
         if self.xydata is None:
@@ -412,6 +414,8 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
 
     def __set_dy(self, data: np.ndarray | list[float] | None) -> None:
         """Set dy data"""
+        if data is None:
+            data = np.full_like(self.x, np.nan)
         assert isinstance(data, (list, np.ndarray))
         data = np.array(data)
         if self.xydata is None:
