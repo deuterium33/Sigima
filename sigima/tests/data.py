@@ -631,7 +631,6 @@ def add_gaussian_noise_to_image(image: ImageObj, param: NormalRandom2DParam) -> 
     param.height = image.data.shape[0]
     param.width = image.data.shape[1]
     param.dtype = ImageDatatypes.from_dtype(image.data.dtype)
-    param.itype = ImageTypes.NORMALRANDOM
     noise = create_image_from_param(param)
     image.data = image.data + noise.data
 
