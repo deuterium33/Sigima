@@ -4,12 +4,14 @@
 
 from __future__ import annotations
 
+import os.path as osp
 from copy import deepcopy
 
 import numpy as np
 from numpy.testing import assert_array_equal
 from pytest import approx
 
+from sigima.io import read_roi_grid, write_roi_grid
 from sigima.objects import ImageObj, ImageROI, create_image
 from sigima.proc.image.extraction import (
     Direction,
@@ -18,6 +20,7 @@ from sigima.proc.image.extraction import (
     generate_image_grid_roi,
 )
 from sigima.tests.data import create_grid_of_gaussian_images
+from sigima.tests.helpers import WorkdirRestoringTempDir
 
 
 def _roi_by_title(roi: list[ImageROI], title: str) -> ImageROI:
@@ -251,3 +254,25 @@ def test_roi_grid_extract_with_translation() -> None:
         # Both extractions must match their own references exactly
         assert_array_equal(out1, ref1)
         assert_array_equal(out2, ref2)
+
+
+def test_roi_grid_import_export() -> None:
+    """Test the import and export of ROI grids."""
+    p = ROIGridParam()
+    p.nx, p.ny = 3, 2
+    p.xsize = p.ysize = 100
+    p.xtranslation = p.ytranslation = 50
+    p.xdirection = p.ydirection = Direction.INCREASING
+    p.base_name = "ROI"
+    p.name_pattern = "{base}({r},{c})"
+
+    with WorkdirRestoringTempDir() as temp_dir:
+        path = osp.join(temp_dir, "test_roi_grid.json")
+        write_roi_grid(path, p)
+        new_p = read_roi_grid(path)
+
+    assert new_p == p, "Imported ROI grid does not match original"
+
+
+if __name__ == "__main__":
+    test_roi_grid_import_export()

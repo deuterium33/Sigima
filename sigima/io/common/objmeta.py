@@ -4,11 +4,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-from guidata.io import JSONHandler
+from guidata.io import JSONHandler, JSONReader, JSONWriter
 
 from sigima.objects import ImageROI, SignalROI
+
+if TYPE_CHECKING:
+    from sigima.params import ROIGridParam
 
 FORMAT_TAG = "sigima"
 FORMAT_VERSION = "1.0"
@@ -111,6 +114,37 @@ def read_roi(filepath: str) -> SignalROI | ImageROI:
     if roi_type == "image":
         return ImageROI.from_dict(roi_dict)
     raise ValueError(f"Unsupported or missing ROI type: {roi_type}")
+
+
+def write_roi_grid(filepath: str, param: ROIGridParam) -> None:
+    """Write ROI grid parameters to a file in JSON format.
+
+    Args:
+        filepath: The file path to write the ROI grid parameters to.
+        param: The ROI grid parameters to serialize.
+    """
+    writer = JSONWriter(filepath)
+    param.serialize(writer)
+    print(writer.jsondata)
+    writer.save()
+
+
+def read_roi_grid(filepath: str) -> ROIGridParam:
+    """Read ROI grid parameters from a file in JSON format.
+
+    Args:
+        filepath: The file path to read the ROI grid parameters from.
+
+    Returns:
+        The ROI grid parameters read from the file.
+    """
+    from sigima.params import ROIGridParam  # pylint: disable=import-outside-toplevel
+
+    handler = JSONReader(filepath)
+    handler.load()
+    param = ROIGridParam()
+    param.deserialize(handler)
+    return param
 
 
 def write_metadata(filepath: str, metadata: dict[str, Any]) -> None:
