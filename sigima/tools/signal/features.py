@@ -109,33 +109,19 @@ def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_value: float) -> float:
     return float(np.interp(x_value, x_valid, y_valid))
 
 
-def find_x_at_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.ndarray:
-    """Find the :math:`x_n` values where :math:`y(x_n)` intercepts :math:`y_0`
-
-    This function use a linear interpolation to deduce the precise x values.
+@check_1d_arrays
+def find_all_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.ndarray:
+    """Find the first x value where :math:`y = f(x)` equals the value :math:`y_0`.
 
     Args:
-        x: X data
-        y: Y data
-        y0: intercept value to find the corresponding x values for
+        x: X data.
+        y: Y data.
+        y0: Target value.
 
     Returns:
-        An array of x values where the y value is the closest to the given value
-        (empty array if no zero crossing is found)
+        Array of values where :math:`y = f(x)` equals :math:`y_0`.
     """
-
-    leveled_y = y - y0
-    xi_before = find_zero_crossings(leveled_y)
-
-    if len(xi_before) == 0:
-        # Return an empty array if no zero crossing is found
-        return np.array([])
-
-    # linear interpolation
-    xi_after = xi_before + 1
-    slope = (y[xi_after] - y[xi_before]) / (x[xi_after] - x[xi_before])
-    x0 = (-y[xi_before] + y0) / slope + x[xi_before]
-    return x0
+    return find_x_intercepts(x, y - y0)
 
 
 @check_1d_arrays(x_evenly_spaced=True)
@@ -153,7 +139,7 @@ def bandwidth(
         Bandwidth of the signal at the given level: segment coordinates
     """
     half_max: float = np.max(y) - level
-    bw = find_x_at_value(x, y, half_max)[0]
+    bw = find_all_x_at_given_y_value(x, y, half_max)[0]
     coords = (x[0], half_max, bw, half_max)
     return coords
 
