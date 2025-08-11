@@ -2033,7 +2033,7 @@ def fw1e2(obj: SignalObj) -> ResultShape | None:
 
 
 class OrdinateParam(gds.DataSet):
-    """Ordinate parameter"""
+    """Ordinate parameter."""
 
     y = gds.FloatItem(_("Ordinate"), default=0.0)
 
@@ -2057,8 +2057,7 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> ResultShape | None:
 
 @computation_function()
 def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
-    """
-    Compute the smallest x-value at a given y-value for a signal object.
+    """Compute the smallest x-value at a given y-value for a signal object.
 
     Args:
         obj: The signal object containing x and y data.
@@ -2067,12 +2066,14 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
     Returns:
          An object containing the x-value.
     """
+    assert p.y is not None
+    y0: float = p.y
     return calc_resultproperties(
         f"x|y={p.y}",
         obj,
         {
             "x = %g {.xunit}": lambda xy: features.find_first_x_at_y_value(
-                xy[0], xy[1], p.y
+                xy[0], xy[1], y0
             )
         },
     )
