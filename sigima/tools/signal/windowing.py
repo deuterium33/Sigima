@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Callable, Literal
 
 import numpy as np
-import scipy.signal.windows
+import scipy.signal.windows  # type: ignore[import]
 
 
 def get_window(
@@ -38,13 +38,13 @@ def get_window(
 
         The window functions are from `scipy.signal.windows` and `numpy`.
         All functions take an integer argument that specifies the length of the window,
-        and return a numpy array of the same length.
+        and return a NumPy array of the same length.
 
     Args:
         method: Windowing function name.
 
     Returns:
-        Window function
+        Window function.
 
     Raises:
         ValueError: If the method is not recognized.
@@ -83,15 +83,15 @@ def apply_window(
         "cosine",
         "exponential",
         "flat-top",
+        "gaussian",
         "hamming",
         "hann",
+        "kaiser",
         "lanczos",
         "nuttall",
         "parzen",
         "taylor",
         "tukey",
-        "kaiser",
-        "gaussian",
     ] = "hamming",
     alpha: float = 0.5,
     beta: float = 14.0,
@@ -100,26 +100,26 @@ def apply_window(
     """Apply windowing to the input data.
 
     Args:
-        x: X data
-        y: Y data
+        x: X data.
+        y: Y data.
         method: Windowing function. Defaults to "hamming".
         alpha: Tukey window parameter. Defaults to 0.5.
         beta: Kaiser window parameter. Defaults to 14.0.
         sigma: Gaussian window parameter. Defaults to 7.0.
 
     Returns:
-        Windowed Y data
+        Windowed Y data.
 
     Raises:
         ValueError: If the method is not recognized.
     """
     # Cases with parameters:
-    if method == "tukey":
-        return y * scipy.signal.windows.tukey(len(y), alpha)
-    if method == "kaiser":
-        return y * np.kaiser(len(y), beta)
     if method == "gaussian":
         return y * scipy.signal.windows.gaussian(len(y), sigma)
+    if method == "kaiser":
+        return y * np.kaiser(len(y), beta)
+    if method == "tukey":
+        return y * scipy.signal.windows.tukey(len(y), alpha)
     # Cases without parameters:
     win_func = get_window(method)
     return y * win_func(len(y))
