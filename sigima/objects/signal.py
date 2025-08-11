@@ -350,7 +350,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             return x.real.astype(float)
         return None
 
-    def __set_x(self, data: np.ndarray | list[float] | None) -> None:
+    def __set_x(self, data: np.ndarray | list[float]) -> None:
         """Set x data"""
         assert isinstance(self.xydata, np.ndarray)
         assert isinstance(data, (list, np.ndarray))
@@ -368,7 +368,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             return self.xydata[1]
         return None
 
-    def __set_y(self, data: np.ndarray | list[float] | None) -> None:
+    def __set_y(self, data: np.ndarray | list[float]) -> None:
         """Set y data"""
         assert isinstance(self.xydata, np.ndarray)
         assert isinstance(data, (list, np.ndarray))
