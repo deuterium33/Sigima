@@ -60,7 +60,7 @@ def test_rescale_intensity() -> None:
     """Validation test for the image intensity rescaling processing."""
     # See [1] for more information about the validation of exposure methods.
     src = get_test_image("flower.npy")
-    p = sigima.params.RescaleIntensityParam.create(in_range=(0, 255), out_range=(0, 1))
+    p = sigima.params.RescaleIntensityParam.create(in_range="dtype", out_range="image")
     dst = sigima.proc.image.rescale_intensity(src, p)
     exp = exposure.rescale_intensity(
         src.data, in_range=p.in_range, out_range=p.out_range
