@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from sigima.tools.checks import check_1d_arrays
+from sigima.tools.checks import check_1d_array, check_1d_arrays
 
 
+@check_1d_array(min_size=2, finite_only=True)
 def find_zero_crossings(y: np.ndarray) -> np.ndarray:
-    """
-    Find the left indices of the zero-crossing intervals in the given array.
+    """Find the left indices of the zero-crossing intervals in the given array.
 
     Args:
         y: Input array.
