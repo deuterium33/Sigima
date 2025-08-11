@@ -26,6 +26,7 @@ intensity along defined paths.
 
 from __future__ import annotations
 
+import enum
 from typing import Callable
 
 import guidata.dataset as gds
@@ -34,7 +35,6 @@ from numpy import ma
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.base import ChoiceEnum
 from sigima.objects.image import ImageObj, ImageROI, RectangularROI, ROI2DParam
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import dst_1_to_1
@@ -112,7 +112,7 @@ def extract_roi(src: ImageObj, p: ROI2DParam) -> ImageObj:
     return dst
 
 
-class Direction(ChoiceEnum):
+class Direction(enum.Enum):
     """Direction choice"""
 
     INCREASING = _("increasing")
@@ -180,11 +180,11 @@ class ROIGridParam(gds.DataSet):
     name_pattern = gds.StringItem(
         _("Name pattern"), default="{base}({r},{c})"
     ).set_prop("display", callback=geometry_changed)
-    xdirection = gds.ChoiceItem(_("X direction"), Direction.choices()).set_prop(
+    xdirection = gds.ChoiceItem(_("X direction"), Direction).set_prop(
         "display", callback=geometry_changed
     )
     ydirection = (
-        gds.ChoiceItem(_("Y direction"), Direction.choices())
+        gds.ChoiceItem(_("Y direction"), Direction)
         .set_prop("display", callback=geometry_changed)
         .set_pos(col=1)
     )

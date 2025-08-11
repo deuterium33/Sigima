@@ -1052,16 +1052,24 @@ def create_image(
     return image
 
 
-class ImageDatatypes(base.ChoiceEnum):
+@enum.unique
+class ImageDatatypes(enum.Enum):
     """Image data types"""
 
+    # Reimplement enum.Enum method as suggested by Python documentation:
+    # https://docs.python.org/3/library/enum.html#enum.Enum._generate_next_value_
+    # Here, it is only needed for ImageDatatypes (see core/model/image.py).
+    # pylint: disable=unused-argument,no-self-argument,no-member
+    def _generate_next_value_(name, start, count, last_values):
+        return str(name).lower()
+
     @classmethod
-    def from_dtype(cls, dtype):
+    def from_dtype(cls: type[ImageDatatypes], dtype: np.dtype) -> str:
         """Return member from NumPy dtype"""
         return getattr(cls, str(dtype).upper(), cls.UINT8)
 
     @classmethod
-    def check(cls):
+    def check(cls: type[ImageDatatypes]) -> None:
         """Check if data types are valid"""
         for member in cls:
             assert hasattr(np, member.value)
@@ -1081,7 +1089,7 @@ class ImageDatatypes(base.ChoiceEnum):
 ImageDatatypes.check()
 
 
-class ImageTypes(base.ChoiceEnum):
+class ImageTypes(enum.Enum):
     """Image types."""
 
     #: Image filled with zeros
@@ -1116,7 +1124,7 @@ class NewImageParam(gds.DataSet):
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
     )
     dtype = gds.ChoiceItem(
-        _("Data type"), ImageDatatypes.choices(), default=ImageDatatypes.FLOAT64
+        _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
     ).set_prop("display", hide=gds.GetAttrProp("hide_image_dtype"))
 
     def generate_title(self) -> str:

@@ -60,24 +60,6 @@ def deepcopy_metadata(
     return mdcopy
 
 
-@enum.unique
-class ChoiceEnum(enum.Enum):
-    """Object associating an enum to `guidata.dataset.ChoiceItem` choices"""
-
-    # Reimplement enum.Enum method as suggested by Python documentation:
-    # https://docs.python.org/3/library/enum.html#enum.Enum._generate_next_value_
-    # Here, it is only needed for ImageDatatypes (see core/model/image.py).
-    # pylint: disable=unused-argument,no-self-argument,no-member
-    def _generate_next_value_(name, start, count, last_values):
-        return str(name).lower()
-
-    @classmethod
-    def choices(cls):
-        """Return tuple of (key, value) choices to be used as parameter of
-        `guidata.dataset.ChoiceItem`"""
-        return tuple((member, member.value) for member in cls)
-
-
 class BaseProcParam(gds.DataSet):
     """Base class for processing parameters"""
 

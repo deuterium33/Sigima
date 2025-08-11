@@ -11,6 +11,7 @@ Signal object and related classes
 
 from __future__ import annotations
 
+import enum
 from typing import Type
 
 import guidata.dataset as gds
@@ -20,11 +21,7 @@ import scipy.signal as sps
 
 from sigima.config import _
 from sigima.objects import base
-from sigima.tools.signal.fitmodels import (
-    GaussianModel,
-    LorentzianModel,
-    VoigtModel,
-)
+from sigima.tools.signal.fitmodels import GaussianModel, LorentzianModel, VoigtModel
 
 
 class ROI1DParam(base.BaseROIParam["SignalObj", "SegmentROI"]):
@@ -510,7 +507,7 @@ def create_signal(
     return signal
 
 
-class SignalTypes(base.ChoiceEnum):
+class SignalTypes(enum.Enum):
     """Signal types"""
 
     #: Signal filled with zeros
@@ -839,7 +836,7 @@ class PlanckParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.PLANCK, PlanckParam)
 
 
-class FreqUnits(base.ChoiceEnum):
+class FreqUnits(enum.Enum):
     """Frequency units"""
 
     HZ = "Hz"
@@ -868,9 +865,9 @@ class BasePeriodicParam(NewSignalParam):
     a = gds.FloatItem(_("Amplitude"), default=1.0)
     offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
     freq = gds.FloatItem(_("Frequency"), default=1.0)
-    freq_unit = gds.ChoiceItem(
-        _("Unit"), FreqUnits.choices(), default=FreqUnits.HZ
-    ).set_pos(col=1)
+    freq_unit = gds.ChoiceItem(_("Unit"), FreqUnits, default=FreqUnits.HZ).set_pos(
+        col=1
+    )
     phase = gds.FloatItem(_("Phase"), default=0.0, unit="°")
 
     def generate_title(self) -> str:
