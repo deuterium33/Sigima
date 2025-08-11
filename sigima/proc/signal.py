@@ -2072,7 +2072,7 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
         f"x|y={p.y}",
         obj,
         {
-            "x = %g {.xunit}": lambda xy: features.find_first_x_at_y_value(
+            "x = %g {.xunit}": lambda xy: features.find_first_x_at_given_y_value(
                 xy[0], xy[1], y0
             )
         },
