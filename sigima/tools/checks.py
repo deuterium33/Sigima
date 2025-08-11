@@ -25,6 +25,8 @@ class ArrayValidationRules:
     min_size: int | None = None
     #: Expected dtype (np.issubdtype). Use None to skip.
     dtype: type | None = None
+    #: Whether to enforce finite values only.
+    finite_only: bool = False
     #: Whether to enforce non-decreasing order.
     sorted_: bool = False
     #: Whether to enforce constant spacing (within rtol).
@@ -43,6 +45,7 @@ def _validate_array_1d(arr: np.ndarray, *, rules: ArrayValidationRules) -> None:
     Raises:
         ValueError: If shape constraint is violated.
         ValueError: If size constraint is violated.
+        ValueError: If finite constraint is violated.
         ValueError: If order constraint is violated.
         ValueError: If spacing constraint is violated.
         TypeError: If dtype does not match.
@@ -55,6 +58,8 @@ def _validate_array_1d(arr: np.ndarray, *, rules: ArrayValidationRules) -> None:
         raise TypeError(
             f"{rules.label} must be of type {rules.dtype}, but got {arr.dtype}."
         )
+    if rules.finite_only and not np.all(np.isfinite(arr)):
+        raise ValueError(f"{rules.label} must contain only finite values.")
     if rules.sorted_ and arr.size > 1 and not np.all(np.diff(arr) >= 0.0):
         raise ValueError(f"{rules.label} must be sorted in ascending order.")
     if rules.evenly_spaced and arr.size > 1:
@@ -69,6 +74,7 @@ def check_1d_array(
     require_1d: bool = True,
     min_size: int | None = None,
     dtype: type | None = np.inexact,
+    finite_only: bool = False,
     sorted_: bool = False,
     evenly_spaced: bool = False,
     rtol: float = 1e-5,
@@ -82,6 +88,7 @@ def check_1d_array(
         require_1d: Whether to check if the array is 1-D.
         min_size: Minimum size of the array.
         dtype: Expected dtype of the array (np.issubdtype). Use None to skip.
+        finite_only: Whether to check if the array contains only finite values.
         sorted_: Whether to check if the array is sorted in ascending order.
         evenly_spaced: Whether to check if the array is evenly spaced.
         rtol: Relative tolerance for regular spacing.
@@ -101,6 +108,7 @@ def check_1d_array(
                     require_1d=require_1d,
                     min_size=min_size,
                     dtype=dtype,
+                    finite_only=finite_only,
                     sorted_=sorted_,
                     evenly_spaced=evenly_spaced,
                     rtol=rtol,
@@ -121,11 +129,13 @@ def check_1d_arrays(
     x_require_1d: bool = True,
     x_min_size: int | None = None,
     x_dtype: type | None = np.floating,
+    x_finite_only: bool = False,
     x_sorted: bool = False,
     x_evenly_spaced: bool = False,
     y_require_1d: bool = True,
     y_min_size: int | None = None,
     y_dtype: type | None = np.inexact,
+    y_finite_only: bool = False,
     same_size: bool = True,
     rtol: float = 1e-5,
 ) -> Callable:
@@ -138,11 +148,13 @@ def check_1d_arrays(
         x_require_1d: Whether to check if x is 1-D.
         x_min_size: Minimum size of x.
         x_dtype: Expected dtype of x (np.issubdtype). Use None to skip.
+        x_finite_only: Whether to check if x contains only finite values.
         x_sorted: Whether to check if x is sorted in ascending order.
         x_evenly_spaced: Whether to check if x is evenly spaced.
         y_require_1d: Whether to check if y is 1-D.
         y_min_size: Minimum size of y.
         y_dtype: Expected dtype of y (np.issubdtype). Use None to skip.
+        y_finite_only: Whether to check if y contains only finite values.
         same_size: Whether to check that x and y have the same size.
         rtol: Relative tolerance for regular spacing (used for x).
 
@@ -160,6 +172,7 @@ def check_1d_arrays(
                     require_1d=x_require_1d,
                     min_size=x_min_size,
                     dtype=x_dtype,
+                    finite_only=x_finite_only,
                     sorted_=x_sorted,
                     evenly_spaced=x_evenly_spaced,
                     rtol=rtol,
@@ -172,6 +185,7 @@ def check_1d_arrays(
                     require_1d=y_require_1d,
                     min_size=y_min_size,
                     dtype=y_dtype,
+                    finite_only=y_finite_only,
                     sorted_=False,
                     evenly_spaced=False,
                     rtol=rtol,
