@@ -391,6 +391,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     def __set_dx(self, data: np.ndarray | list[float] | None) -> None:
         """Set dx data"""
         assert isinstance(data, (list, np.ndarray))
+        data = np.array(data)
         if self.xydata is None:
             raise ValueError("Signal data not initialized")
         assert data.shape[0] == self.xydata.shape[1], (
@@ -412,6 +413,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     def __set_dy(self, data: np.ndarray | list[float] | None) -> None:
         """Set dy data"""
         assert isinstance(data, (list, np.ndarray))
+        data = np.array(data)
         if self.xydata is None:
             raise ValueError("Signal data not initialized")
         assert data.shape[0] == self.xydata.shape[1], (
