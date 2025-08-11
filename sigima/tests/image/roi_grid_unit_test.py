@@ -7,6 +7,7 @@ from __future__ import annotations
 import os.path as osp
 from copy import deepcopy
 
+import guidata.dataset as gds
 import numpy as np
 from numpy.testing import assert_array_equal
 from pytest import approx
@@ -271,7 +272,7 @@ def test_roi_grid_import_export() -> None:
         write_roi_grid(path, p)
         new_p = read_roi_grid(path)
 
-    assert new_p == p, "Imported ROI grid does not match original"
+    gds.assert_datasets_equal(new_p, p, "Imported ROI grid does not match original")
 
 
 if __name__ == "__main__":
