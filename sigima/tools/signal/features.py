@@ -26,6 +26,34 @@ def find_zero_crossings(y: np.ndarray) -> np.ndarray:
 
 
 @check_1d_arrays(x_sorted=True)
+def find_x_intercepts(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Find the :math:`x_n` values where :math:`y = f(x)` intercepts the x-axis.
+
+    This function uses zero-crossing detection and interpolation to find the x values
+    where :math:`y = 0`.
+
+    Args:
+        x: X data.
+        y: Y data.
+
+    Returns:
+        Array of x-intercepts. The array is empty if no intercept is found.
+    """
+    # Find zero crossings.
+    xi_before = find_zero_crossings(y)
+    if len(xi_before) == 0:
+        return np.array([])
+    # Interpolate to find x values at zero crossings.
+    xi_after = xi_before + 1
+    slope = (y[xi_after] - y[xi_before]) / (x[xi_after] - x[xi_before])
+    with np.errstate(divide="ignore"):
+        x0 = -y[xi_before] / slope + x[xi_before]
+        mask = ~np.isfinite(x0)
+        x0[mask] = xi_before[mask]
+    return x0
+
+
+@check_1d_arrays(x_sorted=True)
 def find_first_x_at_y_value(x: np.ndarray, y: np.ndarray, y_value: float) -> float:
     """Find the first x value where the signal reaches a given y value (interpolated).
 
