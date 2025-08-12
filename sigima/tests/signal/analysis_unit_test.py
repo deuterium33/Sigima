@@ -14,23 +14,49 @@ bandwidth, ENOB, etc.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import sigima.objects
 import sigima.params
 import sigima.proc.signal
+from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_scalar_result
 
 
 @pytest.mark.validation
-def test_signal_bandwidth_3db() -> None:
-    """Validation test for the bandwidth computation."""
-    obj = get_test_signal("bandwidth.txt")
-    res = sigima.proc.signal.bandwidth_3db(obj)
-    assert res is not None, "Bandwidth computation failed"
-    df = res.to_dataframe()
-    check_scalar_result("Bandwitdh@-3dB", df.L[0], 39.0, rtol=0.001)
+def test_signal_bandwidth_3db(request: pytest.FixtureRequest | None = None) -> None:
+    """Validation test for the bandwidth computation.
+
+    This test computes the 3dB bandwidth of a signal and checks the result.
+
+    Args:
+        request: The pytest request fixture.
+    """
+    sig1 = get_test_signal("bandwidth.txt")
+    res1 = sigima.proc.signal.bandwidth_3db(sig1)
+    assert res1 is not None, "Bandwidth computation failed."
+
+    guiutils.set_current_request(request)
+    if guiutils.is_gui_enabled():
+        # pylint: disable=import-outside-toplevel
+        from guidata.qthelpers import qt_app_context
+
+        from sigima.tests.vistools import view_curves
+
+        with qt_app_context():
+            view_curves(
+                [
+                    sigima.objects.create_signal("Bandwidth", sig1.x, sig1.y),
+                ]
+            )
+
+    df1 = res1.to_dataframe()
+    check_scalar_result("Bandwidth@-3dB", df1.L[0], 38.99301975103714)
+    p1 = sigima.proc.signal.AbscissaParam.create(x=df1.L[0])
+    y_at_3db = sigima.proc.signal.y_at_x(sig1, p1).to_dataframe()
+    check_scalar_result("Value@cutoff", y_at_3db.y[0], np.max(sig1.y) - 3.0)
 
 
 @pytest.mark.validation
@@ -109,7 +135,7 @@ def test_signal_y_at_x() -> None:
 
 
 if __name__ == "__main__":
-    test_signal_bandwidth_3db()
+    test_signal_bandwidth_3db(request=guiutils.DummyRequest(gui=True))
     test_dynamic_parameters()
     test_signal_sampling_rate_period()
     test_signal_contrast()

@@ -2135,17 +2135,29 @@ def stats(obj: SignalObj) -> ResultProperties:
 
 @computation_function()
 def bandwidth_3db(obj: SignalObj) -> ResultShape | None:
-    """Compute bandwidth at -3 dB with
-    :py:func:`sigima.tools.signal.misc.bandwidth`
+    """Compute bandwidth at -3dB with :py:func:`sigima.tools.signal.features.bandwidth`.
+
+    .. note::
+
+       The bandwidth is defined as the range of frequencies over which the signal
+       maintains a certain level relative to its peak.
+
+    .. warning::
+
+        The signal is assumed to be smooth enough for the bandwidth calculation to be
+        meaningful. If the signal contains excessive noise, multiple peaks, or is not
+        sufficiently continuous, the computed bandwidth may not accurately represent the
+        true -3dB range. It is recommended to preprocess the signal to ensure reliable
+        results.
 
     Args:
-        obj: source signal
+        obj: Source signal.
 
     Returns:
-        Result properties with bandwidth
+        Result shape with bandwidth.
     """
     return calc_resultshape(
-        "bandwidth", "segment", obj, features.bandwidth, 3.0, add_label=True
+        "bandwidth", "segment", obj, features.bandwidth, -3.0, add_label=True
     )
 
 

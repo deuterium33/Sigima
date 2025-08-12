@@ -104,21 +104,32 @@ def find_all_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.n
 
 @check_1d_arrays(x_evenly_spaced=True)
 def bandwidth(
-    x: np.ndarray, y: np.ndarray, level: float = 3.0
+    x: np.ndarray, y: np.ndarray, threshold: float = 3.0
 ) -> tuple[float, float, float, float]:
-    """Compute the bandwidth of the signal at a given level.
+    """Compute the bandwidth of the signal at a given threshold relative to the maximum.
 
     Args:
-        x: X data
-        y: Y data
-        level: Level in dB at which the bandwidth is computed. Defaults to 3.0.
+        x: X data.
+        y: Y data.
+        threshold: Threshold in decibel (relative to the maximum) at which the bandwidth
+        is computed. Defaults to 3.0 dB.
 
     Returns:
-        Bandwidth of the signal at the given level: segment coordinates
+        Segment coordinates of the bandwidth of the signal at the given threshold.
     """
-    half_max: float = np.max(y) - level
-    bw = find_all_x_at_given_y_value(x, y, half_max)[0]
-    coords = (x[0], half_max, bw, half_max)
+    one_crossing = 1
+    two_crossings = 2
+    level: float = np.max(y) + threshold
+    crossings = find_all_x_at_given_y_value(x, y, level)
+    if len(crossings) == one_crossing:
+        if x[np.argmax(y)] < crossings[0]:  # Baseband bandwidth
+            coords = (0.0, level, crossings[0], level)
+        else:
+            coords = (crossings[0], level, x[-1], level)
+    elif len(crossings) == two_crossings:  # Passband bandwidth
+        coords = (crossings[0], level, crossings[1], level)
+    else:
+        coords = (np.nan, np.nan, np.nan, np.nan)
     return coords
 
 
