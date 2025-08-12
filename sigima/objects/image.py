@@ -1248,7 +1248,7 @@ class Empty2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.EMPTY, Empty2DParam)
 
 
-class UniformRandom2DParam(NewImageParam, base.BaseUniformRandomParam):
+class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
     """Uniform-law random image parameters"""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1269,7 +1269,7 @@ class UniformRandom2DParam(NewImageParam, base.BaseUniformRandomParam):
 register_image_parameters_class(ImageTypes.UNIFORMRANDOM, UniformRandom2DParam)
 
 
-class NormalRandom2DParam(NewImageParam, base.BaseNormalRandomParam):
+class NormalRandom2DParam(base.BaseNormalRandomParam, NewImageParam):
     """Normal-law random image parameters"""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
