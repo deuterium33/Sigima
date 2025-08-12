@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING, TypeVar, cast
 
 import guidata.dataset as gds
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "AngleUnit",
     "ArithmeticParam",
     "GaussianParam",
     "MovingAverageParam",
@@ -191,6 +193,15 @@ class ConstantParam(gds.DataSet):
     """Parameter used to set a constant value to used in operations"""
 
     value = gds.FloatItem(_("Constant value"))
+
+
+class AngleUnit(Enum):
+    """Enumeration for specifying angle measurement units and their symbols."""
+
+    #: Radian unit.
+    radian = "rad"
+    #: Degree unit.
+    degree = "°"
 
 
 class PhaseAngleParam(gds.DataSet):
