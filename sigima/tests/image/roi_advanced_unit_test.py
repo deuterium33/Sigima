@@ -168,7 +168,7 @@ def __test_extracting_from_roi(src: ImageObj, singleobj: bool | None = None) -> 
                 image = sigima.proc.image.extract_roi(src, roiparam)
                 images.append(image)
             assert len(images) == 3, "Three images expected"
-            im1, im2 = images[:2]
+            im1, im2 = images[:2]  # pylint: disable=unbalanced-tuple-unpacking
             assert np.all(im1.data != 0), nzroi
             assert im1.data.shape == (IROI1[3], IROI1[2]), roisham
             assert np.all(im2.data != 0), nzroi

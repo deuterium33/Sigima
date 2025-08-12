@@ -129,14 +129,14 @@ class ROIGridParam(gds.DataSet):
     def geometry_changed(self, item, value) -> None:
         """Notify host (if any) that geometry changed."""
         if callable(self.on_geometry_changed):
-            self.on_geometry_changed()
+            self.on_geometry_changed()  # pylint: disable=not-callable
 
     _b_group0 = gds.BeginGroup(_("Geometry"))
-    ny = gds.IntItem(
-        "N<sub>y</sub> (%s)" % _("rows"), default=3, nonzero=True
-    ).set_prop("display", callback=geometry_changed)
+    ny = gds.IntItem(f"N<sub>y</sub> ({_('rows')})", default=3, nonzero=True).set_prop(
+        "display", callback=geometry_changed
+    )
     nx = (
-        gds.IntItem("N<sub>x</sub> (%s)" % _("columns"), default=3, nonzero=True)
+        gds.IntItem(f"N<sub>x</sub> ({_('columns')})", default=3, nonzero=True)
         .set_prop("display", callback=geometry_changed)
         .set_pos(col=1)
     )
@@ -157,7 +157,7 @@ class ROIGridParam(gds.DataSet):
         slider=True,
     ).set_prop("display", callback=geometry_changed)
     xsize = gds.IntItem(
-        "X size (%s)" % _("column size"),
+        f"X size ({_('column size')})",
         default=50,
         min=0,
         max=100,
@@ -165,7 +165,7 @@ class ROIGridParam(gds.DataSet):
         slider=True,
     ).set_prop("display", callback=geometry_changed)
     ysize = gds.IntItem(
-        "Y size (%s)" % _("row size"),
+        f"Y size ({_('row size')})",
         default=50,
         min=0,
         max=100,
