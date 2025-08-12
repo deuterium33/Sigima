@@ -1052,16 +1052,8 @@ def create_image(
     return image
 
 
-@enum.unique
 class ImageDatatypes(enum.Enum):
     """Image data types"""
-
-    # Reimplement enum.Enum method as suggested by Python documentation:
-    # https://docs.python.org/3/library/enum.html#enum.Enum._generate_next_value_
-    # Here, it is only needed for ImageDatatypes (see core/model/image.py).
-    # pylint: disable=unused-argument,no-self-argument,no-member
-    def _generate_next_value_(name, start, count, last_values):
-        return str(name).lower()
 
     @classmethod
     def from_dtype(cls: type[ImageDatatypes], dtype: np.dtype) -> str:
@@ -1075,15 +1067,15 @@ class ImageDatatypes(enum.Enum):
             assert hasattr(np, member.value)
 
     #: Unsigned integer number stored with 8 bits
-    UINT8 = enum.auto()
+    UINT8 = "uint8"
     #: Unsigned integer number stored with 16 bits
-    UINT16 = enum.auto()
+    UINT16 = "uint16"
     #: Signed integer number stored with 16 bits
-    INT16 = enum.auto()
+    INT16 = "int16"
     #: Float number stored with 32 bits
-    FLOAT32 = enum.auto()
+    FLOAT32 = "float32"
     #: Float number stored with 64 bits
-    FLOAT64 = enum.auto()
+    FLOAT64 = "float64"
 
 
 ImageDatatypes.check()
