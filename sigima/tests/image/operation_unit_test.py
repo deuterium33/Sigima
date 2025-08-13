@@ -15,6 +15,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.proc.base import AngleUnit
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
@@ -303,34 +304,54 @@ def test_image_imag() -> None:
 
 
 @pytest.mark.validation
-def test_image_phase_angle() -> None:
-    """Image phase angle test."""
-    execenv.print("*** Testing image phase angle:")
+def test_image_phase() -> None:
+    """Image phase test."""
+    execenv.print("*** Testing image phase:")
     for ima1 in iterate_noisy_images():
         # Make a complex image for testing
+        assert ima1.data is not None, "Input image data is None."
         data = ima1.data.astype(np.complex128)
-        data += 1j * (ima1.data.astype(np.complex128) * 0.5 + 1)
+        data += 1j * (0.5 * ima1.data + 1.0)
         ima_complex = ima1.copy()
         ima_complex.data = data
 
-        # Test radians
-        p_rad = sigima.params.PhaseAngleParam.create(unit="rad", unwrap=False)
+        # Test output in radians, no unwrapping
+        p_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
+        phase_ima_rad = sigima.proc.image.phase(ima_complex, p_rad)
+        assert phase_ima_rad.data is not None, "Phase|rad data is None."
         exp_rad = np.angle(ima_complex.data, deg=False)
-        ima_phase_rad = sigima.proc.image.phase_angle(ima_complex, p_rad)
-        check_array_result("Phase angle (rad)", ima_phase_rad.data, exp_rad)
+        check_array_result("Phase|rad", phase_ima_rad.data, exp_rad)
 
-        # Test degrees
-        p_deg = sigima.params.PhaseAngleParam.create(unit="deg", unwrap=False)
+        # Test output in degrees, no unwrapping
+        p_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
+        phase_ima_deg = sigima.proc.image.phase(ima_complex, p_deg)
+        assert phase_ima_deg.data is not None, "Phase|deg data is None."
         exp_deg = np.angle(ima_complex.data, deg=True)
-        ima_phase_deg = sigima.proc.image.phase_angle(ima_complex, p_deg)
-        check_array_result("Phase angle (deg)", ima_phase_deg.data, exp_deg)
+        check_array_result("Phase|deg", phase_ima_deg.data, exp_deg)
 
-        # Test unwrap (radians)
-        p_unwrap = sigima.params.PhaseAngleParam.create(unit="rad", unwrap=True)
-        exp_unwrap = np.unwrap(np.angle(ima_complex.data, deg=False))
-        ima_phase_unwrap = sigima.proc.image.phase_angle(ima_complex, p_unwrap)
+        # Test output in radians, with unwrapping
+        p_rad_unwrap = sigima.params.PhaseParam.create(
+            unit=AngleUnit.radian, unwrap=True
+        )
+        phase_ima_rad_unwrap = sigima.proc.image.phase(ima_complex, p_rad_unwrap)
+        exp_rad_unwrap = np.unwrap(np.angle(ima_complex.data, deg=False))
+        assert phase_ima_rad_unwrap.data is not None, (
+            "Phase|unwrapping|rad data is None."
+        )
         check_array_result(
-            "Phase angle (unwrap, rad)", ima_phase_unwrap.data, exp_unwrap
+            "Phase|unwrapping|rad", phase_ima_rad_unwrap.data, exp_rad_unwrap
+        )
+        # Test output in degrees, with unwrapping
+        p_deg_unwrap = sigima.params.PhaseParam.create(
+            unit=AngleUnit.degree, unwrap=True
+        )
+        phase_ima_deg_unwrap = sigima.proc.image.phase(ima_complex, p_deg_unwrap)
+        exp_deg_unwrap = np.unwrap(np.angle(ima_complex.data, deg=True), period=360.0)
+        assert phase_ima_deg_unwrap.data is not None, (
+            "Phase|unwrapping|deg data is None."
+        )
+        check_array_result(
+            "Phase|unwrapping|deg", phase_ima_deg_unwrap.data, exp_deg_unwrap
         )
 
 
@@ -415,6 +436,7 @@ if __name__ == "__main__":
     test_image_absolute()
     test_image_real()
     test_image_imag()
+    test_image_phase()
     test_image_astype()
     test_image_exp()
     test_image_log10()

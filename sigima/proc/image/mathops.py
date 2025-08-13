@@ -32,7 +32,7 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc.base import PhaseAngleParam, dst_1_to_1
+from sigima.proc.base import AngleUnit, PhaseParam, dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.tools.datatypes import clip_astype
@@ -110,24 +110,31 @@ def imag(src: ImageObj) -> ImageObj:
 
 
 @computation_function()
-def phase_angle(src: ImageObj, p: PhaseAngleParam) -> ImageObj:
-    """Compute phase angle of complex signal with :py:func:`numpy.angle`
+def phase(src: ImageObj, p: PhaseParam) -> ImageObj:
+    """Compute the phase (argument) of a complex image.
+
+    The function uses :py:func:`numpy.angle` to compute the argument and
+    :py:func:`numpy.unwrap` to unwrap it.
 
     Args:
-        src: source signal
+        src: Input image object.
+        p: Phase parameters.
 
     Returns:
-        Result signal object
+        Image object containing the phase, optionally unwrapped.
     """
-    deg = p.unit == "deg"
-    if not p.unwrap:
-        # If not unwrapping, use numpy.angle
-        return Wrap1to1Func(np.angle, deg)(src)
-
-    def __angle_unwrap(y, deg=deg):
-        return np.unwrap(np.angle(y, deg=deg))
-
-    return Wrap1to1Func(__angle_unwrap, deg)(src)
+    suffix = "unwrap" if p.unwrap else ""
+    dst = dst_1_to_1(src, "phase", suffix)
+    data = src.get_data()
+    argument = np.angle(data)
+    if p.unwrap:
+        argument = np.unwrap(argument)
+    if p.unit == AngleUnit.degree:
+        argument = np.rad2deg(argument)
+    dst.data = argument
+    dst.zunit = p.unit.value
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 @computation_function()

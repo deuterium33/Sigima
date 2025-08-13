@@ -42,6 +42,7 @@ __all__ = [
     "dst_2_to_1",
     "new_signal_result",
     "calc_resultproperties",
+    "PhaseParam",
 ]
 
 
@@ -204,15 +205,17 @@ class AngleUnit(Enum):
     degree = "°"
 
 
-class PhaseAngleParam(gds.DataSet):
-    """parameters for phase angle computation"""
+class PhaseParam(gds.DataSet):
+    """Parameters for phase computation."""
 
-    unwrap = gds.BoolItem("unwrap", default=False)
+    unwrap = gds.BoolItem(
+        "unwrap", default=True, help=_("Unwrapping removes discontinuities in phase")
+    )
     unit = gds.ChoiceItem(
         _("Unit"),
-        [("rad", _("Radians")), ("deg", _("Degrees"))],
-        default="deg",
-        help=_("Output angle unit"),
+        AngleUnit,
+        default=AngleUnit.degree,
+        help=_("Unit of angle measurement"),
     )
 
 

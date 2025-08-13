@@ -22,6 +22,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
+from sigima.proc.base import AngleUnit
 from sigima.tests.helpers import check_array_result
 
 
@@ -194,27 +195,36 @@ def test_signal_imag() -> None:
 
 
 @pytest.mark.validation
-def test_signal_phase_angle() -> None:
+def test_signal_phase() -> None:
     """Phase angle validation test."""
     s1 = __create_two_signals()[0]
     # Make a complex signal for testing
     y_complex = s1.y + 1j * s1.y[::-1]
     s_complex = sigima.objects.create_signal("complex", s1.x, y_complex)
-    p_rad = sigima.params.PhaseAngleParam.create(unwrap=False, unit="rad")
-    p_deg = sigima.params.PhaseAngleParam.create(unwrap=False, unit="deg")
-    # Test radians
-    phase_signal_rad = sigima.proc.signal.phase_angle(s_complex, p_rad)
-    check_array_result("Phase angle (rad)", phase_signal_rad.y, np.angle(y_complex))
-    # Test degrees
-    phase_signal_deg = sigima.proc.signal.phase_angle(s_complex, p_deg)
+
+    # Test output in radians, no unwrapping
+    p_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
+    phase_signal_rad = sigima.proc.signal.phase(s_complex, p_rad)
+    check_array_result("Phase|rad", phase_signal_rad.y, np.angle(y_complex))
+    # Test output in degrees, no unwrapping
+    p_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
+    phase_signal_deg = sigima.proc.signal.phase(s_complex, p_deg)
+    check_array_result("Phase|deg", phase_signal_deg.y, np.angle(y_complex, deg=True))
+    # Test output in radians, with unwrapping
+    p_rad_unwrap = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=True)
+    phase_signal_rad_unwrap = sigima.proc.signal.phase(s_complex, p_rad_unwrap)
     check_array_result(
-        "Phase angle (deg)", phase_signal_deg.y, np.angle(y_complex, deg=True)
+        "Phase|unwrapping|rad",
+        phase_signal_rad_unwrap.y,
+        np.unwrap(np.angle(y_complex)),
     )
-    # Test unwrap
-    p_unwrap = sigima.params.PhaseAngleParam.create(unwrap=True, unit="rad")
-    phase_signal_unwrap = sigima.proc.signal.phase_angle(s_complex, p_unwrap)
+    # Test output in degrees, with unwrapping
+    p_deg_unwrap = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=True)
+    phase_signal_deg_unwrap = sigima.proc.signal.phase(s_complex, p_deg_unwrap)
     check_array_result(
-        "Phase angle (unwrap)", phase_signal_unwrap.y, np.unwrap(np.angle(y_complex))
+        "Phase|unwrapping|deg",
+        phase_signal_deg_unwrap.y,
+        np.unwrap(np.angle(y_complex, deg=True), period=360.0),
     )
 
 
@@ -300,6 +310,7 @@ if __name__ == "__main__":
     test_signal_absolute()
     test_signal_real()
     test_signal_imag()
+    test_signal_phase()
     test_signal_astype()
     test_signal_exp()
     test_signal_log10()

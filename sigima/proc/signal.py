@@ -39,7 +39,7 @@ from sigima.proc.base import (
     MovingAverageParam,
     MovingMedianParam,
     NormalizeParam,
-    PhaseAngleParam,
+    PhaseParam,
     SpectrumParam,
     calc_resultproperties,
     dst_1_to_1,
@@ -625,24 +625,31 @@ def imag(src: SignalObj) -> SignalObj:
 
 
 @computation_function()
-def phase_angle(src: SignalObj, p: PhaseAngleParam) -> SignalObj:
-    """Compute phase angle of complex signal with :py:func:`numpy.angle`
+def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
+    """Compute the phase (argument) of a complex signal.
+
+    The function uses :py:func:`numpy.angle` to compute the argument and
+    :py:func:`numpy.unwrap` to unwrap it.
 
     Args:
-        src: source signal
+        src: Input signal object.
+        p: Phase parameters.
 
     Returns:
-        Result signal object
+        Signal object containing the phase, optionally unwrapped.
     """
-    deg = p.unit == "deg"
-    if not p.unwrap:
-        # If not unwrapping, use numpy.angle
-        return Wrap1to1Func(np.angle, deg)(src)
-
-    def __angle_unwrap(y, deg=deg):
-        return np.unwrap(np.angle(y, deg=deg))
-
-    return Wrap1to1Func(__angle_unwrap, deg)(src)
+    suffix = "unwrap" if p.unwrap else ""
+    dst = dst_1_to_1(src, "phase", suffix)
+    x, y = src.get_data()
+    argument = np.angle(y)
+    if p.unwrap:
+        argument = np.unwrap(argument)
+    if p.unit == AngleUnit.degree:
+        argument = np.rad2deg(argument)
+    dst.set_xydata(x, argument, src.dx, None)
+    dst.yunit = p.unit.value
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 class DataTypeSParam(gds.DataSet):
