@@ -30,6 +30,7 @@ import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
 import sigima.tools.coordinates
+from sigima.proc.base import AngleUnit
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -84,7 +85,7 @@ def test_signal_reverse_x() -> None:
 
 
 def test_to_polar() -> None:
-    """Unit test for the cartesian to polar conversion."""
+    """Unit test for the Cartesian to polar conversion."""
     title = "Cartesian2Polar"
     x = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
@@ -95,14 +96,14 @@ def test_to_polar() -> None:
     check_array_result(f"{title}|r", r, exp_r)
     check_array_result(f"{title}|theta", theta, exp_theta)
 
-    r, theta = sigima.tools.coordinates.to_polar(x, y, unit="deg")
+    r, theta = sigima.tools.coordinates.to_polar(x, y, unit="°")
     exp_theta = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
     check_array_result(f"{title}|r", r, exp_r)
     check_array_result(f"{title}|theta", theta, exp_theta)
 
 
 def test_to_cartesian() -> None:
-    """Unit test for the polar to cartesian conversion."""
+    """Unit test for the polar to Cartesian conversion."""
     title = "Polar2Cartesian"
     r = np.array([0.0, np.sqrt(2.0), np.sqrt(8.0), np.sqrt(18.0), np.sqrt(32.0)])
     theta = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
@@ -114,21 +115,21 @@ def test_to_cartesian() -> None:
     check_array_result(f"{title}|y", y, exp_y)
 
     theta = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
-    x, y = sigima.tools.coordinates.to_cartesian(r, theta, unit="deg")
+    x, y = sigima.tools.coordinates.to_cartesian(r, theta, unit="°")
     check_array_result(f"{title}|x", x, exp_x)
     check_array_result(f"{title}|y", y, exp_y)
 
 
 @pytest.mark.validation
 def test_signal_to_polar() -> None:
-    """Validation test for the signal cartesian to polar processing."""
+    """Validation test for the signal Cartesian to polar processing."""
     title = "Cartesian2Polar"
     p = sigima.params.AngleUnitParam()
     x = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     src = sigima.objects.create_signal("test", x, y)
 
-    for p.unit, _unit_name in sigima.params.AngleUnitParam.units:
+    for p.unit in AngleUnit:
         dst1 = sigima.proc.signal.to_polar(src, p)
         dst2 = sigima.proc.signal.to_cartesian(dst1, p)
         check_array_result(f"{title}|x", dst2.x, x)
@@ -137,15 +138,15 @@ def test_signal_to_polar() -> None:
 
 @pytest.mark.validation
 def test_signal_to_cartesian() -> None:
-    """Validation test for the signal polar to cartesian processing."""
+    """Validation test for the signal polar to Cartesian processing."""
     title = "Polar2Cartesian"
     p = sigima.params.AngleUnitParam()
     r = np.array([0.0, np.sqrt(2.0), np.sqrt(8.0), np.sqrt(18.0), np.sqrt(32.0)])
 
     angles_deg = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
     angles_rad = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
-    for p.unit, _unit_name in sigima.params.AngleUnitParam.units:
-        theta = angles_rad if p.unit == "rad" else angles_deg
+    for p.unit in AngleUnit:
+        theta = angles_rad if p.unit == AngleUnit.radian else angles_deg
         src = sigima.objects.create_signal("test", r, theta)
         dst1 = sigima.proc.signal.to_cartesian(src, p)
         dst2 = sigima.proc.signal.to_polar(dst1, p)

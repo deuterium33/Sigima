@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-09 16:13+0200\n"
+"POT-Creation-Date: 2025-08-13 11:14+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -439,11 +439,20 @@ msgstr "Sortie en décibels (dB)"
 msgid "Constant value"
 msgstr "Constante"
 
-msgid "rows"
-msgstr "lignes"
+msgid "Radians"
+msgstr "Radians"
+
+msgid "Degrees"
+msgstr "Degrés"
+
+msgid "Output angle unit"
+msgstr "Unité de l'angle en sortie"
 
 msgid "columns"
 msgstr "colonnes"
+
+msgid "rows"
+msgstr "lignes"
 
 msgid "Distribute over"
 msgstr "Distribuer selon les"
@@ -715,14 +724,6 @@ msgstr ""
 
 msgid "Y translation"
 msgstr ""
-
-#, fuzzy
-msgid "column size"
-msgstr "Colonnes"
-
-#, fuzzy
-msgid "row size"
-msgstr "Taille"
 
 #, fuzzy
 msgid "ROI titles"
@@ -1078,11 +1079,11 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
 
-msgid "Radian"
-msgstr "Radian"
-
 msgid "Angle unit"
 msgstr "Unité de l'angle"
+
+msgid "Unit of angle measurement"
+msgstr "Unité de mesure de l'angle"
 
 msgid "Angle"
 msgstr "Angle"

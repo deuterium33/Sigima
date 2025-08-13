@@ -29,6 +29,7 @@ from sigima.config import _, options
 from sigima.objects.base import ResultProperties, ResultShape
 from sigima.objects.signal import ROI1DParam, SignalObj
 from sigima.proc.base import (
+    AngleUnit,
     ArithmeticParam,
     ClipParam,
     ConstantParam,
@@ -1727,16 +1728,24 @@ def reverse_x(src: SignalObj) -> SignalObj:
 class AngleUnitParam(gds.DataSet):
     """Choice of angle unit."""
 
-    units = (("rad", _("Radian")), ("deg", _("Degree")))
-    unit = gds.ChoiceItem(_("Angle unit"), units, default="rad")
+    unit = gds.ChoiceItem(
+        _("Angle unit"),
+        AngleUnit,
+        default=AngleUnit.radian,
+        help=_("Unit of angle measurement"),
+    )
 
 
 @computation_function()
 def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert cartesian coordinates to polar coordinates.
+    """Convert Cartesian coordinates to polar coordinates.
 
     This function converts the x and y coordinates of a signal to polar coordinates
     using :py:func:`sigima.tools.coordinates.to_polar`.
+
+    .. warning::
+
+        X and y must share the same units for the computation to make sense.
 
     Args:
         src: Source signal.
@@ -1744,29 +1753,37 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
 
     Returns:
         Result signal object.
-
-    Raises:
-        ValueError: If the x and y units are not the same.
     """
     assert p.unit is not None
     if src.xunit != src.yunit:
-        warnings.warn(f"X and Y units are not the same: {src.xunit} != {src.yunit}.")
+        warnings.warn(
+            f"X and y units are not the same: {src.xunit} != {src.yunit}. "
+            "Results will be incorrect."
+        )
     dst = dst_1_to_1(src, "Polar coordinates", f"unit={p.unit}")
     x, y = src.get_data()
-    r, theta = coordinates.to_polar(x, y, p.unit)
+    r, theta = coordinates.to_polar(x, y, p.unit.value)
     dst.set_xydata(r, theta)
     dst.xlabel = _("Radius")
     dst.ylabel = _("Angle")
-    dst.yunit = p.unit
+    dst.yunit = p.unit.value
     return dst
 
 
 @computation_function()
 def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert polar coordinates to cartesian coordinates.
+    """Convert polar coordinates to Cartesian coordinates.
 
-    This function converts the r and theta coordinates of a signal to cartesian
+    This function converts the r and theta coordinates of a signal to Cartesian
     coordinates using :py:func:`sigima.tools.coordinates.to_cartesian`.
+
+    .. note::
+
+        It is assumed that the x-axis represents the radius and the y-axis the angle.
+
+    .. warning::
+
+        Negative values are not allowed for the radius and will be clipped to 0.
 
     Args:
         src: Source signal.
@@ -1774,16 +1791,13 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
 
     Returns:
         Result signal object.
-
-    .. note::
-
-        This function assumes that the x-axis represents the radius and the y-axis
-        represents the angle. Negative values are not allowed for the radius, and will
-        be clipped to 0 (a warning will be raised).
     """
     dst = dst_1_to_1(src, "Cartesian coordinates", f"unit={p.unit}")
     r, theta = src.get_data()
-    x, y = coordinates.to_cartesian(r, theta, p.unit)
+    if np.any(r < 0.0):
+        warnings.warn("Negative radius values are not allowed. They will be set to 0.")
+        r = np.maximum(r, 0.0)
+    x, y = coordinates.to_cartesian(r, theta, p.unit.value)
     dst.set_xydata(x, y)
     dst.xlabel = _("x")
     dst.ylabel = _("y")
