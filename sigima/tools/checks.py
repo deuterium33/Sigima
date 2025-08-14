@@ -60,7 +60,7 @@ def _validate_array_1d(arr: np.ndarray, *, rules: ArrayValidationRules) -> None:
         )
     if rules.finite_only and not np.all(np.isfinite(arr)):
         raise ValueError(f"{rules.label} must contain only finite values.")
-    if rules.sorted_ and arr.size > 1 and not np.all(np.diff(arr) >= 0.0):
+    if rules.sorted_ and arr.size > 1 and not np.all(np.diff(arr) > 0.0):
         raise ValueError(f"{rules.label} must be sorted in ascending order.")
     if rules.evenly_spaced and arr.size > 1:
         dx = np.diff(arr)
