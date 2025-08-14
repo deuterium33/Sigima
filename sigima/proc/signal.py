@@ -2101,7 +2101,11 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> ResultProperties:
     return calc_resultproperties(
         f"y|x={p.x}",
         obj,
-        {"y = %g {.yunit}": lambda xy: features.find_y_at_x_value(xy[0], xy[1], x0)},
+        {
+            "y = %g {.yunit}": lambda xy: features.find_y_at_given_x_value(
+                xy[0], xy[1], x0
+            )
+        },
     )
 
 

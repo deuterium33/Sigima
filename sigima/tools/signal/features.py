@@ -69,30 +69,22 @@ def find_first_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> fl
     return x_values[0] if len(x_values) > 0 else np.nan
 
 
-@check_1d_arrays(x_sorted=True)
-def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_value: float) -> float:
-    """Find the y value at a given x value using linear interpolation.
+@check_1d_arrays(x_min_size=2, x_finite_only=True, x_sorted=True)
+def find_y_at_given_x_value(x: np.ndarray, y: np.ndarray, x0: float) -> float:
+    """Return the y value at a specified x value using linear interpolation.
 
     Args:
-        x: Monotonic X data
-        y: Y data (may contain NaNs)
-        x_value: The x value to find the corresponding y value for
+        x: X data.
+        y: Y data.
+        x0: Input x value.
 
     Returns:
-        The interpolated y value at the given x, or `nan` if not computable
+        Interpolated y value at x0, or `nan` if input value is not within the
+        interpolation range.
     """
-    if np.isnan(x_value):
+    if np.isnan(x0):
         return np.nan
-
-    # Filter out NaNs
-    valid = ~(np.isnan(x) | np.isnan(y))
-    x_valid = x[valid]
-    y_valid = y[valid]
-
-    if len(x_valid) == 0 or x_value < x_valid[0] or x_value > x_valid[-1]:
-        return np.nan
-
-    return float(np.interp(x_value, x_valid, y_valid))
+    return float(np.interp(x0, x, y, left=np.nan, right=np.nan))
 
 
 @check_1d_arrays
