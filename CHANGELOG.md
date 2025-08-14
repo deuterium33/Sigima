@@ -7,6 +7,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* New common signal/image feature:
+  * Added `phase` (argument) feature to extract the phase information from complex signals or images.
+
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.
   * Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs.
