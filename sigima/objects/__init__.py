@@ -51,6 +51,7 @@ Signal model
 .. autodataset:: sigima.objects.ZerosParam
 .. autodataset:: sigima.objects.UniformRandomParam
 .. autodataset:: sigima.objects.NormalRandomParam
+.. autodataset:: sigima.objects.PoissonRandomParam
 .. autodataset:: sigima.objects.GaussParam
 .. autodataset:: sigima.objects.LorentzParam
 .. autodataset:: sigima.objects.VoigtParam
@@ -84,6 +85,7 @@ Image model
 .. autodataset:: sigima.objects.Empty2DParam
 .. autodataset:: sigima.objects.UniformRandom2DParam
 .. autodataset:: sigima.objects.NormalRandom2DParam
+.. autodataset:: sigima.objects.PoissonRandom2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
 .. autodataset:: sigima.objects.Ramp2DParam
 .. autodataset:: sigima.objects.ROI2DParam
@@ -108,6 +110,7 @@ __all__ = [
     "ImageTypes",
     "NewImageParam",
     "NormalRandom2DParam",
+    "PoissonRandom2DParam",
     "PolygonalROI",
     "Ramp2DParam",
     "RectangularROI",
@@ -127,6 +130,7 @@ __all__ = [
     "LorentzParam",
     "NewSignalParam",
     "NormalRandomParam",
+    "PoissonRandomParam",
     "PlanckParam",
     "PolyParam",
     "PulseParam",
@@ -169,6 +173,7 @@ from sigima.objects.image import (
     ImageTypes,
     NewImageParam,
     NormalRandom2DParam,
+    PoissonRandom2DParam,
     PolygonalROI,
     Ramp2DParam,
     RectangularROI,
@@ -191,6 +196,7 @@ from sigima.objects.signal import (
     NewSignalParam,
     NormalRandomParam,
     PlanckParam,
+    PoissonRandomParam,
     PolyParam,
     PulseParam,
     ROI1DParam,

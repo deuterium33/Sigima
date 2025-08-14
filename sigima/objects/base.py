@@ -61,7 +61,7 @@ def deepcopy_metadata(
 
 
 class BaseProcParam(gds.DataSet):
-    """Base class for processing parameters"""
+    """Base class for processing parameters."""
 
     def __init__(
         self,
@@ -77,13 +77,13 @@ class BaseProcParam(gds.DataSet):
         self.set_global_prop("data", min=None, max=None)
 
     def apply_integer_range(self, vmin, vmax):  # pylint: disable=unused-argument
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
 
     def apply_float_range(self, vmin, vmax):  # pylint: disable=unused-argument
-        """Do something in case of float min-max range"""
+        """Do something in case of float min-max range."""
 
     def set_from_datatype(self, dtype):
-        """Set min/max range from NumPy datatype"""
+        """Set min/max range from NumPy datatype."""
         if np.issubdtype(dtype, np.integer):
             info = np.iinfo(dtype)
             self.apply_integer_range(info.min, info.max)
@@ -94,16 +94,16 @@ class BaseProcParam(gds.DataSet):
 
 
 class BaseRandomParam(BaseProcParam):
-    """Random signal/image parameters"""
+    """Random signal/image parameters."""
 
     seed = gds.IntItem(_("Seed"), default=1)
 
 
 class BaseUniformRandomParam(BaseRandomParam):
-    """Uniform-law random signal/image parameters"""
+    """Uniform-distribution signal/image parameters."""
 
     def apply_integer_range(self, vmin, vmax):
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
         self.vmin, self.vmax = float(vmin), float(vmax)
 
     vmin = gds.FloatItem(
@@ -119,29 +119,52 @@ class BaseUniformRandomParam(BaseRandomParam):
 
 
 class BaseNormalRandomParam(BaseRandomParam):
-    """Normal-law random signal/image parameters"""
+    """Normal-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_MU = 0.1
     DEFAULT_RELATIVE_SIGMA = 0.02
 
     def apply_integer_range(self, vmin, vmax):
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
         delta = vmax - vmin
-        self.mu = float(self.DEFAULT_RELATIVE_MU * delta + vmin)
+        self.mu = float(vmin + self.DEFAULT_RELATIVE_MU * delta)
         self.sigma = float(self.DEFAULT_RELATIVE_SIGMA * delta)
 
     mu = gds.FloatItem(
-        "μ", default=DEFAULT_RELATIVE_MU, help=_("Normal distribution mean")
+        "μ", default=DEFAULT_RELATIVE_MU, min=0.0, help=_("Normal distribution mean")
     )
     sigma = gds.FloatItem(
         "σ",
         default=DEFAULT_RELATIVE_SIGMA,
+        min=0.0,
         help=_("Normal distribution standard deviation"),
     ).set_pos(col=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
         return f"NormalRandom(μ={self.mu:g},σ={self.sigma:g},seed={self.seed})"
+
+
+class BasePoissonRandomParam(BaseRandomParam):
+    """Poisson-distribution signal/image parameters."""
+
+    DEFAULT_RELATIVE_LAMBDA = 0.1
+
+    def apply_integer_range(self, vmin, vmax):
+        """Adjust default λ based on integer min-max range."""
+        positive_span = max(0.0, float(vmax) - max(0.0, float(vmin)))
+        self.lam = float(max(self.DEFAULT_RELATIVE_LAMBDA * positive_span, 1.0))
+
+    lam = gds.FloatItem(
+        "λ",
+        default=DEFAULT_RELATIVE_LAMBDA,
+        min=0.0,
+        help=_("Poisson distribution mean"),
+    )
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"PoissonRandom(λ={self.lam:g},seed={self.seed})"
 
 
 @enum.unique

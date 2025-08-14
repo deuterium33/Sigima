@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-09 16:13+0200\n"
+"POT-Creation-Date: 2025-08-17 18:30+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -100,6 +100,9 @@ msgstr "Moyenne de la distribution normale"
 msgid "Normal distribution standard deviation"
 msgstr "Ecart-type de la distribution normale"
 
+msgid "Poisson distribution mean"
+msgstr "Moyenne de la distribution de Poisson"
+
 msgid "Properties"
 msgstr "Propriétés"
 
@@ -184,11 +187,14 @@ msgstr "Zéros"
 msgid "Empty"
 msgstr "Vide"
 
-msgid "Random (uniform law)"
-msgstr "Aléatoire (loi uniforme)"
+msgid "Normal distribution"
+msgstr "Moyenne de la distribution normale"
 
-msgid "Random (normal law)"
-msgstr "Aléatoire (loi normale)"
+msgid "Poisson distribution"
+msgstr "Moyenne de la distribution de Poisson"
+
+msgid "Uniform distribution"
+msgstr "Moyenne de la distribution uniforme"
 
 msgid "Gaussian"
 msgstr "Gaussienne"
@@ -439,11 +445,11 @@ msgstr "Sortie en décibels (dB)"
 msgid "Constant value"
 msgstr "Constante"
 
-msgid "rows"
-msgstr "lignes"
-
 msgid "columns"
 msgstr "colonnes"
+
+msgid "rows"
+msgstr "lignes"
 
 msgid "Distribute over"
 msgstr "Distribuer selon les"
@@ -715,14 +721,6 @@ msgstr ""
 
 msgid "Y translation"
 msgstr ""
-
-#, fuzzy
-msgid "column size"
-msgstr "Colonnes"
-
-#, fuzzy
-msgid "row size"
-msgstr "Taille"
 
 #, fuzzy
 msgid "ROI titles"
