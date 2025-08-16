@@ -5,6 +5,15 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 0.3.0 ##
 
+✨ Core architecture update: scalar result types
+
+* Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
+  * These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse.
+  * Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object.
+  * All metadata-related behaviors of former result types have been migrated to the DataLab application layer.
+  * Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core.
+* This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API.
+
 💥 New features and enhancements:
 
 * New ROI features:
