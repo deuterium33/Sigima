@@ -68,7 +68,6 @@ class TableResult:
         data: 2-D array of shape (N, len(names)) with scalar values.
         roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
          Use NO_ROI (-1) for the "full image / no ROI" row.
-        category: Optional grouping label (default: "PROPERTIES").
         attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
     Raises:
@@ -84,7 +83,6 @@ class TableResult:
     labels: Sequence[str] = field(default_factory=list)
     data: np.ndarray = field(default_factory=lambda: np.empty((0, 0), float))
     roi_indices: np.ndarray | None = None
-    category: str = "PROPERTIES"
     attrs: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -123,7 +121,6 @@ class TableResult:
         rows: np.ndarray,
         roi_indices: np.ndarray | None = None,
         *,
-        category: str = "PROPERTIES",
         attrs: dict[str, object] | None = None,
     ) -> TableResult:
         """Create a TableResult from raw data.
@@ -136,7 +133,6 @@ class TableResult:
             rows: 2-D array of shape (N, len(names)) with scalar values.
             roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
              Use NO_ROI (-1) for the "full image / no ROI" row.
-            category: Optional grouping label (default: "PROPERTIES").
             attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
         Returns:
@@ -148,7 +144,6 @@ class TableResult:
             labels,
             np.asarray(rows, float),
             None if roi_indices is None else np.asarray(roi_indices, int),
-            category,
             {} if attrs is None else dict(attrs),
         )
 
@@ -165,7 +160,6 @@ class TableResult:
             "roi_indices": None
             if self.roi_indices is None
             else self.roi_indices.tolist(),
-            "category": self.category,
             "attrs": dict(self.attrs) if self.attrs else {},
         }
 
@@ -180,7 +174,6 @@ class TableResult:
             roi_indices=None
             if d.get("roi_indices") is None
             else np.asarray(d["roi_indices"], dtype=int),
-            category=d.get("category", "PROPERTIES"),
             attrs=dict(d.get("attrs", {})),
         )
 
