@@ -82,9 +82,8 @@ def test_image_peak_detection():
     for create_rois in (True, False):
         obj = sigima.objects.create_image("peak2d_unit_test", data=data)
         param = sigima.params.Peak2DDetectionParam.create(create_rois=create_rois)
-        result = sigima.proc.image.peak_detection(obj, param)
-        df = result.to_dataframe()
-        coords = df.to_numpy(int)
+        geometry = sigima.proc.image.peak_detection(obj, param)
+        coords = geometry.coords
         assert coords.shape == coords_expected.shape, (
             f"Expected {coords_expected.shape[0]} peaks, got {coords.shape[0]}"
         )
@@ -94,11 +93,11 @@ def test_image_peak_detection():
             "Peak coords (comp.)", coords, coords_expected, atol=2, sort=True
         )
         if create_rois:
-            assert result.roi is not None, "ROI should be created"
-            assert len(result.roi) == coords.shape[0], (
-                f"Expected {coords.shape[0]} ROIs, got {len(result.roi)}"
+            assert obj.roi is not None, "ROI should be created"
+            assert len(obj.roi) == coords.shape[0], (
+                f"Expected {coords.shape[0]} ROIs, got {len(obj.roi)}"
             )
-            for i, roi in enumerate(result.roi):
+            for i, roi in enumerate(obj.roi):
                 # Check that ROIs are rectangles
                 assert isinstance(roi, sigima.objects.RectangularROI), (
                     f"Expected RectangularROI, got {type(roi)}"
@@ -109,7 +108,7 @@ def test_image_peak_detection():
                 assert x0 <= x < x1, f"ROI {i} x0={x0}, x={x}, x1={x1} does not match"
                 assert y0 <= y < y1, f"ROI {i} y0={y0}, y={y}, y1={y1} does not match"
         else:
-            assert result.roi is None, "ROI should not be created"
+            assert obj.roi is None, "ROI should not be created"
 
 
 @pytest.mark.gui

@@ -23,7 +23,7 @@ import guidata.dataset as gds
 from sigima.config import _
 from sigima.proc.image.base import (
     Wrap1to1Func,
-    calc_resultshape,
+    compute_geometry_from_obj,
     dst_1_to_1_signal,
     restore_data_outside_roi,
 )

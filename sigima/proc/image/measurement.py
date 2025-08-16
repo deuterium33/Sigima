@@ -30,11 +30,10 @@ import numpy as np
 from numpy import ma
 
 import sigima.tools.image
-from sigima.objects.base import ResultProperties, ResultShape
-from sigima.objects.image import ImageObj
-from sigima.proc.base import calc_resultproperties
+from sigima.config import _
+from sigima.objects import GeometryResult, ImageObj, TableResult, TableResultBuilder
 from sigima.proc.decorator import computation_function
-from sigima.proc.image.base import calc_resultshape
+from sigima.proc.image.base import compute_geometry_from_obj
 
 __all__ = [
     "centroid",
@@ -58,7 +57,7 @@ def get_centroid_coords(data: np.ndarray) -> np.ndarray:
 
 
 @computation_function()
-def centroid(image: ImageObj) -> ResultShape | None:
+def centroid(image: ImageObj) -> GeometryResult | None:
     """Compute centroid
     with :py:func:`sigima.tools.image.get_centroid_fourier`
 
@@ -68,7 +67,7 @@ def centroid(image: ImageObj) -> ResultShape | None:
     Returns:
         Centroid coordinates
     """
-    return calc_resultshape("centroid", "marker", image, get_centroid_coords)
+    return compute_geometry_from_obj("centroid", "marker", image, get_centroid_coords)
 
 
 def get_enclosing_circle_coords(data: np.ndarray) -> np.ndarray:
@@ -86,7 +85,7 @@ def get_enclosing_circle_coords(data: np.ndarray) -> np.ndarray:
 
 
 @computation_function()
-def enclosing_circle(image: ImageObj) -> ResultShape | None:
+def enclosing_circle(image: ImageObj) -> GeometryResult | None:
     """Compute minimum enclosing circle
     with :py:func:`sigima.tools.image.get_enclosing_circle`
 
@@ -96,7 +95,7 @@ def enclosing_circle(image: ImageObj) -> ResultShape | None:
     Returns:
         Diameter coords
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "enclosing_circle", "circle", image, get_enclosing_circle_coords
     )
 
@@ -116,7 +115,7 @@ def __calc_snr_without_warning(data: np.ndarray) -> float:
 
 
 @computation_function()
-def stats(obj: ImageObj) -> ResultProperties:
+def stats(obj: ImageObj) -> TableResult:
     """Compute statistics on an image
 
     Args:
@@ -125,14 +124,13 @@ def stats(obj: ImageObj) -> ResultProperties:
     Returns:
         Result properties
     """
-    statfuncs = {
-        "min(z) = %g {.zunit}": ma.min,
-        "max(z) = %g {.zunit}": ma.max,
-        "<z> = %g {.zunit}": ma.mean,
-        "median(z) = %g {.zunit}": ma.median,
-        "σ(z) = %g {.zunit}": ma.std,
-        "<z>/σ(z)": __calc_snr_without_warning,
-        "peak-to-peak(z) = %g {.zunit}": ma.ptp,
-        "Σ(z) = %g {.zunit}": ma.sum,
-    }
-    return calc_resultproperties("stats", obj, statfuncs)
+    table = TableResultBuilder(_("Image statistics"))
+    table.add(ma.min, "min", "min(z) = %g {.zunit}")
+    table.add(ma.max, "max", "max(z) = %g {.zunit}")
+    table.add(ma.mean, "mean", "<z> = %g {.zunit}")
+    table.add(ma.median, "median", "median(z) = %g {.zunit}")
+    table.add(ma.std, "std", "σ(z) = %g {.zunit}")
+    table.add(__calc_snr_without_warning, "snr", "<z>/σ(z) = %g")
+    table.add(ma.ptp, "ptp", "peak-to-peak(z) = %g {.zunit}")
+    table.add(ma.sum, "sum", "Σ(z) = %g {.zunit}")
+    return table.compute(obj)

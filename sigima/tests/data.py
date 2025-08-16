@@ -20,6 +20,7 @@ from sigima.config import _
 from sigima.io import read_image, read_signal
 from sigima.objects import (
     GaussParam,
+    GeometryResult,
     ImageDatatypes,
     ImageObj,
     ImageROI,
@@ -27,11 +28,10 @@ from sigima.objects import (
     NewImageParam,
     NewSignalParam,
     NormalRandom2DParam,
-    ResultProperties,
-    ResultShape,
     SignalObj,
     SignalROI,
     SignalTypes,
+    TableResult,
     create_image,
     create_image_from_param,
     create_image_roi,
@@ -40,6 +40,7 @@ from sigima.objects import (
     create_signal_roi,
 )
 from sigima.objects.image import UniformRandom2DParam, create_image_parameters
+from sigima.objects.scalar import KindShape
 from sigima.tests.env import execenv
 from sigima.tests.helpers import get_test_fnames
 
@@ -394,8 +395,8 @@ def get_peak2d_data(
     # Convert coordinates to indices
     coords = []
     for x0, y0 in coords_phys:
-        x = int((x0 + 10) / 20 * p.size)
-        y = int((y0 + 10) / 20 * p.size)
+        x = (x0 + 10) / 20 * p.size
+        y = (y0 + 10) / 20 * p.size
         if 0 <= x < p.size and 0 <= y < p.size:
             coords.append((x, y))
     return data, np.array(coords)
@@ -1006,30 +1007,30 @@ def create_test_image_with_metadata() -> ImageObj:
     return image
 
 
-def create_resultshapes() -> Generator[ResultShape, None, None]:
-    """Create test result shapes (core.base.ResultShape test objects)
+def generate_geometry_results() -> Generator[GeometryResult, None, None]:
+    """Create test geometry results.
 
     Yields:
-        ResultShape object
+        GeometryResult object
     """
-    for shape, data in (
-        ("circle", [[0, 250, 250, 200], [0, 250, 250, 140]]),
-        ("rectangle", [0, 300, 200, 700, 700]),
-        ("segment", [0, 50, 250, 400, 400]),
-        ("point", [[0, 500, 500], [0, 15, 400]]),
+    for shape, coords in (
+        (KindShape.CIRCLE, [[250, 250, 200], [250, 250, 140]]),
+        (KindShape.RECTANGLE, [300, 200, 700, 700]),
+        (KindShape.SEGMENT, [0, 50, 250, 400, 400]),
+        (KindShape.POINT, [[0, 500, 500], [0, 15, 400]]),
         (
-            "polygon",
-            [0, 100, 100, 150, 100, 150, 150, 200, 100, 250, 50],
+            KindShape.POLYGON,
+            [100, 100, 150, 100, 150, 150, 200, 100, 250, 50],
         ),
     ):
-        yield ResultShape(shape, data, shape, add_label=shape == "segment")
+        yield GeometryResult("Test geometry result", shape, coords, None)
 
 
-def create_resultproperties() -> Generator[ResultProperties, None, None]:
-    """Create test result properties (core.base.ResultProperties test object)
+def generate_table_results() -> Generator[TableResult, None, None]:
+    """Create test table results.
 
     Yields:
-        ResultProperties object
+        TableResult object
     """
     for title, data, labels in (
         ("TestProperties1", [-1, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
@@ -1039,4 +1040,4 @@ def create_resultproperties() -> Generator[ResultProperties, None, None]:
             ["P1", "P2", "P3", "P4"],
         ),
     ):
-        yield ResultProperties(title, data, labels)
+        yield TableResult(title, labels, np.asarray(data), None)

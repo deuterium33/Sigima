@@ -153,7 +153,7 @@ def test_create_signal() -> None:
     assert np.array_equal(signal.y, y)
     assert signal.dx is None
     assert signal.dy is None
-    assert signal.metadata == {}
+    assert not signal.metadata
     assert (signal.xunit, signal.yunit) == ("", "")
     assert (signal.xlabel, signal.ylabel) == ("", "")
 

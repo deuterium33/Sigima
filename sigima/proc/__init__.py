@@ -3,8 +3,9 @@ Computation (:mod:`sigima.proc`)
 --------------------------------
 
 This package contains the Sigima computation functions that implement processing
-features for signal and image objects. These functions are designed to operate directly
-on :class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj` objects,
+features for signal, image and scalar objects. These functions are designed to operate
+directly on :class:`sigima.objects.SignalObj`, :class:`sigima.objects.ImageObj`,
+:class:`sigima.objects.GeometryResult` and :class:`sigima.objects.TableResult` objects,
 which are defined in the :mod:`sigima.objects` package.
 
 Even though these functions are primarily designed to be used in the Sigima pipeline,
@@ -36,6 +37,7 @@ The following subpackages are available:
 - :mod:`sigima.proc.base`: Common processing features
 - :mod:`sigima.proc.signal`: Signal processing features
 - :mod:`sigima.proc.image`: Image processing features
+- :mod:`sigima.proc.scalar`: Scalar processing features
 
 Common processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,6 +130,12 @@ Geometry
 
 .. automodule:: sigima.proc.image.geometry
     :members:
+
+Scalar processing features
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: sigima.proc.scalar
+   :members:
 
 Decorators and utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^

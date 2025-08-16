@@ -15,6 +15,13 @@ comprehensive set of tools for data analysis and visualization, around
 the DataLab application.
 """
 
+# TODO [P1]: Check coordinates of GeometryResult (ex-ResultShape): are they in pixel
+# or physical units? There is an ambiguity in the current implementation.
+# (given the implementation of "compute_geometry_from_obj", they are in physical units
+# because this function is converting pixel coordinates to physical units -- however,
+# this should be documented, at least in the docstrings of this function and of the
+# GeometryResult class)
+
 # TODO: Use `numpy.typing.NDArray` for more precise type annotations once NumPy >= 1.21
 # can be safely required (e.g. after raising the minimum required version of
 # scikit-image to >= 0.19).
@@ -42,8 +49,57 @@ the DataLab application.
 # TODO: Add documentation on I/O plugin system (similar to the `cdl.plugins` module)
 # --------------------------------------------------------------------------------------
 
-# pylint:disable=unused-import
-# flake8: noqa
+__all__ = [
+    "read_image",
+    "read_images",
+    "read_signal",
+    "read_signals",
+    "write_image",
+    "write_signal",
+    "NO_ROI",
+    "CircularROI",
+    "ExponentialParam",
+    "Gauss2DParam",
+    "GaussParam",
+    "GeometryResult",
+    "ImageDatatypes",
+    "ImageObj",
+    "ImageROI",
+    "ImageTypes",
+    "KindShape",
+    "LinearChirpParam",
+    "LogisticParam",
+    "LorentzParam",
+    "NormalRandom2DParam",
+    "NormalRandomParam",
+    "PlanckParam",
+    "PolygonalROI",
+    "Ramp2DParam",
+    "RectangularROI",
+    "ROI1DParam",
+    "ROI2DParam",
+    "SegmentROI",
+    "SignalObj",
+    "SignalROI",
+    "SignalTypes",
+    "StepParam",
+    "TableResult",
+    "TypeObj",
+    "TypeROI",
+    "UniformRandom2DParam",
+    "UniformRandomParam",
+    "VoigtParam",
+    "calc_table_from_data",
+    "create_image",
+    "create_image_from_param",
+    "create_image_roi",
+    "create_signal",
+    "create_signal_from_param",
+    "create_signal_roi",
+]
+
+
+from guidata.config import ValidationMode, set_validation_mode
 
 from sigima.io import (
     read_image,
@@ -54,14 +110,17 @@ from sigima.io import (
     write_signal,
 )
 from sigima.objects import (
+    NO_ROI,
     CircularROI,
     ExponentialParam,
     Gauss2DParam,
     GaussParam,
+    GeometryResult,
     ImageDatatypes,
     ImageObj,
     ImageROI,
     ImageTypes,
+    KindShape,
     LinearChirpParam,
     LogisticParam,
     LorentzParam,
@@ -71,21 +130,20 @@ from sigima.objects import (
     PolygonalROI,
     Ramp2DParam,
     RectangularROI,
-    ResultProperties,
-    ResultShape,
     ROI1DParam,
     ROI2DParam,
     SegmentROI,
-    ShapeTypes,
     SignalObj,
     SignalROI,
     SignalTypes,
     StepParam,
+    TableResult,
     TypeObj,
     TypeROI,
     UniformRandom2DParam,
     UniformRandomParam,
     VoigtParam,
+    calc_table_from_data,
     create_image,
     create_image_from_param,
     create_image_roi,
@@ -93,7 +151,6 @@ from sigima.objects import (
     create_signal_from_param,
     create_signal_roi,
 )
-from guidata.config import ValidationMode, set_validation_mode
 
 # Set validation mode to ENABLED by default (issue warnings for invalid inputs)
 set_validation_mode(ValidationMode.ENABLED)

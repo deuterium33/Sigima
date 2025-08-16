@@ -32,7 +32,6 @@ import warnings
 
 import numpy as np
 
-from sigima.config import options
 from sigima.objects.image import ImageObj
 from sigima.proc.base import (
     ArithmeticParam,
@@ -226,8 +225,6 @@ def arithmetic(src1: ImageObj, src2: ImageObj, p: ArithmeticParam) -> ImageObj:
     initial_dtype = src1.data.dtype
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
     dst = src1.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
     o, a, b = p.operator, p.factor, p.constant
     # Apply operator
     if o in ("×", "/") and a == 0.0:

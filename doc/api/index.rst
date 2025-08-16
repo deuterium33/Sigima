@@ -3,7 +3,7 @@
 API
 ===
 
-The public Application Programming Interface (API) of Sigima offers a set of functions that can be used     to access the DataLab computational backend. This API is designed to be simple and effective, allowing users to perform signal and image processing tasks with ease.
+The public Application Programming Interface (API) of Sigima offers a set of functions that can be used to access the DataLab computational backend. This API is designed to be simple and effective, allowing users to perform signal and image processing tasks with ease.
 
 .. list-table::
     :header-rows: 1
@@ -19,10 +19,10 @@ The public Application Programming Interface (API) of Sigima offers a set of fun
       - Sets of parameters for configuring computation functions (these parameters are instances of :class:`guidata.dataset.DataSet` objects)
 
     * - :mod:`sigima.objects`
-      - Object model for signals and images (:class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj`) and related functions
+      - Object model for signals and images (:class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj`), scalar results (:class:`sigima.objects.GeometryResult` and :class:`sigima.objects.TableResult`), and related functions
 
     * - :mod:`sigima.proc`
-      - Computation functions, which operate on signal and image objects (:class:`sigima.objects.SignalObj` or :class:`sigima.objects.ImageObj`)
+      - Computation functions, which operate on signal and image objects (:class:`sigima.objects.SignalObj` or :class:`sigima.objects.ImageObj`) and return signal or image objects, or scalar results (:class:`sigima.objects.GeometryResult` or :class:`sigima.objects.TableResult`).
 
 
 .. toctree::

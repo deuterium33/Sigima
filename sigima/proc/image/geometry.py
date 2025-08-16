@@ -37,7 +37,6 @@ from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func
-from sigima.tools.coordinates import vector_rotation
 
 __all__ = [
     "RotateParam",
@@ -94,37 +93,6 @@ class RotateParam(gds.DataSet):
     ).set_prop("display", active=prop)
 
 
-def rotate_obj_coords(
-    angle: float, obj: ImageObj, orig: ImageObj, coords: np.ndarray
-) -> None:
-    """Apply rotation to coords associated to image obj
-
-    Args:
-        angle: rotation angle (in degrees)
-        obj: image object
-        orig: original image object
-        coords: coordinates to rotate
-
-    Returns:
-        Output data
-    """
-    for row in range(coords.shape[0]):
-        for col in range(0, coords.shape[1], 2):
-            x1, y1 = coords[row, col : col + 2]
-            dx1 = x1 - orig.xc
-            dy1 = y1 - orig.yc
-            dx2, dy2 = vector_rotation(-angle * np.pi / 180.0, dx1, dy1)
-            coords[row, col : col + 2] = dx2 + obj.xc, dy2 + obj.yc
-    obj.roi = None
-
-
-def rotate_obj_alpha(
-    obj: ImageObj, orig: ImageObj, coords: np.ndarray, p: RotateParam
-) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(p.angle, obj, orig, coords)
-
-
 @computation_function()
 def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
     """Rotate data with :py:func:`scipy.ndimage.rotate`
@@ -146,13 +114,7 @@ def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
         cval=p.cval,
         prefilter=p.prefilter,
     )
-    dst.transform_shapes(src, rotate_obj_alpha, p)
     return dst
-
-
-def rotate_obj_90(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(90.0, dst, src, coords)
 
 
 @computation_function()
@@ -167,13 +129,7 @@ def rotate90(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate90")
     dst.data = np.rot90(src.data)
-    dst.transform_shapes(src, rotate_obj_90)
     return dst
-
-
-def rotate_obj_270(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(270.0, dst, src, coords)
 
 
 @computation_function()
@@ -188,15 +144,7 @@ def rotate270(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate270")
     dst.data = np.rot90(src.data, 3)
-    dst.transform_shapes(src, rotate_obj_270)
     return dst
-
-
-# pylint: disable=unused-argument
-def hflip_coords(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply HFlip to coords"""
-    coords[:, ::2] = dst.x0 + dst.width - coords[:, ::2]
-    dst.roi = None
 
 
 @computation_function()
@@ -209,16 +157,7 @@ def fliph(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.fliplr)(src)
-    dst.transform_shapes(src, hflip_coords)
-    return dst
-
-
-# pylint: disable=unused-argument
-def vflip_coords(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply VFlip to coords"""
-    coords[:, 1::2] = dst.y0 + dst.height - coords[:, 1::2]
-    dst.roi = None
+    return Wrap1to1Func(np.fliplr)(src)
 
 
 @computation_function()
@@ -231,9 +170,7 @@ def flipv(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.flipud)(src)
-    dst.transform_shapes(src, vflip_coords)
-    return dst
+    return Wrap1to1Func(np.flipud)(src)
 
 
 class ResizeParam(gds.DataSet):
@@ -357,9 +294,6 @@ def binning(src: ImageObj, param: BinningParam) -> ImageObj:
         if src.dx is not None and src.dy is not None:
             dst.dx = src.dx * param.sx
             dst.dy = src.dy * param.sy
-    else:
-        # TODO: [P2] Instead of removing geometric shapes, apply zoom
-        dst.remove_all_shapes()
     return dst
 
 
@@ -373,7 +307,4 @@ def swap_axes(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.transpose)(src)
-    # TODO: [P2] Instead of removing geometric shapes, apply swap
-    dst.remove_all_shapes()
-    return dst
+    return Wrap1to1Func(np.transpose)(src)

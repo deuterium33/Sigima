@@ -28,10 +28,9 @@ import numpy as np
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.base import ResultShape, ShapeTypes
-from sigima.objects.image import ImageObj, create_image_roi
+from sigima.objects import GeometryResult, ImageObj, KindShape, create_image_roi
 from sigima.proc.decorator import computation_function
-from sigima.proc.image.base import calc_resultshape
+from sigima.proc.image.base import compute_geometry_from_obj
 
 __all__ = [
     "GenericDetectionParam",
@@ -87,7 +86,7 @@ class Peak2DDetectionParam(GenericDetectionParam):
 
 
 @computation_function()
-def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> ResultShape | None:
+def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | None:
     """Compute 2D peak detection
     with :py:func:`sigima.tools.image.get_2d_peaks_coords`
 
@@ -98,7 +97,7 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> ResultShape | None
     Returns:
         Peak coordinates
     """
-    result = calc_resultshape(
+    geometry = compute_geometry_from_obj(
         "peak",
         "point",
         obj,
@@ -106,22 +105,22 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> ResultShape | None
         p.size,
         p.threshold,
     )
-    if result is not None and p.create_rois and result.raw_data.shape[0] > 1:
+    if geometry is not None and p.create_rois and len(geometry) > 1:
         # Create a rectangular ROI around each peak, only if there are more than one
         # peak detected (otherwise, it would not make sense to create an ROI)
-        dist = sigima.tools.image.distance_matrix(result.raw_data)
+        dist = sigima.tools.image.distance_matrix(geometry.coords)
         dist_min = dist[dist != 0].min()
         assert dist_min > 0
         radius = int(0.5 * dist_min / np.sqrt(2) - 1)
         assert radius >= 1
         ymax, xmax = obj.data.shape
         coords = []
-        for x, y in result.raw_data:
+        for x, y in geometry.coords:
             x0, y0 = max(x - radius, 0), max(y - radius, 0)
             dx, dy = min(x + radius, xmax) - x0, min(y + radius, ymax) - y0
             coords.append([x0, y0, dx, dy])
-        result.roi = create_image_roi("rectangle", coords, indices=True)
-    return result
+        obj.roi = create_image_roi("rectangle", coords, indices=True)
+    return geometry
 
 
 class ContourShapeParam(GenericDetectionParam):
@@ -133,22 +132,16 @@ class ContourShapeParam(GenericDetectionParam):
         ("polygon", _("Polygon")),
     )
 
-    # The following item is used to store the 'shape type' and is implicitly accessed
-    # by the `cdl.gui.processor.base.BaseProcessor.compute_1_to_0` method
-    # (see DataLab's main package).
-    # The keys of the item choices (i.e. the first element of each tuple of `shapes`)
-    # must match the names of the `sigima.objects.base.ShapeTypes` (when uppercased).
-    assert {shape[0].upper() for shape in shapes}.issubset(
-        set(ShapeTypes.__members__.keys())
-    )
+    # Keep choices aligned with supported geometry kinds
+    assert {s[0] for s in shapes}.issubset(set(KindShape.values()))
     shape = gds.ChoiceItem(_("Shape"), shapes, default="ellipse")
 
 
 @computation_function()
-def contour_shape(image: ImageObj, p: ContourShapeParam) -> ResultShape | None:
+def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | None:
     """Compute contour shape fit
     with :py:func:`sigima.tools.image.get_contour_shapes`"""
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "contour",
         p.shape,
         image,
@@ -213,7 +206,7 @@ class BlobDOGParam(BaseBlobParam):
 
 
 @computation_function()
-def blob_dog(image: ImageObj, p: BlobDOGParam) -> ResultShape | None:
+def blob_dog(image: ImageObj, p: BlobDOGParam) -> GeometryResult | None:
     """Compute blobs using Difference of Gaussian method
     with :py:func:`sigima.tools.image.find_blobs_dog`
 
@@ -224,7 +217,7 @@ def blob_dog(image: ImageObj, p: BlobDOGParam) -> ResultShape | None:
     Returns:
         Blobs coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "blob_dog",
         "circle",
         image,
@@ -252,7 +245,7 @@ class BlobDOHParam(BaseBlobParam):
 
 
 @computation_function()
-def blob_doh(image: ImageObj, p: BlobDOHParam) -> ResultShape | None:
+def blob_doh(image: ImageObj, p: BlobDOHParam) -> GeometryResult | None:
     """Compute blobs using Determinant of Hessian method
     with :py:func:`sigima.tools.image.find_blobs_doh`
 
@@ -263,7 +256,7 @@ def blob_doh(image: ImageObj, p: BlobDOHParam) -> ResultShape | None:
     Returns:
         Blobs coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "blob_doh",
         "circle",
         image,
@@ -287,7 +280,7 @@ class BlobLOGParam(BlobDOHParam):
 
 
 @computation_function()
-def blob_log(image: ImageObj, p: BlobLOGParam) -> ResultShape | None:
+def blob_log(image: ImageObj, p: BlobLOGParam) -> GeometryResult | None:
     """Compute blobs using Laplacian of Gaussian method
     with :py:func:`sigima.tools.image.find_blobs_log`
 
@@ -298,7 +291,7 @@ def blob_log(image: ImageObj, p: BlobLOGParam) -> ResultShape | None:
     Returns:
         Blobs coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "blob_log",
         "circle",
         image,
@@ -450,7 +443,7 @@ class BlobOpenCVParam(gds.DataSet):
 
 
 @computation_function()
-def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> ResultShape | None:
+def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> GeometryResult | None:
     """Compute blobs using OpenCV
     with :py:func:`sigima.tools.image.find_blobs_opencv`
 
@@ -461,7 +454,7 @@ def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> ResultShape | None:
     Returns:
         Blobs coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "blob_opencv",
         "circle",
         image,
@@ -500,7 +493,7 @@ class HoughCircleParam(gds.DataSet):
 
 
 @computation_function()
-def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> ResultShape | None:
+def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> GeometryResult | None:
     """Compute Hough circles
     with :py:func:`sigima.tools.image.get_hough_circle_peaks`
 
@@ -511,7 +504,7 @@ def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> ResultShape | No
     Returns:
         Circle coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "hough_circle_peak",
         "circle",
         image,

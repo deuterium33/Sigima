@@ -44,7 +44,7 @@ def get_analytical_stats(data: np.ndarray) -> dict[str, float]:
             "mean": np.mean(data),
             "median": np.median(data),
             "std": np.std(data),
-            "mean/std": np.mean(data) / np.std(data),
+            "snr": np.mean(data) / np.std(data),
             "ptp": np.ptp(data),
             "sum": np.sum(data),
         }
@@ -82,35 +82,21 @@ def create_reference_image() -> sigima.objects.ImageObj:
 def test_signal_stats_unit() -> None:
     """Validate computed statistics for signals"""
     obj = create_reference_signal()
-    res = sigima.proc.signal.stats(obj)
-    df = res.to_dataframe()
+    table = sigima.proc.signal.stats(obj)
     ref = get_analytical_stats(obj.xydata)
-    name_map = {
-        "min": "min(y)",
-        "max": "max(y)",
-        "mean": "<y>",
-        "median": "median(y)",
-        "std": "σ(y)",
-        "mean/std": "<y>/σ(y)",
-        "ptp": "peak-to-peak(y)",
-        "sum": "Σ(y)",
-        "trapz": "∫ydx",
-    }
     for key, val in ref.items():
-        colname = name_map[key]
-        assert colname in df
-        assert np.isclose(df[colname][0], val), f"Incorrect value for {colname}"
+        assert key in table
+        assert np.isclose(table[key][0], val), f"Incorrect value for {key}"
 
     # Given the fact that signal ROI is set to [len(sig.x) // 2, len(sig.x) - 1],
     # we may check the relationship between the results on the whole signal and the ROI:
     for key, val in ref.items():
-        colname = name_map[key]
         if key in ("trapz", "sum"):
-            assert np.isclose(df[colname][1], val / 2, rtol=0.02)
+            assert np.isclose(table[key][1], val / 2, rtol=0.02)
         elif key == "median":
             continue
         else:
-            assert np.isclose(df[colname][1], val, rtol=0.01)
+            assert np.isclose(table[key][1], val, rtol=0.01)
 
 
 @pytest.mark.validation
@@ -124,40 +110,27 @@ def test_image_stats_unit() -> None:
     with np.errstate(invalid="ignore"):
         res = sigima.proc.image.stats(obj)
 
-    df = res.to_dataframe()
     ref = get_analytical_stats(obj.data)
-    name_map = {
-        "min": "min(z)",
-        "max": "max(z)",
-        "mean": "<z>",
-        "median": "median(z)",
-        "std": "σ(z)",
-        "mean/std": "<z>/σ(z)",
-        "ptp": "peak-to-peak(z)",
-        "sum": "Σ(z)",
-    }
     for key, val in ref.items():
-        colname = name_map[key]
-        assert colname in df
-        assert np.isclose(df[colname][0], val, rtol=1e-4, atol=1e-5), (
-            f"Incorrect value for {colname}"
+        assert key in res
+        assert np.isclose(res[key][0], val, rtol=1e-4, atol=1e-5), (
+            f"Incorrect value for {key}"
         )
 
     # Given the fact that image ROI is set to
     # [[dx // 2, 0, dx, dy], [0, 0, dx // 3, dy // 3], [dx // 2, dy // 2, dx, dy]],
     # we may check the relationship between the results on the whole image and the ROIs:
     for key, val in ref.items():
-        colname = name_map[key]
         if key == "sum":
-            assert np.isclose(df[colname][1], val / 2, rtol=0.02)
-            assert np.isclose(df[colname][3], val / 4, rtol=0.02)
+            assert np.isclose(res[key][1], val / 2, rtol=0.02)
+            assert np.isclose(res[key][3], val / 4, rtol=0.02)
         elif key == "median":
             continue
         else:
-            assert np.isclose(df[colname][1], val, rtol=0.01)
-            assert np.isclose(df[colname][3], val, rtol=0.01)
-            if key != "mean/std":
-                assert np.isclose(df[colname][2], 0.0, atol=0.001)
+            assert np.isclose(res[key][1], val, rtol=0.01)
+            assert np.isclose(res[key][3], val, rtol=0.01)
+            if key != "snr":
+                assert np.isclose(res[key][2], 0.0, atol=0.001)
 
 
 if __name__ == "__main__":

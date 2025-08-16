@@ -143,9 +143,10 @@ def __check_centroid(
         expected_y: Expected y coordinate of the centroid
         debug_str: Debug string for logging
     """
-    df = sigima.proc.image.centroid(image).to_dataframe()
-    check_scalar_result(f"Centroid X [{debug_str}]", df.x[0], expected_x, atol=1.0)
-    check_scalar_result(f"Centroid Y [{debug_str}]", df.y[0], expected_y, atol=1.0)
+    geometry = sigima.proc.image.centroid(image)
+    x, y = geometry.coords[0]
+    check_scalar_result(f"Centroid X [{debug_str}]", x, expected_x, atol=1.0)
+    check_scalar_result(f"Centroid Y [{debug_str}]", y, expected_y, atol=1.0)
 
 
 @pytest.mark.validation

@@ -5,39 +5,45 @@ Model classes for signals and images (:mod:`sigima.objects`)
 ------------------------------------------------------------
 
 The :mod:`sigima.objects` module aims at providing all the necessary classes and
-functions to create and manipulate Sigima signal and image objects.
+functions to create and manipulate Sigima scalar, signal and image objects.
 
 Those classes and functions are defined in submodules:
 
 - :mod:`sigima.objects.base`
+- :mod:`sigima.objects.scalar`
 - :mod:`sigima.objects.image`
 - :mod:`sigima.objects.signal`
 
 .. code-block:: python
 
     # Full import statement
+    from sigima.objects.scalar import GeometryResult, TableResult
     from sigima.objects.signal import SignalObj
     from sigima.objects.image import ImageObj
 
     # Short import statement
-    from sigima.objects import SignalObj, ImageObj
+    from sigima.objects import SignalObj, ImageObj, GeometryResult, TableResult
+
+In Sigima, computation functions take signal or image objects as input and produce
+signal, image or scalar objects as output. Scalar objects are represented by the
+`GeometryResult` and `TableResult` classes.
+
+.. note::
+
+    The scalar results are not rigorously scalar as they can also represent vector of
+    coordinates for example, but the name 'scalar' is retained for simplicity and by
+    opposition to the more general 'signal' and 'image' terms).
 
 Common objects
 ^^^^^^^^^^^^^^
 
-.. autoclass:: sigima.objects.ResultProperties
-    :members:
-.. autoclass:: sigima.objects.ResultShape
-    :members:
-.. autoclass:: sigima.objects.ShapeTypes
-    :members:
 .. autoclass:: sigima.objects.TypeObj
 .. autoclass:: sigima.objects.TypeROI
 .. autoclass:: sigima.objects.TypeROIParam
 .. autoclass:: sigima.objects.TypeSingleROI
 
-Signal model
-^^^^^^^^^^^^
+Signals
+^^^^^^^
 
 .. autodataset:: sigima.objects.SignalObj
     :members:
@@ -68,8 +74,8 @@ Signal model
 .. autodataset:: sigima.objects.ROI1DParam
 .. autoclass:: sigima.objects.SignalROI
 
-Image model
-^^^^^^^^^^^
+Images
+^^^^^^
 
 .. autodataset:: sigima.objects.ImageObj
     :members:
@@ -92,9 +98,6 @@ Image model
 """
 
 __all__ = [
-    "ResultProperties",
-    "ResultShape",
-    "ShapeTypes",
     "TypeObj",
     "TypeROI",
     "TypeROIParam",
@@ -118,6 +121,16 @@ __all__ = [
     "create_image_from_param",
     "create_image_parameters",
     "create_image_roi",
+    "NO_ROI",
+    "GeometryResult",
+    "KindShape",
+    "TableResult",
+    "TableResultBuilder",
+    "calc_table_from_data",
+    "concat_geometries",
+    "concat_tables",
+    "filter_geometry_by_roi",
+    "filter_table_by_roi",
     "CosinusParam",
     "CustomSignalParam",
     "ExponentialParam",
@@ -150,15 +163,7 @@ __all__ = [
     "create_signal_roi",
 ]
 
-from sigima.objects.base import (
-    ResultProperties,
-    ResultShape,
-    ShapeTypes,
-    TypeObj,
-    TypeROI,
-    TypeROIParam,
-    TypeSingleROI,
-)
+from sigima.objects.base import TypeObj, TypeROI, TypeROIParam, TypeSingleROI
 from sigima.objects.image import (
     CircularROI,
     Empty2DParam,
@@ -179,6 +184,18 @@ from sigima.objects.image import (
     create_image_from_param,
     create_image_parameters,
     create_image_roi,
+)
+from sigima.objects.scalar import (
+    NO_ROI,
+    GeometryResult,
+    KindShape,
+    TableResult,
+    TableResultBuilder,
+    calc_table_from_data,
+    concat_geometries,
+    concat_tables,
+    filter_geometry_by_roi,
+    filter_table_by_roi,
 )
 from sigima.objects.signal import (
     CosinusParam,
