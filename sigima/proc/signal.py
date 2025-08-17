@@ -26,8 +26,21 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 
 from sigima.config import _, options
-from sigima.objects.base import ResultProperties, ResultShape
-from sigima.objects.signal import ROI1DParam, SignalObj
+from sigima.objects.base import (
+    BaseNormalRandomParam,
+    BasePoissonRandomParam,
+    BaseUniformRandomParam,
+    ResultProperties,
+    ResultShape,
+)
+from sigima.objects.signal import (
+    NormalRandomParam,
+    PoissonRandomParam,
+    ROI1DParam,
+    SignalObj,
+    UniformRandomParam,
+    create_signal_from_param,
+)
 from sigima.proc.base import (
     ArithmeticParam,
     ClipParam,
@@ -155,6 +168,9 @@ __all__ = [
     "sampling_rate_period",
     "contrast",
     "x_at_minmax",
+    "add_gaussian_noise",
+    "add_poisson_noise",
+    "add_uniform_noise",
 ]
 
 
@@ -911,6 +927,69 @@ def wiener(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(sps.wiener)(src)
+
+
+@computation_function()
+def add_gaussian_noise(src: SignalObj, p: BaseNormalRandomParam) -> SignalObj:
+    """Add normal noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = NormalRandomParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_gaussian_noise", f"µ={p.mu}, σ={p.sigma}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_poisson_noise(src: SignalObj, p: BasePoissonRandomParam) -> SignalObj:
+    """Add Poisson noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = PoissonRandomParam.create(seed=p.seed, lam=p.lam)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_poisson_noise", f"λ={p.lam}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_uniform_noise(src: SignalObj, p: BaseUniformRandomParam) -> SignalObj:
+    """Add uniform noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = UniformRandomParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_uniform_noise", f"low={p.vmin}, high={p.vmax}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
 
 
 class FilterType(Enum):

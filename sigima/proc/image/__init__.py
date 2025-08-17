@@ -165,6 +165,11 @@ from sigima.proc.image.morphology import (
     opening,
     white_tophat,
 )
+from sigima.proc.image.noise import (
+    add_gaussian_noise,
+    add_poisson_noise,
+    add_uniform_noise,
+)
 from sigima.proc.image.restoration import (
     DenoiseBilateralParam,
     DenoiseTVParam,
