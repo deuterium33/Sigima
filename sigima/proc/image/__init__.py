@@ -141,7 +141,7 @@ from sigima.proc.image.geometry import (
     rotate,
     rotate90,
     rotate270,
-    swap_axes,
+    transpose,
 )
 from sigima.proc.image.mathops import (
     DataTypeIParam,

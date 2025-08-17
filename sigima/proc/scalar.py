@@ -282,7 +282,7 @@ IMAGE_GEOMETRY_UPDATE_MAP = {
     "fliph": (fliph, lambda geom, **k: (geom, None)),
     "flipv": (flipv, lambda geom, **k: (geom, None)),
     "resize": (scale, lambda geom, p, **k: (geom, 1.0 / p.zoom, 1.0 / p.zoom, None)),
-    "swap_axes": (transpose, lambda geom, **k: (geom,)),
+    "transpose": (transpose, lambda geom, **k: (geom,)),
     "binning": (scale, lambda geom, p, **k: (geom, 1.0 / p.sx, 1.0 / p.sy, None)),
 }
 

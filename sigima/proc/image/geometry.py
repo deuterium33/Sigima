@@ -49,7 +49,7 @@ __all__ = [
     "resize",
     "BinningParam",
     "binning",
-    "swap_axes",
+    "transpose",
 ]
 
 
@@ -298,8 +298,8 @@ def binning(src: ImageObj, param: BinningParam) -> ImageObj:
 
 
 @computation_function()
-def swap_axes(src: ImageObj) -> ImageObj:
-    """Swap image axes with :py:func:`numpy.transpose`
+def transpose(src: ImageObj) -> ImageObj:
+    """Transpose image with :py:func:`numpy.transpose`
 
     Args:
         src: input image object

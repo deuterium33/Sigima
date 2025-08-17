@@ -36,7 +36,7 @@ def test_image_fliph() -> None:
 @pytest.mark.validation
 def test_image_flipd() -> None:
     """Image diagonal flip test."""
-    __generic_flip_check(sigima.proc.image.swap_axes, np.transpose)
+    __generic_flip_check(sigima.proc.image.transpose, np.transpose)
 
 
 @pytest.mark.validation
@@ -83,12 +83,12 @@ def test_image_rotate() -> None:
 
 
 @pytest.mark.validation
-def test_image_swap_axes() -> None:
-    """Validation test for the image axes swapping processing."""
+def test_image_transpose() -> None:
+    """Validation test for the image transpose processing."""
     src = get_test_image("flower.npy")
-    dst = sigima.proc.image.swap_axes(src)
+    dst = sigima.proc.image.transpose(src)
     exp = np.swapaxes(src.data, 0, 1)
-    check_array_result("SwapAxes", dst.data, exp)
+    check_array_result("Transpose", dst.data, exp)
 
 
 if __name__ == "__main__":
@@ -97,4 +97,4 @@ if __name__ == "__main__":
     test_image_rotate90()
     test_image_rotate270()
     test_image_rotate()
-    test_image_swap_axes()
+    test_image_transpose()

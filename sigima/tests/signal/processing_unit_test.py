@@ -65,13 +65,13 @@ def test_signal_calibration() -> None:
 
 
 @pytest.mark.validation
-def test_signal_swap_axes() -> None:
-    """Validation test for the signal axes swapping processing."""
+def test_signal_transpose() -> None:
+    """Validation test for the signal transpose processing."""
     src = get_test_signal("paracetamol.txt")
-    dst = sigima.proc.signal.swap_axes(src)
+    dst = sigima.proc.signal.transpose(src)
     exp_y, exp_x = src.xydata
-    check_array_result("SwapAxes|x", dst.x, exp_x)
-    check_array_result("SwapAxes|y", dst.y, exp_y)
+    check_array_result("Transpose|x", dst.x, exp_x)
+    check_array_result("Transpose|y", dst.y, exp_y)
 
 
 @pytest.mark.validation
@@ -397,7 +397,7 @@ def test_signal_XY_mode() -> None:
 
 if __name__ == "__main__":
     test_signal_calibration()
-    test_signal_swap_axes()
+    test_signal_transpose()
     test_to_polar()
     test_to_cartesian()
     test_signal_to_polar()

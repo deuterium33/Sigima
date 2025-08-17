@@ -81,7 +81,7 @@ __all__ = [
     "division",
     "extract_rois",
     "extract_roi",
-    "swap_axes",
+    "transpose",
     "inverse",
     "absolute",
     "real",
@@ -545,8 +545,8 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
 
 
 @computation_function()
-def swap_axes(src: SignalObj) -> SignalObj:
-    """Swap axes
+def transpose(src: SignalObj) -> SignalObj:
+    """Transpose signal (swap X and Y axes)
 
     Args:
         src: source signal
@@ -554,7 +554,7 @@ def swap_axes(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    dst = dst_1_to_1(src, "swap_axes")
+    dst = dst_1_to_1(src, "transpose")
     x, y = src.get_data()
     dst.set_xydata(y, x)
     return dst
