@@ -70,8 +70,14 @@ def test_peak2d_unit():
     )
     # Absolute tolerance is set to 2 pixels, as coordinates are in pixel units
     # and the algorithm may detect peaks at slightly different pixel locations
+    # Convert coordinates to float64 for dtype compatibility with expected results
+    coords_float = coords.astype(np.float64)
     check_array_result(
-        "Peak coords (sigima.tools.image.)", coords, coords_expected, atol=2, sort=True
+        "Peak coords (sigima.tools.image.)",
+        coords_float,
+        coords_expected,
+        atol=2,
+        sort=True,
     )
 
 
