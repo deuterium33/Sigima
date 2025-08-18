@@ -35,6 +35,9 @@ Common objects
 .. autoclass:: sigima.objects.TypeROI
 .. autoclass:: sigima.objects.TypeROIParam
 .. autoclass:: sigima.objects.TypeSingleROI
+.. autodataset:: sigima.objects.BaseNormalRandomParam
+.. autodataset:: sigima.objects.BasePoissonRandomParam
+.. autodataset:: sigima.objects.BaseUniformRandomParam
 
 Signal model
 ^^^^^^^^^^^^
@@ -94,6 +97,9 @@ Image model
 """
 
 __all__ = [
+    "BaseNormalRandomParam",
+    "BasePoissonRandomParam",
+    "BaseUniformRandomParam",
     "ResultProperties",
     "ResultShape",
     "ShapeTypes",
@@ -155,6 +161,9 @@ __all__ = [
 ]
 
 from sigima.objects.base import (
+    BaseNormalRandomParam,
+    BasePoissonRandomParam,
+    BaseUniformRandomParam,
     ResultProperties,
     ResultShape,
     ShapeTypes,
