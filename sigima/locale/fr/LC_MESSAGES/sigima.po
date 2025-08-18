@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-17 18:30+0200\n"
+"POT-Creation-Date: 2025-08-18 10:45+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -1127,18 +1127,6 @@ msgstr "Nombre d'harmoniques"
 msgid "Number of harmonics to consider for THD"
 msgstr "Nombre d'harmoniques à considérer pour le THD"
 
-msgid "Mean of the Gaussian distribution"
-msgstr "Moyenne de la distribution gaussienne"
-
-msgid "Standard deviation"
-msgstr "Ecart-type"
-
-msgid "Standard deviation of the Gaussian distribution"
-msgstr "Ecart-type de la distribution gaussienne"
-
-msgid "Seed for random number generator"
-msgstr "Graine du générateur de nombres aléatoires"
-
 msgid "Number"
 msgstr "Nombre"
 
@@ -1147,6 +1135,12 @@ msgstr "Sigma de la gaussienne 2D"
 
 msgid "Amplitude of the 2D Gaussian"
 msgstr "Amplitude de la gaussienne 2D"
+
+msgid "Mean of the Gaussian distribution"
+msgstr "Moyenne de la distribution gaussienne"
+
+msgid "Standard deviation of the Gaussian distribution"
+msgstr "Ecart-type de la distribution gaussienne"
 
 msgid "Attenuation"
 msgstr "Atténuation"
@@ -1171,3 +1165,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

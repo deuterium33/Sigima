@@ -19,6 +19,7 @@ import numpy as np
 from sigima.config import _
 from sigima.io import read_image, read_signal
 from sigima.objects import (
+    BaseNormalRandomParam,
     GaussParam,
     ImageDatatypes,
     ImageObj,
@@ -131,34 +132,8 @@ def create_paracetamol_signal(
     return obj
 
 
-class GaussianNoiseParam(gds.DataSet):
-    """Gaussian noise parameters"""
-
-    mu = gds.FloatItem(
-        _("Mean"),
-        default=0.0,
-        min=-100.0,
-        max=100.0,
-        help=_("Mean of the Gaussian distribution"),
-    )
-    sigma = gds.FloatItem(
-        _("Standard deviation"),
-        default=0.1,
-        min=0.0,
-        max=100.0,
-        help=_("Standard deviation of the Gaussian distribution"),
-    )
-    seed = gds.IntItem(
-        _("Seed"),
-        default=1,
-        min=0,
-        max=1000000,
-        help=_("Seed for random number generator"),
-    )
-
-
 def add_gaussian_noise_to_signal(
-    signal: SignalObj, p: GaussianNoiseParam | None = None
+    signal: SignalObj, p: BaseNormalRandomParam | None = None
 ) -> None:
     """Add Gaussian (Normal-law) random noise to data
 
@@ -167,14 +142,14 @@ def add_gaussian_noise_to_signal(
         p: Gaussian noise parameters.
     """
     if p is None:
-        p = GaussianNoiseParam()
+        p = BaseNormalRandomParam()
     rng = np.random.default_rng(p.seed)
     signal.data += rng.normal(p.mu, p.sigma, size=signal.data.shape)
     signal.title = f"GaussNoise({signal.title}, µ={p.mu}, σ={p.sigma})"
 
 
 def create_noisy_signal(
-    noiseparam: GaussianNoiseParam | None = None,
+    noiseparam: BaseNormalRandomParam | None = None,
     param: NewSignalParam | None = None,
     title: str | None = None,
     noised: bool | None = None,
@@ -201,7 +176,7 @@ def create_noisy_signal(
         param.title = title
     param.title = "Test signal (noisy)" if param.title is None else param.title
     if noised is not None and noised and noiseparam is None:
-        noiseparam = GaussianNoiseParam()
+        noiseparam = BaseNormalRandomParam()
         noiseparam.sigma = 5.0
     sig = create_signal_from_param(param)
     if noiseparam is not None:
@@ -619,20 +594,6 @@ def __set_default_size_dtype(
     p.width = 2000 if p.width is None else p.width
     p.dtype = ImageDatatypes.UINT16 if p.dtype is None else p.dtype
     return p
-
-
-def add_gaussian_noise_to_image(image: ImageObj, param: NormalRandom2DParam) -> None:
-    """Add Gaussian noise to image
-
-    Args:
-        src: Source image
-        param: Parameters for the normal distribution
-    """
-    param.height = image.data.shape[0]
-    param.width = image.data.shape[1]
-    param.dtype = ImageDatatypes.from_dtype(image.data.dtype)
-    noise = create_image_from_param(param)
-    image.data = image.data + noise.data
 
 
 def create_checkerboard(p: NewImageParam | None = None, num_checkers=8) -> ImageObj:
