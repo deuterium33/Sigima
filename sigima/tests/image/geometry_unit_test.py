@@ -62,6 +62,32 @@ def test_image_rotate90() -> None:
     __generic_rotate_check(90)
 
 
+def test_roi_rotate90() -> None:
+    """Test 90° rotation with ROI transformation."""
+    # Create test image with ROI
+    ima = get_test_image("flower.npy")
+    ima.roi = sigima.objects.image.create_image_roi(
+        "rectangle", [10.0, 10.0, 50.0, 400.0], indices=False
+    )
+
+    # Apply 90° rotation
+    rotated = sigima.proc.image.rotate90(ima)
+
+    # Check that ROI coordinates were transformed correctly
+    # Original: [10, 10, 50, 400] -> Expected: [10, 10, -380, 50]
+    expected_coords = np.array([10.0, 10.0, -380.0, 50.0])
+    actual_coords = rotated.roi.single_rois[0].coords
+
+    assert np.allclose(actual_coords, expected_coords), (
+        f"ROI coordinates not transformed correctly. "
+        f"Expected {expected_coords}, got {actual_coords}"
+    )
+
+    # Check that the ROI properties are preserved
+    assert rotated.roi.single_rois[0].title == ima.roi.single_rois[0].title
+    assert rotated.roi.single_rois[0].indices == ima.roi.single_rois[0].indices
+
+
 @pytest.mark.validation
 def test_image_rotate270() -> None:
     """Image 270° rotation test."""

@@ -129,6 +129,73 @@ def rotate90(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate90")
     dst.data = np.rot90(src.data)
+
+    # Transform ROI coordinates if they exist
+    if dst.roi is not None and not dst.roi.is_empty():
+        # Import here to avoid circular imports
+        from sigima.objects.image import (
+            CircularROI,
+            ImageROI,
+            PolygonalROI,
+            RectangularROI,
+        )
+        from sigima.objects.scalar import GeometryResult, KindShape
+        from sigima.proc import scalar
+
+        # Create a new ROI object to replace the existing one
+        new_roi = ImageROI(dst.roi.singleobj, dst.roi.inverse)
+
+        for single_roi in dst.roi.single_rois:
+            coords = single_roi.coords.copy()
+
+            # Handle rectangular ROI: [x0, y0, dx, dy]
+            if "Rectangular" in single_roi.__class__.__name__:
+                # Transform the coordinates
+                temp_coords = np.array([coords])
+                temp_geom = GeometryResult(
+                    "temp_roi", KindShape.RECTANGLE, coords=temp_coords
+                )
+                # Apply 90° rotation
+                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
+                new_coords = transformed_geom.coords[0]
+
+                # Create a new rectangular ROI with transformed coordinates
+                new_single_roi = RectangularROI(
+                    new_coords, single_roi.indices, single_roi.title
+                )
+                new_roi.add_roi(new_single_roi)
+
+            # Handle circular ROI: [xc, yc, r]
+            elif "Circular" in single_roi.__class__.__name__:
+                xc, yc, r = coords
+                temp_coords = np.array([[xc, yc]])
+                temp_geom = GeometryResult(
+                    "temp_roi_circle", KindShape.POINT, coords=temp_coords
+                )
+                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
+                txc, tyc = transformed_geom.coords[0]
+                new_coords = np.array([txc, tyc, r])
+                new_single_roi = CircularROI(
+                    new_coords, single_roi.indices, single_roi.title
+                )
+                new_roi.add_roi(new_single_roi)
+
+            # Handle polygonal ROI: [x0, y0, x1, y1, x2, y2, ...]
+            elif "Polygonal" in single_roi.__class__.__name__:
+                temp_coords = np.array([coords])
+                temp_geom = GeometryResult(
+                    "temp_roi_polygon", KindShape.POLYGON, coords=temp_coords
+                )
+                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
+                new_coords = transformed_geom.coords[0]
+                new_single_roi = PolygonalROI(
+                    new_coords, single_roi.indices, single_roi.title
+                )
+                new_roi.add_roi(new_single_roi)
+
+        # Replace the ROI object
+        dst.roi = new_roi
+
     return dst
 
 

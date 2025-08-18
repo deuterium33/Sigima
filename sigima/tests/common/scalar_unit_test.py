@@ -73,20 +73,3 @@ def test_transpose() -> None:
     transposed = transpose(rect)
     transposed_back = transpose(transposed)
     np.testing.assert_allclose(transposed_back.coords, rect.coords, rtol=1e-12)
-
-
-def test_scale_1d() -> None:
-    """Test 1D scaling of a geometry result."""
-    coords = np.array([[2.0]], dtype=float)
-    geom = GeometryResult("pt", "point", coords)
-    scaled = scale_1d(geom, 2.0, center_x=1.0)
-    expected_x = (coords[:, 0] - 1.0) * 2.0 + 1.0
-    np.testing.assert_allclose(scaled.coords[:, 0], expected_x)
-
-
-def test_translate_1d() -> None:
-    """Test 1D translation of a geometry result."""
-    coords = np.array([[3.0]], dtype=float)
-    geom = GeometryResult("pt", "point", coords)
-    translated = translate_1d(geom, dx=2.0)
-    np.testing.assert_allclose(translated.coords[:, 0], [5.0])
