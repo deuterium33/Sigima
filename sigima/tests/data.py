@@ -593,10 +593,7 @@ def iterate_image_creation(
             f"(size={size}, non_zero={non_zero}):"
         )
     for itype in ImageTypes:
-        if non_zero and itype in (
-            ImageTypes.EMPTY,
-            ImageTypes.ZEROS,
-        ):
+        if non_zero and itype == ImageTypes.ZEROS:
             continue
         if verbose:
             execenv.print(f"    {itype.value}")

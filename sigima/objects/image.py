@@ -1087,8 +1087,6 @@ class ImageTypes(enum.Enum):
     #: Image filled with zeros
     ZEROS = _("Zeros")
     #: Empty image (filled with data from memory state)
-    EMPTY = _("Empty")
-    #: Image filled with random data (uniform law)
     UNIFORMRANDOM = _("Random (uniform law)")
     #: Image filled with random data (normal law)
     NORMALRANDOM = _("Random (normal law)")
