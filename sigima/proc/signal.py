@@ -27,18 +27,18 @@ import scipy.signal as sps
 
 from sigima.config import _, options
 from sigima.objects.base import (
-    BaseNormalRandomParam,
-    BasePoissonRandomParam,
-    BaseUniformRandomParam,
+    NormalDistributionParam,
+    PoissonDistributionParam,
     ResultProperties,
     ResultShape,
+    UniformDistributionParam,
 )
 from sigima.objects.signal import (
-    NormalRandomParam,
-    PoissonRandomParam,
+    NormalDistribution1DParam,
+    PoissonDistribution1DParam,
     ROI1DParam,
     SignalObj,
-    UniformRandomParam,
+    UniformDistribution1DParam,
     create_signal_from_param,
 )
 from sigima.proc.base import (
@@ -930,7 +930,7 @@ def wiener(src: SignalObj) -> SignalObj:
 
 
 @computation_function()
-def add_gaussian_noise(src: SignalObj, p: BaseNormalRandomParam) -> SignalObj:
+def add_gaussian_noise(src: SignalObj, p: NormalDistributionParam) -> SignalObj:
     """Add normal noise to the input signal.
 
     Args:
@@ -940,7 +940,7 @@ def add_gaussian_noise(src: SignalObj, p: BaseNormalRandomParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    param = NormalRandomParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param = NormalDistribution1DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
@@ -951,7 +951,7 @@ def add_gaussian_noise(src: SignalObj, p: BaseNormalRandomParam) -> SignalObj:
 
 
 @computation_function()
-def add_poisson_noise(src: SignalObj, p: BasePoissonRandomParam) -> SignalObj:
+def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     """Add Poisson noise to the input signal.
 
     Args:
@@ -961,7 +961,7 @@ def add_poisson_noise(src: SignalObj, p: BasePoissonRandomParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    param = PoissonRandomParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution1DParam.create(seed=p.seed, lam=p.lam)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
@@ -972,7 +972,7 @@ def add_poisson_noise(src: SignalObj, p: BasePoissonRandomParam) -> SignalObj:
 
 
 @computation_function()
-def add_uniform_noise(src: SignalObj, p: BaseUniformRandomParam) -> SignalObj:
+def add_uniform_noise(src: SignalObj, p: UniformDistributionParam) -> SignalObj:
     """Add uniform noise to the input signal.
 
     Args:
@@ -982,7 +982,7 @@ def add_uniform_noise(src: SignalObj, p: BaseUniformRandomParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    param = UniformRandomParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param = UniformDistribution1DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size

@@ -35,9 +35,9 @@ Common objects
 .. autoclass:: sigima.objects.TypeROI
 .. autoclass:: sigima.objects.TypeROIParam
 .. autoclass:: sigima.objects.TypeSingleROI
-.. autodataset:: sigima.objects.BaseNormalRandomParam
-.. autodataset:: sigima.objects.BasePoissonRandomParam
-.. autodataset:: sigima.objects.BaseUniformRandomParam
+.. autodataset:: sigima.objects.NormalDistributionParam
+.. autodataset:: sigima.objects.PoissonDistributionParam
+.. autodataset:: sigima.objects.UniformDistributionParam
 
 Signal model
 ^^^^^^^^^^^^
@@ -52,9 +52,9 @@ Signal model
 .. autoclass:: sigima.objects.SignalTypes
 .. autoclass:: sigima.objects.NewSignalParam
 .. autodataset:: sigima.objects.ZerosParam
-.. autodataset:: sigima.objects.UniformRandomParam
-.. autodataset:: sigima.objects.NormalRandomParam
-.. autodataset:: sigima.objects.PoissonRandomParam
+.. autodataset:: sigima.objects.UniformDistribution1DParam
+.. autodataset:: sigima.objects.NormalDistribution1DParam
+.. autodataset:: sigima.objects.PoissonDistribution1DParam
 .. autodataset:: sigima.objects.GaussParam
 .. autodataset:: sigima.objects.LorentzParam
 .. autodataset:: sigima.objects.VoigtParam
@@ -86,9 +86,9 @@ Image model
 .. autoclass:: sigima.objects.NewImageParam
 .. autodataset:: sigima.objects.Zeros2DParam
 .. autodataset:: sigima.objects.Empty2DParam
-.. autodataset:: sigima.objects.UniformRandom2DParam
-.. autodataset:: sigima.objects.NormalRandom2DParam
-.. autodataset:: sigima.objects.PoissonRandom2DParam
+.. autodataset:: sigima.objects.UniformDistribution2DParam
+.. autodataset:: sigima.objects.NormalDistribution2DParam
+.. autodataset:: sigima.objects.PoissonDistribution2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
 .. autodataset:: sigima.objects.Ramp2DParam
 .. autodataset:: sigima.objects.ROI2DParam
@@ -97,9 +97,9 @@ Image model
 """
 
 __all__ = [
-    "BaseNormalRandomParam",
-    "BasePoissonRandomParam",
-    "BaseUniformRandomParam",
+    "NormalDistributionParam",
+    "PoissonDistributionParam",
+    "UniformDistributionParam",
     "ResultProperties",
     "ResultShape",
     "ShapeTypes",
@@ -115,13 +115,13 @@ __all__ = [
     "ImageROI",
     "ImageTypes",
     "NewImageParam",
-    "NormalRandom2DParam",
-    "PoissonRandom2DParam",
+    "NormalDistribution2DParam",
+    "PoissonDistribution2DParam",
     "PolygonalROI",
     "Ramp2DParam",
     "RectangularROI",
     "ROI2DParam",
-    "UniformRandom2DParam",
+    "UniformDistribution2DParam",
     "Zeros2DParam",
     "create_image",
     "create_image_from_param",
@@ -135,8 +135,8 @@ __all__ = [
     "LogisticParam",
     "LorentzParam",
     "NewSignalParam",
-    "NormalRandomParam",
-    "PoissonRandomParam",
+    "NormalDistribution1DParam",
+    "PoissonDistribution1DParam",
     "PlanckParam",
     "PolyParam",
     "PulseParam",
@@ -151,7 +151,7 @@ __all__ = [
     "SquareParam",
     "StepParam",
     "TriangleParam",
-    "UniformRandomParam",
+    "UniformDistribution1DParam",
     "VoigtParam",
     "ZerosParam",
     "create_signal",
@@ -161,9 +161,8 @@ __all__ = [
 ]
 
 from sigima.objects.base import (
-    BaseNormalRandomParam,
-    BasePoissonRandomParam,
-    BaseUniformRandomParam,
+    NormalDistributionParam,
+    PoissonDistributionParam,
     ResultProperties,
     ResultShape,
     ShapeTypes,
@@ -171,6 +170,7 @@ from sigima.objects.base import (
     TypeROI,
     TypeROIParam,
     TypeSingleROI,
+    UniformDistributionParam,
 )
 from sigima.objects.image import (
     CircularROI,
@@ -181,13 +181,13 @@ from sigima.objects.image import (
     ImageROI,
     ImageTypes,
     NewImageParam,
-    NormalRandom2DParam,
-    PoissonRandom2DParam,
+    NormalDistribution2DParam,
+    PoissonDistribution2DParam,
     PolygonalROI,
     Ramp2DParam,
     RectangularROI,
     ROI2DParam,
-    UniformRandom2DParam,
+    UniformDistribution2DParam,
     Zeros2DParam,
     create_image,
     create_image_from_param,
@@ -203,9 +203,9 @@ from sigima.objects.signal import (
     LogisticParam,
     LorentzParam,
     NewSignalParam,
-    NormalRandomParam,
+    NormalDistribution1DParam,
     PlanckParam,
-    PoissonRandomParam,
+    PoissonDistribution1DParam,
     PolyParam,
     PulseParam,
     ROI1DParam,
@@ -219,7 +219,7 @@ from sigima.objects.signal import (
     SquareParam,
     StepParam,
     TriangleParam,
-    UniformRandomParam,
+    UniformDistribution1DParam,
     VoigtParam,
     ZerosParam,
     create_signal,

@@ -1089,11 +1089,11 @@ class ImageTypes(enum.Enum):
     #: Empty image (filled with data from memory state)
     EMPTY = _("Empty")
     #: Image filled with random data (normal distribution)
-    NORMALRANDOM = _("Normal distribution")
+    NORMAL_DISTRIBUTION = _("Normal distribution")
     #: Image filled with random data (Poisson distribution)
-    POISSONRANDOM = _("Poisson distribution")
+    POISSON_DISTRIBUTION = _("Poisson distribution")
     #: Image filled with random data (uniform distribution)
-    UNIFORMRANDOM = _("Uniform distribution")
+    UNIFORM_DISTRIBUTION = _("Uniform distribution")
     #: 2D Gaussian image
     GAUSS = _("Gaussian")
     #: Bilinear form image
@@ -1250,7 +1250,7 @@ class Empty2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.EMPTY, Empty2DParam)
 
 
-class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
+class UniformDistribution2DParam(base.UniformDistributionParam, NewImageParam):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1270,10 +1270,12 @@ class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
         return data.astype(dtype)
 
 
-register_image_parameters_class(ImageTypes.UNIFORMRANDOM, UniformRandom2DParam)
+register_image_parameters_class(
+    ImageTypes.UNIFORM_DISTRIBUTION, UniformDistribution2DParam
+)
 
 
-class NormalRandom2DParam(base.BaseNormalRandomParam, NewImageParam):
+class NormalDistribution2DParam(base.NormalDistributionParam, NewImageParam):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1293,10 +1295,12 @@ class NormalRandom2DParam(base.BaseNormalRandomParam, NewImageParam):
         return data.astype(dtype)
 
 
-register_image_parameters_class(ImageTypes.NORMALRANDOM, NormalRandom2DParam)
+register_image_parameters_class(
+    ImageTypes.NORMAL_DISTRIBUTION, NormalDistribution2DParam
+)
 
 
-class PoissonRandom2DParam(base.BasePoissonRandomParam, NewImageParam):
+class PoissonDistribution2DParam(base.PoissonDistributionParam, NewImageParam):
     """Poisson-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1315,7 +1319,9 @@ class PoissonRandom2DParam(base.BasePoissonRandomParam, NewImageParam):
         return data.astype(dtype)
 
 
-register_image_parameters_class(ImageTypes.POISSONRANDOM, PoissonRandom2DParam)
+register_image_parameters_class(
+    ImageTypes.POISSON_DISTRIBUTION, PoissonDistribution2DParam
+)
 
 
 class Gauss2DParam(NewImageParam):

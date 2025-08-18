@@ -17,15 +17,15 @@ Noise addition computation module.
 from __future__ import annotations
 
 from sigima.objects.base import (
-    BaseNormalRandomParam,
-    BasePoissonRandomParam,
-    BaseUniformRandomParam,
+    NormalDistributionParam,
+    PoissonDistributionParam,
+    UniformDistributionParam,
 )
 from sigima.objects.image import (
     ImageObj,
-    NormalRandom2DParam,
-    PoissonRandom2DParam,
-    UniformRandom2DParam,
+    NormalDistribution2DParam,
+    PoissonDistribution2DParam,
+    UniformDistribution2DParam,
     create_image_from_param,
 )
 from sigima.proc.base import dst_1_to_1
@@ -36,7 +36,7 @@ __all__ = ["add_gaussian_noise"]
 
 
 @computation_function()
-def add_gaussian_noise(src: ImageObj, p: BaseNormalRandomParam) -> ImageObj:
+def add_gaussian_noise(src: ImageObj, p: NormalDistributionParam) -> ImageObj:
     """Add Gaussian (normal) noise to the input image.
 
     Args:
@@ -46,7 +46,7 @@ def add_gaussian_noise(src: ImageObj, p: BaseNormalRandomParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = NormalRandom2DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param = NormalDistribution2DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]
@@ -59,7 +59,7 @@ def add_gaussian_noise(src: ImageObj, p: BaseNormalRandomParam) -> ImageObj:
 
 
 @computation_function()
-def add_poisson_noise(src: ImageObj, p: BasePoissonRandomParam) -> ImageObj:
+def add_poisson_noise(src: ImageObj, p: PoissonDistributionParam) -> ImageObj:
     """Add Poisson noise to the input image.
 
     Args:
@@ -69,7 +69,7 @@ def add_poisson_noise(src: ImageObj, p: BasePoissonRandomParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = PoissonRandom2DParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution2DParam.create(seed=p.seed, lam=p.lam)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]
@@ -82,7 +82,7 @@ def add_poisson_noise(src: ImageObj, p: BasePoissonRandomParam) -> ImageObj:
 
 
 @computation_function()
-def add_uniform_noise(src: ImageObj, p: BaseUniformRandomParam) -> ImageObj:
+def add_uniform_noise(src: ImageObj, p: UniformDistributionParam) -> ImageObj:
     """Add uniform noise to the input image.
 
     Args:
@@ -92,7 +92,7 @@ def add_uniform_noise(src: ImageObj, p: BaseUniformRandomParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = UniformRandom2DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param = UniformDistribution2DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]

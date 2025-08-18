@@ -47,7 +47,7 @@ def test_signal_fwhm_interactive() -> None:
     with qt_app_context():
         execenv.print("Computing FWHM of a multi-peak signal:")
         obj1 = sigima.tests.data.create_paracetamol_signal()
-        p = sigima.objects.BaseNormalRandomParam.create(sigma=0.05)
+        p = sigima.objects.NormalDistributionParam.create(sigma=0.05)
         obj2 = sigima.tests.data.create_noisy_signal(p)
         for method, _mname in sigima.params.FWHMParam.methods:
             execenv.print(f"  Method: {method}")

@@ -519,11 +519,11 @@ class SignalTypes(enum.Enum):
     #: Signal filled with zeros
     ZEROS = _("Zeros")
     #: Random signal (normal distribution)
-    NORMALRANDOM = _("Normal distribution")
+    NORMAL_DISTRIBUTION = _("Normal distribution")
     #: Random signal (Poisson distribution)
-    POISSONRANDOM = _("Poisson distribution")
+    POISSON_DISTRIBUTION = _("Poisson distribution")
     #: Random signal (uniform distribution)
-    UNIFORMRANDOM = _("Uniform distribution")
+    UNIFORM_DISTRIBUTION = _("Uniform distribution")
     #: Gaussian function
     GAUSS = _("Gaussian")
     #: Lorentzian function
@@ -688,7 +688,7 @@ class ZerosParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
 
 
-class UniformRandomParam(base.BaseUniformRandomParam, NewSignalParam):
+class UniformDistribution1DParam(base.UniformDistributionParam, NewSignalParam):
     """Uniform-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -705,10 +705,12 @@ class UniformRandomParam(base.BaseUniformRandomParam, NewSignalParam):
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.UNIFORMRANDOM, UniformRandomParam)
+register_signal_parameters_class(
+    SignalTypes.UNIFORM_DISTRIBUTION, UniformDistribution1DParam
+)
 
 
-class NormalRandomParam(base.BaseNormalRandomParam, NewSignalParam):
+class NormalDistribution1DParam(base.NormalDistributionParam, NewSignalParam):
     """Normal-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -725,10 +727,12 @@ class NormalRandomParam(base.BaseNormalRandomParam, NewSignalParam):
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.NORMALRANDOM, NormalRandomParam)
+register_signal_parameters_class(
+    SignalTypes.NORMAL_DISTRIBUTION, NormalDistribution1DParam
+)
 
 
-class PoissonRandomParam(base.BasePoissonRandomParam, NewSignalParam):
+class PoissonDistribution1DParam(base.PoissonDistributionParam, NewSignalParam):
     """Poisson-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -744,7 +748,9 @@ class PoissonRandomParam(base.BasePoissonRandomParam, NewSignalParam):
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.POISSONRANDOM, PoissonRandomParam)
+register_signal_parameters_class(
+    SignalTypes.POISSON_DISTRIBUTION, PoissonDistribution1DParam
+)
 
 
 class BaseGaussLorentzVoigtParam(NewSignalParam):
