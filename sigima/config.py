@@ -20,13 +20,13 @@ Typical usage:
     from sigima.config import options
 
     # Get an option
-    value = options.keep_results.get(default=True)
+    value = options.fft_shift_enabled.get(default=True)
 
     # Set an option
-    options.keep_results.set(False)
+    options.fft_shift_enabled.set(False)
 
     # Temporarily override an option
-    with options.keep_results.context(True):
+    with options.fft_shift_enabled.context(True):
         ...
 
 The following table lists the available options:
@@ -284,17 +284,6 @@ class OptionsContainer:
         return os.environ.get(cls.ENV_VAR, "{}")
 
     def __init__(self) -> None:
-        self.keep_results = TypedOptionField(
-            self,
-            "keep_results",
-            default=True,
-            expected_type=bool,
-            description=_(
-                "If True, computation functions will not delete previous results "
-                "when creating new objects. This allows for retaining results across "
-                "invocations."
-            ),
-        )
         self.fft_shift_enabled = TypedOptionField(
             self,
             "fft_shift_enabled",
