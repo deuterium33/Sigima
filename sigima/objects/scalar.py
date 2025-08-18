@@ -394,6 +394,18 @@ class GeometryResult:
             raise ValueError("title must be a non-empty string")
         if not isinstance(self.coords, np.ndarray) or self.coords.ndim != 2:
             raise ValueError("coords must be a 2-D numpy array")
+        if k == KindShape.POINT and self.coords.shape[1] != 2:
+            raise ValueError("coords for 'point' must be (N,2)")
+        if k == KindShape.SEGMENT and self.coords.shape[1] != 4:
+            raise ValueError("coords for 'segment' must be (N,4)")
+        if k == KindShape.CIRCLE and self.coords.shape[1] != 3:
+            raise ValueError("coords for 'circle' must be (N,3)")
+        if k == KindShape.ELLIPSE and self.coords.shape[1] != 5:
+            raise ValueError("coords for 'ellipse' must be (N,5)")
+        if k == KindShape.RECTANGLE and self.coords.shape[1] != 4:
+            raise ValueError("coords for 'rectangle' must be (N,4)")
+        if k == KindShape.POLYGON and self.coords.shape[1] % 2 != 0:
+            raise ValueError("coords for 'polygon' must be (N,2M) for M vertices")
         if self.roi_indices is not None:
             if (
                 not isinstance(self.roi_indices, np.ndarray)
@@ -486,26 +498,22 @@ class GeometryResult:
     # Optional convenience for common kinds:
     def segments_lengths(self) -> np.ndarray:
         """For kind='segment': return vector of segment lengths."""
-        if self.kind is not KindShape.SEGMENT or self.coords.shape[1] < 4:
-            raise ValueError(
-                "segments_lengths requires kind='segment' with coords (N,4)"
-            )
+        if self.kind is not KindShape.SEGMENT:
+            raise ValueError("segments_lengths requires kind='segment'")
         dx = self.coords[:, 2] - self.coords[:, 0]
         dy = self.coords[:, 3] - self.coords[:, 1]
         return np.sqrt(dx * dx + dy * dy)
 
     def circles_radii(self) -> np.ndarray:
         """For kind='circle': return radii."""
-        if self.kind is not KindShape.CIRCLE or self.coords.shape[1] < 3:
-            raise ValueError("circles_radii requires kind='circle' with coords (N,3)")
+        if self.kind is not KindShape.CIRCLE:
+            raise ValueError("circles_radii requires kind='circle'")
         return self.coords[:, 2]
 
     def ellipse_axes_angles(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """For kind='ellipse': return (a, b, theta)."""
-        if self.kind is not KindShape.ELLIPSE or self.coords.shape[1] < 5:
-            raise ValueError(
-                "ellipse_axes_angles requires kind='ellipse' with coords (N,5)"
-            )
+        if self.kind is not KindShape.ELLIPSE:
+            raise ValueError("ellipse_axes_angles requires kind='ellipse'")
         return self.coords[:, 2], self.coords[:, 3], self.coords[:, 4]
 
 

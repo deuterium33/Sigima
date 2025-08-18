@@ -1013,17 +1013,19 @@ def generate_geometry_results() -> Generator[GeometryResult, None, None]:
     Yields:
         GeometryResult object
     """
-    for shape, coords in (
-        (KindShape.CIRCLE, [[250, 250, 200], [250, 250, 140]]),
-        (KindShape.RECTANGLE, [300, 200, 700, 700]),
-        (KindShape.SEGMENT, [0, 50, 250, 400, 400]),
-        (KindShape.POINT, [[0, 500, 500], [0, 15, 400]]),
+    for index, (shape, coords) in enumerate(
         (
-            KindShape.POLYGON,
-            [100, 100, 150, 100, 150, 150, 200, 100, 250, 50],
-        ),
+            (KindShape.CIRCLE, [[250, 250, 200]]),
+            (KindShape.RECTANGLE, [[300, 200, 700, 700]]),
+            (KindShape.SEGMENT, [[50, 250, 400, 400]]),
+            (KindShape.POINT, [[500, 500]]),
+            (
+                KindShape.POLYGON,
+                [[100, 100, 150, 100, 150, 150, 200, 100, 250, 50]],
+            ),
+        )
     ):
-        yield GeometryResult("Test geometry result", shape, coords, None)
+        yield GeometryResult(f"GeomResult{index}", shape, coords=np.asarray(coords))
 
 
 def generate_table_results() -> Generator[TableResult, None, None]:
@@ -1032,12 +1034,10 @@ def generate_table_results() -> Generator[TableResult, None, None]:
     Yields:
         TableResult object
     """
-    for title, data, labels in (
-        ("TestProperties1", [-1, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
+    for index, (names, data) in enumerate(
         (
-            "TestProperties2",
-            [[-1, 1.232325, -9, 0, 10], [-1, 250, -3, 12.0, 530.0]],
-            ["P1", "P2", "P3", "P4"],
-        ),
+            (["A", "B", "C", "D"], [[-1, 2.5, -30909, 1.0]]),
+            (["P1", "P2", "P3", "P4"], [[-1, 1.232325, -9, 0]]),
+        )
     ):
-        yield TableResult(title, labels, np.asarray(data), None)
+        yield TableResult(f"TestProperties{index}", names, data=np.asarray(data))
