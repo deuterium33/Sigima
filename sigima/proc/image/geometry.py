@@ -27,16 +27,24 @@ These functions are useful for preparing and augmenting image data.
 
 from __future__ import annotations
 
+from typing import Callable
+
 import guidata.dataset as gds
 import numpy as np
 import scipy.ndimage as spi
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.image import ImageObj
+from sigima.objects.image import (
+    CircularROI,
+    ImageObj,
+    ImageROI,
+    PolygonalROI,
+    RectangularROI,
+)
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
-from sigima.proc.image.base import Wrap1to1Func
+from sigima.tools.coordinates import flip_coords, rotate_coords, transpose_coords
 
 __all__ = [
     "RotateParam",
@@ -51,6 +59,45 @@ __all__ = [
     "binning",
     "transpose",
 ]
+
+
+def transform_roi_coordinates(
+    image: ImageObj, coord_transform_func: Callable, *args, **kwargs
+) -> None:
+    """Apply a coordinate transformation to ROI coordinates.
+
+    This function uses the generic coordinate transformation tools
+    to transform ROI objects.
+
+    Args:
+        image: Image object whose ROI coordinates will be transformed
+        coord_transform_func: Coordinate transformation function
+         (e.g., rotate_coords, flip_coords, transpose_coords)
+        *args: Arguments for the transformation function
+        **kwargs: Keyword arguments for the transformation function
+    """
+    if image.roi is None or image.roi.is_empty():
+        return
+
+    # Determine ROI type and set up appropriate classes
+    new_roi = ImageROI(image.roi.singleobj, image.roi.inverse)
+
+    # Transform each single ROI
+    for single_roi in image.roi.single_rois:
+        coords = single_roi.coords.copy()
+        roi_class = single_roi.__class__
+        coord_type = {
+            RectangularROI: "rectangular",
+            CircularROI: "circular",
+            PolygonalROI: "polygonal",
+        }[roi_class]
+        new_coords = coord_transform_func(
+            coords, *args, coord_type=coord_type, **kwargs
+        )
+        new_single_roi = roi_class(new_coords, single_roi.indices, single_roi.title)
+        new_roi.add_roi(new_single_roi)
+
+    image.roi = new_roi
 
 
 class RotateParam(gds.DataSet):
@@ -129,73 +176,7 @@ def rotate90(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate90")
     dst.data = np.rot90(src.data)
-
-    # Transform ROI coordinates if they exist
-    if dst.roi is not None and not dst.roi.is_empty():
-        # Import here to avoid circular imports
-        from sigima.objects.image import (
-            CircularROI,
-            ImageROI,
-            PolygonalROI,
-            RectangularROI,
-        )
-        from sigima.objects.scalar import GeometryResult, KindShape
-        from sigima.proc import scalar
-
-        # Create a new ROI object to replace the existing one
-        new_roi = ImageROI(dst.roi.singleobj, dst.roi.inverse)
-
-        for single_roi in dst.roi.single_rois:
-            coords = single_roi.coords.copy()
-
-            # Handle rectangular ROI: [x0, y0, dx, dy]
-            if "Rectangular" in single_roi.__class__.__name__:
-                # Transform the coordinates
-                temp_coords = np.array([coords])
-                temp_geom = GeometryResult(
-                    "temp_roi", KindShape.RECTANGLE, coords=temp_coords
-                )
-                # Apply 90° rotation
-                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
-                new_coords = transformed_geom.coords[0]
-
-                # Create a new rectangular ROI with transformed coordinates
-                new_single_roi = RectangularROI(
-                    new_coords, single_roi.indices, single_roi.title
-                )
-                new_roi.add_roi(new_single_roi)
-
-            # Handle circular ROI: [xc, yc, r]
-            elif "Circular" in single_roi.__class__.__name__:
-                xc, yc, r = coords
-                temp_coords = np.array([[xc, yc]])
-                temp_geom = GeometryResult(
-                    "temp_roi_circle", KindShape.POINT, coords=temp_coords
-                )
-                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
-                txc, tyc = transformed_geom.coords[0]
-                new_coords = np.array([txc, tyc, r])
-                new_single_roi = CircularROI(
-                    new_coords, single_roi.indices, single_roi.title
-                )
-                new_roi.add_roi(new_single_roi)
-
-            # Handle polygonal ROI: [x0, y0, x1, y1, x2, y2, ...]
-            elif "Polygonal" in single_roi.__class__.__name__:
-                temp_coords = np.array([coords])
-                temp_geom = GeometryResult(
-                    "temp_roi_polygon", KindShape.POLYGON, coords=temp_coords
-                )
-                transformed_geom = scalar.rotate(temp_geom, np.pi / 2, None)
-                new_coords = transformed_geom.coords[0]
-                new_single_roi = PolygonalROI(
-                    new_coords, single_roi.indices, single_roi.title
-                )
-                new_roi.add_roi(new_single_roi)
-
-        # Replace the ROI object
-        dst.roi = new_roi
-
+    transform_roi_coordinates(dst, rotate_coords, np.pi / 2)
     return dst
 
 
@@ -211,6 +192,7 @@ def rotate270(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate270")
     dst.data = np.rot90(src.data, 3)
+    transform_roi_coordinates(dst, rotate_coords, -np.pi / 2)
     return dst
 
 
@@ -224,7 +206,10 @@ def fliph(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    return Wrap1to1Func(np.fliplr)(src)
+    dst = dst_1_to_1(src, "fliph")
+    dst.data = np.fliplr(src.data)
+    transform_roi_coordinates(dst, flip_coords, True, False)
+    return dst
 
 
 @computation_function()
@@ -237,7 +222,10 @@ def flipv(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    return Wrap1to1Func(np.flipud)(src)
+    dst = dst_1_to_1(src, "flipv")
+    dst.data = np.flipud(src.data)
+    transform_roi_coordinates(dst, flip_coords, False, True)
+    return dst
 
 
 class ResizeParam(gds.DataSet):
@@ -374,4 +362,7 @@ def transpose(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    return Wrap1to1Func(np.transpose)(src)
+    dst = dst_1_to_1(src, "transpose")
+    dst.data = np.transpose(src.data)
+    transform_roi_coordinates(dst, transpose_coords)
+    return dst

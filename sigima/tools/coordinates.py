@@ -246,14 +246,7 @@ def rotate(alpha: float) -> np.ndarray:
     Returns:
         Rotation matrix
     """
-    return np.array(
-        [
-            [np.cos(alpha), -np.sin(alpha), 0],
-            [np.sin(alpha), np.cos(alpha), 0],
-            [0, 0, 1],
-        ],
-        float,
-    )
+    return create_rotation_matrix(alpha)
 
 
 def colvector(x: float, y: float) -> np.ndarray:
@@ -281,3 +274,332 @@ def vector_rotation(theta: float, dx: float, dy: float) -> tuple[float, float]:
         Tuple of (x, y) coordinates of rotated vector
     """
     return (rotate(theta) @ colvector(dx, dy)).ravel()[:2]
+
+
+# ======================================================================================
+# Generic Coordinate Transformation Tools
+# ======================================================================================
+
+
+def apply_affine_transform(coords: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Apply an affine transformation matrix to coordinates.
+
+    This is a generic function that applies a 2D affine transformation
+    to coordinate arrays.
+
+    Args:
+        coords: Coordinate array of shape (N, 2) or (N, 4) or (N, 6), etc.
+        matrix: 3x3 affine transformation matrix
+
+    Returns:
+        Transformed coordinate array of the same shape as input
+    """
+    if coords.size == 0:
+        return coords
+
+    # Reshape coordinates to handle different formats
+    original_shape = coords.shape
+    if coords.ndim == 1:
+        coords = coords.reshape(1, -1)
+
+    # Determine how many coordinate pairs we have
+    n_coords = coords.shape[1] // 2
+
+    # Transform each (x, y) pair
+    transformed = coords.copy()
+    for i in range(n_coords):
+        x_idx = i * 2
+        y_idx = i * 2 + 1
+
+        # Extract x, y coordinates
+        x = coords[:, x_idx]
+        y = coords[:, y_idx]
+
+        # Create homogeneous coordinates
+        ones = np.ones_like(x)
+        homogeneous = np.vstack([x, y, ones])
+
+        # Apply transformation
+        transformed_homogeneous = matrix @ homogeneous
+
+        # Extract transformed coordinates
+        transformed[:, x_idx] = transformed_homogeneous[0, :]
+        transformed[:, y_idx] = transformed_homogeneous[1, :]
+
+    return transformed.reshape(original_shape)
+
+
+def create_rotation_matrix(angle: float) -> np.ndarray:
+    """Create a 2D rotation matrix.
+
+    Args:
+        angle: Rotation angle in radians
+
+    Returns:
+        3x3 homogeneous rotation matrix
+    """
+    cos_a = np.cos(angle)
+    sin_a = np.sin(angle)
+    return np.array([[cos_a, -sin_a, 0], [sin_a, cos_a, 0], [0, 0, 1]], dtype=float)
+
+
+def create_flip_matrix(flip_h: bool = False, flip_v: bool = False) -> np.ndarray:
+    """Create a 2D flip matrix.
+
+    Args:
+        flip_h: Whether to flip horizontally
+        flip_v: Whether to flip vertically
+
+    Returns:
+        3x3 homogeneous flip matrix
+    """
+    sx = -1 if flip_h else 1
+    sy = -1 if flip_v else 1
+    return np.array([[sx, 0, 0], [0, sy, 0], [0, 0, 1]], dtype=float)
+
+
+def create_transpose_matrix() -> np.ndarray:
+    """Create a 2D transpose matrix (swap x and y coordinates).
+
+    Returns:
+        3x3 homogeneous transpose matrix
+    """
+    return np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]], dtype=float)
+
+
+def transform_rectangular_coords(coords: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Transform rectangular coordinates [x0, y0, dx, dy].
+
+    Args:
+        coords: Rectangular coordinates array
+        matrix: 3x3 transformation matrix
+
+    Returns:
+        Transformed rectangular coordinates
+    """
+    # Convert [x0, y0, dx, dy] to corner points
+    x0, y0, dx, dy = coords[0], coords[1], coords[2], coords[3]
+    corners = np.array([[x0, y0, x0 + dx, y0 + dy]])
+
+    # Transform the corners
+    transformed_corners = apply_affine_transform(corners, matrix)
+
+    # Convert back to [x0, y0, dx, dy] format
+    tx0, ty0, tx1, ty1 = transformed_corners[0]
+    new_dx = tx1 - tx0
+    new_dy = ty1 - ty0
+
+    return np.array([tx0, ty0, new_dx, new_dy])
+
+
+def transform_circular_coords(coords: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Transform circular coordinates [xc, yc, r].
+
+    For circles, only the center point is transformed, radius remains unchanged.
+
+    Args:
+        coords: Circular coordinates array
+        matrix: 3x3 transformation matrix
+
+    Returns:
+        Transformed circular coordinates
+    """
+    xc, yc, r = coords[0], coords[1], coords[2]
+    center = np.array([[xc, yc]])
+
+    # Transform only the center point
+    transformed_center = apply_affine_transform(center, matrix)
+    txc, tyc = transformed_center[0]
+
+    return np.array([txc, tyc, r])
+
+
+def transform_polygonal_coords(coords: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Transform polygonal coordinates [x0, y0, x1, y1, x2, y2, ...].
+
+    Args:
+        coords: Polygonal coordinates array
+        matrix: 3x3 transformation matrix
+
+    Returns:
+        Transformed polygonal coordinates
+    """
+    # Reshape to (1, N) for apply_affine_transform
+    coords_reshaped = coords.reshape(1, -1)
+    transformed = apply_affine_transform(coords_reshaped, matrix)
+    return transformed.reshape(-1)
+
+
+# ======================================================================================
+# Geometry-specific transformation functions
+# ======================================================================================
+
+
+def rotate_coords(
+    coords: np.ndarray, angle: float, coord_type: str = "points"
+) -> np.ndarray:
+    """Rotate coordinates by the specified angle.
+
+    Args:
+        coords: Coordinate array
+        angle: Rotation angle in radians
+        coord_type: Type of coordinates ("points", "rectangular", "circular",
+                   "polygonal")
+
+    Returns:
+        Rotated coordinates
+    """
+    # Use the proven scalar transformation functions for coordinate transformation
+    from sigima.objects.scalar import GeometryResult, KindShape
+    from sigima.proc import scalar
+
+    if coord_type == "rectangular":
+        # Convert [x0, y0, dx, dy] to GeometryResult and transform
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.RECTANGLE, coords=temp_coords)
+        transformed_geom = scalar.rotate(temp_geom, angle, None)
+        return transformed_geom.coords[0]
+
+    elif coord_type == "circular":
+        # For circular coordinates [xc, yc, r], only transform the center
+        xc, yc, r = coords[0], coords[1], coords[2]
+        temp_coords = np.array([[xc, yc]])
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+        transformed_geom = scalar.rotate(temp_geom, angle, None)
+        txc, tyc = transformed_geom.coords[0]
+        return np.array([txc, tyc, r])
+
+    elif coord_type == "polygonal":
+        # Transform polygon coordinates
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.POLYGON, coords=temp_coords)
+        transformed_geom = scalar.rotate(temp_geom, angle, None)
+        return transformed_geom.coords[0]
+
+    else:  # points
+        # Transform point coordinates
+        if coords.ndim == 1 and len(coords) == 2:
+            temp_coords = np.array([coords])
+        else:
+            temp_coords = coords.reshape(-1, 2)
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+        transformed_geom = scalar.rotate(temp_geom, angle, None)
+        return transformed_geom.coords.reshape(-1)
+
+
+def flip_coords(
+    coords: np.ndarray,
+    flip_h: bool = False,
+    flip_v: bool = False,
+    coord_type: str = "points",
+) -> np.ndarray:
+    """Flip coordinates horizontally and/or vertically.
+
+    Args:
+        coords: Coordinate array
+        flip_h: Whether to flip horizontally
+        flip_v: Whether to flip vertically
+        coord_type: Type of coordinates ("points", "rectangular", "circular",
+                   "polygonal")
+
+    Returns:
+        Flipped coordinates
+    """
+    # Use the proven scalar transformation functions
+    from sigima.objects.scalar import GeometryResult, KindShape
+    from sigima.proc import scalar
+
+    if coord_type == "rectangular":
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.RECTANGLE, coords=temp_coords)
+
+        # Apply transformations in sequence
+        if flip_h:
+            temp_geom = scalar.fliph(temp_geom, None)
+        if flip_v:
+            temp_geom = scalar.flipv(temp_geom, None)
+
+        return temp_geom.coords[0]
+
+    elif coord_type == "circular":
+        xc, yc, r = coords[0], coords[1], coords[2]
+        temp_coords = np.array([[xc, yc]])
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+
+        if flip_h:
+            temp_geom = scalar.fliph(temp_geom, None)
+        if flip_v:
+            temp_geom = scalar.flipv(temp_geom, None)
+
+        txc, tyc = temp_geom.coords[0]
+        return np.array([txc, tyc, r])
+
+    elif coord_type == "polygonal":
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.POLYGON, coords=temp_coords)
+
+        if flip_h:
+            temp_geom = scalar.fliph(temp_geom, None)
+        if flip_v:
+            temp_geom = scalar.flipv(temp_geom, None)
+
+        return temp_geom.coords[0]
+
+    else:  # points
+        if coords.ndim == 1 and len(coords) == 2:
+            temp_coords = np.array([coords])
+        else:
+            temp_coords = coords.reshape(-1, 2)
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+
+        if flip_h:
+            temp_geom = scalar.fliph(temp_geom, None)
+        if flip_v:
+            temp_geom = scalar.flipv(temp_geom, None)
+
+        return temp_geom.coords.reshape(-1)
+
+
+def transpose_coords(coords: np.ndarray, coord_type: str = "points") -> np.ndarray:
+    """Transpose coordinates (swap x and y).
+
+    Args:
+        coords: Coordinate array
+        coord_type: Type of coordinates ("points", "rectangular", "circular",
+                   "polygonal")
+
+    Returns:
+        Transposed coordinates
+    """
+    # Use the proven scalar transformation functions
+    from sigima.objects.scalar import GeometryResult, KindShape
+    from sigima.proc import scalar
+
+    if coord_type == "rectangular":
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.RECTANGLE, coords=temp_coords)
+        transformed_geom = scalar.transpose(temp_geom)
+        return transformed_geom.coords[0]
+
+    elif coord_type == "circular":
+        xc, yc, r = coords[0], coords[1], coords[2]
+        temp_coords = np.array([[xc, yc]])
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+        transformed_geom = scalar.transpose(temp_geom)
+        txc, tyc = transformed_geom.coords[0]
+        return np.array([txc, tyc, r])
+
+    elif coord_type == "polygonal":
+        temp_coords = np.array([coords])
+        temp_geom = GeometryResult("temp", KindShape.POLYGON, coords=temp_coords)
+        transformed_geom = scalar.transpose(temp_geom)
+        return transformed_geom.coords[0]
+
+    else:  # points
+        if coords.ndim == 1 and len(coords) == 2:
+            temp_coords = np.array([coords])
+        else:
+            temp_coords = coords.reshape(-1, 2)
+        temp_geom = GeometryResult("temp", KindShape.POINT, coords=temp_coords)
+        transformed_geom = scalar.transpose(temp_geom)
+        return transformed_geom.coords.reshape(-1)

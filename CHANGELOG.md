@@ -19,6 +19,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.
   * Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs.
+  * Image ROI transformations:
+    * Before this change, image ROI were removed after applying each single computation function.
+    * Now, the geometry computation functions preserve the ROI information across transformations: the transformed ROIs are automatically updated in the image object.
   * Image ROI coordinates:
     * Before this change, image ROI coordinates were defined using indices by default.
     * Now, `ROI2DParam` uses physical coordinates by default.
