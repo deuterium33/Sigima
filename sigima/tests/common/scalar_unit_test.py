@@ -14,9 +14,7 @@ from sigima.proc.scalar import (
     flipv,
     rotate,
     scale,
-    scale_1d,
     translate,
-    translate_1d,
     transpose,
 )
 
