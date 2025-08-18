@@ -705,6 +705,17 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         """
         return self.single_rois[index]
 
+    def get_single_roi_title(self, index: int) -> str:
+        """Generate title for single ROI, based on its index, using either the
+        ROI title or a default generic title as fallback.
+
+        Args:
+            index: ROI index
+        """
+        single_roi = self.get_single_roi(index)
+        title = single_roi.title or get_generic_roi_title(index)
+        return title
+
     def is_empty(self) -> bool:
         """Return True if no ROI is defined"""
         return len(self) == 0
@@ -873,21 +884,4 @@ def get_generic_roi_title(index: int) -> None:
     """Return a generic title for the ROI"""
     title = f"ROI{index:02d}"
     assert re.match(GENERIC_ROI_TITLE_REGEXP, title)
-    return title
-
-
-def get_obj_roi_title(obj: TypeObj, index: int) -> str:
-    """Get ROI title for an object
-
-    Args:
-        obj: object (signal/image)
-        index: ROI index
-
-    Returns:
-        ROI title
-    """
-    roi: BaseROI = obj.roi
-    assert roi is not None, "Object has no ROI defined"
-    single_roi: BaseSingleROI = roi.get_single_roi(index)
-    title = single_roi.title or get_generic_roi_title(index)
     return title
