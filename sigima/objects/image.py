@@ -1229,25 +1229,6 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class Empty2DParam(NewImageParam):
-    """Image parameters for an empty 2D image (filled with data from memory state)"""
-
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
-        """Generate 2D data based on current parameters.
-
-        Args:
-            shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
-
-        Returns:
-            2D data array
-        """
-        return np.empty(shape, dtype=dtype)
-
-
-register_image_parameters_class(ImageTypes.EMPTY, Empty2DParam)
-
-
 class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
     """Uniform-law random image parameters"""
 

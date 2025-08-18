@@ -87,7 +87,6 @@ Images
 .. autoclass:: sigima.objects.ImageTypes
 .. autoclass:: sigima.objects.NewImageParam
 .. autodataset:: sigima.objects.Zeros2DParam
-.. autodataset:: sigima.objects.Empty2DParam
 .. autodataset:: sigima.objects.UniformRandom2DParam
 .. autodataset:: sigima.objects.NormalRandom2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
@@ -103,7 +102,6 @@ __all__ = [
     "TypeROIParam",
     "TypeSingleROI",
     "CircularROI",
-    "Empty2DParam",
     "Gauss2DParam",
     "ImageDatatypes",
     "ImageObj",
@@ -166,7 +164,6 @@ __all__ = [
 from sigima.objects.base import TypeObj, TypeROI, TypeROIParam, TypeSingleROI
 from sigima.objects.image import (
     CircularROI,
-    Empty2DParam,
     Gauss2DParam,
     ImageDatatypes,
     ImageObj,
