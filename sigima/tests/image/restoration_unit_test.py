@@ -103,16 +103,9 @@ def test_erase() -> None:
     dst = sigima.proc.image.erase(obj, p)
     exp = obj.data.copy()
     exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(
-                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
-            )
+    guiutils.view_images_side_by_side_if_gui_enabled(
+        [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+    )
     check_array_result("Erase", dst.data, exp)
 
     # Multiple ROIs erase
@@ -132,16 +125,9 @@ def test_erase() -> None:
         ix0, iy0 = int(p.x0), int(p.y0)
         ix1, iy1 = int(p.x0 + p.dx), int(p.y0 + p.dy)
         exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(
-                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
-            )
+    guiutils.view_images_side_by_side_if_gui_enabled(
+        [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+    )
     check_array_result("Erase", dst.data, exp)
 
 

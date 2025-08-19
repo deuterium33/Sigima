@@ -241,15 +241,9 @@ def test_roi_coordinates_validation() -> None:
             src2.roi = roi
             images.append(src2)
             titles.append(f"Image with {roi.get_single_roi(0).title} ROI")
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests import vistools
-
-        with qt_app_context():
-            vistools.view_images_side_by_side(
-                images, titles, rows=2, title="Image ROIs"
-            )
+        guiutils.view_images_side_by_side_if_gui_enabled(
+            images, titles, rows=2, title="Image ROIs"
+        )
 
 
 if __name__ == "__main__":

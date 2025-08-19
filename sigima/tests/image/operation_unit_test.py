@@ -135,16 +135,9 @@ def test_image_division() -> None:
         exp = ima1.data.astype(float) / ima2.data.astype(float)
         ima3 = sigima.proc.image.division(ima1, ima2)
         if not np.allclose(ima3.data, exp):
-            if guiutils.is_gui_enabled():
-                # pylint: disable=import-outside-toplevel
-                from guidata.qthelpers import qt_app_context
-
-                from sigima.tests.vistools import view_images_side_by_side
-
-                with qt_app_context():
-                    view_images_side_by_side(
-                        [ima1.data, ima2.data, ima3.data], ["ima1", "ima2", "ima3"]
-                    )
+            guiutils.view_images_side_by_side_if_gui_enabled(
+                [ima1.data, ima2.data, ima3.data], ["ima1", "ima2", "ima3"]
+            )
         check_array_result("Image division", ima3.data, exp)
 
 

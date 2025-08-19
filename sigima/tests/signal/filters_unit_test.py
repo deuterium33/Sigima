@@ -66,16 +66,8 @@ def test_signal_lowpass() -> None:
     )
     # Lowpass: should keep the sine, remove most noise
     filt = sigima.proc.signal.lowpass(noisy, param)
-
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            # Show original and filtered signals
-            view_curves([clean, filt])
+    # Show original and filtered signals
+    guiutils.view_signals_if_gui_enabled([clean, filt])
 
     # Compare filtered signal to clean signal (ignore edges)
     check_array_result(
@@ -98,14 +90,7 @@ def test_signal_highpass() -> None:
     )
     filt = sigima.proc.signal.highpass(noisy, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([clean, filt])
+    guiutils.view_signals_if_gui_enabled([clean, filt])
 
     # The mean of the filtered signal should be close to zero (since only noise remains)
     mean_variance = np.sqrt(noise_level / len(clean.x))
@@ -132,14 +117,7 @@ def test_signal_stopband() -> None:
     )
     res_sig = sigima.proc.signal.bandstop(tst_sig, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([exp_sig, res_sig])
+    guiutils.view_signals_if_gui_enabled([exp_sig, res_sig])
 
     check_array_result(
         "brickwall stopband",
@@ -162,14 +140,7 @@ def test_signal_bandpass() -> None:
     )
     res_sig = sigima.proc.signal.bandpass(tst_sig, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([exp_sig, res_sig])
+    guiutils.view_signals_if_gui_enabled([exp_sig, res_sig])
 
     check_array_result(
         "brickwall bandpass",
