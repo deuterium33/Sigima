@@ -90,9 +90,8 @@ def test_denoise_tophat() -> None:
 
 
 @pytest.mark.validation
-def test_erase(request: pytest.FixtureRequest = None) -> None:
+def test_erase() -> None:
     """Validation test for the image erase processing."""
-    guiutils.set_current_request(request)
     obj = create_multigaussian_image()
 
     # Single ROI erase
@@ -147,8 +146,9 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
 
 
 if __name__ == "__main__":
+    guiutils.set_current_request(gui=True)
     test_denoise_tv()
     test_denoise_bilateral()
     test_denoise_wavelet()
     test_denoise_tophat()
-    test_erase(request=guiutils.DummyRequest(gui=True))
+    test_erase()

@@ -205,10 +205,8 @@ def test_image_roi_extraction() -> None:
             __test_extracting_from_roi(src, singleobj)
 
 
-def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> None:
+def test_roi_coordinates_validation() -> None:
     """Test ROI coordinates validation"""
-    guiutils.set_current_request(request)
-
     # Create a 20x20 Gaussian image
     param = sigima.objects.Gauss2DParam.create(a=10.0, height=20, width=20)
     src = sigima.objects.create_image_from_param(param)
@@ -255,7 +253,8 @@ def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> No
 
 
 if __name__ == "__main__":
-    test_roi_coordinates_validation(request=guiutils.DummyRequest(gui=True))
+    guiutils.set_current_request(gui=True)
+    test_roi_coordinates_validation()
     test_image_roi_merge()
     test_image_roi_combine()
     test_image_roi_processing()
