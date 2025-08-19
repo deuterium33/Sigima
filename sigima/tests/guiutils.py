@@ -9,9 +9,7 @@ from __future__ import annotations
 
 import types
 
-import pytest
-
-CURRENT_REQUEST: pytest.FixtureRequest | None = None
+CURRENT_REQUEST: DummyRequest | None = None
 
 
 def set_current_request(gui: bool) -> None:
