@@ -14,10 +14,14 @@ import pytest
 CURRENT_REQUEST: pytest.FixtureRequest | None = None
 
 
-def set_current_request(request: pytest.FixtureRequest | None) -> None:
-    """Store the current pytest request object (for use in is_gui_enabled)"""
+def set_current_request(gui: bool) -> None:
+    """Store the current pytest request object (for use in is_gui_enabled).
+
+    Args:
+        gui: Whether to enable GUI mode.
+    """
     global CURRENT_REQUEST  # pylint: disable=global-statement
-    CURRENT_REQUEST = request
+    CURRENT_REQUEST = DummyRequest(gui)
 
 
 def is_gui_enabled() -> bool:

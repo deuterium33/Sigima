@@ -129,14 +129,11 @@ def test_signal_fft() -> None:
 
 
 @pytest.mark.validation
-def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_ifft() -> None:
     """1D iFFT validation test.
 
     Check that the original and reconstructed signals are equal.
     """
-    # We need to set the request to enable the GUI.
-    guiutils.set_current_request(request)
-
     param = sigima.objects.CosinusParam.create(size=500)
 
     # *** Note ***
@@ -179,12 +176,8 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
 
 
 @pytest.mark.validation
-def test_signal_magnitude_spectrum(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_signal_magnitude_spectrum() -> None:
     """1D magnitude spectrum validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -231,10 +224,8 @@ def test_signal_magnitude_spectrum(
 
 
 @pytest.mark.validation
-def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_phase_spectrum() -> None:
     """1D phase spectrum validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -266,10 +257,8 @@ def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> 
 
 
 @pytest.mark.validation
-def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_psd() -> None:
     """1D Power Spectral Density validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -327,10 +316,11 @@ def test_signal_spectrum() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.set_current_request(gui=True)
     test_signal_zero_padding()
     test_signal_fft()
-    test_signal_ifft(request=guiutils.DummyRequest(gui=True))
-    test_signal_magnitude_spectrum(request=guiutils.DummyRequest(gui=True))
-    test_signal_phase_spectrum(request=guiutils.DummyRequest(gui=True))
-    test_signal_psd(request=guiutils.DummyRequest(gui=True))
+    test_signal_ifft()
+    test_signal_magnitude_spectrum()
+    test_signal_phase_spectrum()
+    test_signal_psd()
     test_signal_spectrum()

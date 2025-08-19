@@ -125,9 +125,8 @@ def test_image_product() -> None:
 
 
 @pytest.mark.validation
-def test_image_division(request: pytest.FixtureRequest = None) -> None:
+def test_image_division() -> None:
     """Image division test."""
-    guiutils.set_current_request(request)
     execenv.print("*** Testing image division:")
     for ima1, ima2 in iterate_noisy_image_couples(size=128):
         ima2.data = np.ones_like(ima2.data)
@@ -368,10 +367,11 @@ def test_image_logp1() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.set_current_request(gui=True)
     test_image_addition()
     test_image_average()
     test_image_product()
-    test_image_division(request=guiutils.DummyRequest(gui=True))
+    test_image_division()
     test_image_difference()
     test_image_quadratic_difference()
     test_image_addition_constant()
