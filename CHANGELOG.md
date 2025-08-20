@@ -48,11 +48,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
       ```python
       import numpy as np
       import sigima.objects as sio
-      import sigima.proc.image as sip
+      import sigima.proc.image as sipi
 
       obj = sio.create_image("test_image", data=np.random.rand(1024, 1024))
       p = sio.ROI2DParam.create(x0=600, y0=800, width=300, height=200)
-      dst = sip.erase(obj, p)
+      dst = sipi.erase(obj, p)
       ```
 
   * By default, pixel binning changes the pixel size.
