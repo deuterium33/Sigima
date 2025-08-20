@@ -25,11 +25,11 @@ from sigima.tools.coordinates import polar_to_complex
 @pytest.mark.validation
 def test_signal_combine_to_complex() -> None:
     """Validation test for combine_to_complex (signal) function."""
-    x = np.linspace(0, 1, 5)
-    real = np.array([1, 2, 3, 4, 5])
-    imag = np.array([10, 20, 30, 40, 50])
-    mag = np.array([2, 3, 4, 5, 6])
-    phase = np.array([0, np.pi / 2, np.pi, 3 * np.pi / 2, 0])
+    x = np.linspace(0.0, 1.0, 5)
+    real = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    imag = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    mag = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
+    phase = np.array([0.0, np.pi / 2, np.pi, 3 * np.pi / 2, 0.0])
 
     # Test real_imag mode
     s_real = SignalObj("real")
