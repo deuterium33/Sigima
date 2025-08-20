@@ -106,7 +106,7 @@ class RotateParam(gds.DataSet):
     boundaries = ("constant", "nearest", "reflect", "wrap")
     prop = gds.ValueProp(False)
 
-    angle = gds.FloatItem(f"{_('Angle')} (°)")
+    angle = gds.FloatItem(f"{_('Angle')} (°)", default=0.0)
     mode = gds.ChoiceItem(
         _("Mode"), list(zip(boundaries, boundaries)), default=boundaries[0]
     )
@@ -234,7 +234,7 @@ class ResizeParam(gds.DataSet):
     boundaries = ("constant", "nearest", "reflect", "wrap")
     prop = gds.ValueProp(False)
 
-    zoom = gds.FloatItem(_("Zoom"))
+    zoom = gds.FloatItem(_("Zoom"), default=1.0)
     mode = gds.ChoiceItem(
         _("Mode"), list(zip(boundaries, boundaries)), default=boundaries[0]
     )
