@@ -525,7 +525,7 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
     """Base class for single ROI
 
     Args:
-        coords: ROI edge (physical coordinates for signal)
+        coords: ROI edge (physical or pixel coordinates)
         indices: if True, coords are indices (pixels) instead of physical coordinates
         title: ROI title
     """
@@ -704,6 +704,15 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             index: ROI index
         """
         return self.single_rois[index]
+
+    def set_single_roi(self, index: int, roi: TypeSingleROI) -> None:
+        """Set single ROI at index
+
+        Args:
+            index: ROI index
+            roi: ROI to set
+        """
+        self.single_rois[index] = roi
 
     def get_single_roi_title(self, index: int) -> str:
         """Generate title for single ROI, based on its index, using either the
