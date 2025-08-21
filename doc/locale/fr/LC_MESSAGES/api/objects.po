@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:27+0200\n"
+"POT-Creation-Date: 2025-08-21 15:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -22,13 +22,16 @@ msgstr ""
 msgid "Model classes for signals and images (:mod:`sigima.objects`)"
 msgstr "Classes de modèle pour les signaux et les images (:mod:`sigima.objects`)"
 
-msgid "The :mod:`sigima.objects` module aims at providing all the necessary classes and functions to create and manipulate Sigima signal and image objects."
-msgstr "Le module :mod:`sigima.objects` vise à fournir toutes les classes et fonctions nécessaires pour créer et manipuler des objets signal et image de Sigima."
+msgid "The :mod:`sigima.objects` module aims at providing all the necessary classes and functions to create and manipulate Sigima scalar, signal and image objects."
+msgstr "Le module :mod:`sigima.objects` vise à fournir toutes les classes et fonctions nécessaires pour créer et manipuler des objets scalaires, signaux et images de Sigima."
 
 msgid "Those classes and functions are defined in submodules:"
 msgstr "Ces classes et fonctions sont définies dans des sous-modules :"
 
 msgid ":mod:`sigima.objects.base`"
+msgstr ""
+
+msgid ":mod:`sigima.objects.scalar`"
 msgstr ""
 
 msgid ":mod:`sigima.objects.image`"
@@ -37,151 +40,194 @@ msgstr ""
 msgid ":mod:`sigima.objects.signal`"
 msgstr ""
 
-msgid "Common objects"
-msgstr "Objets communs"
-
-msgid "Object representing properties serializable in signal/image metadata."
-msgstr "Objet représentant des propriétés sérialisables dans les métadonnées de signal/image."
-
-msgid "Result `array` is a NumPy 2-D array: each row is a list of properties, optionnally associated to a ROI (first column value)."
+msgid "In Sigima, computation functions take signal or image objects as input and produce signal, image or scalar objects as output. Scalar objects are represented by the `GeometryResult` and `TableResult` classes."
 msgstr ""
 
-msgid "ROI index is starting at 0 (or is simply 0 if there is no ROI)."
+msgid "The scalar results are not rigorously scalar as they can also represent vector of coordinates for example, but the name 'scalar' is retained for simplicity and by opposition to the more general 'signal' and 'image' terms)."
+msgstr ""
+
+msgid "Scalar results"
+msgstr ""
+
+msgid "Geometric outputs, optionally per-ROI."
 msgstr ""
 
 msgid "Parameters"
 msgstr ""
 
-msgid "properties title"
+msgid "Human-readable title for this geometric output set."
 msgstr ""
 
-msgid "properties array"
+msgid "Shape kind (`KindShape` member or its string value)."
 msgstr ""
 
-msgid "properties labels (one label per column of result array)"
+msgid "2-D array (N, K) with coordinates per row. K depends on `kind` and may be NaN-padded (e.g., for polygons)."
 msgstr ""
 
-msgid "The `array` argument can be a list of lists or a NumPy array. For instance, the following are equivalent:"
+msgid "Optional 1-D array (N,) mapping rows to ROI indices. Use NO_ROI (-1) for the \"full signal/image / no ROI\" row."
 msgstr ""
 
-msgid "``array = [[1, 2], [3, 4]]``"
-msgstr ""
-
-msgid "``array = np.array([[1, 2], [3, 4]])``"
-msgstr ""
-
-msgid "Or for only one line (one single result), the following are equivalent:"
-msgstr ""
-
-msgid "``array = [1, 2]``"
-msgstr ""
-
-msgid "``array = [[1, 2]]``"
-msgstr ""
-
-msgid "``array = np.array([[1, 2]])``"
-msgstr ""
-
-msgid "Class attribute that defines a string prefix used to uniquely identify instances of this class in metadata serialization. Each subclass should override this with a unique identifier (e.g., \"_properties_\" for properties, \"_shapes_\" for shapes). This prefix is prepended to the object title when creating metadata keys, enabling type identification during deserialization."
-msgstr ""
-
-msgid "Class attribute that defines a tuple of attributes to be serialized in metadata."
-msgstr ""
-
-msgid "Return result category"
-msgstr ""
-
-msgid "Return result headers (one header per column of result array)"
-msgstr ""
-
-msgid "Return array of shown results, i.e. including complementary array (if any)"
-msgstr ""
-
-msgid "Returns"
-msgstr ""
-
-msgid "Array of shown results"
-msgstr ""
-
-msgid "Object representing a geometrical shape serializable in signal/image metadata."
-msgstr ""
-
-msgid "Result `array` is a NumPy 2-D array: each row is a result, optionnally associated to a ROI (first column value)."
-msgstr ""
-
-msgid "result shape title"
-msgstr ""
-
-msgid "shape coordinates (multiple shapes: one shape per row), first column is ROI index (0 if there is no ROI)"
-msgstr ""
-
-msgid "shape kind"
-msgstr ""
-
-msgid "if True, add a label item (and the geometrical shape) to plot (default to False)"
-msgstr ""
-
-msgid "optional ROI associated to the result shape (default to None)"
+msgid "Optional algorithmic context (e.g. thresholds, method variant)."
 msgstr ""
 
 msgid "Raises"
 msgstr ""
 
-msgid "invalid argument"
+msgid "If dimensions are inconsistent or fields are invalid."
 msgstr ""
 
-msgid "Check if array attribute is valid"
+msgid "**Coordinate System**: GeometryResult coordinates are stored in **physical units** (e.g., mm, µm), not pixel coordinates. The conversion from pixel to physical coordinates is performed automatically when creating GeometryResult objects from image measurements using :func:`~sigima.proc.image.base.compute_geometry_from_obj`."
 msgstr ""
 
-msgid "invalid array"
+msgid "This ensures that geometric measurements are:"
 msgstr ""
 
-msgid "Add result to object metadata"
+msgid "**Scale-independent**: Results remain valid when images are resized"
 msgstr ""
 
-msgid "object (signal/image)"
+msgid "**Physically meaningful**: Measurements have real-world significance"
 msgstr ""
 
-msgid "Return label contents, i.e. a tuple of couples of (index, text) where index is the column of raw_data and text is the associated label format string"
+msgid "**Consistent**: Same geometric features yield same results across different images"
 msgstr ""
 
-msgid "Merge object resultshape with another's metadata (obj <-- other obj's metadata)"
+msgid "Coordinate conventions are as follows:"
 msgstr ""
 
-msgid "other object metadata"
+msgid "`KindShape.POINT`: `[x, y]`"
 msgstr ""
 
-msgid "Transform shape coordinates."
+msgid "`KindShape.SEGMENT`: `[x0, y0, x1, y1]`"
 msgstr ""
 
-msgid "function to transform coordinates"
+msgid "`KindShape.RECTANGLE`: `[x0, y0, width, height]`"
 msgstr ""
 
-msgid "Shape types for image metadata"
+msgid "`KindShape.CIRCLE`: `[x0, y0, radius]`"
 msgstr ""
 
-msgid "Rectangle shape"
+msgid "`KindShape.ELLIPSE`: `[x0, y0, a, b, theta]`   # theta in radians"
 msgstr ""
 
-msgid "Circle shape"
+msgid "`KindShape.POLYGON`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)"
 msgstr ""
 
-msgid "Ellipse shape"
+msgid "All coordinate values and dimensions (width, height, radius, semi-axes) are expressed in the image's physical units as defined by the image calibration."
 msgstr ""
 
-msgid "Segment shape"
+msgid ":func:`~sigima.proc.image.base.compute_geometry_from_obj`: Function that creates GeometryResult objects with automatic coordinate conversion from pixel to physical units."
 msgstr ""
 
-msgid "Marker shape"
+msgid "Create a GeometryResult from raw data."
 msgstr ""
 
-msgid "Point shape"
+msgid "Human-readable title for this geometric output."
 msgstr ""
 
-msgid "Polygon shape"
+msgid "Shape kind (e.g. \"point\", \"segment\")."
 msgstr ""
 
-msgid "Signal model"
+msgid "2-D array (N, K) with coordinates per row."
+msgstr ""
+
+msgid "Optional 1-D array (N,) mapping rows to ROI indices."
+msgstr ""
+
+msgid "Returns"
+msgstr ""
+
+msgid "A GeometryResult instance."
+msgstr ""
+
+msgid "Convert the GeometryResult to a dictionary."
+msgstr ""
+
+msgid "Convert a dictionary to a GeometryResult."
+msgstr ""
+
+msgid "Return coords for all rows (this ROI or full-image row)."
+msgstr ""
+
+msgid "Optional ROI index to filter rows."
+msgstr ""
+
+msgid "2-D array of shape (M, K) with coordinates for the selected rows."
+msgstr ""
+
+msgid "For kind='segment': return vector of segment lengths."
+msgstr ""
+
+msgid "For kind='circle': return radii."
+msgstr ""
+
+msgid "For kind='ellipse': return (a, b, theta)."
+msgstr ""
+
+msgid "Table of scalar results, optionally per-ROI."
+msgstr ""
+
+msgid "Human-readable title for this table of results."
+msgstr ""
+
+msgid "Column names (one per metric)."
+msgstr ""
+
+msgid "Human-readable labels for each column (including units as formatted strings)."
+msgstr ""
+
+msgid "2-D array of shape (N, len(names)) with scalar values."
+msgstr ""
+
+msgid "Optional 1-D array (N,) mapping rows to ROI indices. Use NO_ROI (-1) for the \"full image / no ROI\" row."
+msgstr ""
+
+msgid "Notes"
+msgstr ""
+
+msgid "No UI/presentation concerns, no persistence schema here."
+msgstr ""
+
+msgid "Use DataLab-side adapters to store results in metadata if needed."
+msgstr ""
+
+msgid "Create a TableResult from raw data."
+msgstr ""
+
+msgid "A TableResult instance."
+msgstr ""
+
+msgid "Convert the TableResult to a dictionary."
+msgstr ""
+
+msgid "Convert a dictionary to a TableResult."
+msgstr ""
+
+msgid "Return the column vector by name (raises KeyError if missing)."
+msgstr ""
+
+msgid "The name of the column to retrieve."
+msgstr ""
+
+msgid "A 1-D numpy array containing the column data."
+msgstr ""
+
+msgid "Return a single scalar by column name and ROI."
+msgstr ""
+
+msgid "The region of interest (ROI) to filter by (optional). Use None for NO_ROI row."
+msgstr ""
+
+msgid "A single scalar value from the specified column and ROI."
+msgstr ""
+
+#, python-brace-format
+msgid "Return a {column -> value} mapping for one row (ROI or full image)."
+msgstr ""
+
+msgid "A dictionary mapping column names to their corresponding values."
+msgstr ""
+
+msgid "Signals"
 msgstr ""
 
 msgid "Signal object"
@@ -338,9 +384,6 @@ msgstr ""
 msgid "if data type is not supported"
 msgstr ""
 
-msgid "Delete all object results (shapes and properties)"
-msgstr ""
-
 msgid "Deserialize the dataset"
 msgstr ""
 
@@ -431,21 +474,6 @@ msgstr ""
 msgid "Invalidate mask data cache: force to rebuild it"
 msgstr ""
 
-msgid "Iterate over object result properties."
-msgstr ""
-
-msgid "Yields"
-msgstr ""
-
-msgid "Result properties"
-msgstr ""
-
-msgid "Iterate over object result shapes."
-msgstr ""
-
-msgid "Result shape"
-msgstr ""
-
 msgid "Iterate over object ROI indices (if there is no ROI, yield None)"
 msgstr ""
 
@@ -462,9 +490,6 @@ msgid "UserConfig instance"
 msgstr ""
 
 msgid "section name"
-msgstr ""
-
-msgid "Remove metadata shapes and ROIs"
 msgstr ""
 
 msgid "Reset metadata to default values"
@@ -560,37 +585,10 @@ msgstr ""
 msgid "string representation of the data set"
 msgstr ""
 
-msgid "Transform coordinates"
-msgstr ""
-
-msgid "coordinates to transform"
-msgstr ""
-
-msgid "original object (signal/image)"
-msgstr ""
-
-msgid "transform function"
-msgstr ""
-
-msgid "transform function parameter (optional)"
-msgstr ""
-
-msgid "Apply transform function to result shape / annotations coordinates."
-msgstr ""
-
-msgid "original object"
-msgstr ""
-
-msgid "transform function parameter"
-msgstr ""
-
 msgid "Update metadata from another object's metadata (merge result shapes and annotations, and update the rest of the metadata)."
 msgstr ""
 
-msgid "Update geometric shape from another object (merge metadata)."
-msgstr ""
-
-msgid "other object, from which to update this object"
+msgid "other object metadata"
 msgstr ""
 
 msgid "Open a dialog box to view data set"
@@ -767,7 +765,7 @@ msgstr ""
 msgid "x\\ :subscript:`max`\\.  Default: 10.0."
 msgstr ""
 
-msgid "Signal size (total number of points)\\. Default: 500."
+msgid "Signal size (total number of points)\\. Integer higher than 1\\. Default: 500."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.IntItem"
@@ -789,6 +787,9 @@ msgid "V\\ :subscript:`min`\\. Uniform distribution lower bound\\. Default: -0.5
 msgstr ""
 
 msgid "V\\ :subscript:`max`\\. Uniform distribution higher bound\\. Default: 0.5."
+msgstr ""
+
+msgid "Signal size (total number of points)\\. Default: 500."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`UniformRandomParam` with the fields set to the given values."
@@ -863,7 +864,7 @@ msgstr ""
 msgid "Frequency\\.  Default: 1.0."
 msgstr ""
 
-msgid "Single choice from: FreqUnits.HZ, FreqUnits.KHZ, FreqUnits.MHZ, FreqUnits.GHZ. Default: FreqUnits.HZ."
+msgid "Single choice from: 'HZ', 'KHZ', 'MHZ', 'GHZ'. Default: 'HZ'."
 msgstr ""
 
 msgid "guidata.dataset.dataitems.ChoiceItem"
@@ -1043,7 +1044,7 @@ msgstr ""
 msgid "Mask (boolean array where True values are inside the ROI)"
 msgstr ""
 
-msgid "Image model"
+msgid "Images"
 msgstr ""
 
 msgid "Image object"
@@ -1178,9 +1179,6 @@ msgstr ""
 msgid "Empty image (filled with data from memory state)"
 msgstr ""
 
-msgid "Image filled with random data (uniform law)"
-msgstr ""
-
 msgid "Image filled with random data (normal law)"
 msgstr ""
 
@@ -1211,13 +1209,13 @@ msgstr ""
 msgid "Default: 'Untitled image'."
 msgstr ""
 
-msgid "Image height: number of rows\\. Default: 1024."
+msgid "Image height: number of rows\\. Integer higher than 1\\. Default: 1024."
 msgstr ""
 
-msgid "Image width: number of columns\\. Default: 1024."
+msgid "Image width: number of columns\\. Integer higher than 1\\. Default: 1024."
 msgstr ""
 
-msgid "Data type\\.  Single choice from: ImageDatatypes.UINT8, ImageDatatypes.UINT16, ImageDatatypes.INT16, ImageDatatypes.FLOAT32, ImageDatatypes.FLOAT64. Default: ImageDatatypes.FLOAT64."
+msgid "Data type\\.  Single choice from: 'UINT8', 'UINT16', 'INT16', 'FLOAT32', 'FLOAT64'. Default: 'FLOAT64'."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`Zeros2DParam` with the fields set to the given values."
@@ -1226,16 +1224,13 @@ msgstr ""
 msgid "New instance of :py:class:`Zeros2DParam`."
 msgstr ""
 
-msgid "Image parameters for an empty 2D image (filled with data from memory state)"
-msgstr ""
-
-msgid "Returns a new instance of :py:class:`Empty2DParam` with the fields set to the given values."
-msgstr ""
-
-msgid "New instance of :py:class:`Empty2DParam`."
-msgstr ""
-
 msgid "Uniform-law random image parameters"
+msgstr ""
+
+msgid "Image height: number of rows\\. Default: 1024."
+msgstr ""
+
+msgid "Image width: number of columns\\. Default: 1024."
 msgstr ""
 
 msgid "Returns a new instance of :py:class:`UniformRandom2DParam` with the fields set to the given values."
@@ -1384,4 +1379,3 @@ msgstr ""
 
 msgid "Float number stored with 64 bits"
 msgstr ""
-

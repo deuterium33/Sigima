@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-18 11:50+0200\n"
+"POT-Creation-Date: 2025-08-21 15:50+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -16,9 +16,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
-
-msgid "If True, computation functions will not delete previous results when creating new objects. This allows for retaining results across invocations."
-msgstr "Si vrai, les fonctions de calcul ne supprimeront pas les résultats précédents lors de la création de nouveaux objets. Cela permet de conserver les résultats entre les appels."
 
 msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
 msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
@@ -177,9 +174,6 @@ msgstr "Plage de LUT"
 
 msgid "Zeros"
 msgstr "Zéros"
-
-msgid "Empty"
-msgstr "Vide"
 
 msgid "Random (uniform law)"
 msgstr "Aléatoire (loi uniforme)"
@@ -1176,3 +1170,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+
