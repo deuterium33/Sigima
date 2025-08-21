@@ -19,6 +19,7 @@ import numpy as np
 
 from sigima.config import _, options
 from sigima.objects import ImageObj, SignalObj, create_signal
+from sigima.proc.enums import FilterMode, MathOperator
 
 __all__ = [
     "ArithmeticParam",
@@ -65,10 +66,9 @@ class ArithmeticParam(gds.DataSet):
         """Update the operation item"""
         self.operation = self.get_operation()
 
-    operators = ("+", "-", "×", "/")
-    operator = gds.ChoiceItem(_("Operator"), list(zip(operators, operators))).set_prop(
-        "display", callback=update_operation
-    )
+    operator = gds.ChoiceItem(
+        _("Operator"), MathOperator, default=MathOperator.ADD
+    ).set_prop("display", callback=update_operation)
     factor = (
         gds.FloatItem(_("Factor"), default=1.0)
         .set_pos(col=1)
@@ -105,9 +105,8 @@ class MovingAverageParam(gds.DataSet):
     """Moving average parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1)
-    modes = ("reflect", "constant", "nearest", "mirror", "wrap")
     mode = gds.ChoiceItem(
-        _("Mode"), list(zip(modes, modes)), default="reflect", help=HELP_MODE
+        _("Mode"), FilterMode, default=FilterMode.REFLECT, help=HELP_MODE
     )
 
 
@@ -115,9 +114,8 @@ class MovingMedianParam(gds.DataSet):
     """Moving median parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1, even=False)
-    modes = ("reflect", "constant", "nearest", "mirror", "wrap")
     mode = gds.ChoiceItem(
-        _("Mode"), list(zip(modes, modes)), default="nearest", help=HELP_MODE
+        _("Mode"), FilterMode, default=FilterMode.NEAREST, help=HELP_MODE
     )
 
 

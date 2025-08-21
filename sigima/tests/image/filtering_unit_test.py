@@ -12,6 +12,7 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 from skimage import filters
 
+import sigima.proc.enums
 import sigima.proc.image
 from sigima.objects import ImageObj
 from sigima.objects.image import create_image
@@ -36,10 +37,10 @@ def test_image_moving_average() -> None:
     """Validation test for the image moving average processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingAverageParam.create(n=30)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_average(src, p)
-        exp = spi.uniform_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.uniform_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingAvg[n={p.n},mode={p.mode}]", dst.data, exp)
 
 
@@ -48,10 +49,10 @@ def test_image_moving_median() -> None:
     """Validation test for the image moving median processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingMedianParam.create(n=5)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_median(src, p)
-        exp = spi.median_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.median_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingMed[n={p.n},mode={p.mode}]", dst.data, exp)
 
 

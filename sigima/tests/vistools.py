@@ -338,6 +338,7 @@ def view_images_side_by_side(
         maximized: Whether to show the window maximized, default is False
         title: Title of the window, or None for a default title
     """
+    # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
     with qt_app_context(exec_loop=True):
         win = SyncPlotWindow(title=title)

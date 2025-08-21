@@ -52,6 +52,7 @@ from sigima.proc.base import (
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import MathOperator, PadLocation, PowerUnit
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -403,17 +404,17 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
     dst = src1.copy(title=title)
     o, a, b = p.operator, p.factor, p.constant
-    if o in ("×", "/") and a == 0.0:
+    if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
         dst.y = np.ones_like(src1.y) * b
-    elif p.operator == "+":
+    elif o is MathOperator.ADD:
         dst.y = (src1.y + src2.y) * a + b
-    elif p.operator == "-":
+    elif o is MathOperator.SUBTRACT:
         dst.y = (src1.y - src2.y) * a + b
-    elif p.operator == "×":
+    elif o is MathOperator.MULTIPLY:
         dst.y = (src1.y * src2.y) * a + b
-    elif p.operator == "/":
+    elif o is MathOperator.DIVIDE:
         dst.y = (src1.y / src2.y) * a + b
-    if dst.dy is not None and p.operator in ("+", "-"):
+    if dst.dy is not None and o in (MathOperator.ADD, MathOperator.SUBTRACT):
         dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
     if dst.dy is not None:
         dst.dy *= p.factor
@@ -883,7 +884,7 @@ def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -897,7 +898,7 @@ def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -1255,11 +1256,10 @@ class ZeroPadding1DParam(gds.DataSet):
     strategy = gds.ChoiceItem(
         _("Strategy"), zip(strategies, strategies), default=strategies[0]
     ).set_prop("display", store=_prop, callback=strategy_callback)
-    locations = ("append", "prepend", "both")
     location = gds.ChoiceItem(
         _("Location"),
-        zip(locations, locations),
-        default=locations[0],
+        PadLocation,
+        default=PadLocation.APPEND,
         help=_("Where to add the padding"),
     )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
@@ -1285,13 +1285,13 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
         suffix = f"strategy={p.strategy}"
 
     assert p.n is not None
-    if p.location == "append":
+    if p.location is PadLocation.APPEND:
         n_prepend = 0
         n_append = p.n
-    elif p.location == "prepend":
+    elif p.location is PadLocation.PREPEND:
         n_prepend = p.n
         n_append = 0
-    elif p.location == "both":
+    elif p.location is PadLocation.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
     else:
@@ -2162,9 +2162,8 @@ class DynamicParam(gds.DataSet):
     """Parameters for dynamic range computation (ENOB, SNR, SINAD, THD, SFDR)"""
 
     full_scale = gds.FloatItem(_("Full scale"), default=0.16, min=0.0, unit="V")
-    _units = ("dBc", "dBFS")
     unit = gds.ChoiceItem(
-        _("Unit"), zip(_units, _units), default="dBc", help=_("Unit for SINAD")
+        _("Unit"), PowerUnit, default=PowerUnit.DBC, help=_("Unit for SINAD")
     )
     nb_harm = gds.IntItem(
         _("Number of harmonics"),
