@@ -9,6 +9,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * New common signal/image feature:
   * Added `phase` (argument) feature to extract the phase information from complex signals or images.
+  * Added operation to create complex-valued signal/image from real and imaginary parts.
+  * Added operation to create complex-valued signal/image from magnitude and phase.
 
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.

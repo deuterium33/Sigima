@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-14 08:13+0200\n"
+"POT-Creation-Date: 2025-08-21 14:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -36,6 +36,12 @@ msgstr "Nouvelles fonctionnalités communes signal/image :"
 
 msgid "Added `phase` (argument) feature to extract the phase information from complex signals or images."
 msgstr "Ajout de la fonctionnalité `phase` (argument) pour extraire les informations de phase des signaux ou des images complexes."
+
+msgid "Added operation to create complex-valued signal/image from real and imaginary parts."
+msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir des parties réelle et imaginaire."
+
+msgid "Added operation to create complex-valued signal/image from magnitude and phase."
+msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir de l'amplitude et de la phase."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
