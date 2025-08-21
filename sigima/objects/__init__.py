@@ -42,6 +42,12 @@ Common objects
 .. autoclass:: sigima.objects.TypeROIParam
 .. autoclass:: sigima.objects.TypeSingleROI
 
+Scalar results
+^^^^^^^^^^^^^^
+
+.. autoclass:: sigima.objects.GeometryResult
+.. autoclass:: sigima.objects.TableResult
+
 Signals
 ^^^^^^^
 

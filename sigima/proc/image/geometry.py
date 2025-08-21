@@ -27,26 +27,20 @@ These functions are useful for preparing and augmenting image data.
 
 from __future__ import annotations
 
-from typing import Callable
-
 import guidata.dataset as gds
 import numpy as np
 import scipy.ndimage as spi
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.image import (
-    CircularROI,
-    ImageObj,
-    ImageROI,
-    PolygonalROI,
-    RectangularROI,
-)
+from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
-from sigima.tools.coordinates import flip_coords, rotate_coords, transpose_coords
+from sigima.proc.transformations import transformer
 
 __all__ = [
+    "TranslateParam",
+    "translate",
     "RotateParam",
     "rotate",
     "rotate90",
@@ -61,43 +55,29 @@ __all__ = [
 ]
 
 
-def transform_roi_coordinates(
-    image: ImageObj, coord_transform_func: Callable, *args, **kwargs
-) -> None:
-    """Apply a coordinate transformation to ROI coordinates.
+class TranslateParam(gds.DataSet):
+    """Translate parameters"""
 
-    This function uses the generic coordinate transformation tools
-    to transform ROI objects.
+    dx = gds.FloatItem(_("X translation"), default=0.0)
+    dy = gds.FloatItem(_("Y translation"), default=0.0)
+
+
+@computation_function()
+def translate(src: ImageObj, p: TranslateParam) -> ImageObj:
+    """Translate data with :py:func:`scipy.ndimage.shift`
 
     Args:
-        image: Image object whose ROI coordinates will be transformed
-        coord_transform_func: Coordinate transformation function
-         (e.g., rotate_coords, flip_coords, transpose_coords)
-        *args: Arguments for the transformation function
-        **kwargs: Keyword arguments for the transformation function
+        src: input image object
+        p: parameters
+
+    Returns:
+        Output image object
     """
-    if image.roi is None or image.roi.is_empty():
-        return
-
-    # Determine ROI type and set up appropriate classes
-    new_roi = ImageROI(image.roi.singleobj, image.roi.inverse)
-
-    # Transform each single ROI
-    for single_roi in image.roi.single_rois:
-        coords = single_roi.coords.copy()
-        roi_class = single_roi.__class__
-        coord_type = {
-            RectangularROI: "rectangular",
-            CircularROI: "circular",
-            PolygonalROI: "polygonal",
-        }[roi_class]
-        new_coords = coord_transform_func(
-            coords, *args, coord_type=coord_type, **kwargs
-        )
-        new_single_roi = roi_class(new_coords, single_roi.indices, single_roi.title)
-        new_roi.add_roi(new_single_roi)
-
-    image.roi = new_roi
+    dst = dst_1_to_1(src, "translate", f"dx={p.dx}, dy={p.dy}")
+    dst.x0 += p.dx
+    dst.y0 += p.dy
+    transformer.transform_roi(dst, "translate", dx=p.dx, dy=p.dy)
+    return dst
 
 
 class RotateParam(gds.DataSet):
@@ -161,6 +141,7 @@ def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
         cval=p.cval,
         prefilter=p.prefilter,
     )
+    dst.roi = None  # Reset ROI as it may change after rotation
     return dst
 
 
@@ -176,7 +157,7 @@ def rotate90(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate90")
     dst.data = np.rot90(src.data)
-    transform_roi_coordinates(dst, rotate_coords, np.pi / 2)
+    transformer.transform_roi(dst, "rotate", angle=-np.pi / 2, center=(dst.xc, dst.yc))
     return dst
 
 
@@ -192,7 +173,7 @@ def rotate270(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate270")
     dst.data = np.rot90(src.data, 3)
-    transform_roi_coordinates(dst, rotate_coords, -np.pi / 2)
+    transformer.transform_roi(dst, "rotate", angle=np.pi / 2, center=(dst.xc, dst.yc))
     return dst
 
 
@@ -208,7 +189,7 @@ def fliph(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "fliph")
     dst.data = np.fliplr(src.data)
-    transform_roi_coordinates(dst, flip_coords, True, False)
+    transformer.transform_roi(dst, "fliph", cx=dst.xc)
     return dst
 
 
@@ -224,7 +205,7 @@ def flipv(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "flipv")
     dst.data = np.flipud(src.data)
-    transform_roi_coordinates(dst, flip_coords, False, True)
+    transformer.transform_roi(dst, "flipv", cy=dst.yc)
     return dst
 
 
@@ -364,5 +345,5 @@ def transpose(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "transpose")
     dst.data = np.transpose(src.data)
-    transform_roi_coordinates(dst, transpose_coords)
+    transformer.transform_roi(dst, "transpose")
     return dst

@@ -134,6 +134,8 @@ from sigima.proc.image.geometry import (
     BinningParam,
     ResizeParam,
     RotateParam,
+    TranslateParam,
+    translate,
     binning,
     fliph,
     flipv,

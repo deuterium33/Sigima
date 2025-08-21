@@ -37,7 +37,7 @@ The following subpackages are available:
 - :mod:`sigima.proc.base`: Common processing features
 - :mod:`sigima.proc.signal`: Signal processing features
 - :mod:`sigima.proc.image`: Image processing features
-- :mod:`sigima.proc.scalar`: Scalar processing features
+- :mod:`sigima.proc.transformations`: Unified transformation system
 
 Common processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -131,10 +131,10 @@ Geometry
 .. automodule:: sigima.proc.image.geometry
     :members:
 
-Scalar processing features
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Transformation features
+^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: sigima.proc.scalar
+.. automodule:: sigima.proc.transformations
    :members:
 
 Decorators and utilities

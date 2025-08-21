@@ -1,26 +1,52 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Compute-friendly result containers for scalar tables and geometric outputs.
+Scalar results
+==============
+
+Scalar results are compute-friendly result containers for scalar tables and geometric
+outputs.
+
+Overview
+--------
 
 This module defines two pure data classes:
-    - TableResult: table of scalar metrics (optionally per-ROI)
-    - GeometryResult: geometric outputs (points, segments, circles, ...)
 
-No UI/HTML, no DataLab-specific metadata here. Adapters/formatters live in
-DataLab. These classes are JSON-friendly via to_dict()/from_dict().
+- `TableResult`: table of scalar metrics
+- `GeometryResult`: geometric outputs (points, segments, circles, ...)
+
+Each result object is a simple data container with no behavior or methods:
+
+- It contains the result of a 1-to-0 processing function
+  (e.g. `sigima.proc.signal.fwhm()`), i.e. a computation function that takes a signal
+  or image object (`SignalObj` or `ImageObj`) as input and produces a scalar output
+  (`TableResult` or `GeometryResult`).
+
+- The result may consist of multiple rows, each corresponding to a different ROI.
+
+.. note::
+
+    No UI/HTML, no DataLab-specific metadata here. Adapters/formatters live in
+    DataLab. These classes are JSON-friendly via `to_dict()`/`from_dict()`.
 
 Conventions
 -----------
+
+Conventions regarding ROI and geometry are as follows:
+
 - ROI indexing:
-    * NO_ROI = -1 sentinel is used for "full image / no ROI" rows.
-    * Per-ROI rows use non-negative indices (0-based).
+
+  - `NO_ROI = -1` sentinel is used for "full image / no ROI" rows.
+  - Per-ROI rows use non-negative indices (0-based).
+
 - Geometry coordinates (physical units):
-    * "point" / "marker": [x, y]
-    * "segment" / "rectangle": [x0, y0, x1, y1]
-    * "circle": [x0, y0, r]
-    * "ellipse": [x0, y0, a, b, theta]   # theta in radians
-    * "polygon": [x0, y0, x1, y1, ..., xn, yn]  (rows may be NaN-padded)
+
+  - `"point"` / `"marker"`: `[x, y]`
+  - `"segment"`: `[x0, y0, x1, y1]`
+  - `"rectangle"`: `[x0, y0, width, height]`
+  - `"circle"`: `[x0, y0, radius]`
+  - `"ellipse"`: `[x0, y0, a, b, theta]`   # theta in radians
+  - `"polygon"`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)
 """
 
 from __future__ import annotations
@@ -367,9 +393,16 @@ class GeometryResult:
     Raises:
         ValueError: If dimensions are inconsistent or fields are invalid.
 
-    Notes:
-        - Coordinate conventions are documented in the module docstring.
-        - No UI/presentation concerns, no persistence schema here.
+    .. warning::
+
+        Coordinate conventions are as follows:
+
+        - `KindShape.POINT`: `[x, y]`
+        - `KindShape.SEGMENT`: `[x0, y0, x1, y1]`
+        - `KindShape.RECTANGLE`: `[x0, y0, width, height]`
+        - `KindShape.CIRCLE`: `[x0, y0, radius]`
+        - `KindShape.ELLIPSE`: `[x0, y0, a, b, theta]`   # theta in radians
+        - `KindShape.POLYGON`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)
     """
 
     title: str

@@ -1013,7 +1013,7 @@ def generate_geometry_results() -> Generator[GeometryResult, None, None]:
     for index, (shape, coords) in enumerate(
         (
             (KindShape.CIRCLE, [[250, 250, 200]]),
-            (KindShape.RECTANGLE, [[300, 200, 700, 700]]),
+            (KindShape.RECTANGLE, [[300, 200, 150, 250]]),
             (KindShape.SEGMENT, [[50, 250, 400, 400]]),
             (KindShape.POINT, [[500, 500]]),
             (
