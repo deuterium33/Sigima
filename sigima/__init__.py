@@ -15,13 +15,6 @@ comprehensive set of tools for data analysis and visualization, around
 the DataLab application.
 """
 
-# TODO [P1]: Check coordinates of GeometryResult (ex-ResultShape): are they in pixel
-# or physical units? There is an ambiguity in the current implementation.
-# (given the implementation of "compute_geometry_from_obj", they are in physical units
-# because this function is converting pixel coordinates to physical units -- however,
-# this should be documented, at least in the docstrings of this function and of the
-# GeometryResult class)
-
 # TODO: Use `numpy.typing.NDArray` for more precise type annotations once NumPy >= 1.21
 # can be safely required (e.g. after raising the minimum required version of
 # scikit-image to >= 0.19).

@@ -150,6 +150,18 @@ def compute_geometry_from_obj(
     Returns:
         A geometry result object or None if no result is found.
 
+    .. important::
+        **Coordinate Conversion**: This function automatically converts coordinates
+        from pixel units (image indices) to physical units using the image object's
+        calibration information.
+
+        - **Input**: Computation function returns coordinates in pixel units
+        - **Output**: GeometryResult with coordinates in physical units (e.g., mm, µm)
+
+        The conversion is performed using the image's calibration parameters:
+        ``physical_x = obj.dx * pixel_x + obj.x0`` and
+        ``physical_y = obj.dy * pixel_y + obj.y0``
+
     .. warning::
 
         The computation function must take either a single argument (the data) or
@@ -160,6 +172,18 @@ def compute_geometry_from_obj(
         of points, polygons, circles or ellipses in the form [[x, y], ...], or
         [[x0, y0, x1, y1, ...], ...], or [[x0, y0, r], ...], or
         [[x0, y0, a, b, theta], ...].
+
+    Example:
+        >>> # func returns pixel coordinates like [[10, 20], [30, 40]]
+        >>> result = compute_geometry_from_obj(
+        ...     "Points", KindShape.POINT, image_obj, func
+        ... )
+        >>> # result.coords now contains physical coordinates like [[0.5, 1.0],
+        >>> # [1.5, 2.0]]
+
+    See Also:
+        :class:`~sigima.objects.scalar.GeometryResult`: The result object that stores
+        physical coordinates.
     """
     rows: list[np.ndarray] = []
     num_cols: list[int] = []

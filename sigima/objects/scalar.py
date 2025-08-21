@@ -393,7 +393,21 @@ class GeometryResult:
     Raises:
         ValueError: If dimensions are inconsistent or fields are invalid.
 
-    .. warning::
+    .. important::
+        **Coordinate System**: GeometryResult coordinates are stored in **physical
+        units** (e.g., mm, µm), not pixel coordinates. The conversion from pixel to
+        physical coordinates is performed automatically when creating GeometryResult
+        objects from image measurements using
+        :func:`~sigima.proc.image.base.compute_geometry_from_obj`.
+
+        This ensures that geometric measurements are:
+
+        * **Scale-independent**: Results remain valid when images are resized
+        * **Physically meaningful**: Measurements have real-world significance
+        * **Consistent**: Same geometric features yield same results across different
+          images
+
+    .. note::
 
         Coordinate conventions are as follows:
 
@@ -403,6 +417,14 @@ class GeometryResult:
         - `KindShape.CIRCLE`: `[x0, y0, radius]`
         - `KindShape.ELLIPSE`: `[x0, y0, a, b, theta]`   # theta in radians
         - `KindShape.POLYGON`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)
+
+        All coordinate values and dimensions (width, height, radius, semi-axes) are
+        expressed in the image's physical units as defined by the image calibration.
+
+    See Also:
+        :func:`~sigima.proc.image.base.compute_geometry_from_obj`: Function that
+        creates GeometryResult objects with automatic coordinate conversion from
+        pixel to physical units.
     """
 
     title: str
