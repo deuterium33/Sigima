@@ -34,14 +34,6 @@ signal, image or scalar objects as output. Scalar objects are represented by the
     coordinates for example, but the name 'scalar' is retained for simplicity and by
     opposition to the more general 'signal' and 'image' terms).
 
-Common objects
-^^^^^^^^^^^^^^
-
-.. autoclass:: sigima.objects.TypeObj
-.. autoclass:: sigima.objects.TypeROI
-.. autoclass:: sigima.objects.TypeROIParam
-.. autoclass:: sigima.objects.TypeSingleROI
-
 Scalar results
 ^^^^^^^^^^^^^^
 

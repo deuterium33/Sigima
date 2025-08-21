@@ -8,6 +8,7 @@ This module provides algorithms for detecting objects or patterns in images,
 such as blobs, peaks, or custom structures.
 
 Main features include:
+
 - Blob and peak detection algorithms
 - Support for object localization and counting
 

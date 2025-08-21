@@ -8,6 +8,7 @@ This module implements edge detection algorithms for images, enabling the identi
 of boundaries and significant transitions in intensity.
 
 Main features include:
+
 - Standard edge detection filters (e.g., Sobel, Canny)
 - Gradient and Laplacian-based methods
 

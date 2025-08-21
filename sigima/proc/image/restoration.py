@@ -4,6 +4,10 @@
 Restoration computation module
 ------------------------------
 
+This module provides image restoration techniques, such as
+denoising, inpainting, and deblurring. These methods aim to recover
+the original quality of images by removing artifacts, noise, or
+distortions.
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...

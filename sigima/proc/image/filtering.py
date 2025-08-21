@@ -7,6 +7,7 @@ Filtering computation module
 This module provides spatial and frequency-based filtering operations for images.
 
 Main features include:
+
 - Gaussian, median, moving average, Wiener, and Butterworth filters
 - Noise reduction and image smoothing
 

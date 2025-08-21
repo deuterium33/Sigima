@@ -5,7 +5,8 @@ Geometry transformations module
 ===============================
 
 This module provides a unified interface for applying geometric transformations
-to both GeometryResult and ROI objects using the shape coordinate system.
+to both geometry results (:class:`sigima.objects.GeometryResult`) and ROI objects
+using the shape coordinate system (:mod:`sigima.objects.shape`).
 """
 
 from __future__ import annotations

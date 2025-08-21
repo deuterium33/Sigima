@@ -8,6 +8,7 @@ This module provides tools for extracting quantitative information from images,
 such as object centroids, enclosing circles, and region-based statistics.
 
 Main features include:
+
 - Centroid and enclosing circle computation
 - Region/property measurements
 - Statistical analysis of image regions

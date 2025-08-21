@@ -8,6 +8,7 @@ This module implements geometric transformations and manipulations for images,
 such as rotations, flips, resizing, axis swapping, binning, and padding.
 
 Main features include:
+
 - Rotation by arbitrary or fixed angles
 - Horizontal and vertical flipping
 - Resizing and binning of images

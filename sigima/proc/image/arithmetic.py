@@ -9,6 +9,7 @@ subtraction, multiplication, division, as well as operations with constants
 and combined arithmetic formulas.
 
 Main features include:
+
 - Pixel-wise addition, subtraction, multiplication, and division between images
 - Application of arithmetic operations with constants to images
 - Support for quadratic difference and general arithmetic expressions

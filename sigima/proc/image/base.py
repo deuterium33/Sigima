@@ -8,6 +8,7 @@ This module provides core classes and utility functions that serve as building b
 for the other computation modules.
 
 Main features include:
+
 - Generic helper functions used across image processing modules
 - Core wrappers and infrastructure for computation functions
 
