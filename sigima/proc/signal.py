@@ -30,9 +30,9 @@ from sigima.objects.base import ResultProperties, ResultShape
 from sigima.objects.signal import ROI1DParam, SignalObj
 from sigima.proc.base import (
     AngleUnit,
+    AngleUnitParam,
     ArithmeticParam,
     ClipParam,
-    CombineToComplexParam,
     ConstantParam,
     FFTParam,
     GaussianParam,
@@ -131,7 +131,6 @@ __all__ = [
     "WindowingParam",
     "apply_window",
     "reverse_x",
-    "AngleUnitParam",
     "to_polar",
     "to_cartesian",
     "AllanVarianceParam",
@@ -158,6 +157,8 @@ __all__ = [
     "sampling_rate_period",
     "contrast",
     "x_at_minmax",
+    "complex_from_magnitude_phase",
+    "complex_from_real_imag",
 ]
 
 
@@ -654,33 +655,65 @@ def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
 
 
 @computation_function()
-def combine_to_complex(
-    src1: SignalObj, src2: SignalObj, p: CombineToComplexParam
-) -> SignalObj:
-    """Combine two real signal in a complex signal`
+def complex_from_real_imag(src1: SignalObj, src2: SignalObj) -> SignalObj:
+    """Combine two real signals into a complex signal using real + i * imag.
+
+    .. warning::
+
+        The x coordinates of the two signals must be the same.
 
     Args:
-        src1: real part or module
-        src2: imaginary part or phase
-        p: parameters
-
+        src1: Real part signal.
+        src2: Imaginary part signal.
 
     Returns:
-        Result signal object
+        Result signal object with complex-valued y.
     """
-    dst = dst_2_to_1(src1, src2, p.mode)
-
     if not np.array_equal(src1.x, src2.x):
-        raise ValueError(_("The x coordinates of the two signals must be the same"))
+        warnings.warn(
+            "The x coordinates of the two signals are not the same. "
+            "Results may be incorrect."
+        )
+    dst = dst_2_to_1(src1, src2, "real_imag")
+    y = src1.y + 1j * src2.y
+    dst.set_xydata(src1.x, y, src1.dx, None)
+    return dst
 
-    if p.mode == "real_imag":
-        # If not unwrapping, use numpy.angle
-        y = src1.y + 1j * src2.y
-        dst.set_xydata(src1.x, y)
-    else:  # If mode is "mag_phase"
-        y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit)
-        dst.set_xydata(src1.x, y)
 
+@computation_function()
+def complex_from_magnitude_phase(
+    src1: SignalObj, src2: SignalObj, p: AngleUnitParam
+) -> SignalObj:
+    """Combine magnitude and phase signals into a complex signal.
+
+    .. warning::
+
+        The x coordinates of the two signals must be the same.
+
+    .. warning::
+
+        Negative values are not allowed for the radius and will be clipped to 0.
+
+    Args:
+        src1: Magnitude (module) signal.
+        src2: Phase (argument) signal.
+        p: Parameters (must provide unit for the phase).
+
+    Returns:
+        Result signal object with complex-valued y.
+    """
+    if not np.array_equal(src1.x, src2.x):
+        warnings.warn(
+            "The x coordinates of the two signals are not the same. "
+            "Results may be incorrect."
+        )
+    if np.any(src1.y < 0.0):
+        warnings.warn("Negative radius values are not allowed. They will be set to 0.")
+        src1.y = np.maximum(src1.y, 0.0)
+    dst = dst_2_to_1(src1, src2, "mag_phase")
+    assert p.unit is not None
+    y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit.value)
+    dst.set_xydata(src1.x, y, src1.x, None)
     return dst
 
 
@@ -1762,17 +1795,6 @@ def reverse_x(src: SignalObj) -> SignalObj:
     dst = dst_1_to_1(src, "reverse_x")
     dst.y = dst.y[::-1]
     return dst
-
-
-class AngleUnitParam(gds.DataSet):
-    """Choice of angle unit."""
-
-    unit = gds.ChoiceItem(
-        _("Angle unit"),
-        AngleUnit,
-        default=AngleUnit.radian,
-        help=_("Unit of angle measurement"),
-    )
 
 
 @computation_function()

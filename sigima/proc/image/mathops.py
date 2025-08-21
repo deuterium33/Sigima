@@ -34,7 +34,7 @@ from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import (
     AngleUnit,
-    CombineToComplexParam,
+    AngleUnitParam,
     PhaseParam,
     dst_1_to_1,
     dst_2_to_1,
@@ -55,6 +55,8 @@ __all__ = [
     "logp1",
     "DataTypeIParam",
     "astype",
+    "complex_from_magnitude_phase",
+    "complex_from_real_imag",
 ]
 
 
@@ -145,32 +147,52 @@ def phase(src: ImageObj, p: PhaseParam) -> ImageObj:
 
 
 @computation_function()
-def combine_to_complex(
-    src1: ImageObj, src2: ImageObj, p: CombineToComplexParam
+def complex_from_magnitude_phase(
+    src1: ImageObj, src2: ImageObj, p: AngleUnitParam
 ) -> ImageObj:
-    """Combine two real images in a complex image`
+    """Combine magnitude and phase images into a complex image.
+
+    .. warning::
+
+        This function assumes that the input images have the same dimensions.
 
     Args:
-        src1: real part or module
-        src2: imaginary part or phase
-        p: parameters
+        src1: Magnitude (module) image.
+        src2: Phase (argument) image.
+        p: Parameters (provides unit for the phase).
 
     Returns:
-        Result signal object
+        Image object with complex-valued z.
     """
-    dst = dst_2_to_1(src1, src2, p.mode)
+    dst = dst_2_to_1(src1, src2, "mag_phase")
+    assert p.unit is not None
+    dst.data = coordinates.polar_to_complex(src1.data, src2.data, unit=p.unit.value)
+    return dst
 
-    if not np.array_equal(src1.x, src2.x) or not np.array_equal(src1.y, src2.y):
-        raise ValueError(
-            _("The x and y coordinates of the two signals must be the same")
-        )
 
-    if p.mode == "real_imag":
-        # If not unwrapping, use numpy.angle
-        dst.z = src1.z + 1j * src2.z
-    else:  # If mode is "mag_phase"
-        dst.z = coordinates.polar_to_complex(src1.z, src2.z, unit=p.unit)
+@computation_function()
+def complex_from_real_imag(src1: ImageObj, src2: ImageObj) -> ImageObj:
+    """Combine two real images into a complex image using real + i * imag.
 
+    .. warning::
+
+        This function assumes that the input images have the same dimensions and are
+        properly aligned.
+
+    Args:
+        src1: Real part image.
+        src2: Imaginary part image.
+
+    Returns:
+        Image object with complex-valued z.
+
+    Raises:
+        ValueError: If the x or y coordinates of the two images are not the same.
+    """
+    dst = dst_2_to_1(src1, src2, "real_imag")
+    assert src1.data is not None
+    assert src2.data is not None
+    dst.data = src1.data + 1j * src2.data
     return dst
 
 

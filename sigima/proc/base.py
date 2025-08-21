@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "AngleUnit",
+    "AngleUnitParam",
     "ArithmeticParam",
     "GaussianParam",
     "MovingAverageParam",
@@ -205,6 +206,17 @@ class AngleUnit(Enum):
     degree = "°"
 
 
+class AngleUnitParam(gds.DataSet):
+    """Choice of angle unit."""
+
+    unit = gds.ChoiceItem(
+        _("Angle unit"),
+        AngleUnit,
+        default=AngleUnit.radian,
+        help=_("Unit of angle measurement"),
+    )
+
+
 class PhaseParam(gds.DataSet):
     """Parameters for phase computation."""
 
@@ -216,27 +228,6 @@ class PhaseParam(gds.DataSet):
         AngleUnit,
         default=AngleUnit.degree,
         help=_("Unit of angle measurement"),
-    )
-
-
-class CombineToComplexParam(gds.DataSet):
-    """parameters for phase angle computation"""
-
-    mode = gds.ChoiceItem(
-        _("Combination mode"),
-        [
-            ("real_imag", _("Real and imaginary part")),
-            ("mag_phase", _("Magnitude and phase angle")),
-        ],
-        default="mag_phase",
-    )
-    unit = gds.ChoiceItem(
-        _("Angle unit"),
-        [("rad", _("Radians")), ("deg", _("Degrees"))],
-        default="deg",
-    ).set_prop(
-        "active",
-        active=gds.FuncProp("mode", lambda x: x == "mag_phase"),
     )
 
 

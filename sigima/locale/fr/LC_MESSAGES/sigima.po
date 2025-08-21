@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-13 17:02+0200\n"
+"POT-Creation-Date: 2025-08-21 14:18+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -439,11 +439,14 @@ msgstr "Sortie en décibels (dB)"
 msgid "Constant value"
 msgstr "Constante"
 
-msgid "Unwrapping removes discontinuities in phase"
-msgstr "Déplier supprime les discontinuités de phase"
+msgid "Angle unit"
+msgstr "Unité de l'angle"
 
 msgid "Unit of angle measurement"
 msgstr "Unité de mesure de l'angle"
+
+msgid "Unwrapping removes discontinuities in phase"
+msgstr "Déplier supprime les discontinuités de phase"
 
 msgid "columns"
 msgstr "colonnes"
@@ -1076,9 +1079,6 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
 
-msgid "Angle unit"
-msgstr "Unité de l'angle"
-
 msgid "Angle"
 msgstr "Angle"
 
@@ -1168,3 +1168,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

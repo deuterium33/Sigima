@@ -15,7 +15,9 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-from sigima.proc.base import AngleUnit
+from sigima.objects.image import ImageObj
+from sigima.proc.base import AngleUnit, AngleUnitParam
+from sigima.proc.image import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
@@ -24,6 +26,7 @@ from sigima.tests.data import (
 )
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result
+from sigima.tools.coordinates import polar_to_complex
 
 
 def __create_n_images(n: int = 100) -> list[sigima.objects.ImageObj]:
@@ -304,6 +307,23 @@ def test_image_imag() -> None:
 
 
 @pytest.mark.validation
+def test_image_complex_from_real_imag() -> None:
+    """Test :py:func:`sigima.proc.image.complex_from_real_imag`."""
+    real = np.ones((4, 4))
+    ima = np.arange(16).reshape(4, 4)
+    ima_real = ImageObj("real")
+    ima_real.data = real
+    ima_imag = ImageObj("imag")
+    ima_imag.data = ima
+    result = complex_from_real_imag(ima_real, ima_imag)
+    check_array_result(
+        "complex_from_real_imag",
+        result.data,
+        real + 1j * ima,
+    )
+
+
+@pytest.mark.validation
 def test_image_phase() -> None:
     """Image phase test."""
     execenv.print("*** Testing image phase:")
@@ -353,6 +373,38 @@ def test_image_phase() -> None:
         check_array_result(
             "Phase|unwrapping|deg", phase_ima_deg_unwrap.data, exp_deg_unwrap
         )
+
+
+complex_from_magnitude_phase_parameters = [
+    (np.linspace(0, np.pi, 16).reshape(4, 4), AngleUnit.radian),
+    (np.linspace(0, 360, 16).reshape(4, 4), AngleUnit.degree),
+]
+
+
+@pytest.mark.parametrize("phase, unit", complex_from_magnitude_phase_parameters)
+@pytest.mark.validation
+def test_image_complex_from_magnitude_phase(phase: np.ndarray, unit: AngleUnit) -> None:
+    """Test :py:func:`sigima.proc.image.complex_from_magnitude_phase`.
+
+    Args:
+    phase (np.ndarray): Angles in radians or degrees.
+    unit (AngleUnit): Unit of the angles, either radian or degree.
+    """
+    magnitude = np.full((4, 4), 2.0)
+    # Create image instances for magnitude and phase
+    ima_mag = ImageObj("magnitude")
+    ima_mag.data = magnitude
+    ima_phase = ImageObj("phase")
+    ima_phase.data = phase
+    # Create complex signal from magnitude and phase
+    p = AngleUnitParam.create(unit=unit)
+    result = complex_from_magnitude_phase(ima_mag, ima_phase, p)
+    unit_str = "rad" if p.unit == AngleUnit.radian else "°"
+    check_array_result(
+        "complex_from_magnitude_phase",
+        result.data,
+        polar_to_complex(magnitude, phase, unit=unit_str),
+    )
 
 
 def __get_numpy_info(dtype: np.dtype) -> np.generic:
