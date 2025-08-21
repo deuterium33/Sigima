@@ -1087,6 +1087,13 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
 
     Returns:
         Result signal object
+
+    .. note::
+
+        Uses zero-phase filtering (`filtfilt`) when possible for better phase response.
+        If numerical instability occurs (e.g., singular matrix errors), automatically
+        falls back to forward filtering (`lfilter`) with a warning. This ensures
+        cross-platform compatibility while maintaining optimal filtering when possible.
     """
     name = f"{p.TYPE.value}"
     suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
@@ -1111,7 +1118,18 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         dst.set_xydata(x, y)
     else:
         b, a = p.get_filter_params(dst)
-        dst.y = sps.filtfilt(b, a, dst.y)
+        try:
+            # Prefer zero-phase filtering
+            dst.y = sps.filtfilt(b, a, dst.y)
+        except np.linalg.LinAlgError:
+            # Fallback to forward filtering if filtfilt fails due to numerical issues
+            warnings.warn(
+                "Zero-phase filtering failed due to numerical instability. "
+                "Using forward filtering instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            dst.y = sps.lfilter(b, a, dst.y)
 
     restore_data_outside_roi(dst, src)
     return dst
