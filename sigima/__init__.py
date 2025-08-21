@@ -19,10 +19,6 @@ the DataLab application.
 # can be safely required (e.g. after raising the minimum required version of
 # scikit-image to >= 0.19).
 
-# TODO: Should we use `ImageROI` instead of `ROI2DParam` as input parameter type
-# for the `erase`, `extract_roi`, and `extract_rois` functions? (same for signal
-# ROI extraction functions)
-
 # TODO: Should we use an unified approach for handling enum types or similar choices?
 # For example, see `BINNING_OPERATIONS` which currently is a simple tuple of strings,
 # whereas it could be a more structured enum type. There are several other examples
