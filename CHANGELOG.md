@@ -7,6 +7,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* New common signal/image feature:
+  * Generate new signal or image: Poisson noise.
+  * Add noise to the selected signals or images.
+    * Gaussian, Poisson or uniform noise can be added.
+
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.
   * Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs.
