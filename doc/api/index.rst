@@ -24,6 +24,9 @@ The public Application Programming Interface (API) of Sigima offers a set of fun
     * - :mod:`sigima.proc`
       - Computation functions, which operate on signal and image objects (:class:`sigima.objects.SignalObj` or :class:`sigima.objects.ImageObj`) and return signal or image objects, or scalar results (:class:`sigima.objects.GeometryResult` or :class:`sigima.objects.TableResult`).
 
+    * - :mod:`sigima.config`
+      - Configuration management for the Sigima library, including options for data paths, translations, and other settings.
+
 
 .. toctree::
    :maxdepth: 2
@@ -33,3 +36,4 @@ The public Application Programming Interface (API) of Sigima offers a set of fun
    params
    objects
    proc
+   config

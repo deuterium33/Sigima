@@ -24,8 +24,6 @@ the DataLab application.
 # the NLnet Foundation.
 
 # -------- Point of no return after creating an independent `sigima` package ----------
-# TODO: Fix TODO related to `OPTIONS_RST` in 'sigima\config.py'
-#
 # TODO: Migrate `cdlclient` features to a subpackage of `sigima` (e.g., `sigima.client`)
 # The features to be migrated include everything except the GUI components which will be
 # integrated into the `sigimax` project (`sigima` *must* remain headless)
