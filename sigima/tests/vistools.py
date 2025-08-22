@@ -6,6 +6,8 @@ Visualization tools for `sigima` interactive tests (based on PlotPy)
 
 from __future__ import annotations
 
+from typing import Sequence
+
 import numpy as np
 import plotpy.tools
 from guidata.qthelpers import exec_dialog, qt_app_context
@@ -106,7 +108,7 @@ def view_curve_items(
 
 
 def view_curves(
-    data_or_objs: list[SignalObj | np.ndarray | tuple[np.ndarray, np.ndarray]]
+    data_or_objs: Sequence[SignalObj | np.ndarray | tuple[np.ndarray, np.ndarray]]
     | SignalObj
     | np.ndarray
     | tuple[np.ndarray, np.ndarray],
