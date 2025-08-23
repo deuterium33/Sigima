@@ -19,6 +19,7 @@ from sigima.config import _, options
 from sigima.io import ftlab
 from sigima.io.base import FormatInfo
 from sigima.io.common.converters import convert_array_to_standard_type
+from sigima.io.enums import FileEncoding
 from sigima.io.image import funcs
 from sigima.io.image.base import (
     ImageFormatBase,
@@ -178,7 +179,7 @@ class TextImageFormat(SingleImageFormatBase):
         Returns:
             Image array data
         """
-        for encoding in ("utf-8", "utf-8-sig", "latin-1"):
+        for encoding in FileEncoding:
             for decimal in (".", ","):
                 for delimiter in (",", ";", r"\s+"):
                     try:

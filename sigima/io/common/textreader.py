@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from itertools import islice
 
+from sigima.io.enums import FileEncoding
+
 
 def count_lines(filename: str) -> int:
     """Count the number of lines in a file
@@ -20,7 +22,7 @@ def count_lines(filename: str) -> int:
     Returns:
         The number of lines in the file
     """
-    for encoding in ("utf-8", "utf-8-sig", "latin-1"):
+    for encoding in FileEncoding:
         try:
             with open(filename, "r", encoding=encoding) as file:
                 line_count = sum(1 for line in file)
@@ -40,7 +42,7 @@ def read_first_n_lines(filename: str, n: int = 100000) -> str:
     Returns:
         The first n lines of the file
     """
-    for encoding in ("utf-8", "utf-8-sig", "latin-1"):
+    for encoding in FileEncoding:
         try:
             with open(filename, "r", encoding=encoding) as file:
                 lines = list(islice(file, n))
