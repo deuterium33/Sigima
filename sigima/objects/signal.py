@@ -680,7 +680,7 @@ class ZerosParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
 
 
-class UniformRandomParam(base.BaseUniformRandomParam, NewSignalParam):
+class UniformRandomParam(NewSignalParam, base.BaseUniformRandomParam):
     """Uniform-law random signal/image parameters"""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -698,7 +698,7 @@ class UniformRandomParam(base.BaseUniformRandomParam, NewSignalParam):
 register_signal_parameters_class(SignalTypes.UNIFORMRANDOM, UniformRandomParam)
 
 
-class NormalRandomParam(base.BaseNormalRandomParam, NewSignalParam):
+class NormalRandomParam(NewSignalParam, base.BaseNormalRandomParam):
     """Normal-law random signal/image parameters"""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
