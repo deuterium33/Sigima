@@ -4,6 +4,10 @@
 Morphology computation module
 -----------------------------
 
+This module provides morphological operations for image processing, such as
+dilation, erosion, opening, and closing. These operations are useful for
+removing noise, filling gaps, and extracting structures in binary and grayscale
+images.
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...

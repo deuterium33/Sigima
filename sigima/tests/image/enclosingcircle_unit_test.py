@@ -72,15 +72,15 @@ def test_image_enclosing_circle():
     # Create a ring image, so that the outer circle radius is radius + thickness:
     obj = create_ring_image(p)
     execenv.print("Testing enclosing circle on a ring image...")
-    x, y, r = sigima.tools.image.get_enclosing_circle(obj.data)
-    res = enclosing_circle(obj)
-    df = res.to_dataframe()
-    execenv.print(df)
-    assert x == df.x[0] and y == df.y[0] and r == df.r[0], (
-        f"Enclosing circle test failed: expected ({x}, {y}, {r}), "
-        f"got ({df.x[0]}, {df.y[0]}, {df.r[0]})"
+    ex, ey, er = sigima.tools.image.get_enclosing_circle(obj.data)
+    geometry = enclosing_circle(obj)
+    x, y, r = geometry.coords[0]
+    execenv.print(geometry)
+    assert ex == x and ey == y and er == r, (
+        f"Enclosing circle test failed: expected ({ex}, {ey}, {er}), "
+        f"got ({x}, {y}, {r})"
     )
-    check_scalar_result("Enclosing circle", r, p.radius + p.thickness, rtol=0.002)
+    check_scalar_result("Enclosing circle", er, p.radius + p.thickness, rtol=0.002)
 
 
 if __name__ == "__main__":

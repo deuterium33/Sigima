@@ -122,6 +122,39 @@
             "type": "shell",
         },
         {
+            "label": "🚀 Pytest",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "scripts/run_with_env.py",
+                "${command:python.interpreterPath}",
+                "-m",
+                "pytest",
+                "--ff",
+                // "--gui",
+                // "--show-windows",                
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    // "DEBUG": "1", // ☣️ Debug mode will reset .ini settings
+                    "UNATTENDED": "1",
+                },
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true,
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true,
+            },
+            "type": "shell",
+        },
+        {
             "label": "sphinx-build",
             "command": "${command:python.interpreterPath}",
             "args": [
@@ -253,10 +286,10 @@
                 "cwd": "${workspaceFolder}",
             },
             "presentation": {
-                "clear": false,
+                "clear": true,
                 "echo": true,
                 "focus": false,
-                "panel": "shared",
+                "panel": "dedicated",
                 "reveal": "always",
                 "showReuseMessage": true,
             },
@@ -289,10 +322,10 @@
                 "cwd": "${workspaceFolder}",
             },
             "presentation": {
-                "clear": false,
+                "clear": true,
                 "echo": true,
                 "focus": false,
-                "panel": "shared",
+                "panel": "dedicated",
                 "reveal": "always",
                 "showReuseMessage": true,
             },
@@ -311,8 +344,6 @@
                 "-m",
                 "pytest",
                 "--ff",
-                // "--gui",
-                // "--show-windows"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

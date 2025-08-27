@@ -1087,8 +1087,6 @@ class ImageTypes(enum.Enum):
     #: Image filled with zeros
     ZEROS = _("Zeros")
     #: Empty image (filled with data from memory state)
-    EMPTY = _("Empty")
-    #: Image filled with random data (uniform law)
     UNIFORMRANDOM = _("Random (uniform law)")
     #: Image filled with random data (normal law)
     NORMALRANDOM = _("Random (normal law)")
@@ -1229,26 +1227,7 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class Empty2DParam(NewImageParam):
-    """Image parameters for an empty 2D image (filled with data from memory state)"""
-
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
-        """Generate 2D data based on current parameters.
-
-        Args:
-            shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
-
-        Returns:
-            2D data array
-        """
-        return np.empty(shape, dtype=dtype)
-
-
-register_image_parameters_class(ImageTypes.EMPTY, Empty2DParam)
-
-
-class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
+class UniformRandom2DParam(NewImageParam, base.BaseUniformRandomParam):
     """Uniform-law random image parameters"""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1269,7 +1248,7 @@ class UniformRandom2DParam(base.BaseUniformRandomParam, NewImageParam):
 register_image_parameters_class(ImageTypes.UNIFORMRANDOM, UniformRandom2DParam)
 
 
-class NormalRandom2DParam(base.BaseNormalRandomParam, NewImageParam):
+class NormalRandom2DParam(NewImageParam, base.BaseNormalRandomParam):
     """Normal-law random image parameters"""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:

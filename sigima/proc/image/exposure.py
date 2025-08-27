@@ -7,6 +7,7 @@ Exposure computation module
 This module provides tools for adjusting and analyzing image exposure and contrast.
 
 Main features include:
+
 - Histogram computation and equalization
 - Contrast adjustment and normalization
 - Logarithmic and gamma correction

@@ -271,7 +271,7 @@ def view_images(
 
 
 def view_curves_and_images(
-    data_or_objs: list[SignalObj | ImageObj | np.ndarray],
+    data_or_objs: list[SignalObj | np.ndarray | ImageObj | np.ndarray],
     name: str | None = None,
     title: str | None = None,
     xlabel: str | None = None,

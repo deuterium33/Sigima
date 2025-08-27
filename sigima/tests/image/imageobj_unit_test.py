@@ -169,7 +169,7 @@ def test_create_image() -> None:
     image = sigima.objects.create_image("", data=data)
     assert isinstance(image, sigima.objects.ImageObj)
     assert np.array_equal(image.data, data)
-    assert image.metadata == {}
+    assert not image.metadata
     assert (image.xunit, image.yunit, image.zunit) == ("", "", "")
     assert (image.xlabel, image.ylabel, image.zlabel) == ("", "", "")
 
