@@ -8,6 +8,7 @@ This module provides functions to extract sub-regions
 and intensity profiles from images.
 
 Main features include:
+
 - Extraction of regions of interest (ROIs)
 - Extraction of line, segment, average, and radial intensity profiles
 

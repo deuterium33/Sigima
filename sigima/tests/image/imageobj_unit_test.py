@@ -18,6 +18,7 @@ import sigima.io
 import sigima.objects
 from sigima.io.image import ImageIORegistry
 from sigima.objects.image import Gauss2DParam, Ramp2DParam
+from sigima.tests import guiutils
 from sigima.tests.data import (
     create_annotated_image,
     create_test_image_with_metadata,
@@ -126,10 +127,7 @@ def test_hdf5_image_io() -> None:
 def test_image_parameters_interactive() -> None:
     """Test interactive creation of image parameters"""
     execenv.print(f"{test_image_parameters_interactive.__doc__}:")
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         for itype in sigima.objects.ImageTypes:
             param = sigima.objects.create_image_parameters(itype)
             if param.edit():
@@ -171,7 +169,7 @@ def test_create_image() -> None:
     image = sigima.objects.create_image("", data=data)
     assert isinstance(image, sigima.objects.ImageObj)
     assert np.array_equal(image.data, data)
-    assert image.metadata == {}
+    assert not image.metadata
     assert (image.xunit, image.yunit, image.zunit) == ("", "", "")
     assert (image.xlabel, image.ylabel, image.zlabel) == ("", "", "")
 

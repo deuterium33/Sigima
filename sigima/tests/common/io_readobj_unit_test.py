@@ -33,58 +33,38 @@ def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
 
 
 def __read_and_view_objs(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
+    fname: str | None = None, title: str | None = None
 ) -> list[ImageObj]:
     """Read and view objects from a file
 
     Args:
         fname: Name of the file to open.
         title: Title for the view.
-        request: Pytest fixture request for GUI context.
 
     Returns:
         List of ImageObj or SignalObj read from the file.
     """
-    guiutils.set_current_request(request)
     objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title=title)
+    guiutils.view_curves_and_images_if_gui(objs, title=title)
     return objs
 
 
 @helpers.try_open_test_data("Testing TXT file reader", "*.txt")
-def test_open_txt(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_txt(fname: str | None = None, title: str | None = None) -> None:
     """Testing TXT files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing CSV file reader", "*.csv")
-def test_open_csv(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_csv(fname: str | None = None, title: str | None = None) -> None:
     """Testing CSV files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab signal file reader", "*.sig")
-def test_open_sigdata(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_sigdata(fname: str | None = None, title: str | None = None) -> None:
     """Testing FTLab signal files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
     # Read the FTLab signal file and compare the data with the reference
     data = sigread_ftlabsig(fname)
@@ -93,43 +73,27 @@ def test_open_sigdata(
 
 
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
-def test_open_mat(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_mat(fname: str | None = None, title: str | None = None) -> None:
     """Testing MAT files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SIF file handler", "*.sif")
-def test_open_sif(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_sif(fname: str | None = None, title: str | None = None) -> None:
     """Testing SIF files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SCOR-DATA file handler", "*.scor-data")
-def test_open_scordata(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_scordata(fname: str | None = None, title: str | None = None) -> None:
     """Testing SCOR-DATA files"""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab image file handler", "*.ima")
-def test_open_imadata(
-    fname: str | None = None,
-    title: str | None = None,
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_open_imadata(fname: str | None = None, title: str | None = None) -> None:
     """Testing FTLab image files."""
-    __read_and_view_objs(fname, title, request)
+    __read_and_view_objs(fname, title)
 
     # Read the FTLab image file and show the data
     ftlab_file = FTLabImageFile(fname)
@@ -145,14 +109,14 @@ def test_open_imadata(
 @pytest.mark.gui
 def test_read_obj_interactive() -> None:
     """Interactive test for I/O: read and view objects from various formats."""
-    request = guiutils.DummyRequest(gui=True)
-    test_open_txt(request=request)
-    test_open_csv(request=request)
-    test_open_sigdata(request=request)
-    test_open_mat(request=request)
-    test_open_sif(request=request)
-    test_open_scordata(request=request)
-    test_open_imadata(request=request)
+    guiutils.enable_gui()
+    test_open_txt()
+    test_open_csv()
+    test_open_sigdata()
+    test_open_mat()
+    test_open_sif()
+    test_open_scordata()
+    test_open_imadata()
 
 
 if __name__ == "__main__":
