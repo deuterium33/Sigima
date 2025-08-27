@@ -7,6 +7,7 @@ Filtering computation module
 This module provides spatial and frequency-based filtering operations for images.
 
 Main features include:
+
 - Gaussian, median, moving average, Wiener, and Butterworth filters
 - Noise reduction and image smoothing
 
@@ -79,7 +80,7 @@ def moving_average(src: ImageObj, p: MovingAverageParam) -> ImageObj:
     Returns:
         Output image object
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -93,7 +94,7 @@ def moving_median(src: ImageObj, p: MovingMedianParam) -> ImageObj:
     Returns:
         Output image object
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()

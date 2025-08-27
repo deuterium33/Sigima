@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 import plotpy.tools
-from guidata.qthelpers import exec_dialog, qt_app_context
+from guidata.qthelpers import exec_dialog
 from plotpy.builder import make
 from plotpy.items import AnnotatedPolygon, CurveItem, ImageItem
 from plotpy.plot import (
@@ -16,7 +16,7 @@ from plotpy.plot import (
     BasePlotOptions,
     PlotDialog,
     PlotOptions,
-    SyncPlotWindow,
+    SyncPlotDialog,
 )
 
 from sigima.config import _
@@ -335,37 +335,39 @@ def view_images_side_by_side(
         titles: List of titles for each image
         share_axes: Whether to share axes across plots, default is True
         rows: Fixed number of rows in the grid, or None to compute automatically
-        maximized: Whether to show the window maximized, default is False
-        title: Title of the window, or None for a default title
+        maximized: Whether to show the dialog maximized, default is False
+        title: Title of the dialog, or None for a default title
     """
+    # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
-    with qt_app_context(exec_loop=True):
-        win = SyncPlotWindow(title=title)
-        for idx, (img, imtitle) in enumerate(zip(images, titles)):
-            row = idx // cols
-            col = idx % cols
-            plot = BasePlot(options=BasePlotOptions(title=imtitle))
-            other_items = []
-            if isinstance(img, ImageItem):
-                item = img
+    dlg = SyncPlotDialog(title=title)
+    for idx, (img, imtitle) in enumerate(zip(images, titles)):
+        row = idx // cols
+        col = idx % cols
+        plot = BasePlot(options=BasePlotOptions(title=imtitle))
+        other_items = []
+        if isinstance(img, ImageItem):
+            item = img
+        else:
+            if isinstance(img, ImageObj):
+                data = img.data
+                mask = img.maskdata
+                imtitle = img.title or imtitle
+            elif isinstance(img, np.ndarray):
+                data = img
+                mask = np.zeros_like(data, dtype=bool)
             else:
-                if isinstance(img, ImageObj):
-                    data = img.data
-                    mask = img.maskdata
-                elif isinstance(img, np.ndarray):
-                    data = img
-                    mask = np.zeros_like(data, dtype=bool)
-                else:
-                    raise TypeError(f"Unsupported image type: {type(img)}")
-                item = make.maskedimage(
-                    data,
-                    mask,
-                    title=img.title,
-                    interpolation="nearest",
-                    colormap="viridis",
-                    eliminate_outliers=0.1,
-                    show_mask=True,
-                )
+                raise TypeError(f"Unsupported image type: {type(img)}")
+            item = make.maskedimage(
+                data,
+                mask,
+                title=imtitle,
+                interpolation="nearest",
+                colormap="viridis",
+                eliminate_outliers=0.1,
+                show_mask=True,
+            )
+            if isinstance(img, ImageObj):
                 x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
                 item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
                 item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
@@ -390,13 +392,12 @@ def view_images_side_by_side(
                             roi_item.set_style("plot", "shape/drag")
                             roi_item.annotationparam.update_item(roi_item)
                         other_items.append(roi_item)
-            plot.add_item(item)
-            for other_item in other_items:
-                plot.add_item(other_item)
-            win.add_plot(row, col, plot, sync=share_axes)
-        win.finalize_configuration()
-        if maximized:
-            win.resize(1200, 800)
-            win.showMaximized()
-        else:
-            win.show()
+        plot.add_item(item)
+        for other_item in other_items:
+            plot.add_item(other_item)
+        dlg.add_plot(row, col, plot, sync=share_axes)
+    dlg.finalize_configuration()
+    if maximized:
+        dlg.resize(1200, 800)
+        dlg.showMaximized()
+    exec_dialog(dlg)

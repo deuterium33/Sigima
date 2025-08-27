@@ -8,6 +8,7 @@ This module implements edge detection algorithms for images, enabling the identi
 of boundaries and significant transitions in intensity.
 
 Main features include:
+
 - Standard edge detection filters (e.g., Sobel, Canny)
 - Gradient and Laplacian-based methods
 
@@ -34,6 +35,7 @@ from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import FilterMode
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
 __all__ = [
@@ -88,8 +90,7 @@ class CannyParam(gds.DataSet):
             "values. If True then the thresholds must be in the range [0, 1]."
         ),
     )
-    modes = ("reflect", "constant", "nearest", "mirror", "wrap")
-    mode = gds.ChoiceItem(_("Mode"), list(zip(modes, modes)), default="constant")
+    mode = gds.ChoiceItem(_("Mode"), FilterMode, default=FilterMode.CONSTANT)
     cval = gds.FloatItem(
         "cval",
         default=0.0,
@@ -108,12 +109,13 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
     Returns:
         Output image object
     """
+    mode = p.mode.value
     dst = dst_1_to_1(
         src,
         "canny",
         f"sigma={p.sigma}, low_threshold={p.low_threshold}, "
         f"high_threshold={p.high_threshold}, use_quantiles={p.use_quantiles}, "
-        f"mode={p.mode}, cval={p.cval}",
+        f"mode={mode}, cval={p.cval}",
     )
     dst.data = skimage.util.img_as_ubyte(
         feature.canny(
@@ -122,7 +124,7 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
             low_threshold=p.low_threshold,
             high_threshold=p.high_threshold,
             use_quantiles=p.use_quantiles,
-            mode=p.mode,
+            mode=mode,
             cval=p.cval,
         )
     )

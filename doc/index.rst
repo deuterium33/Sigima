@@ -4,13 +4,41 @@ Sigima
 **Sigima** is an advanced Python library for *scientific image and signal processing*.
 It provides a wide range of functionalities for analyzing and processing data, including signal filtering, image enhancement, and feature extraction. Sigima is based on a simple but effective object-oriented design, making it easy to use and extend.
 
+.. only:: html and not latex
+
+    .. grid:: 2 2 4 4
+        :gutter: 1 2 3 4
+
+        .. grid-item-card:: :octicon:`rocket;1em;sd-text-info`  Getting started
+            :link: intro/index
+            :link-type: doc
+
+            Installation, tutorials, use cases...
+
+        .. grid-item-card:: :octicon:`book;1em;sd-text-info`  API
+            :link: api/index
+            :link-type: doc
+
+            Reference documentation
+
+        .. grid-item-card:: :octicon:`gear;1em;sd-text-info`  Contributing
+            :link: contributing/index
+            :link-type: doc
+
+            Getting involved in the project
+
+        .. grid-item-card:: :octicon:`tools;1em;log`  Release notes
+            :link: changelog
+            :link-type: doc
+
+            History of changes
+
 .. figure:: _static/DataLab-Banner.svg
     :align: center
     :width: 300 px
     :class: dark-light no-scaled-link
 
     Developed and maintained by the DataLab Platform Developers, **Sigima** powers the computation backend of `DataLab <https://www.datalab-platform.com>`_.
-
 
 Sigima has been funded by the following stakeholders:
 
@@ -45,14 +73,16 @@ Sigima has been funded by the following stakeholders:
     :class: dark-light no-scaled-link
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents
+.. only:: latex and not html
 
-   intro/index
-   api/index
-   contributing/index
-   changelog
+  .. toctree::
+    :maxdepth: 2
+    :caption: Contents
+
+    intro/index
+    api/index
+    contributing/index
+    changelog
 
 
 .. _DataLab: https://www.datalab-platform.com
