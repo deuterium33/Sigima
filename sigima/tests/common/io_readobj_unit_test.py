@@ -113,7 +113,7 @@ def test_open_imadata(fname: str | None = None, title: str | None = None) -> Non
 @pytest.mark.gui
 def test_read_obj_interactive() -> None:
     """Interactive test for I/O: read and view objects from various formats."""
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_open_txt()
     test_open_csv()
     test_open_sigdata()

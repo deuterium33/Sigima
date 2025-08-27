@@ -360,7 +360,7 @@ def test_image_logp1() -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_image_addition()
     test_image_average()
     test_image_product()

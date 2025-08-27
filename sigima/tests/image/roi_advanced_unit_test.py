@@ -247,7 +247,7 @@ def test_roi_coordinates_validation() -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_roi_coordinates_validation()
     test_image_roi_merge()
     test_image_roi_combine()

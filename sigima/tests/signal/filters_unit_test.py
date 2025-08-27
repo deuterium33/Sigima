@@ -212,7 +212,7 @@ def test_tools_to_proc_interface():
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_signal_lowpass()
     test_signal_highpass()
     test_signal_stopband()

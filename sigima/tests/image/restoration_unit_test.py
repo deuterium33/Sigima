@@ -132,7 +132,7 @@ def test_erase() -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_denoise_tv()
     test_denoise_bilateral()
     test_denoise_wavelet()

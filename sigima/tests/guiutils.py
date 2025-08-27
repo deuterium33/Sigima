@@ -9,17 +9,17 @@ from __future__ import annotations
 
 import types
 
-CURRENT_REQUEST: DummyRequest | None = None
+_CURRENT_REQUEST: DummyRequest | None = None
 
 
-def set_current_request(gui: bool) -> None:
-    """Store the current pytest request object (for use in is_gui_enabled).
+def enable_gui(state: bool = True) -> None:
+    """Enable or disable GUI mode.
 
     Args:
-        gui: Whether to enable GUI mode.
+        state: Whether to enable or disable GUI mode.
     """
-    global CURRENT_REQUEST  # pylint: disable=global-statement
-    CURRENT_REQUEST = DummyRequest(gui)
+    global _CURRENT_REQUEST  # pylint: disable=global-statement
+    _CURRENT_REQUEST = DummyRequest(state)
 
 
 def is_gui_enabled() -> bool:
@@ -27,7 +27,7 @@ def is_gui_enabled() -> bool:
     Return True if GUI mode is enabled (i.e. pytest was run with --gui),
     or if a DummyRequest with --gui was set (for __main__ execution).
     """
-    return bool(CURRENT_REQUEST and CURRENT_REQUEST.config.getoption("--gui"))
+    return bool(_CURRENT_REQUEST and _CURRENT_REQUEST.config.getoption("--gui"))
 
 
 class DummyRequest:

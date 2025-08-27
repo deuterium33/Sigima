@@ -288,7 +288,7 @@ def test_signal_spectrum() -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_signal_zero_padding()
     test_signal_fft()
     test_signal_ifft()
