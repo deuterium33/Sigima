@@ -159,7 +159,7 @@ def test_signal_ifft() -> None:
         check_array_result("Original and recovered y data", y2, y1, verbose=False)
         execenv.print("OK")
 
-        guiutils.view_curves_if_gui_enabled(
+        guiutils.view_curves_if_gui(
             [
                 s1,
                 sigima.objects.create_signal("Recovered", t2, y2),
@@ -200,7 +200,7 @@ def test_signal_magnitude_spectrum() -> None:
     check_array_result("Cosine signal magnitude spectrum X", mag.x, fft.x.real)
     check_array_result("Cosine signal magnitude spectrum Y", mag.y, np.abs(fft.y))
 
-    guiutils.view_curves_if_gui_enabled(
+    guiutils.view_curves_if_gui(
         [
             sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
             sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
@@ -226,7 +226,7 @@ def test_signal_phase_spectrum() -> None:
     exp_phase = np.rad2deg(np.angle(fft.y))
     check_array_result("Cosine signal phase spectrum Y", phase.y, exp_phase)
 
-    guiutils.view_curves_if_gui_enabled(
+    guiutils.view_curves_if_gui(
         [
             sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
             sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
@@ -260,7 +260,7 @@ def test_signal_psd() -> None:
         check_array_result(f"Cosine signal PSD X (dB={decibel})", psd.x, exp_x)
         check_array_result(f"Cosine signal PSD Y (dB={decibel})", psd.y, exp_y)
 
-        guiutils.view_curves_if_gui_enabled(
+        guiutils.view_curves_if_gui(
             [
                 sigima.objects.create_signal("PSD", psd.x, psd.y),
             ]

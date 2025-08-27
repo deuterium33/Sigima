@@ -67,7 +67,7 @@ def test_signal_lowpass() -> None:
     # Lowpass: should keep the sine, remove most noise
     filt = sigima.proc.signal.lowpass(noisy, param)
     # Show original and filtered signals
-    guiutils.view_curves_if_gui_enabled([clean, filt])
+    guiutils.view_curves_if_gui([clean, filt])
 
     # Compare filtered signal to clean signal (ignore edges)
     check_array_result(
@@ -90,7 +90,7 @@ def test_signal_highpass() -> None:
     )
     filt = sigima.proc.signal.highpass(noisy, param)
 
-    guiutils.view_curves_if_gui_enabled([clean, filt])
+    guiutils.view_curves_if_gui([clean, filt])
 
     # The mean of the filtered signal should be close to zero (since only noise remains)
     mean_variance = np.sqrt(noise_level / len(clean.x))
@@ -117,7 +117,7 @@ def test_signal_stopband() -> None:
     )
     res_sig = sigima.proc.signal.bandstop(tst_sig, param)
 
-    guiutils.view_curves_if_gui_enabled([exp_sig, res_sig])
+    guiutils.view_curves_if_gui([exp_sig, res_sig])
 
     check_array_result(
         "brickwall stopband",
@@ -140,7 +140,7 @@ def test_signal_bandpass() -> None:
     )
     res_sig = sigima.proc.signal.bandpass(tst_sig, param)
 
-    guiutils.view_curves_if_gui_enabled([exp_sig, res_sig])
+    guiutils.view_curves_if_gui([exp_sig, res_sig])
 
     check_array_result(
         "brickwall bandpass",

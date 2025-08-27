@@ -271,7 +271,7 @@ def view_images(
 
 
 def view_curves_and_images(
-    data_or_objs: list[SignalObj | np.ndarray | ImageObj | np.ndarray],
+    data_or_objs: list[SignalObj | ImageObj | np.ndarray],
     name: str | None = None,
     title: str | None = None,
     xlabel: str | None = None,
@@ -338,6 +338,7 @@ def view_images_side_by_side(
         maximized: Whether to show the dialog maximized, default is False
         title: Title of the dialog, or None for a default title
     """
+    # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
     dlg = SyncPlotDialog(title=title)
     for idx, (img, imtitle) in enumerate(zip(images, titles)):

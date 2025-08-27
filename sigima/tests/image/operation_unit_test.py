@@ -135,7 +135,7 @@ def test_image_division() -> None:
         exp = ima1.data.astype(float) / ima2.data.astype(float)
         ima3 = sigima.proc.image.division(ima1, ima2)
         if not np.allclose(ima3.data, exp):
-            guiutils.view_images_side_by_side_if_gui_enabled(
+            guiutils.view_images_side_by_side_if_gui(
                 [ima1.data, ima2.data, ima3.data], ["ima1", "ima2", "ima3"]
             )
         check_array_result("Image division", ima3.data, exp)

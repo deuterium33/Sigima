@@ -45,7 +45,7 @@ def __read_and_view_objs(
         List of ImageObj or SignalObj read from the file.
     """
     objs = __read_objs(fname)
-    guiutils.view_curves_and_images_if_gui_enabled(objs, title=title)
+    guiutils.view_curves_and_images_if_gui(objs, title=title)
     return objs
 
 
