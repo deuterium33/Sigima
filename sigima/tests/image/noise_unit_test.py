@@ -31,7 +31,10 @@ def test_add_gaussian_noise_image(multiple: int) -> None:
     res2 = sigima.proc.image.add_gaussian_noise(ima, p)
 
     guiutils.view_images_side_by_side_if_gui(
-        [ima, res1, res2], ["Clean", "Noisy", "Noisy"]
+        [ima, res1, res2],
+        ["Clean", "Noisy (1)", "Noisy (2)"],
+        title=f"Gaussian Noise Addition ({size}x{size}): "
+        f"Noisy images should be identical (same seed)",
     )
 
     # Shape must be preserved.
