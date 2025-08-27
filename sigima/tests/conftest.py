@@ -111,7 +111,7 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config, items):
     """Modify collected test items based on command line options."""
     if config.getoption("--gui"):
-        return  # L'utilisateur a demandé d'exécuter les tests GUI
+        return  # User requested GUI tests
 
     skip_gui = pytest.mark.skip(reason="GUI test: run with --gui")
 
