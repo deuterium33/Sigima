@@ -311,6 +311,8 @@
                 "-m",
                 "pytest",
                 "--ff",
+                // "--gui",
+                // "--show-windows"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

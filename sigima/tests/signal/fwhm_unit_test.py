@@ -16,6 +16,7 @@ import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
 import sigima.tests.helpers
+from sigima.tests import guiutils
 from sigima.tests.env import execenv
 
 
@@ -41,10 +42,7 @@ def __test_fwhm_interactive(obj: sigima.objects.SignalObj, method: str) -> None:
 @pytest.mark.gui
 def test_signal_fwhm_interactive() -> None:
     """FWHM interactive test."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         execenv.print("Computing FWHM of a multi-peak signal:")
         obj1 = sigima.tests.data.create_paracetamol_signal()
         p = sigima.tests.data.GaussianNoiseParam.create(sigma=0.05)

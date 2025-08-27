@@ -14,6 +14,7 @@ import pytest
 import sigima.tools.image
 from sigima.config import _
 from sigima.proc.image import enclosing_circle
+from sigima.tests import guiutils
 from sigima.tests.data import RingParam, create_ring_image, get_laser_spot_data
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_scalar_result
@@ -53,10 +54,7 @@ def __enclosingcircle_test(data):
 @pytest.mark.gui
 def test_enclosing_circle_interactive():
     """Interactive test for enclosing circle computation."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         for data in get_laser_spot_data():
             __enclosingcircle_test(data)
 

@@ -45,11 +45,7 @@ def __read_and_view_objs(
         List of ImageObj or SignalObj read from the file.
     """
     objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title=title)
+    guiutils.view_curves_and_images_if_gui_enabled(objs, title=title)
     return objs
 
 

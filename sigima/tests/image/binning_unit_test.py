@@ -15,6 +15,7 @@ from numpy import ma
 
 import sigima.params
 import sigima.proc.image
+from sigima.tests import guiutils
 from sigima.tests.data import get_test_image
 from sigima.tests.env import execenv
 from sigima.tools.image import BINNING_OPERATIONS, binning
@@ -63,10 +64,7 @@ def compare_binning_images(data: ma.MaskedArray) -> None:
 @pytest.mark.gui
 def test_binning_interactive() -> None:
     """Test binning computation and show results"""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         data = get_test_image("*.scor-data").data[:500, :500]
         execenv.print(f"Data[dtype={data.dtype},shape={data.shape}]")
         compare_binning_images(data.view(ma.MaskedArray))

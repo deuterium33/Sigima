@@ -3,13 +3,22 @@
 """
 Utilities to manage GUI activation for tests executed with pytest
 or as standalone scripts.
+
+⚠️ This module must not import any Qt-related module at the top level,
+    as Qt is an optional dependency of Sigima.
 """
 
 from __future__ import annotations
 
 import types
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Generator, Optional
 
 _CURRENT_REQUEST: DummyRequest | None = None
+
+if TYPE_CHECKING:
+    # ⚠️ Type-only: no runtime Qt import
+    from qtpy.QtWidgets import QApplication
 
 
 def enable_gui(state: bool = True) -> None:
@@ -43,9 +52,46 @@ class DummyRequest:
         self.config.getoption = lambda name: gui if name == "--gui" else None
 
 
-def view_images_side_by_side_if_gui_enabled(*args, **kwargs) -> None:
+@contextmanager
+def lazy_qt_app_context(
+    *, exec_loop: bool = False, force: bool | None = None
+) -> Generator[Optional[QApplication], None, None]:
+    """Provide a Qt app context lazily; no-op if GUI is disabled.
+
+    Args:
+        exec_loop: Run the Qt event loop (e.g. when showing a non-blocking widget).
+        force: None → auto (use is_gui_enabled());
+               True → force GUI ON (always create Qt app);
+               False → force GUI OFF (no-op).
+
+    Yields:
+        The QApplication instance if enabled, else None.
+
+    .. note::
+
+       This context manager is useful for tests that require a Qt application context,
+       but should be used with caution to avoid unnecessary Qt imports. For tests
+       that are exclusively GUI-based, option `force=True` can be used to ensure
+       the Qt application context is always created. For tests that must be executable
+       without a GUI, option `force` may be skipped so that operations inside the
+       context are only performed if the GUI is enabled.
     """
-    Display images side-by-side with PlotPy if GUI mode enabled.
+    enabled = is_gui_enabled() if force is None else force
+    if not enabled:
+        # No Qt import, block executes as a no-op context
+        yield None
+        return
+
+    # Lazy import: only when enabled
+    # pylint: disable=import-outside-toplevel
+    from guidata.qthelpers import qt_app_context
+
+    with qt_app_context(exec_loop=exec_loop) as qt_app:
+        yield qt_app
+
+
+def view_images_side_by_side_if_gui_enabled(*args, **kwargs) -> None:
+    """Display images side-by-side with PlotPy if GUI mode enabled.
 
     Forwards all arguments to :py:func:`sigima.tests.vistools.view_images_side_by_side`.
 
@@ -53,19 +99,15 @@ def view_images_side_by_side_if_gui_enabled(*args, **kwargs) -> None:
         *args: Named arguments.
         **kwargs: Keyword arguments.
     """
-    if is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
+    with lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(*args, **kwargs)
+            vistools.view_images_side_by_side(*args, **kwargs)
 
 
-def view_signals_and_images_if_gui_enabled(*args, **kwargs) -> None:
-    """
-    Display signals and images with PlotPy if GUI mode enabled.
+def view_curves_and_images_if_gui_enabled(*args, **kwargs) -> None:
+    """Display signals and images with PlotPy if GUI mode enabled.
 
     Forwards all arguments to :py:func:`sigima.tests.vistools.view_curves_and_images`.
 
@@ -73,19 +115,15 @@ def view_signals_and_images_if_gui_enabled(*args, **kwargs) -> None:
         *args: Named arguments.
         **kwargs: Keyword arguments.
     """
-    if is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
+    with lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
-        from sigima.tests.vistools import view_curves_and_images
-
-        with qt_app_context():
-            view_curves_and_images(*args, **kwargs)
+            vistools.view_curves_and_images(*args, **kwargs)
 
 
-def view_signals_if_gui_enabled(*args, **kwargs) -> None:
-    """
-    Display one or more signals with PlotPy if GUI mode enabled.
+def view_curves_if_gui_enabled(*args, **kwargs) -> None:
+    """Display one or more signals with PlotPy if GUI mode enabled.
 
     Forwards all arguments to :py:func:`sigima.tests.vistools.view_curves`.
 
@@ -93,11 +131,8 @@ def view_signals_if_gui_enabled(*args, **kwargs) -> None:
         *args: Named arguments.
         **kwargs: Keyword arguments.
     """
-    if is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
+    with lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves(*args, **kwargs)
+            vistools.view_curves(*args, **kwargs)

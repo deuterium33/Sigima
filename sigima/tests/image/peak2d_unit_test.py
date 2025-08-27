@@ -17,6 +17,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result
@@ -117,15 +118,11 @@ def test_peak2d_interactive():
     """2D peak detection interactive test"""
     data, _coords = get_peak2d_data(multi=False)
     coords = exec_image_peak_detection_func(data)
-
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         view_image_peak_detection(data, coords)
 
 
 if __name__ == "__main__":
-    # test_peak2d_unit()
+    test_peak2d_unit()
     test_image_peak_detection()
-    # test_peak2d_interactive()
+    test_peak2d_interactive()
