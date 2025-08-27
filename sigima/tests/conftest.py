@@ -22,7 +22,7 @@ from guidata.config import ValidationMode, set_validation_mode
 
 import sigima
 from sigima.proc.validation import ValidationStatistics
-from sigima.tests import env, helpers
+from sigima.tests import SIGIMA_TESTS_GUI_ENV, env, helpers
 
 # Set validation mode to STRICT for all tests
 set_validation_mode(ValidationMode.STRICT)
@@ -106,12 +106,16 @@ def pytest_configure(config):
     if not config.getoption("--show-windows"):
         os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     config.addinivalue_line("markers", "gui: mark test as requiring GUI")
+    if config.getoption("--gui"):
+        os.environ[SIGIMA_TESTS_GUI_ENV] = "1"
+    else:
+        os.environ.pop(SIGIMA_TESTS_GUI_ENV, None)
 
 
 def pytest_collection_modifyitems(config, items):
     """Modify collected test items based on command line options."""
     if config.getoption("--gui"):
-        return  # L'utilisateur a demandé d'exécuter les tests GUI
+        return  # User requested GUI tests
 
     skip_gui = pytest.mark.skip(reason="GUI test: run with --gui")
 

@@ -1,2 +1,2 @@
 .. automodule:: sigima.proc
-    :no-index:
+    :no-members:

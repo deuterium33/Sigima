@@ -12,9 +12,12 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 from skimage import filters
 
+import sigima.params
+import sigima.proc.enums
 import sigima.proc.image
 from sigima.objects import ImageObj
 from sigima.objects.image import create_image
+from sigima.tests import guiutils
 from sigima.tests.data import get_test_image
 from sigima.tests.helpers import check_array_result, check_scalar_result
 from sigima.tools.image import freq_fft_filter
@@ -36,10 +39,10 @@ def test_image_moving_average() -> None:
     """Validation test for the image moving average processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingAverageParam.create(n=30)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_average(src, p)
-        exp = spi.uniform_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.uniform_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingAvg[n={p.n},mode={p.mode}]", dst.data, exp)
 
 
@@ -48,10 +51,10 @@ def test_image_moving_median() -> None:
     """Validation test for the image moving median processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingMedianParam.create(n=5)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_median(src, p)
-        exp = spi.median_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.median_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingMed[n={p.n},mode={p.mode}]", dst.data, exp)
 
 
@@ -113,24 +116,25 @@ def build_clean_noisy_images(
 @pytest.mark.gui
 def test_freq_fft_filter_bandpass_interactive() -> None:
     """Test freq_fft_filter with dtype argument."""
-    from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
+    with guiutils.lazy_qt_app_context(force=True):
+        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
-    clean, noisy = build_clean_noisy_images(freq=0.05)
-    for result_type in ("real", "abs"):
-        zout_filt = freq_fft_filter(
-            zin=noisy.data, f0=0.05, sigma=0.05, ifft_result_type=result_type
-        )
-        clean_area = clean.data[10:-10, 10:-10]
-        if result_type == "abs":
-            clean_area = np.abs(clean_area)
-        mean_noise = float(np.mean(np.abs(clean_area - zout_filt[10:-10, 10:-10])))
-        check_scalar_result(
-            f"fft filter noise reduction ({result_type})", mean_noise, 0, atol=0.1
-        )
-        vistools.view_images_side_by_side(
-            [clean, noisy, zout_filt],
-            titles=["Start image", "Noisy Image", f"Filtered ({result_type})"],
-        )
+        clean, noisy = build_clean_noisy_images(freq=0.05)
+        for result_type in ("real", "abs"):
+            zout_filt = freq_fft_filter(
+                noisy.data, f0=0.05, sigma=0.05, ifft_result_type=result_type
+            )
+            clean_area = clean.data[10:-10, 10:-10]
+            if result_type == "abs":
+                clean_area = np.abs(clean_area)
+            mean_noise = float(np.mean(np.abs(clean_area - zout_filt[10:-10, 10:-10])))
+            check_scalar_result(
+                f"fft filter noise reduction ({result_type})", mean_noise, 0, atol=0.1
+            )
+            vistools.view_images_side_by_side(
+                [clean, noisy, zout_filt],
+                titles=["Start image", "Noisy Image", f"Filtered ({result_type})"],
+            )
 
 
 @pytest.mark.validation

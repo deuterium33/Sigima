@@ -30,7 +30,7 @@ def test_add_gaussian_noise_image(multiple: int) -> None:
     res1 = sigima.proc.image.add_gaussian_noise(ima, p)
     res2 = sigima.proc.image.add_gaussian_noise(ima, p)
 
-    guiutils.view_images_side_by_side_if_gui_enabled(
+    guiutils.view_images_side_by_side_if_gui(
         [ima, res1, res2], ["Clean", "Noisy", "Noisy"]
     )
 
@@ -53,6 +53,6 @@ def test_add_gaussian_noise_image(multiple: int) -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     for parameter in test_add_gaussian_noise_parameters:
         test_add_gaussian_noise_image(parameter)

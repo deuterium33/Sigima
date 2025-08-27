@@ -12,6 +12,7 @@ from skimage import morphology, restoration
 
 import sigima.objects
 import sigima.params
+import sigima.proc.enums
 import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.data import create_multigaussian_image, get_test_image
@@ -62,12 +63,12 @@ def test_denoise_wavelet() -> None:
     src.data = src.data[::8, ::8]
     p = sigima.params.DenoiseWaveletParam()
     for wavelets in ("db1", "db2", "db3"):
-        for mode in p.modes:
+        for mode in sigima.proc.enums.ThresholdMethod:
             for method in ("BayesShrink",):
                 p.wavelets, p.mode, p.method = wavelets, mode, method
                 dst = sigima.proc.image.denoise_wavelet(src, p)
                 exp = restoration.denoise_wavelet(
-                    src.data, wavelet=wavelets, mode=mode, method=method
+                    src.data, wavelet=wavelets, mode=mode.value, method=method
                 )
                 check_array_result(
                     f"DenoiseWavelet[wavelets={wavelets},mode={mode},method={method}]",
@@ -103,7 +104,7 @@ def test_erase() -> None:
     dst = sigima.proc.image.erase(obj, p)
     exp = obj.data.copy()
     exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    guiutils.view_images_side_by_side_if_gui_enabled(
+    guiutils.view_images_side_by_side_if_gui(
         [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
     )
     check_array_result("Erase", dst.data, exp)
@@ -125,14 +126,14 @@ def test_erase() -> None:
         ix0, iy0 = int(p.x0), int(p.y0)
         ix1, iy1 = int(p.x0 + p.dx), int(p.y0 + p.dy)
         exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    guiutils.view_images_side_by_side_if_gui_enabled(
+    guiutils.view_images_side_by_side_if_gui(
         [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
     )
     check_array_result("Erase", dst.data, exp)
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_denoise_tv()
     test_denoise_bilateral()
     test_denoise_wavelet()

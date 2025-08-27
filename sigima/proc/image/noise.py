@@ -32,8 +32,6 @@ from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.arithmetic import addition
 
-__all__ = ["add_gaussian_noise"]
-
 
 @computation_function()
 def add_gaussian_noise(src: ImageObj, p: NormalDistributionParam) -> ImageObj:

@@ -12,17 +12,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TypeVar, cast
 
 import guidata.dataset as gds
 import numpy as np
 
-from sigima import ImageObj, ResultProperties, SignalObj, create_signal
 from sigima.config import _, options
-
-if TYPE_CHECKING:
-    from typing import Callable
-
+from sigima.objects import ImageObj, SignalObj, create_signal
+from sigima.proc.enums import FilterMode, MathOperator
 
 __all__ = [
     "ArithmeticParam",
@@ -39,7 +36,6 @@ __all__ = [
     "dst_n_to_1",
     "dst_2_to_1",
     "new_signal_result",
-    "calc_resultproperties",
 ]
 
 
@@ -70,10 +66,9 @@ class ArithmeticParam(gds.DataSet):
         """Update the operation item"""
         self.operation = self.get_operation()
 
-    operators = ("+", "-", "×", "/")
-    operator = gds.ChoiceItem(_("Operator"), list(zip(operators, operators))).set_prop(
-        "display", callback=update_operation
-    )
+    operator = gds.ChoiceItem(
+        _("Operator"), MathOperator, default=MathOperator.ADD
+    ).set_prop("display", callback=update_operation)
     factor = (
         gds.FloatItem(_("Factor"), default=1.0)
         .set_pos(col=1)
@@ -110,9 +105,8 @@ class MovingAverageParam(gds.DataSet):
     """Moving average parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1)
-    modes = ("reflect", "constant", "nearest", "mirror", "wrap")
     mode = gds.ChoiceItem(
-        _("Mode"), list(zip(modes, modes)), default="reflect", help=HELP_MODE
+        _("Mode"), FilterMode, default=FilterMode.REFLECT, help=HELP_MODE
     )
 
 
@@ -120,9 +114,8 @@ class MovingMedianParam(gds.DataSet):
     """Moving median parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1, even=False)
-    modes = ("reflect", "constant", "nearest", "mirror", "wrap")
     mode = gds.ChoiceItem(
-        _("Mode"), list(zip(modes, modes)), default="nearest", help=HELP_MODE
+        _("Mode"), FilterMode, default=FilterMode.NEAREST, help=HELP_MODE
     )
 
 
@@ -228,8 +221,6 @@ def dst_1_to_1(src: Obj, name: str, suffix: str | None = None) -> Obj:
     if suffix:  # suffix may be None or an empty string
         title += suffix
     dst = src.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
     return cast(Obj, dst)
 
 
@@ -267,14 +258,7 @@ def dst_n_to_1(src_list: list[Obj], name: str, suffix: str | None = None) -> Obj
         dst_dtype = float
     dst = src_list[0].copy(title=title, dtype=dst_dtype)
     dst.roi = None
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
-    for index, src_obj in enumerate(src_list):
-        if options.keep_results.get() and index > 0:
-            # If we keep results, we need to merge the result shapes.
-            # We skip the first object, as it is already copied
-            # to the destination object.
-            dst.update_resultshapes_from(src_obj)
+    for src_obj in src_list:
         if src_obj.roi is not None:
             if dst.roi is None:
                 dst.roi = src_obj.roi.copy()
@@ -317,8 +301,6 @@ def dst_2_to_1(src1: Obj, src2: Obj, name: str, suffix: str | None = None) -> Ob
     if suffix is not None:
         title += "|" + suffix
     dst = src1.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
     return dst
 
 
@@ -355,36 +337,3 @@ def new_signal_result(
         # No source to keep track of
         pass
     return dst
-
-
-def calc_resultproperties(
-    title: str, obj: SignalObj | ImageObj, labeledfuncs: dict[str, Callable]
-) -> ResultProperties:
-    """Calculate result properties by executing a computation function
-    on a signal/image object.
-
-    Args:
-        title: title of the result properties
-        obj: signal or image object
-        labeledfuncs: dictionary of labeled computation functions. The keys are
-         the labels of the computation functions and the values are the functions
-         themselves (each function must take a single argument - which is the data
-         of the ROI or the whole signal/image - and return a float)
-
-    Returns:
-        Result properties object
-    """
-    if not all(isinstance(k, str) for k in labeledfuncs.keys()):
-        raise ValueError("Keys of labeledfuncs must be strings")
-    if not all(callable(v) for v in labeledfuncs.values()):
-        raise ValueError("Values of labeledfuncs must be functions")
-
-    res = []
-    roi_indices = list(obj.iterate_roi_indices())
-    if roi_indices[0] is not None:
-        roi_indices.insert(0, None)
-    for i_roi in roi_indices:
-        data_roi = obj.get_data(i_roi)
-        val_roi = -1 if i_roi is None else i_roi
-        res.append([val_roi] + [fn(data_roi) for fn in labeledfuncs.values()])
-    return ResultProperties(title, np.array(res), list(labeledfuncs.keys()))

@@ -241,13 +241,13 @@ def test_roi_coordinates_validation() -> None:
             src2.roi = roi
             images.append(src2)
             titles.append(f"Image with {roi.get_single_roi(0).title} ROI")
-        guiutils.view_images_side_by_side_if_gui_enabled(
+        guiutils.view_images_side_by_side_if_gui(
             images, titles, rows=2, title="Image ROIs"
         )
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_roi_coordinates_validation()
     test_image_roi_merge()
     test_image_roi_combine()

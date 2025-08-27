@@ -45,11 +45,7 @@ def __read_and_view_objs(
         List of ImageObj or SignalObj read from the file.
     """
     objs = __read_objs(fname)
-    if guiutils.is_gui_enabled():
-        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
-
-        with vistools.qt_app_context():
-            vistools.view_curves_and_images(objs, title=title)
+    guiutils.view_curves_and_images_if_gui(objs, title=title)
     return objs
 
 
@@ -113,7 +109,7 @@ def test_open_imadata(fname: str | None = None, title: str | None = None) -> Non
 @pytest.mark.gui
 def test_read_obj_interactive() -> None:
     """Interactive test for I/O: read and view objects from various formats."""
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     test_open_txt()
     test_open_csv()
     test_open_sigdata()

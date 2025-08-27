@@ -1086,8 +1086,6 @@ class ImageTypes(enum.Enum):
 
     #: Image filled with zeros
     ZEROS = _("Zeros")
-    #: Empty image (filled with data from memory state)
-    EMPTY = _("Empty")
     #: Image filled with random data (normal distribution)
     NORMAL_DISTRIBUTION = _("Normal distribution")
     #: Image filled with random data (Poisson distribution)
@@ -1231,26 +1229,7 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class Empty2DParam(NewImageParam):
-    """Image parameters for an empty 2D image (filled with data from memory state)"""
-
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
-        """Generate 2D data based on current parameters.
-
-        Args:
-            shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
-
-        Returns:
-            2D data array
-        """
-        return np.empty(shape, dtype=dtype)
-
-
-register_image_parameters_class(ImageTypes.EMPTY, Empty2DParam)
-
-
-class UniformDistribution2DParam(base.UniformDistributionParam, NewImageParam):
+class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1261,7 +1240,7 @@ class UniformDistribution2DParam(base.UniformDistributionParam, NewImageParam):
             dtype: NumPy data type for the output array.
 
         Returns:
-            2D data array.
+            2D data array
         """
         rng = np.random.default_rng(self.seed)
         assert self.vmin is not None
@@ -1275,7 +1254,7 @@ register_image_parameters_class(
 )
 
 
-class NormalDistribution2DParam(base.NormalDistributionParam, NewImageParam):
+class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:

@@ -688,7 +688,7 @@ class ZerosParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
 
 
-class UniformDistribution1DParam(base.UniformDistributionParam, NewSignalParam):
+class UniformDistribution1DParam(NewSignalParam, base.UniformDistributionParam):
     """Uniform-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -710,7 +710,7 @@ register_signal_parameters_class(
 )
 
 
-class NormalDistribution1DParam(base.NormalDistributionParam, NewSignalParam):
+class NormalDistribution1DParam(NewSignalParam, base.NormalDistributionParam):
     """Normal-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -732,7 +732,7 @@ register_signal_parameters_class(
 )
 
 
-class PoissonDistribution1DParam(base.PoissonDistributionParam, NewSignalParam):
+class PoissonDistribution1DParam(NewSignalParam, base.PoissonDistributionParam):
     """Poisson-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:

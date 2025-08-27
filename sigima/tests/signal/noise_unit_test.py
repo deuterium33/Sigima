@@ -30,7 +30,7 @@ def test_add_gaussian_noise(multiple: int) -> None:
     res1 = sigima.proc.signal.add_gaussian_noise(src, p)
     res2 = sigima.proc.signal.add_gaussian_noise(src, p)
 
-    guiutils.view_signals_if_gui_enabled([src, res1, res2])
+    guiutils.view_curves_if_gui([src, res1, res2])
 
     # X-axis must be preserved.
     check_array_result("res1.x", res1.x, src.x)
@@ -48,6 +48,6 @@ def test_add_gaussian_noise(multiple: int) -> None:
 
 
 if __name__ == "__main__":
-    guiutils.set_current_request(gui=True)
+    guiutils.enable_gui()
     for parameter in test_add_gaussian_noise_parameters:
         test_add_gaussian_noise(parameter)
