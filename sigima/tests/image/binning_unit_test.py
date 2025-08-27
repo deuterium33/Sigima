@@ -15,9 +15,10 @@ from numpy import ma
 
 import sigima.params
 import sigima.proc.image
+from sigima.proc.enums import BinningOperation
 from sigima.tests.data import get_test_image
 from sigima.tests.env import execenv
-from sigima.tools.image import BINNING_OPERATIONS, binning
+from sigima.tools.image import binning
 
 
 def compare_binning_images(data: ma.MaskedArray) -> None:
@@ -39,10 +40,10 @@ def compare_binning_images(data: ma.MaskedArray) -> None:
         sx = 2**ix
         for iy in range(1, 5):
             sy = 2**iy
-            for operation in BINNING_OPERATIONS:
+            for operation in BinningOperation:
                 t0 = time.time()
                 bdata = binning(data, sx=sx, sy=sy, operation=operation)
-                title = f"[{sx}x{sy},{operation}]"
+                title = f"[{sx}x{sy},{operation.value}]"
                 item = make.image(
                     bdata,
                     title=title,
@@ -94,7 +95,7 @@ def test_binning() -> None:
     ny, nx = data.shape
 
     p = sigima.params.BinningParam()
-    for operation in p.operations:
+    for operation in BinningOperation:
         p.operation = operation
         for sx in range(2, 3):
             for sy in range(2, 5):

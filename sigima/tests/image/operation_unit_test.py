@@ -15,6 +15,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.proc.enums import MathOperator
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
@@ -227,7 +228,7 @@ def test_image_arithmetic() -> None:
     for ima1, ima2 in iterate_noisy_image_couples(size=128):
         dtype1 = ima1.data.dtype
         p = sigima.params.ArithmeticParam.create()
-        for o in p.operators:
+        for o in MathOperator:
             p.operator = o
             for a in (0.0, 1.0, 2.0):
                 p.factor = a
@@ -235,15 +236,15 @@ def test_image_arithmetic() -> None:
                     p.constant = b
                     ima2.data = np.clip(ima2.data, 1, None)  # Avoid division by zero
                     ima3 = sigima.proc.image.arithmetic(ima1, ima2, p)
-                    if o in ("×", "/") and a == 0.0:
+                    if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
                         exp = np.ones_like(ima1.data) * b
-                    elif o == "+":
+                    elif o is MathOperator.ADD:
                         exp = np.add(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "×":
+                    elif o is MathOperator.MULTIPLY:
                         exp = np.multiply(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "-":
+                    elif o is MathOperator.SUBTRACT:
                         exp = np.subtract(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "/":
+                    elif o is MathOperator.DIVIDE:
                         exp = np.divide(ima1.data, ima2.data, dtype=float) * a + b
                     if p.restore_dtype:
                         if np.issubdtype(dtype1, np.integer):

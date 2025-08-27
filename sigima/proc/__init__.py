@@ -3,8 +3,9 @@ Computation (:mod:`sigima.proc`)
 --------------------------------
 
 This package contains the Sigima computation functions that implement processing
-features for signal and image objects. These functions are designed to operate directly
-on :class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj` objects,
+features for signal, image and scalar objects. These functions are designed to operate
+directly on :class:`sigima.objects.SignalObj`, :class:`sigima.objects.ImageObj`,
+:class:`sigima.objects.GeometryResult` and :class:`sigima.objects.TableResult` objects,
 which are defined in the :mod:`sigima.objects` package.
 
 Even though these functions are primarily designed to be used in the Sigima pipeline,
@@ -26,9 +27,9 @@ The parameter object is used to configure the computation function
 (e.g. the size of the moving average window).
 
 In Sigima overall architecture, the purpose of this package is to provide the
-computation functions that are used by the :mod:`sigima.core.gui.processor` module,
+computation functions that are used by DataLab processor modules,
 based on the algorithms defined in the :mod:`sigima.tools` module and on the
-data model defined in the :mod:`sigima.objects` (or :mod:`sigima.core.model`) module.
+data model defined in the :mod:`sigima.objects` module.
 
 The computation modules are organized in subpackages according to their purpose.
 The following subpackages are available:
@@ -36,6 +37,7 @@ The following subpackages are available:
 - :mod:`sigima.proc.base`: Common processing features
 - :mod:`sigima.proc.signal`: Signal processing features
 - :mod:`sigima.proc.image`: Image processing features
+- :mod:`sigima.proc.transformations`: Unified transformation system
 
 Common processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,82 +54,8 @@ Signal processing features
 Image processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Basic image processing
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.base
-   :members:
-
-Arithmetic
-~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.arithmetic
-    :members:
-
-Mathematical Operations
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.mathops
-    :members:
-
-Measurements
-~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.measurement
-    :members:
-
-Filtering
-~~~~~~~~~
-
-.. automodule:: sigima.proc.image.filtering
-    :members:
-
-Fourier
-~~~~~~~
-
-.. automodule:: sigima.proc.image.fourier
-    :members:
-
-Thresholding
-~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.threshold
-    :members:
-
-Exposure correction
-~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.exposure
-    :members:
-
-Restoration
-~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.restoration
-    :members:
-
-Morphology
-~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.morphology
-    :members:
-
-Edge detection
-~~~~~~~~~~~~~~
-
-.. automodule:: sigima.proc.image.edges
-
-Detection
-~~~~~~~~~
-
-.. automodule:: sigima.proc.image.detection
-    :members:
-
-Geometry
-~~~~~~~~
-
-.. automodule:: sigima.proc.image.geometry
-    :members:
+.. automodule:: sigima.proc.image
+   :no-members:
 
 Decorators and utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^

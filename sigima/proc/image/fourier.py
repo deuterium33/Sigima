@@ -8,6 +8,7 @@ This module implements Fourier transform operations and related spectral analysi
 for images.
 
 Main features include:
+
 - Forward and inverse Fast Fourier Transform (FFT)
 - Magnitude and phase spectrum calculation
 - Power spectral density (PSD) computation

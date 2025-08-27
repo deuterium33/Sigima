@@ -338,6 +338,7 @@ def view_images_side_by_side(
         maximized: Whether to show the window maximized, default is False
         title: Title of the window, or None for a default title
     """
+    # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
     with qt_app_context(exec_loop=True):
         win = SyncPlotWindow(title=title)
@@ -352,6 +353,7 @@ def view_images_side_by_side(
                 if isinstance(img, ImageObj):
                     data = img.data
                     mask = img.maskdata
+                    imtitle = img.title or imtitle
                 elif isinstance(img, np.ndarray):
                     data = img
                     mask = np.zeros_like(data, dtype=bool)
@@ -360,36 +362,37 @@ def view_images_side_by_side(
                 item = make.maskedimage(
                     data,
                     mask,
-                    title=img.title,
+                    title=imtitle,
                     interpolation="nearest",
                     colormap="viridis",
                     eliminate_outliers=0.1,
                     show_mask=True,
                 )
-                x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
-                item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
-                item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
-                item.param.update_item(item)
-                if img.roi is not None and not img.roi.is_empty():
-                    for single_roi in img.roi:
-                        if isinstance(single_roi, RectangularROI):
-                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
-                            roi_item = make.annotated_rectangle(
-                                x0, y0, x1, y1, single_roi.title
-                            )
-                        elif isinstance(single_roi, CircularROI):
-                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
-                            roi_item = make.annotated_circle(
-                                x0, y0, x1, y1, single_roi.title
-                            )
-                        elif isinstance(single_roi, PolygonalROI):
-                            coords = single_roi.get_physical_coords(img)
-                            points = np.array(coords).reshape(-1, 2)
-                            roi_item = AnnotatedPolygon(points)
-                            roi_item.annotationparam.title = single_roi.title
-                            roi_item.set_style("plot", "shape/drag")
-                            roi_item.annotationparam.update_item(roi_item)
-                        other_items.append(roi_item)
+                if isinstance(img, ImageObj):
+                    x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
+                    item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
+                    item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
+                    item.param.update_item(item)
+                    if img.roi is not None and not img.roi.is_empty():
+                        for single_roi in img.roi:
+                            if isinstance(single_roi, RectangularROI):
+                                x0, y0, x1, y1 = single_roi.get_bounding_box(img)
+                                roi_item = make.annotated_rectangle(
+                                    x0, y0, x1, y1, single_roi.title
+                                )
+                            elif isinstance(single_roi, CircularROI):
+                                x0, y0, x1, y1 = single_roi.get_bounding_box(img)
+                                roi_item = make.annotated_circle(
+                                    x0, y0, x1, y1, single_roi.title
+                                )
+                            elif isinstance(single_roi, PolygonalROI):
+                                coords = single_roi.get_physical_coords(img)
+                                points = np.array(coords).reshape(-1, 2)
+                                roi_item = AnnotatedPolygon(points)
+                                roi_item.annotationparam.title = single_roi.title
+                                roi_item.set_style("plot", "shape/drag")
+                                roi_item.annotationparam.update_item(roi_item)
+                            other_items.append(roi_item)
             plot.add_item(item)
             for other_item in other_items:
                 plot.add_item(other_item)
