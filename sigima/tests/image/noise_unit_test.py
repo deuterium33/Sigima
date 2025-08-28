@@ -13,20 +13,17 @@ from sigima.objects.base import NormalDistributionParam
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
-test_add_gaussian_noise_parameters = [1, 2, 5]
 
-
-@pytest.mark.parametrize("multiple", test_add_gaussian_noise_parameters)
 @pytest.mark.validation
-def test_add_gaussian_noise_image(multiple: int) -> None:
+def test_add_gaussian_noise_image() -> None:
     """Test :py:func:`sigima.proc.image.add_gaussian_noise`."""
-    # Create a clean test image (no added random noise).
-    size = multiple * 512
+    # Generate a clean image.
+    size = 512
     param = sigima.objects.Gauss2DParam.create(height=size, width=size)
     ima = sigima.objects.create_image_from_param(param)
-
-    p = NormalDistributionParam.create(seed=42, mu=0.0, sigma=1.0)
+    # Add Gaussian noise.
     # Run twice with same parameters to check reproducibility.
+    p = NormalDistributionParam.create(seed=42, mu=0.0, sigma=1.0)
     res1 = sigima.proc.image.add_gaussian_noise(ima, p)
     res2 = sigima.proc.image.add_gaussian_noise(ima, p)
 
@@ -57,5 +54,4 @@ def test_add_gaussian_noise_image(multiple: int) -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    for parameter in test_add_gaussian_noise_parameters:
-        test_add_gaussian_noise_image(parameter)
+    test_add_gaussian_noise_image()

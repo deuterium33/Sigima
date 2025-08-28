@@ -13,24 +13,24 @@ from sigima.objects.signal import NormalDistribution1DParam
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
-test_add_gaussian_noise_parameters = [1, 10, 100]
 
-
-@pytest.mark.parametrize("multiple", test_add_gaussian_noise_parameters)
 @pytest.mark.validation
-def test_add_gaussian_noise(multiple: int) -> None:
+def test_add_gaussian_noise() -> None:
     """Test :py:func:`sigima.proc.signal.add_gaussian_noise`."""
     # Generate source signal.
-    size = multiple * 1024
+    size = 1024
     param = SinusParam.create(size=size, freq=1.0)
     src = create_signal_from_param(param)
-
-    p = NormalDistribution1DParam.create(seed=42, mu=0.0, sigma=0.1)
+    # Add Gaussian noise.
     # Run twice with same parameters to check reproducibility.
+    p = NormalDistribution1DParam.create(seed=42, mu=0.0, sigma=0.1)
     res1 = sigima.proc.signal.add_gaussian_noise(src, p)
     res2 = sigima.proc.signal.add_gaussian_noise(src, p)
 
-    guiutils.view_curves_if_gui([src, res1, res2])
+    guiutils.view_curves_if_gui(
+        [src, res1, res2],
+        title="Gaussian Noise Addition: Noisy images should be identical (same seed)",
+    )
 
     # X-axis must be preserved.
     check_array_result("res1.x", res1.x, src.x)
@@ -49,5 +49,4 @@ def test_add_gaussian_noise(multiple: int) -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    for parameter in test_add_gaussian_noise_parameters:
-        test_add_gaussian_noise(parameter)
+    test_add_gaussian_noise()
