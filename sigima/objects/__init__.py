@@ -86,7 +86,6 @@ Images
 .. autoclass:: sigima.objects.ImageTypes
 .. autoclass:: sigima.objects.NewImageParam
 .. autodataset:: sigima.objects.Zeros2DParam
-.. autodataset:: sigima.objects.Empty2DParam
 .. autodataset:: sigima.objects.UniformDistribution2DParam
 .. autodataset:: sigima.objects.NormalDistribution2DParam
 .. autodataset:: sigima.objects.PoissonDistribution2DParam
