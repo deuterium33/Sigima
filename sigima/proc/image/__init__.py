@@ -244,7 +244,13 @@ from sigima.proc.image.mathops import (
     logp1,
     real,
 )
-from sigima.proc.image.measurement import centroid, enclosing_circle, stats
+from sigima.proc.image.measurement import (
+    centroid,
+    enclosing_circle,
+    stats,
+    sum_pixels_along_axis,
+    SumPixelsAlongAxisParam,
+)
 from sigima.proc.image.morphology import (
     MorphologyParam,
     black_tophat,

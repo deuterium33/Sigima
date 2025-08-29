@@ -27,12 +27,20 @@ These functions are useful for image quantification and morphometric analysis.
 
 from __future__ import annotations
 
+import guidata.dataset as gds
 import numpy as np
 from numpy import ma
 
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects import GeometryResult, ImageObj, TableResult, TableResultBuilder
+from sigima.objects import (
+    GeometryResult,
+    ImageObj,
+    SignalObj,
+    TableResult,
+    TableResultBuilder,
+    create_signal,
+)
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import compute_geometry_from_obj
 
@@ -139,3 +147,100 @@ def stats(obj: ImageObj) -> TableResult:
     table.add(ma.ptp, "ptp", "peak-to-peak(z) = %g {.zunit}")
     table.add(ma.sum, "sum", "Σ(z) = %g {.zunit}")
     return table.compute(obj)
+
+
+class SumPixelsAlongAxisParam(gds.DataSet):
+    """Parameters for summing an image along one axis.
+
+    Attributes:
+        axis: Axis to sum along, "X" sums across columns (result indexed by Y),
+            "Y" sums across rows (result indexed by X).
+    """
+
+    AXES = (("X", "X"), ("Y", "Y"))
+    axis = gds.ChoiceItem(_("Axis"), AXES, default="X")
+
+
+@computation_function()
+def sum_pixels_along_axis(image: ImageObj, p: SumPixelsAlongAxisParam) -> SignalObj:
+    """Compute the sum of image values along the chosen axis and return a 1-D signal.
+
+    The function sums the image along the X or Y axis (as selected in the
+    parameters) and returns a signal object containing the summed values.
+    The output X coordinates are built from the image spatial sampling (dx, dy)
+    and are centered on the image physical center.
+
+    Args:
+        image: Input image object.
+        p: Parameters selecting the axis to sum over.
+
+    Returns:
+        Signal object containing the summed profile.
+
+    Raises:
+        ValueError: if the axis parameter is invalid.
+    """
+    axis_map = {"X": 1, "Y": 0}
+    try:
+        axis = axis_map[p.axis]
+    except KeyError as exc:
+        raise ValueError(f"Invalid axis: {p.axis!s}") from exc
+
+    # Use masked-aware sum to preserve mask semantics
+    summed = ma.sum(image.data, axis=axis)
+
+    # Convert masked result to plain ndarray (masked entries -> NaN)
+    if ma.isMaskedArray(summed):
+        if not (
+            np.issubdtype(np.asarray(summed).dtype, np.floating)
+            or np.issubdtype(np.asarray(summed).dtype, np.complexfloating)
+        ):
+            # Convert integer masked array to float to allow NaN
+            summed = summed.astype(float)
+        y = np.asarray(ma.filled(summed, np.nan))
+    else:
+        y = np.asarray(summed)
+    # Image spatial info (fall back to sensible defaults)
+    shape = image.data.shape
+    x0 = image.x0
+    y0 = image.y0
+    dx = image.dx
+    dy = image.dy
+
+    # Build X coordinates: when summing along "X" (axis=1) the result is indexed by Y,
+    # when summing along "Y" (axis=0) the result is indexed by X.
+    if p.axis == "X":
+        length = shape[0]
+        # pixel centers, then shift so coordinates are centered on image physical center
+        center = y0 + dy * length / 2.0
+        x = y0 + (np.arange(length) + 0.5) * dy - center
+        xunit = image.yunit
+        xlabel = image.ylabel
+    else:
+        length = shape[1]
+        center = x0 + dx * length / 2.0
+        x = x0 + (np.arange(length) + 0.5) * dx - center
+        xunit = image.xunit
+        xlabel = image.xlabel
+
+    # Data unit: prefer zunit (pixel value unit) then fallback to generic unit/meta
+    zunit = image.zunit
+    ylabel = image.zlabel
+
+    # Create the signal providing both x and y and pass units/labels
+    dst_signal = create_signal(
+        title=f"{image.title} - Sum along {p.axis}",
+        x=x.astype(float),
+        y=y,
+        units=(xunit, zunit),
+        labels=(xlabel, ylabel),
+    )
+
+    # Keep source metadata if present
+    try:
+        source = image.get_metadata_option("source")
+        dst_signal.set_metadata_option("source", source)
+    except ValueError:
+        pass
+
+    return dst_signal
