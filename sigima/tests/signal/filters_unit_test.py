@@ -16,7 +16,7 @@ import sigima.proc.signal
 from sigima.objects.signal import SignalObj, create_signal
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result, check_scalar_result
-from sigima.tools.signal.fourier import brick_wall_filter
+from sigima.tools.signal.fourier import brickwall_filter
 
 # TODO: For each test, check all filter methods (brickwall, butterworth, etc.)
 #       by using something like:
@@ -193,7 +193,7 @@ def test_brickwall_filter_invalid_x():
     x_bad = clean.x.copy()
     x_bad[5] += 0.01  # break uniformity
     with pytest.raises(ValueError, match="evenly spaced"):
-        brick_wall_filter(x_bad, noisy.y, "lowpass", cutoff0=0.1)
+        brickwall_filter(x_bad, noisy.y, "lowpass", cutoff0=0.1)
 
 
 def test_tools_to_proc_interface():
@@ -204,7 +204,7 @@ def test_tools_to_proc_interface():
     _clean, tst_sig = build_clean_noisy_signals(freq=np.array([1, 3, 5]))
 
     # Lowpass
-    tools_res = brick_wall_filter(tst_sig.x, tst_sig.y, "lowpass", cutoff0=2.0)
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "lowpass", cutoff0=2.0)
     proc_res = sigima.proc.signal.lowpass(
         tst_sig,
         sigima.proc.signal.LowPassFilterParam.create(
@@ -214,7 +214,7 @@ def test_tools_to_proc_interface():
     check_array_result("Lowpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Highpass
-    tools_res = brick_wall_filter(tst_sig.x, tst_sig.y, "highpass", cutoff0=2.0)
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "highpass", cutoff0=2.0)
     proc_res = sigima.proc.signal.highpass(
         tst_sig,
         sigima.proc.signal.HighPassFilterParam.create(
@@ -224,7 +224,7 @@ def test_tools_to_proc_interface():
     check_array_result("Highpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandpass
-    tools_res = brick_wall_filter(
+    tools_res = brickwall_filter(
         tst_sig.x, tst_sig.y, "bandpass", cutoff0=2.0, cutoff1=4.0
     )
     proc_res = sigima.proc.signal.bandpass(
@@ -236,7 +236,7 @@ def test_tools_to_proc_interface():
     check_array_result("Bandpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandstop
-    tools_res = brick_wall_filter(
+    tools_res = brickwall_filter(
         tst_sig.x, tst_sig.y, "bandstop", cutoff0=2.0, cutoff1=4.0
     )
     proc_res = sigima.proc.signal.bandstop(

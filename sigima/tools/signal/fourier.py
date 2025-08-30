@@ -171,7 +171,7 @@ def psd(
 
 
 @check_1d_arrays(x_evenly_spaced=True)
-def brick_wall_filter(
+def brickwall_filter(
     x: np.ndarray,
     y: np.ndarray,
     mode: Literal["lowpass", "highpass", "bandpass", "bandstop"],

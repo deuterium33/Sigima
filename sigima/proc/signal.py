@@ -1110,7 +1110,7 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
                     ),
                 )
         x_padded, y_padded = src_padded.get_data()
-        x, y = fourier.brick_wall_filter(
+        x, y = fourier.brickwall_filter(
             x_padded, y_padded, p.TYPE.value, p.cut0, p.cut1
         )
         dst.set_xydata(x, y)
