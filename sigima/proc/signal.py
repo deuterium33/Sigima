@@ -927,7 +927,7 @@ class BaseHighLowBandParam(gds.DataSet):
 
     methods = (
         ("bessel", _("Bessel")),
-        ("brick_wall", _("Brick wall")),
+        ("brickwall", _("Brick wall")),
         ("butter", _("Butterworth")),
         ("cheby1", _("Chebyshev type 1")),
         ("cheby2", _("Chebyshev type 2")),
@@ -945,7 +945,7 @@ class BaseHighLowBandParam(gds.DataSet):
 
     order = gds.IntItem(_("Filter order"), default=3, min=1).set_prop(
         "display",
-        active=gds.FuncProp(_method_prop, lambda x: x not in ("brick_wall",)),
+        active=gds.FuncProp(_method_prop, lambda x: x not in ("brickwall",)),
     )
     cut0 = gds.FloatItem(
         _("Low cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
@@ -977,7 +977,7 @@ class BaseHighLowBandParam(gds.DataSet):
         default=True,
     ).set_prop(
         "display",
-        active=gds.FuncProp(_method_prop, lambda x: x == "brick_wall"),
+        active=gds.FuncProp(_method_prop, lambda x: x == "brickwall"),
         store=_zp_prop,
     )
     nfft = gds.IntItem(
@@ -987,7 +987,7 @@ class BaseHighLowBandParam(gds.DataSet):
         "display",
         active=gds.FuncPropMulti(
             [_method_prop, _zp_prop],
-            lambda x, y: x == "brick_wall" and y,
+            lambda x, y: x == "brickwall" and y,
         ),
     )
 
@@ -1089,14 +1089,14 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         Result signal object
     """
     name = f"{p.TYPE.value}"
-    suffix = "" if p.method == "brick_wall" else f"order={p.order:d}, "
+    suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
     if p.TYPE in (FilterType.LOWPASS, FilterType.HIGHPASS):
         suffix += f"cutoff={p.cut0:.2f}"
     else:
         suffix += f"cutoff={p.cut0:.2f}:{p.cut1:.2f}"
     dst = dst_1_to_1(src, name, suffix)
 
-    if p.method == "brick_wall":
+    if p.method == "brickwall":
         src_padded = src.copy()
         if p.zero_padding and p.nfft is not None:
             size_padded = ZeroPadding1DParam.next_power_of_two(max(p.nfft, src.y.size))
