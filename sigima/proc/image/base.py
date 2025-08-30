@@ -8,6 +8,7 @@ This module provides core classes and utility functions that serve as building b
 for the other computation modules.
 
 Main features include:
+
 - Generic helper functions used across image processing modules
 - Core wrappers and infrastructure for computation functions
 
@@ -18,20 +19,18 @@ and code reuse.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any
 
 import numpy as np
 
-from sigima.objects.base import ResultShape
-from sigima.objects.image import ImageObj
-from sigima.objects.signal import SignalObj
+from sigima.objects import NO_ROI, GeometryResult, ImageObj, KindShape, SignalObj
 from sigima.proc.base import dst_1_to_1, new_signal_result
 
 __all__ = [
     "restore_data_outside_roi",
     "Wrap1to1Func",
     "dst_1_to_1_signal",
-    "calc_resultshape",
+    "compute_geometry_from_obj",
 ]
 
 
@@ -131,18 +130,15 @@ def dst_1_to_1_signal(src: ImageObj, name: str, suffix: str | None = None) -> Si
     )
 
 
-def calc_resultshape(
+def compute_geometry_from_obj(
     title: str,
-    shape: Literal[
-        "rectangle", "circle", "ellipse", "segment", "marker", "point", "polygon"
-    ],
+    shape: KindShape,
     obj: ImageObj,
     func: Callable,
     *args: Any,
-    add_label: bool = False,
-) -> ResultShape | None:
-    """Calculate result shape by executing a computation function on an image object,
-    taking into account the image origin (x0, y0), scale (dx, dy) and ROIs.
+) -> GeometryResult | None:
+    """Compute a geometry shape from an image object by executing a computation function
+    on the data of the image object, for each ROI (Region Of Interest) in the image.
 
     Args:
         title: result title
@@ -150,11 +146,21 @@ def calc_resultshape(
         obj: input image object
         func: computation function
         *args: computation function arguments
-        add_label: if True, add a label item (and the geometrical shape) to plot
-         (default to False)
 
     Returns:
-        Result shape object or None if no result is found
+        A geometry result object or None if no result is found.
+
+    .. important::
+        **Coordinate Conversion**: This function automatically converts coordinates
+        from pixel units (image indices) to physical units using the image object's
+        calibration information.
+
+        - **Input**: Computation function returns coordinates in pixel units
+        - **Output**: GeometryResult with coordinates in physical units (e.g., mm, µm)
+
+        The conversion is performed using the image's calibration parameters:
+        ``physical_x = obj.dx * pixel_x + obj.x0`` and
+        ``physical_y = obj.dy * pixel_y + obj.y0``
 
     .. warning::
 
@@ -166,9 +172,22 @@ def calc_resultshape(
         of points, polygons, circles or ellipses in the form [[x, y], ...], or
         [[x0, y0, x1, y1, ...], ...], or [[x0, y0, r], ...], or
         [[x0, y0, a, b, theta], ...].
+
+    Example:
+        >>> # func returns pixel coordinates like [[10, 20], [30, 40]]
+        >>> result = compute_geometry_from_obj(
+        ...     "Points", KindShape.POINT, image_obj, func
+        ... )
+        >>> # result.coords now contains physical coordinates like [[0.5, 1.0],
+        >>> # [1.5, 2.0]]
+
+    See Also:
+        :class:`~sigima.objects.scalar.GeometryResult`: The result object that stores
+        physical coordinates.
     """
-    res: list[np.ndarray] = []
+    rows: list[np.ndarray] = []
     num_cols: list[int] = []
+    roi_idx: list[int] = []
     for i_roi in obj.iterate_roi_indices():
         data_roi = obj.get_data(i_roi)
         if args is None:
@@ -210,23 +229,23 @@ def calc_resultshape(
                 x0, y0, _x1, _y1 = obj.roi.get_single_roi(i_roi).get_bounding_box(obj)
                 coords[:, colx] += x0 - obj.x0
                 coords[:, coly] += y0 - obj.y0
-            idx = np.ones((coords.shape[0], 1)) * (-1 if i_roi is None else i_roi)
-            coords = np.hstack([idx, coords])
-            res.append(coords)
+
+            rows.append(coords)
             num_cols.append(coords.shape[1])
-    if res:
+            roi_idx.extend([NO_ROI if i_roi is None else int(i_roi)] * coords.shape[0])
+    if rows:
         if len(set(num_cols)) != 1:
             # This happens when the number of columns is not the same for all ROIs.
             # As of now, this happens only for polygon contours.
             # We need to pad the arrays with NaNs.
             max_cols = max(num_cols)
-            num_rows = sum(coords.shape[0] for coords in res)
+            num_rows = sum(coords.shape[0] for coords in rows)
             array = np.full((num_rows, max_cols), np.nan)
-            row = 0
-            for coords in res:
-                array[row : row + coords.shape[0], : coords.shape[1]] = coords
-                row += coords.shape[0]
+            start = 0
+            for row in rows:
+                array[start : start + row.shape[0], : row.shape[1]] = row
+                start += row.shape[0]
         else:
-            array = np.vstack(res)
-        return ResultShape(title, array, shape, add_label=add_label)
+            array = np.vstack(rows)
+        return GeometryResult(title, shape, array, np.asarray(roi_idx, dtype=int))
     return None

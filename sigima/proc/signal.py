@@ -17,7 +17,7 @@ import warnings
 from collections.abc import Callable
 from enum import Enum
 from math import ceil, log2
-from typing import Any, Literal
+from typing import Any
 
 import guidata.dataset as gds
 import numpy as np
@@ -25,9 +25,20 @@ import scipy.integrate as spt
 import scipy.ndimage as spi
 import scipy.signal as sps
 
-from sigima.config import _, options
-from sigima.objects.base import ResultProperties, ResultShape
-from sigima.objects.signal import ROI1DParam, SignalObj
+from sigima.config import _
+from sigima.objects import (
+    NO_ROI,
+    GeometryResult,
+    KindShape,
+    NormalDistribution1DParam,
+    PoissonDistributionParam,
+    ROI1DParam,
+    SignalObj,
+    TableResult,
+    TableResultBuilder,
+    UniformDistribution1DParam,
+    create_signal_from_param,
+)
 from sigima.proc.base import (
     ArithmeticParam,
     ClipParam,
@@ -39,13 +50,13 @@ from sigima.proc.base import (
     MovingMedianParam,
     NormalizeParam,
     SpectrumParam,
-    calc_resultproperties,
     dst_1_to_1,
     dst_2_to_1,
     dst_n_to_1,
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import MathOperator, PadLocation, PowerUnit
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -75,7 +86,7 @@ __all__ = [
     "division",
     "extract_rois",
     "extract_roi",
-    "swap_axes",
+    "transpose",
     "inverse",
     "absolute",
     "real",
@@ -139,7 +150,7 @@ __all__ = [
     "hadamard_variance",
     "total_variance",
     "time_deviation",
-    "calc_resultshape",
+    "compute_geometry_from_obj",
     "FWHMParam",
     "fwhm",
     "fw1e2",
@@ -155,6 +166,9 @@ __all__ = [
     "sampling_rate_period",
     "contrast",
     "x_at_minmax",
+    "add_gaussian_noise",
+    "add_poisson_noise",
+    "add_uniform_noise",
 ]
 
 
@@ -396,20 +410,18 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
     initial_dtype = src1.xydata.dtype
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
     dst = src1.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
     o, a, b = p.operator, p.factor, p.constant
-    if o in ("×", "/") and a == 0.0:
+    if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
         dst.y = np.ones_like(src1.y) * b
-    elif p.operator == "+":
+    elif o is MathOperator.ADD:
         dst.y = (src1.y + src2.y) * a + b
-    elif p.operator == "-":
+    elif o is MathOperator.SUBTRACT:
         dst.y = (src1.y - src2.y) * a + b
-    elif p.operator == "×":
+    elif o is MathOperator.MULTIPLY:
         dst.y = (src1.y * src2.y) * a + b
-    elif p.operator == "/":
+    elif o is MathOperator.DIVIDE:
         dst.y = (src1.y / src2.y) * a + b
-    if dst.dy is not None and p.operator in ("+", "-"):
+    if dst.dy is not None and o in (MathOperator.ADD, MathOperator.SUBTRACT):
         dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
     if dst.dy is not None:
         dst.dy *= p.factor
@@ -520,8 +532,6 @@ def extract_rois(src: SignalObj, params: list[ROI1DParam]) -> SignalObj:
         xout[slice0], yout[slice0] = x[slice0], y[slice0]
     nans = np.isnan(xout) | np.isnan(yout)
     dst.set_xydata(xout[~nans], yout[~nans])
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
@@ -539,14 +549,12 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
     dst = dst_1_to_1(src, "extract_roi", f"{p.xmin:.3g}≤x≤{p.xmax:.3g}")
     x, y = p.get_data(src).copy()
     dst.set_xydata(x, y)
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
 @computation_function()
-def swap_axes(src: SignalObj) -> SignalObj:
-    """Swap axes
+def transpose(src: SignalObj) -> SignalObj:
+    """Transpose signal (swap X and Y axes)
 
     Args:
         src: source signal
@@ -554,7 +562,7 @@ def swap_axes(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    dst = dst_1_to_1(src, "swap_axes")
+    dst = dst_1_to_1(src, "transpose")
     x, y = src.get_data()
     dst.set_xydata(y, x)
     return dst
@@ -883,7 +891,7 @@ def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -897,7 +905,7 @@ def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -911,6 +919,69 @@ def wiener(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(sps.wiener)(src)
+
+
+@computation_function()
+def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalObj:
+    """Add normal noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = NormalDistribution1DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_gaussian_noise", f"µ={p.mu}, σ={p.sigma}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
+    """Add Poisson noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = PoissonDistributionParam.create(seed=p.seed, lam=p.lam)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_poisson_noise", f"λ={p.lam}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_uniform_noise(src: SignalObj, p: UniformDistribution1DParam) -> SignalObj:
+    """Add uniform noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = UniformDistribution1DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_uniform_noise", f"low={p.vmin}, high={p.vmax}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
 
 
 class FilterType(Enum):
@@ -1087,6 +1158,13 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
 
     Returns:
         Result signal object
+
+    .. note::
+
+        Uses zero-phase filtering (`filtfilt`) when possible for better phase response.
+        If numerical instability occurs (e.g., singular matrix errors), automatically
+        falls back to forward filtering (`lfilter`) with a warning. This ensures
+        cross-platform compatibility while maintaining optimal filtering when possible.
     """
     name = f"{p.TYPE.value}"
     suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
@@ -1111,7 +1189,18 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         dst.set_xydata(x, y)
     else:
         b, a = p.get_filter_params(dst)
-        dst.y = sps.filtfilt(b, a, dst.y)
+        try:
+            # Prefer zero-phase filtering
+            dst.y = sps.filtfilt(b, a, dst.y)
+        except np.linalg.LinAlgError:
+            # Fallback to forward filtering if filtfilt fails due to numerical issues
+            warnings.warn(
+                "Zero-phase filtering failed due to numerical instability. "
+                "Using forward filtering instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            dst.y = sps.lfilter(b, a, dst.y)
 
     restore_data_outside_roi(dst, src)
     return dst
@@ -1237,11 +1326,10 @@ class ZeroPadding1DParam(gds.DataSet):
     strategy = gds.ChoiceItem(
         _("Strategy"), zip(strategies, strategies), default=strategies[0]
     ).set_prop("display", store=_prop, callback=strategy_callback)
-    locations = ("append", "prepend", "both")
     location = gds.ChoiceItem(
         _("Location"),
-        zip(locations, locations),
-        default=locations[0],
+        PadLocation,
+        default=PadLocation.APPEND,
         help=_("Where to add the padding"),
     )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
@@ -1267,13 +1355,13 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
         suffix = f"strategy={p.strategy}"
 
     assert p.n is not None
-    if p.location == "append":
+    if p.location is PadLocation.APPEND:
         n_prepend = 0
         n_append = p.n
-    elif p.location == "prepend":
+    elif p.location is PadLocation.PREPEND:
         n_prepend = p.n
         n_append = 0
-    elif p.location == "both":
+    elif p.location is PadLocation.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
     else:
@@ -1915,16 +2003,13 @@ def time_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
 # --------------------------------------------------------------------------------------
 
 
-def calc_resultshape(
+def compute_geometry_from_obj(
     title: str,
-    shape: Literal[
-        "rectangle", "circle", "ellipse", "segment", "marker", "point", "polygon"
-    ],
+    shape: KindShape,
     obj: SignalObj,
     func: Callable,
     *args: Any,
-    add_label: bool = False,
-) -> ResultShape | None:
+) -> GeometryResult | None:
     """Calculate result shape by executing a computation function on a signal object,
     taking into account the signal ROIs.
 
@@ -1934,8 +2019,6 @@ def calc_resultshape(
         obj: input image object
         func: computation function
         *args: computation function arguments
-        add_label: if True, add a label item (and the geometrical shape) to plot
-         (default to False)
 
     Returns:
         Result shape object or None if no result is found
@@ -1948,7 +2031,8 @@ def calc_resultshape(
         Moreover, the computation function must return a 1D NumPy array (or a list,
         or a tuple) containing the result of the computation.
     """
-    res = []
+    rows: list[np.ndarray] = []
+    roi_idx: list[int] = []
     for i_roi in obj.iterate_roi_indices():
         x, y = obj.get_data(i_roi)
         if args is None:
@@ -1965,10 +2049,11 @@ def calc_resultshape(
                 raise ValueError(
                     "The computation function must return a 1D NumPy array"
                 )
-            results = np.array([-1 if i_roi is None else i_roi] + results.tolist())
-            res.append(results)
-    if res:
-        return ResultShape(title, np.vstack(res), shape, add_label=add_label)
+            rows.append(results.tolist())
+            roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
+    if rows:
+        array = np.vstack(rows)
+        return GeometryResult(title, shape, array, np.asarray(roi_idx, dtype=int))
     return None
 
 
@@ -1997,7 +2082,7 @@ class FWHMParam(gds.DataSet):
 
 
 @computation_function()
-def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
+def fwhm(obj: SignalObj, param: FWHMParam) -> GeometryResult | None:
     """Compute FWHM with :py:func:`sigima.tools.signal.pulse.fwhm`
 
     Args:
@@ -2007,7 +2092,7 @@ def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "fwhm",
         "segment",
         obj,
@@ -2015,12 +2100,11 @@ def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
         param.method,
         param.xmin,
         param.xmax,
-        add_label=True,
     )
 
 
 @computation_function()
-def fw1e2(obj: SignalObj) -> ResultShape | None:
+def fw1e2(obj: SignalObj) -> GeometryResult | None:
     """Compute FW at 1/e² with :py:func:`sigima.tools.signal.pulse.fw1e2`
 
     Args:
@@ -2029,17 +2113,17 @@ def fw1e2(obj: SignalObj) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape("fw1e2", "segment", obj, pulse.fw1e2, add_label=True)
+    return compute_geometry_from_obj("fw1e2", "segment", obj, pulse.fw1e2)
 
 
 class OrdinateParam(gds.DataSet):
-    """Ordinate parameter"""
+    """Ordinate parameter."""
 
     y = gds.FloatItem(_("Ordinate"), default=0.0)
 
 
 @computation_function()
-def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> ResultShape | None:
+def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     """
     Compute full width at a given y value for a signal object.
 
@@ -2050,13 +2134,11 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape(
-        "∆X", "segment", obj, pulse.full_width_at_y, p.y, add_label=True
-    )
+    return compute_geometry_from_obj("∆X", "segment", obj, pulse.full_width_at_y, p.y)
 
 
 @computation_function()
-def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
+def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     """
     Compute the smallest x-value at a given y-value for a signal object.
 
@@ -2067,25 +2149,23 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
     Returns:
          An object containing the x-value.
     """
-    return calc_resultproperties(
-        f"x|y={p.y}",
-        obj,
-        {
-            "x = %g {.xunit}": lambda xy: features.find_first_x_at_y_value(
-                xy[0], xy[1], p.y
-            )
-        },
+    table = TableResultBuilder(f"x|y={p.y}")
+    table.add(
+        lambda xy: features.find_first_x_at_given_y_value(xy[0], xy[1], p.y),
+        "x@y",
+        "x = %g {.xunit}",
     )
+    return table.compute(obj)
 
 
 class AbscissaParam(gds.DataSet):
-    """Abscissa parameter"""
+    """Abscissa parameter."""
 
     x = gds.FloatItem(_("Abscissa"), default=0.0)
 
 
 @computation_function()
-def y_at_x(obj: SignalObj, p: AbscissaParam) -> ResultProperties:
+def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
     """
     Compute the smallest y-value at a given x-value for a signal object.
 
@@ -2096,15 +2176,17 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> ResultProperties:
     Returns:
          An object containing the y-value.
     """
-    return calc_resultproperties(
-        f"y|x={p.x}",
-        obj,
-        {"y = %g {.yunit}": lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x)},
+    table = TableResultBuilder(f"y|x={p.x}")
+    table.add(
+        lambda xy: features.find_y_at_given_x_value(xy[0], xy[1], p.x),
+        "y@x",
+        "y = %g {.yunit}",
     )
+    return table.compute(obj)
 
 
 @computation_function()
-def stats(obj: SignalObj) -> ResultProperties:
+def stats(obj: SignalObj) -> TableResult:
     """Compute statistics on a signal
 
     Args:
@@ -2113,33 +2195,49 @@ def stats(obj: SignalObj) -> ResultProperties:
     Returns:
         Result properties object
     """
-    statfuncs = {
-        "min(y) = %g {.yunit}": lambda xy: np.nanmin(xy[1]),
-        "max(y) = %g {.yunit}": lambda xy: np.nanmax(xy[1]),
-        "<y> = %g {.yunit}": lambda xy: np.nanmean(xy[1]),
-        "median(y) = %g {.yunit}": lambda xy: np.nanmedian(xy[1]),
-        "σ(y) = %g {.yunit}": lambda xy: np.nanstd(xy[1]),
-        "<y>/σ(y)": lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]),
-        "peak-to-peak(y) = %g {.yunit}": lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]),
-        "Σ(y) = %g {.yunit}": lambda xy: np.nansum(xy[1]),
-        "∫ydx": lambda xy: spt.trapezoid(xy[1], xy[0]),
-    }
-    return calc_resultproperties("stats", obj, statfuncs)
+    table = TableResultBuilder(_("Signal statistics"))
+    table.add(lambda xy: np.nanmin(xy[1]), "min", "min(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmax(xy[1]), "max", "max(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmean(xy[1]), "mean", "<y> = %g {.yunit}")
+    table.add(lambda xy: np.nanmedian(xy[1]), "median", "median(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanstd(xy[1]), "std", "σ(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]), "snr", "<y>/σ(y) = %g")
+    table.add(
+        lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]),
+        "ptp",
+        "peak-to-peak(y) = %g {.yunit}",
+    )
+    table.add(lambda xy: np.nansum(xy[1]), "sum", "Σ(y) = %g {.yunit}")
+    table.add(lambda xy: spt.trapezoid(xy[1], xy[0]), "trapz", "∫ydx = %g {.yunit}")
+    return table.compute(obj)
 
 
 @computation_function()
-def bandwidth_3db(obj: SignalObj) -> ResultShape | None:
+def bandwidth_3db(obj: SignalObj) -> GeometryResult | None:
     """Compute bandwidth at -3 dB with
     :py:func:`sigima.tools.signal.misc.bandwidth`
 
+    .. note::
+
+       The bandwidth is defined as the range of frequencies over which the signal
+       maintains a certain level relative to its peak.
+
+    .. warning::
+
+        The signal is assumed to be smooth enough for the bandwidth calculation to be
+        meaningful. If the signal contains excessive noise, multiple peaks, or is not
+        sufficiently continuous, the computed bandwidth may not accurately represent the
+        true -3dB range. It is recommended to preprocess the signal to ensure reliable
+        results.
+
     Args:
-        obj: source signal
+        obj: Source signal.
 
     Returns:
-        Result properties with bandwidth
+        Result shape with bandwidth.
     """
-    return calc_resultshape(
-        "bandwidth", "segment", obj, features.bandwidth, 3.0, add_label=True
+    return compute_geometry_from_obj(
+        "bandwidth", "segment", obj, features.bandwidth, -3.0
     )
 
 
@@ -2147,9 +2245,8 @@ class DynamicParam(gds.DataSet):
     """Parameters for dynamic range computation (ENOB, SNR, SINAD, THD, SFDR)"""
 
     full_scale = gds.FloatItem(_("Full scale"), default=0.16, min=0.0, unit="V")
-    _units = ("dBc", "dBFS")
     unit = gds.ChoiceItem(
-        _("Unit"), zip(_units, _units), default="dBc", help=_("Unit for SINAD")
+        _("Unit"), PowerUnit, default=PowerUnit.DBC, help=_("Unit for SINAD")
     )
     nb_harm = gds.IntItem(
         _("Number of harmonics"),
@@ -2160,7 +2257,7 @@ class DynamicParam(gds.DataSet):
 
 
 @computation_function()
-def dynamic_parameters(src: SignalObj, p: DynamicParam) -> ResultProperties:
+def dynamic_parameters(src: SignalObj, p: DynamicParam) -> TableResult:
     """Compute Dynamic parameters
     using the following functions:
 
@@ -2179,21 +2276,28 @@ def dynamic_parameters(src: SignalObj, p: DynamicParam) -> ResultProperties:
         Result properties with ENOB, SNR, SINAD, THD, SFDR
     """
     dsfx = f" = %g {p.unit}"
-    funcs = {
-        "Freq": lambda xy: dynamic.sinus_frequency(xy[0], xy[1]),
-        "ENOB = %.1f bits": lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale),
-        "SNR" + dsfx: lambda xy: dynamic.snr(xy[0], xy[1], p.unit),
-        "SINAD" + dsfx: lambda xy: dynamic.sinad(xy[0], xy[1], p.unit),
-        "THD" + dsfx: lambda xy: dynamic.thd(
-            xy[0], xy[1], p.full_scale, p.unit, p.nb_harm
-        ),
-        "SFDR" + dsfx: lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, p.unit),
-    }
-    return calc_resultproperties("ADC", src, funcs)
+    table = TableResultBuilder(_("Dynamic parameters"))
+    table.add(lambda xy: dynamic.sinus_frequency(xy[0], xy[1]), "freq")
+    table.add(
+        lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale), "enob", "ENOB = %.1f bits"
+    )
+    table.add(lambda xy: dynamic.snr(xy[0], xy[1], p.unit), "snr", "SNR" + dsfx)
+    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], p.unit), "sinad", "SINAD" + dsfx)
+    table.add(
+        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, p.unit, p.nb_harm),
+        "thd",
+        "THD" + dsfx,
+    )
+    table.add(
+        lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, p.unit),
+        "sfdr",
+        "SFDR" + dsfx,
+    )
+    return table.compute(src)
 
 
 @computation_function()
-def sampling_rate_period(obj: SignalObj) -> ResultProperties:
+def sampling_rate_period(obj: SignalObj) -> TableResult:
     """Compute sampling rate and period
     using the following functions:
 
@@ -2206,30 +2310,22 @@ def sampling_rate_period(obj: SignalObj) -> ResultProperties:
     Returns:
         Result properties with sampling rate and period
     """
-    return calc_resultproperties(
-        "sampling_rate_period",
-        obj,
-        {
-            "fs = %g": lambda xy: dynamic.sampling_rate(xy[0]),
-            "T = %g {.xunit}": lambda xy: dynamic.sampling_period(xy[0]),
-        },
-    )
+    table = TableResultBuilder(_("Sampling rate and period"))
+    table.add(lambda xy: dynamic.sampling_rate(xy[0]), "fs", "fs = %g")
+    table.add(lambda xy: dynamic.sampling_period(xy[0]), "T", "T = %g {.xunit}")
+    return table.compute(obj)
 
 
 @computation_function()
-def contrast(obj: SignalObj) -> ResultProperties:
+def contrast(obj: SignalObj) -> TableResult:
     """Compute contrast with :py:func:`sigima.tools.signal.misc.contrast`"""
-    return calc_resultproperties(
-        "contrast",
-        obj,
-        {
-            "contrast": lambda xy: features.contrast(xy[1]),
-        },
-    )
+    table = TableResultBuilder(_("Contrast"))
+    table.add(lambda xy: features.contrast(xy[1]), "contrast")
+    return table.compute(obj)
 
 
 @computation_function()
-def x_at_minmax(obj: SignalObj) -> ResultProperties:
+def x_at_minmax(obj: SignalObj) -> TableResult:
     """
     Compute the smallest argument at the minima and the smallest argument at the maxima.
 
@@ -2239,11 +2335,7 @@ def x_at_minmax(obj: SignalObj) -> ResultProperties:
     Returns:
         An object containing the x-values at the minima and the maxima.
     """
-    return calc_resultproperties(
-        "x@min,max",
-        obj,
-        {
-            "X@Ymin = %g {.xunit}": lambda xy: xy[0][np.argmin(xy[1])],
-            "X@Ymax = %g {.xunit}": lambda xy: xy[0][np.argmax(xy[1])],
-        },
-    )
+    table = TableResultBuilder(_("X at min/max"))
+    table.add(lambda xy: xy[0][np.argmin(xy[1])], "X@Ymin", "X@Ymin = %g {.xunit}")
+    table.add(lambda xy: xy[0][np.argmax(xy[1])], "X@Ymax", "X@Ymax = %g {.xunit}")
+    return table.compute(obj)

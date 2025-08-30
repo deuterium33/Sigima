@@ -10,6 +10,8 @@ Main features include:
     * Gaussian, median, moving average and Wiener filters
     * Butterworth and frequency domain Gaussian filters.
 
+Filtering functions are essential for enhancing image quality
+and removing noise prior to further analysis.
 """
 
 # pylint: disable=invalid-name  # Allows short names like x, y...
@@ -49,6 +51,8 @@ __all__ = [
     "moving_average",
     "moving_median",
     "wiener",
+    "ButterworthParam",
+    "butterworth",
 ]
 
 # MARK: Noise reduction filters
@@ -79,7 +83,7 @@ def moving_average(src: ImageObj, p: MovingAverageParam) -> ImageObj:
     Returns:
         Output image object.
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
@@ -93,12 +97,12 @@ def moving_median(src: ImageObj, p: MovingMedianParam) -> ImageObj:
     Returns:
         Output image object.
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode.value)(src)
 
 
 @computation_function()
 def wiener(src: ImageObj) -> ImageObj:
-    """Compute Wiener filter with :py:func:`scipy.signal.wiener`.
+    """Compute Wiener filter with :py:func:`scipy.signal.wiener`
 
     Args:
         src: Input image object.
@@ -172,6 +176,19 @@ class GaussianFreqFilterParam(GaussianParam):
         unit="pixel⁻¹",
         min=0.0,
         help=_("Center frequency of the Gaussian filter"),
+    )
+    sigma = gds.FloatItem(
+        _("σ"),
+        default=0.5,
+        unit="pixels⁻¹",
+        min=0.0,
+        help=_("Standard deviation of the Gaussian filter"),
+    )
+    ifft_result_type = gds.ChoiceItem(
+        _("Inverse FFT result"),
+        (("real", _("Real part")), ("abs", _("Absolute value"))),
+        default="real",
+        help=_("How to return the inverse FFT result"),
     )
 
 

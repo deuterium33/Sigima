@@ -16,6 +16,7 @@ import scipy.spatial as spt
 from numpy import ma
 from skimage import exposure, feature, measure, transform
 
+from sigima.proc.enums import BinningOperation
 from sigima.tools.checks import check_2d_array
 
 # MARK: Level adjustment ---------------------------------------------------------------
@@ -236,15 +237,12 @@ def gaussian_freq_filter(
 # MARK: Binning ------------------------------------------------------------------------
 
 
-BINNING_OPERATIONS = ("sum", "average", "median", "min", "max")
-
-
 @check_2d_array
 def binning(
     data: np.ndarray,
     sx: int,
     sy: int,
-    operation: Literal["sum", "average", "median", "min", "max"],
+    operation: BinningOperation | str,
     dtype=None,
 ) -> np.ndarray:
     """Perform image pixel binning
@@ -259,6 +257,10 @@ def binning(
     Returns:
         Binned data
     """
+    # Convert enum to string value if needed
+    if isinstance(operation, BinningOperation):
+        operation = operation.value
+
     ny, nx = data.shape
     shape = (ny // sy, sy, nx // sx, sx)
     try:
@@ -276,7 +278,7 @@ def binning(
     elif operation == "max":
         bdata = bdata.max(axis=(-1, 1))
     else:
-        valid = ", ".join(BINNING_OPERATIONS)
+        valid = ", ".join(op.value for op in BinningOperation)
         raise ValueError(f"Invalid operation {operation} (valid values: {valid})")
     return np.array(bdata, dtype=data.dtype if dtype is None else np.dtype(dtype))
 

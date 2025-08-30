@@ -15,6 +15,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
+from sigima.proc.enums import PadLocation
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv
@@ -45,8 +46,8 @@ def test_signal_zero_padding() -> None:
     # Validate zero padding
     param = sigima.params.ZeroPadding1DParam.create(strategy="custom", n=250)
     assert param.n is not None
-    for location in ("append", "prepend", "both"):
-        execenv.print(f"Validating zero padding with location = {location}...")
+    for location in PadLocation:
+        execenv.print(f"Validating zero padding with location = {location.value}...")
         param.location = location
         param.update_from_obj(s1)
         s2 = sigima.proc.signal.zero_padding(s1, param)
@@ -54,7 +55,7 @@ def test_signal_zero_padding() -> None:
         n = param.n
         exp_len2 = len1 + n
         assert s2.y.size == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
-        if location == "append":
+        if location is PadLocation.APPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -62,12 +63,14 @@ def test_signal_zero_padding() -> None:
                 mode="linear_ramp",
                 end_values=(s1.x[-1] + dx * n,),
             )
-            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
-            check_array_result(f"{location}: Check original y-data", s2.y[:len1], s1.y)
+            check_array_result(f"{location.value}: Check x-data", s2.x, expected_x)
             check_array_result(
-                f"{location}: Check padded y-data", s2.y[len1:], np.zeros(n)
+                f"{location.value}: Check original y-data", s2.y[:len1], s1.y
             )
-        elif location == "prepend":
+            check_array_result(
+                f"{location.value}: Check padded y-data", s2.y[len1:], np.zeros(n)
+            )
+        elif location is PadLocation.PREPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -75,12 +78,14 @@ def test_signal_zero_padding() -> None:
                 mode="linear_ramp",
                 end_values=(s1.x[0] - dx * n,),
             )
-            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
-            check_array_result(f"{location}: Check original y-data", s2.y[-len1:], s1.y)
+            check_array_result(f"{location.value}: Check x-data", s2.x, expected_x)
             check_array_result(
-                f"{location}: Check padded y-data", s2.y[:n], np.zeros(n)
+                f"{location.value}: Check original y-data", s2.y[-len1:], s1.y
             )
-        elif location == "both":
+            check_array_result(
+                f"{location.value}: Check padded y-data", s2.y[:n], np.zeros(n)
+            )
+        elif location is PadLocation.BOTH:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -91,17 +96,19 @@ def test_signal_zero_padding() -> None:
                     s1.x[-1] + dx * (n - n // 2),
                 ),
             )
-            check_array_result(f"{location}: Check x-data", s2.x, expected_x)
+            check_array_result(f"{location.value}: Check x-data", s2.x, expected_x)
             check_array_result(
-                f"{location}: Check original y-data", s2.y[n // 2 : n // 2 + len1], s1.y
+                f"{location.value}: Check original y-data",
+                s2.y[n // 2 : n // 2 + len1],
+                s1.y,
             )
             check_array_result(
-                f"{location}: Check padded y-data (before)",
+                f"{location.value}: Check padded y-data (before)",
                 s2.y[: n // 2],
                 np.zeros(n // 2),
             )
             check_array_result(
-                f"{location}: Check padded y-data (after)",
+                f"{location.value}: Check padded y-data (after)",
                 s2.y[-(n - n // 2) :],
                 np.zeros(n - n // 2),
             )
@@ -129,14 +136,11 @@ def test_signal_fft() -> None:
 
 
 @pytest.mark.validation
-def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_ifft() -> None:
     """1D iFFT validation test.
 
     Check that the original and reconstructed signals are equal.
     """
-    # We need to set the request to enable the GUI.
-    guiutils.set_current_request(request)
-
     param = sigima.objects.CosinusParam.create(size=500)
 
     # *** Note ***
@@ -162,29 +166,18 @@ def test_signal_ifft(request: pytest.FixtureRequest | None = None) -> None:
         check_array_result("Original and recovered y data", y2, y1, verbose=False)
         execenv.print("OK")
 
-        if guiutils.is_gui_enabled():
-            # pylint: disable=import-outside-toplevel
-            from guidata.qthelpers import qt_app_context
-
-            from sigima.tests.vistools import view_curves
-
-            with qt_app_context():
-                view_curves(
-                    [
-                        s1,
-                        sigima.objects.create_signal("Recovered", t2, y2),
-                        sigima.objects.create_signal("Difference", t1, np.abs(y2 - y1)),
-                    ]
-                )
+        guiutils.view_curves_if_gui(
+            [
+                s1,
+                sigima.objects.create_signal("Recovered", t2, y2),
+                sigima.objects.create_signal("Difference", t1, np.abs(y2 - y1)),
+            ]
+        )
 
 
 @pytest.mark.validation
-def test_signal_magnitude_spectrum(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_signal_magnitude_spectrum() -> None:
     """1D magnitude spectrum validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -214,27 +207,18 @@ def test_signal_magnitude_spectrum(
     check_array_result("Cosine signal magnitude spectrum X", mag.x, fft.x.real)
     check_array_result("Cosine signal magnitude spectrum Y", mag.y, np.abs(fft.y))
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves(
-                [
-                    sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
-                    sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
-                    sigima.objects.create_signal("FFT-magnitude", mag.x.real, mag.y),
-                ]
-            )
+    guiutils.view_curves_if_gui(
+        [
+            sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
+            sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
+            sigima.objects.create_signal("FFT-magnitude", mag.x.real, mag.y),
+        ]
+    )
 
 
 @pytest.mark.validation
-def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_phase_spectrum() -> None:
     """1D phase spectrum validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -249,27 +233,18 @@ def test_signal_phase_spectrum(request: pytest.FixtureRequest | None = None) -> 
     exp_phase = np.rad2deg(np.angle(fft.y))
     check_array_result("Cosine signal phase spectrum Y", phase.y, exp_phase)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves(
-                [
-                    sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
-                    sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
-                    sigima.objects.create_signal("Phase", phase.x.real, phase.y),
-                ]
-            )
+    guiutils.view_curves_if_gui(
+        [
+            sigima.objects.create_signal("FFT-real", fft.x.real, fft.x.real),
+            sigima.objects.create_signal("FFT-imag", fft.x.real, fft.y.imag),
+            sigima.objects.create_signal("Phase", phase.x.real, phase.y),
+        ]
+    )
 
 
 @pytest.mark.validation
-def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_psd() -> None:
     """1D Power Spectral Density validation test."""
-    guiutils.set_current_request(request)
-
     freq = 50.0
     size = 10000
 
@@ -292,29 +267,20 @@ def test_signal_psd(request: pytest.FixtureRequest | None = None) -> None:
         check_array_result(f"Cosine signal PSD X (dB={decibel})", psd.x, exp_x)
         check_array_result(f"Cosine signal PSD Y (dB={decibel})", psd.y, exp_y)
 
-        if guiutils.is_gui_enabled():
-            # pylint: disable=import-outside-toplevel
-            from guidata.qthelpers import qt_app_context
-
-            from sigima.tests.vistools import view_curves
-
-            with qt_app_context():
-                view_curves(
-                    [
-                        sigima.objects.create_signal("PSD", psd.x, psd.y),
-                    ]
-                )
+        guiutils.view_curves_if_gui(
+            [
+                sigima.objects.create_signal("PSD", psd.x, psd.y),
+            ]
+        )
 
 
 @pytest.mark.gui
 def test_signal_spectrum() -> None:
     """Test several FFT-related functions on `dynamic_parameters.txt`."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
+    with guiutils.lazy_qt_app_context(force=True):
+        # pylint: disable=import-outside-toplevel
+        from sigima.tests.vistools import view_curves
 
-    from sigima.tests.vistools import view_curves
-
-    with qt_app_context():
         sig = get_test_signal("dynamic_parameters.txt")
         view_curves([sig])
         p = sigima.params.SpectrumParam.create(decibel=True)
@@ -327,10 +293,11 @@ def test_signal_spectrum() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
     test_signal_zero_padding()
     test_signal_fft()
-    test_signal_ifft(request=guiutils.DummyRequest(gui=True))
-    test_signal_magnitude_spectrum(request=guiutils.DummyRequest(gui=True))
-    test_signal_phase_spectrum(request=guiutils.DummyRequest(gui=True))
-    test_signal_psd(request=guiutils.DummyRequest(gui=True))
+    test_signal_ifft()
+    test_signal_magnitude_spectrum()
+    test_signal_phase_spectrum()
+    test_signal_psd()
     test_signal_spectrum()

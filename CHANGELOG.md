@@ -5,11 +5,28 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 0.3.0 ##
 
+✨ Core architecture update: scalar result types
+
+* Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
+  * These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse.
+  * Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object.
+  * All metadata-related behaviors of former result types have been migrated to the DataLab application layer.
+  * Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core.
+* This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API.
+
 💥 New features and enhancements:
+
+* New common signal/image feature:
+  * Generate new signal or image: Poisson noise.
+  * Add noise to the selected signals or images.
+    * Gaussian, Poisson or uniform noise can be added.
 
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.
   * Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs.
+  * Image ROI transformations:
+    * Before this change, image ROI were removed after applying each single computation function.
+    * Now, the geometry computation functions preserve the ROI information across transformations: the transformed ROIs are automatically updated in the image object.
   * Image ROI coordinates:
     * Before this change, image ROI coordinates were defined using indices by default.
     * Now, `ROI2DParam` uses physical coordinates by default.
@@ -36,11 +53,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
       ```python
       import numpy as np
       import sigima.objects as sio
-      import sigima.proc.image as sip
+      import sigima.proc.image as sipi
 
       obj = sio.create_image("test_image", data=np.random.rand(1024, 1024))
       p = sio.ROI2DParam.create(x0=600, y0=800, width=300, height=200)
-      dst = sip.erase(obj, p)
+      dst = sipi.erase(obj, p)
       ```
 
   * By default, pixel binning changes the pixel size.

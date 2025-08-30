@@ -1,7 +1,88 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-.. Image computation objects (see parent package :mod:`sigima.proc`)
+Basic image processing
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.base
+   :members:
+
+Arithmetic
+~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.arithmetic
+    :members:
+
+Mathematical Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.mathops
+    :members:
+
+Measurements
+~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.measurement
+    :members:
+
+Filtering
+~~~~~~~~~
+
+.. automodule:: sigima.proc.image.filtering
+    :members:
+
+Fourier
+~~~~~~~
+
+.. automodule:: sigima.proc.image.fourier
+    :members:
+
+Thresholding
+~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.threshold
+    :members:
+
+Exposure correction
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.exposure
+    :members:
+
+Restoration
+~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.restoration
+    :members:
+
+Morphology
+~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.morphology
+    :members:
+
+Edge detection
+~~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.edges
+
+Detection
+~~~~~~~~~
+
+.. automodule:: sigima.proc.image.detection
+    :members:
+
+Geometry
+~~~~~~~~
+
+.. automodule:: sigima.proc.image.geometry
+    :members:
+
+Transformation features
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: sigima.proc.transformations
+   :members:
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
@@ -23,7 +104,7 @@ import guidata.dataset as gds
 from sigima.config import _
 from sigima.proc.image.base import (
     Wrap1to1Func,
-    calc_resultshape,
+    compute_geometry_from_obj,
     dst_1_to_1_signal,
     restore_data_outside_roi,
 )
@@ -134,6 +215,8 @@ from sigima.proc.image.geometry import (
     BinningParam,
     ResizeParam,
     RotateParam,
+    TranslateParam,
+    translate,
     binning,
     fliph,
     flipv,
@@ -141,7 +224,7 @@ from sigima.proc.image.geometry import (
     rotate,
     rotate90,
     rotate270,
-    swap_axes,
+    transpose,
 )
 from sigima.proc.image.mathops import (
     DataTypeIParam,
@@ -164,6 +247,11 @@ from sigima.proc.image.morphology import (
     erosion,
     opening,
     white_tophat,
+)
+from sigima.proc.image.noise import (
+    add_gaussian_noise,
+    add_poisson_noise,
+    add_uniform_noise,
 )
 from sigima.proc.image.restoration import (
     DenoiseBilateralParam,

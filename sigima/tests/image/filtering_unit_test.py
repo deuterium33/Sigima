@@ -13,6 +13,7 @@ import scipy.signal as sps
 from skimage import filters
 
 import sigima.params
+import sigima.proc.enums
 import sigima.proc.image
 import sigima.tools.image
 from sigima.objects import ImageObj
@@ -38,10 +39,10 @@ def test_image_moving_average() -> None:
     """Validation test for the image moving average processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingAverageParam.create(n=30)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_average(src, p)
-        exp = spi.uniform_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.uniform_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingAvg[n={p.n},mode={p.mode}]", dst.data, exp)
 
 
@@ -50,10 +51,10 @@ def test_image_moving_median() -> None:
     """Validation test for the image moving median processing."""
     src = get_test_image("flower.npy")
     p = sigima.params.MovingMedianParam.create(n=5)
-    for mode in p.modes:
+    for mode in sigima.proc.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.image.moving_median(src, p)
-        exp = spi.median_filter(src.data, size=p.n, mode=p.mode)
+        exp = spi.median_filter(src.data, size=p.n, mode=mode.value)
         check_array_result(f"MovingMed[n={p.n},mode={p.mode}]", dst.data, exp)
 
 
@@ -113,25 +114,15 @@ def build_clean_noisy_images(
 
 
 @pytest.mark.validation
-def test_gaussian_freq_filter(request: pytest.FixtureRequest = None) -> None:
+def test_gaussian_freq_filter() -> None:
     """Validation test for :py:func:`sigima.tools.image.gaussian_freq_filter`."""
     clean, noisy = build_clean_noisy_images(freq=0.05)
     param = sigima.proc.image.GaussianFreqFilterParam.create(f0=0.05, sigma=0.05)
     filt = sigima.proc.image.gaussian_freq_filter(noisy, param)
     clean_area = clean.data[10:-10, 10:-10]
-
-    guiutils.set_current_request(request)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(
-                [clean, noisy, filt], titles=["Clean", "Noisy", "Filtered"]
-            )
-
+    guiutils.view_images_side_by_side_if_gui(
+        [clean, noisy, filt], titles=["Clean", "Noisy", "Filtered"]
+    )
     mean_noise = float(np.mean(np.abs(clean_area - filt.data[10:-10, 10:-10])))
     check_scalar_result(
         "gaussian_freq_filter noise reduction", mean_noise, 0.0, atol=0.1
@@ -164,11 +155,12 @@ def test_gaussian_freq_filter_symmetry() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
     test_image_gaussian_filter()
     test_image_moving_average()
     test_image_moving_median()
     test_image_wiener()
     test_butterworth()
-    test_gaussian_freq_filter(request=guiutils.DummyRequest(gui=True))
+    test_gaussian_freq_filter()
     test_gaussian_freq_filter_constant_image()
     test_gaussian_freq_filter_symmetry()

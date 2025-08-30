@@ -204,6 +204,8 @@ Geometry parameters
     :no-index:
 .. autodataset:: sigima.params.RotateParam
     :no-index:
+.. autodataset:: sigima.params.TranslateParam
+    :no-index:
 
 Mathematical operation parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -304,6 +306,7 @@ from sigima.proc.image import (
     BinningParam,
     ResizeParam,
     RotateParam,
+    TranslateParam,
     DataTypeIParam,
     LogP1Param,
     MorphologyParam,
