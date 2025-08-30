@@ -770,8 +770,6 @@ def extract_rois(src: SignalObj, params: list[ROI1DParam]) -> SignalObj:
         xout[slice0], yout[slice0] = x[slice0], y[slice0]
     nans = np.isnan(xout) | np.isnan(yout)
     dst.set_xydata(xout[~nans], yout[~nans])
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
@@ -789,8 +787,6 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
     dst = dst_1_to_1(src, "extract_roi", f"{p.xmin:.3g}≤x≤{p.xmax:.3g}")
     x, y = p.get_data(src).copy()
     dst.set_xydata(x, y)
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
