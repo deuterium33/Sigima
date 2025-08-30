@@ -73,6 +73,14 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * This feature allows to filter a signal in the frequency domain using an ideal ("brick wall") filter.
     * It is implemented in `sigima.proc.signal.frequency_filter`, along the other frequency domain filtering features (`Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
+  * Comprehensive uncertainty propagation implementation:
+    * Added mathematically correct uncertainty propagation to ~15 core signal processing functions.
+    * Enhanced `Wrap1to1Func` class to handle uncertainty propagation for mathematical functions (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`).
+    * Implemented uncertainty propagation for arithmetic operations (`product_constant`, `division_constant`).
+    * Added uncertainty propagation for advanced processing functions (`power`, `normalize`, `derivative`, `integral`, `calibration`).
+    * All implementations use proper error propagation formulas with numerical stability handling (NaN/infinity protection).
+    * Optimized for memory efficiency by leveraging `dst_1_to_1` automatic uncertainty copying and in-place modifications.
+    * Maintains backward compatibility with existing signal processing workflows.
 
 * New 2D ramp image generator:
   * This feature allows to generate a 2D ramp image: z = a(x − x₀) + b(y − y₀) + c

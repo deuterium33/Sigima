@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-21 15:49+0200\n"
+"POT-Creation-Date: 2025-08-30 20:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -27,21 +27,6 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 
 msgid "sigima 0.3.0"
 msgstr "sigima 0.3.0"
-
-msgid "💥 New features and enhancements:"
-msgstr "💥 Nouvelles fonctionnalités et améliorations:"
-
-msgid "New common signal/image feature:"
-msgstr "Nouvelles fonctionnalités communes signal/image :"
-
-msgid "Generate new signal or image: Poisson noise."
-msgstr "Générer un nouveau signal ou une nouvelle image : bruit de Poisson."
-
-msgid "Add noise to the selected signals or images."
-msgstr "Ajouter du bruit aux signaux ou images sélectionnés."
-
-msgid "Gaussian, Poisson or uniform noise can be added."
-msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
 
 msgid "✨ Core architecture update: scalar result types"
 msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
@@ -63,6 +48,21 @@ msgstr "Suppression de fonctionnalités obsolètes ou étroitement couplées tel
 
 msgid "This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API."
 msgstr "Cette refonte améliore considérablement la modularité, la testabilité et la clarté de l'API de calcul scalaire."
+
+msgid "💥 New features and enhancements:"
+msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "New common signal/image feature:"
+msgstr "Nouvelles fonctionnalités communes signal/image :"
+
+msgid "Generate new signal or image: Poisson noise."
+msgstr "Générer un nouveau signal ou une nouvelle image : bruit de Poisson."
+
+msgid "Add noise to the selected signals or images."
+msgstr "Ajouter du bruit aux signaux ou images sélectionnés."
+
+msgid "Gaussian, Poisson or uniform noise can be added."
+msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
@@ -177,6 +177,30 @@ msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.frequency_fi
 
 msgid "Enhanced zero padding to support prepend and append. Change default strategy to next power of 2."
 msgstr "Amélioration du remplissage de zéros pour prendre en charge l'ajout au début et à la fin. Changement de la stratégie par défaut vers la prochaine puissance de 2."
+
+msgid "Comprehensive uncertainty propagation implementation:"
+msgstr "Mise en œuvre complète de la propagation des incertitudes :"
+
+msgid "Added mathematically correct uncertainty propagation to ~15 core signal processing functions."
+msgstr "Ajout de la propagation des incertitudes mathématiquement correcte à ~15 fonctions de traitement du signal de base."
+
+msgid "Enhanced `Wrap1to1Func` class to handle uncertainty propagation for mathematical functions (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`)."
+msgstr "Amélioration de la classe `Wrap1to1Func` pour gérer la propagation des incertitudes pour les fonctions mathématiques (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`)."
+
+msgid "Implemented uncertainty propagation for arithmetic operations (`product_constant`, `division_constant`)."
+msgstr "Mise en œuvre de la propagation des incertitudes pour les opérations arithmétiques (`product_constant`, `division_constant`)."
+
+msgid "Added uncertainty propagation for advanced processing functions (`power`, `normalize`, `derivative`, `integral`, `calibration`)."
+msgstr "Ajout de la propagation des incertitudes pour les fonctions de traitement avancées (`power`, `normalize`, `derivative`, `integral`, `calibration`)."
+
+msgid "All implementations use proper error propagation formulas with numerical stability handling (NaN/infinity protection)."
+msgstr "Toutes les implémentations utilisent des formules de propagation des erreurs appropriées avec une gestion de la stabilité numérique (protection contre les NaN/l'infini)."
+
+msgid "Optimized for memory efficiency by leveraging `dst_1_to_1` automatic uncertainty copying and in-place modifications."
+msgstr "Optimisé pour l'efficacité mémoire en tirant parti de la copie automatique des incertitudes `dst_1_to_1` et des modifications sur place."
+
+msgid "Maintains backward compatibility with existing signal processing workflows."
+msgstr "Maintient la compatibilité avec les flux de travail de traitement du signal existants."
 
 msgid "New 2D ramp image generator:"
 msgstr "Nouveau générateur d'image de rampe 2D:"

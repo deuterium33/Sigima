@@ -193,6 +193,23 @@ def restore_data_outside_roi(dst: SignalObj, src: SignalObj) -> None:
             dst.xydata[src.maskdata] = src.xydata[src.maskdata]
 
 
+def is_uncertainty_data_available(signals: SignalObj | list[SignalObj]) -> bool:
+    """Check if all signals have uncertainty data.
+
+    This functions is used to determine whether enough information is available to
+    propagate uncertainty.
+
+    Args:
+        signals: Signal object or list of signal objects.
+
+    Returns:
+        True if all signals have uncertainty data, False otherwise.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return all(sig.dy is not None for sig in signals)
+
+
 class Wrap1to1Func:
     """Wrap a 1 array → 1 array function (the simple case of y1 = f(y0)) to produce
     a 1 signal → 1 signal function, which can be used as a Sigima computation function
@@ -248,6 +265,33 @@ class Wrap1to1Func:
         dst = dst_1_to_1(src, self.func.__name__, suffix)
         x, y = src.get_data()
         dst.set_xydata(x, self.func(y, *self.args, **self.kwargs))
+
+        # Uncertainty propagation for common mathematical functions
+        if is_uncertainty_data_available(src):
+            if self.func == np.sqrt:
+                # σ(√y) = σ(y) / (2√y)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    dst.dy = src.dy / (2 * np.sqrt(src.y))
+                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+            elif self.func == np.log10:
+                # σ(log₁₀(y)) = σ(y) / (y * ln(10))
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    dst.dy = src.dy / (src.y * np.log(10))
+                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+            elif self.func == np.exp:
+                # σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
+                dst.dy = np.abs(dst.y) * src.dy
+            elif self.func == np.clip:
+                # σ(clip(y)) = σ(y) where not clipped, 0 where clipped
+                a_min = self.kwargs.get("a_min", None)
+                a_max = self.kwargs.get("a_max", None)
+                if a_min is not None:
+                    dst.dy[src.y <= a_min] = 0
+                if a_max is not None:
+                    dst.dy[src.y >= a_max] = 0
+            # For absolute, real, imag: uncertainties unchanged (copied by dst_1_to_1)
         restore_data_outside_roi(dst, src)
         return dst
 
@@ -262,23 +306,6 @@ class Wrap1to1Func:
 # Also, we need to systematically return the output signal object, even if it is already
 # modified in place, because the multiprocessing module will not be able to retrieve
 # the modified object from the worker processes.
-
-
-def __is_uncertainty_data_available(signals: SignalObj | list[SignalObj]) -> bool:
-    """Check if all signals have uncertainty data.
-
-    This functions is used to determine whether enough information is available to
-    propagate uncertainty.
-
-    Args:
-        signals: Signal object or list of signal objects.
-
-    Returns:
-        True if all signals have uncertainty data, False otherwise.
-    """
-    if isinstance(signals, SignalObj):
-        signals = [signals]
-    return all(sig.dy is not None for sig in signals)
 
 
 def signals_to_array(
@@ -368,7 +395,7 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
     dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data.
     dst.y = np.sum(signals_y_to_array(src_list), axis=0)
     dst.dy = None  # ! In case of missing uncertainty data.
-    if __is_uncertainty_data_available(src_list):
+    if is_uncertainty_data_available(src_list):
         dst.dy = np.sqrt(np.sum(signals_dy_to_array(src_list) ** 2, axis=0))
     restore_data_outside_roi(dst, src_list[0])
     return dst
@@ -403,7 +430,7 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data.
     dst.y = np.mean(signals_y_to_array(src_list), axis=0)
     dst.dy = None  # ! In case of missing uncertainty data.
-    if __is_uncertainty_data_available(src_list):
+    if is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
     restore_data_outside_roi(dst, src_list[0])
@@ -440,7 +467,7 @@ def product(src_list: list[SignalObj]) -> SignalObj:
     y_array = signals_y_to_array(src_list)
     dst.y = np.prod(y_array, axis=0)
     dst.dy = None  # ! In case of missing uncertainty data.
-    if __is_uncertainty_data_available(src_list):
+    if is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -542,8 +569,8 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     # For multiplication with constant: σ(c*y) = |c| * σ(y), so modification needed.
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
-    if __is_uncertainty_data_available(src):
-        dst.dy = np.abs(p.value) * src.dy
+    if is_uncertainty_data_available(src):
+        dst.dy *= np.abs(p.value)  # Modify in-place since dy already copied from src
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -579,10 +606,9 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         dst.y /= p.value
         dst.y[np.isinf(dst.y)] = np.nan
-        if __is_uncertainty_data_available(src):
-            uncertainty = src.dy / np.abs(p.value)
-            uncertainty[np.isinf(uncertainty)] = np.nan
-            dst.dy = uncertainty
+        if is_uncertainty_data_available(src):
+            dst.dy /= np.abs(p.value)  # Modify in-place since dy already copied
+            dst.dy[np.isinf(dst.dy)] = np.nan
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -669,7 +695,7 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
     dst.dy = None  # ! In case of missing uncertainty data.
-    if __is_uncertainty_data_available([src1, src2]):
+    if is_uncertainty_data_available([src1, src2]):
         dy_array = signals_dy_to_array([src1, src2])
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0))
     restore_data_outside_roi(dst, src1)
@@ -833,7 +859,7 @@ def inverse(src: SignalObj) -> SignalObj:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         dst.set_xydata(x, np.reciprocal(y))
         dst.y[np.isinf(dst.y)] = np.nan
-        if __is_uncertainty_data_available(src):
+        if is_uncertainty_data_available(src):
             err = np.abs(dst.y) * (src.dy / np.abs(src.y))
             err[np.isinf(err)] = np.nan
             dst.dy = err
@@ -964,6 +990,14 @@ def power(src: SignalObj, p: PowerParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "^", str(p.power))
     dst.y = np.power(src.y, p.power)
+
+    # Uncertainty propagation: σ(y^n) = |n * y^(n-1)| * σ(y)
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            dst.dy *= np.abs(p.power * np.power(src.y, p.power - 1))
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -1014,7 +1048,32 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "normalize", f"ref={p.method}")
     x, y = src.get_data()
-    dst.set_xydata(x, scaling.normalize(y, p.method))
+    normalized_y = scaling.normalize(y, p.method)
+    dst.set_xydata(x, normalized_y)
+
+    # Uncertainty propagation for normalization
+    # σ(y/norm_factor) = σ(y) / norm_factor
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            # Calculate normalization factor
+            if p.method == "maximum":
+                norm_factor = np.max(y)
+            elif p.method == "minimum":
+                norm_factor = np.min(y)
+            elif p.method == "amplitude":
+                norm_factor = np.max(y) - np.min(y)
+            else:  # mean, rms, etc.
+                if p.method == "mean":
+                    norm_factor = np.mean(y)
+                else:
+                    norm_factor = np.sqrt(np.mean(y**2))
+
+            if norm_factor != 0:
+                dst.dy /= np.abs(norm_factor)
+            else:
+                dst.dy[:] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -1032,6 +1091,16 @@ def derivative(src: SignalObj) -> SignalObj:
     dst = dst_1_to_1(src, "derivative")
     x, y = src.get_data()
     dst.set_xydata(x, np.gradient(y, x))
+
+    # Uncertainty propagation for numerical derivative
+    # For gradient using finite differences: σ(dy/dx) ≈ σ(y) / Δx
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            # Use the same gradient approach as numpy.gradient for uncertainty
+            dst.dy = np.gradient(src.dy, x)
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -1049,6 +1118,18 @@ def integral(src: SignalObj) -> SignalObj:
     dst = dst_1_to_1(src, "integral")
     x, y = src.get_data()
     dst.set_xydata(x, spt.cumulative_trapezoid(y, x, initial=0.0))
+
+    # Uncertainty propagation for numerical integration
+    # For cumulative trapezoidal integration, uncertainties accumulate
+    if is_uncertainty_data_available(src):
+        # Propagate uncertainties through cumulative trapezoidal rule
+        # σ(∫y dx) ≈ √(Σ(σ(y_i) * Δx_i)²) for independent measurements
+        dx = np.diff(x)
+        dy_squared = src.dy[:-1] ** 2 + src.dy[1:] ** 2  # Trapezoidal rule uncertainty
+        # Propagated variance for trapezoidal integration
+        dst.dy[0] = 0.0  # Initial value has no uncertainty
+        dst.dy[1:] = np.sqrt(np.cumsum(dy_squared * (dx**2) / 4))
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -1077,8 +1158,15 @@ def calibration(src: SignalObj, p: XYCalibrateParam) -> SignalObj:
     x, y = src.get_data()
     if p.axis == "x":
         dst.set_xydata(p.a * x + p.b, y)
+        # For X-axis calibration: uncertainties in x are scaled, y unchanged
+        if is_uncertainty_data_available(src):
+            dst.dx = np.abs(p.a) * src.dx if src.dx is not None else None
+            # Y uncertainties remain the same
     else:
         dst.set_xydata(x, p.a * y + p.b)
+        # For Y-axis calibration: σ(a*y + b) = |a| * σ(y)
+        if is_uncertainty_data_available(src):
+            dst.dy *= np.abs(p.a)
     restore_data_outside_roi(dst, src)
     return dst
 
