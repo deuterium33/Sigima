@@ -376,9 +376,6 @@ msgstr "Convertir vers le type de données de `obj1`"
 msgid "Result"
 msgstr "Résultat"
 
-msgid "σ"
-msgstr "σ"
-
 msgid "Standard deviation of the Gaussian filter"
 msgstr "Ecart-type du filtre gaussien"
 

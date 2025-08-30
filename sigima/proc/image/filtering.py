@@ -164,7 +164,7 @@ class GaussianFreqFilterParam(GaussianParam):
     """Parameters for Gaussian filter applied in the frequency domain."""
 
     sigma = gds.FloatItem(
-        _("σ"),
+        "σ",
         default=1.0,
         unit="pixel⁻¹",
         min=0.0,
@@ -178,7 +178,7 @@ class GaussianFreqFilterParam(GaussianParam):
         help=_("Center frequency of the Gaussian filter"),
     )
     sigma = gds.FloatItem(
-        _("σ"),
+        "σ",
         default=0.5,
         unit="pixels⁻¹",
         min=0.0,
