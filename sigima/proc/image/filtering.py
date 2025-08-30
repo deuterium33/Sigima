@@ -44,7 +44,7 @@ __all__ = [
     "ButterworthParam",
     "FreqDomainGaussianParam",
     "butterworth",
-    "freq_domain_gaussian_filter",
+    "gaussian_freq_filter",
     "gaussian_filter",
     "moving_average",
     "moving_median",
@@ -176,7 +176,7 @@ class FreqDomainGaussianParam(GaussianParam):
 
 
 @computation_function()
-def freq_domain_gaussian_filter(src: ImageObj, p: FreqDomainGaussianParam) -> ImageObj:
+def gaussian_freq_filter(src: ImageObj, p: FreqDomainGaussianParam) -> ImageObj:
     """Apply a Gaussian filter in the frequency domain.
 
     Args:
@@ -191,6 +191,6 @@ def freq_domain_gaussian_filter(src: ImageObj, p: FreqDomainGaussianParam) -> Im
         "frequency_domain_gaussian_filter",
         f"sigma={p.sigma:.3f}, f0={p.f0:.3f}",
     )
-    dst.data = sigima.tools.image.freq_domain_gaussian_filter(src.data, p.f0, p.sigma)
+    dst.data = sigima.tools.image.gaussian_freq_filter(src.data, p.f0, p.sigma)
     restore_data_outside_roi(dst, src)
     return dst

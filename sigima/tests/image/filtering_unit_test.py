@@ -113,11 +113,11 @@ def build_clean_noisy_images(
 
 
 @pytest.mark.validation
-def test_freq_domain_gaussian_filter(request: pytest.FixtureRequest = None) -> None:
-    """Validation test for :py:func:`sigima.tools.image.freq_domain_gaussian_filter`."""
+def test_gaussian_freq_filter(request: pytest.FixtureRequest = None) -> None:
+    """Validation test for :py:func:`sigima.tools.image.gaussian_freq_filter`."""
     clean, noisy = build_clean_noisy_images(freq=0.05)
     param = sigima.proc.image.FreqDomainGaussianParam.create(f0=0.05, sigma=0.05)
-    filt = sigima.proc.image.freq_domain_gaussian_filter(noisy, param)
+    filt = sigima.proc.image.gaussian_freq_filter(noisy, param)
     clean_area = clean.data[10:-10, 10:-10]
 
     guiutils.set_current_request(request)
@@ -134,22 +134,22 @@ def test_freq_domain_gaussian_filter(request: pytest.FixtureRequest = None) -> N
 
     mean_noise = float(np.mean(np.abs(clean_area - filt.data[10:-10, 10:-10])))
     check_scalar_result(
-        "freq_domain_gaussian_filter noise reduction", mean_noise, 0.0, atol=0.1
+        "gaussian_freq_filter noise reduction", mean_noise, 0.0, atol=0.1
     )
 
 
-def test_freq_domain_gaussian_filter_constant_image() -> None:
+def test_gaussian_freq_filter_constant_image() -> None:
     """Edge case: filtering a constant image must preserve the constant value
     (DC component)."""
     img_const = np.full((64, 64), fill_value=7.42)
-    zout = sigima.tools.image.freq_domain_gaussian_filter(img_const, f0=0.0, sigma=0.05)
+    zout = sigima.tools.image.gaussian_freq_filter(img_const, f0=0.0, sigma=0.05)
     # Ignore borders
     center = zout[10:-10, 10:-10]
     # Assert that all values are (almost) equal to the original constant
     assert np.allclose(center, 7.42, atol=1e-10), "Filtering constant image failed"
 
 
-def test_freq_domain_gaussian_filter_symmetry() -> None:
+def test_gaussian_freq_filter_symmetry() -> None:
     """Test: filtering a symmetric image yields a symmetric result."""
     # Create a symmetric image (e.g., a centered 2D Gaussian)
     x = np.linspace(-1, 1, 64)
@@ -157,7 +157,7 @@ def test_freq_domain_gaussian_filter_symmetry() -> None:
     xv, yv = np.meshgrid(x, y)
     img = np.exp(-(xv**2 + yv**2) / 0.1)
 
-    zout = sigima.tools.image.freq_domain_gaussian_filter(img, f0=0.05, sigma=0.02)
+    zout = sigima.tools.image.gaussian_freq_filter(img, f0=0.05, sigma=0.02)
     # Symmetry check: image must be (almost) symmetric along both axes
     assert np.allclose(zout, zout[::-1, :], atol=1e-10), "Vertical symmetry lost"
     assert np.allclose(zout, zout[:, ::-1], atol=1e-10), "Horizontal symmetry lost"
@@ -169,6 +169,6 @@ if __name__ == "__main__":
     test_image_moving_median()
     test_image_wiener()
     test_butterworth()
-    test_freq_domain_gaussian_filter(request=guiutils.DummyRequest(gui=True))
-    test_freq_domain_gaussian_filter_constant_image()
-    test_freq_domain_gaussian_filter_symmetry()
+    test_gaussian_freq_filter(request=guiutils.DummyRequest(gui=True))
+    test_gaussian_freq_filter_constant_image()
+    test_gaussian_freq_filter_symmetry()

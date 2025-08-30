@@ -115,7 +115,7 @@ from sigima.proc.image.filtering import (
     ButterworthParam,
     FreqDomainGaussianParam,
     butterworth,
-    freq_domain_gaussian_filter,
+    gaussian_freq_filter,
     gaussian_filter,
     moving_average,
     moving_median,

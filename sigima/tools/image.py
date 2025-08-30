@@ -198,7 +198,7 @@ def psd(z: np.ndarray, log_scale: bool = False) -> np.ndarray:
 
 
 @check_2d_array
-def freq_domain_gaussian_filter(
+def gaussian_freq_filter(
     data: np.ndarray, f0: float = 0.1, sigma: float = 0.05
 ) -> np.ndarray:
     """
