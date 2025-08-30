@@ -113,7 +113,7 @@ from sigima.proc.image.extraction import (
 )
 from sigima.proc.image.filtering import (
     ButterworthParam,
-    FreqDomainGaussianParam,
+    GaussianFreqFilterParam,
     butterworth,
     gaussian_freq_filter,
     gaussian_filter,

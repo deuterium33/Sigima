@@ -42,7 +42,7 @@ from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
 __all__ = [
     "ButterworthParam",
-    "FreqDomainGaussianParam",
+    "GaussianFreqFilterParam",
     "butterworth",
     "gaussian_freq_filter",
     "gaussian_filter",
@@ -156,7 +156,7 @@ def butterworth(src: ImageObj, p: ButterworthParam) -> ImageObj:
     return dst
 
 
-class FreqDomainGaussianParam(GaussianParam):
+class GaussianFreqFilterParam(GaussianParam):
     """Parameters for Gaussian filter applied in the frequency domain."""
 
     sigma = gds.FloatItem(
@@ -176,7 +176,7 @@ class FreqDomainGaussianParam(GaussianParam):
 
 
 @computation_function()
-def gaussian_freq_filter(src: ImageObj, p: FreqDomainGaussianParam) -> ImageObj:
+def gaussian_freq_filter(src: ImageObj, p: GaussianFreqFilterParam) -> ImageObj:
     """Apply a Gaussian filter in the frequency domain.
 
     Args:

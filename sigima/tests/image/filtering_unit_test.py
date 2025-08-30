@@ -116,7 +116,7 @@ def build_clean_noisy_images(
 def test_gaussian_freq_filter(request: pytest.FixtureRequest = None) -> None:
     """Validation test for :py:func:`sigima.tools.image.gaussian_freq_filter`."""
     clean, noisy = build_clean_noisy_images(freq=0.05)
-    param = sigima.proc.image.FreqDomainGaussianParam.create(f0=0.05, sigma=0.05)
+    param = sigima.proc.image.GaussianFreqFilterParam.create(f0=0.05, sigma=0.05)
     filt = sigima.proc.image.gaussian_freq_filter(noisy, param)
     clean_area = clean.data[10:-10, 10:-10]
 

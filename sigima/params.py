@@ -186,7 +186,7 @@ Filtering parameters
 
 .. autodataset:: sigima.params.ButterworthParam
     :no-index:
-.. autofunction:: sigima.params.FreqDomainGaussianParam
+.. autofunction:: sigima.params.GaussianFreqFilterParam
     :no-index:
 
 Fourier analysis parameters
@@ -299,7 +299,7 @@ from sigima.proc.image import (
     ROIGridParam,
     Direction,
     ButterworthParam,
-    FreqDomainGaussianParam,
+    GaussianFreqFilterParam,
     ZeroPadding2DParam,
     BinningParam,
     ResizeParam,
