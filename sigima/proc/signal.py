@@ -475,6 +475,8 @@ def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
     Returns:
         Result signal object representing the sum of the input signal and the constant.
     """
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For addition with constant: σ(y + c) = σ(y), so no modification needed.
     dst = dst_1_to_1(src, "+", str(p.value))
     dst.y += p.value
     restore_data_outside_roi(dst, src)
@@ -504,6 +506,8 @@ def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         Result signal object representing the difference between the input signal and
         the constant.
     """
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For subtraction with constant: σ(y - c) = σ(y), so no modification needed.
     dst = dst_1_to_1(src, "-", str(p.value))
     dst.y -= p.value
     restore_data_outside_roi(dst, src)
@@ -534,6 +538,8 @@ def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         constant.
     """
     assert p.value is not None
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For multiplication with constant: σ(c*y) = |c| * σ(y), so modification needed.
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
     if __is_uncertainty_data_available(src):
@@ -566,6 +572,8 @@ def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
         constant.
     """
     assert p.value is not None
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For division with constant: σ(y/c) = σ(y) / |c|, so modification needed.
     dst = dst_1_to_1(src, "/", str(p.value))
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
