@@ -20,18 +20,18 @@ Typical usage:
     from sigima.config import options
 
     # Get an option
-    value = options.keep_results.get(default=True)
+    value = options.fft_shift_enabled.get(default=True)
 
     # Set an option
-    options.keep_results.set(False)
+    options.fft_shift_enabled.set(False)
 
     # Temporarily override an option
-    with options.keep_results.context(True):
+    with options.fft_shift_enabled.context(True):
         ...
 
 The following table lists the available options:
 
-.. autodata:: sigima.config.OPTIONS_RST
+.. options-table::
 
 .. note::
 
@@ -284,17 +284,6 @@ class OptionsContainer:
         return os.environ.get(cls.ENV_VAR, "{}")
 
     def __init__(self) -> None:
-        self.keep_results = TypedOptionField(
-            self,
-            "keep_results",
-            default=True,
-            expected_type=bool,
-            description=_(
-                "If True, computation functions will not delete previous results "
-                "when creating new objects. This allows for retaining results across "
-                "invocations."
-            ),
-        )
         self.fft_shift_enabled = TypedOptionField(
             self,
             "fft_shift_enabled",
@@ -312,21 +301,15 @@ class OptionsContainer:
             default=IMAGEIO_FORMATS,
             description=_(
                 """List of supported image I/O formats. Each format is a tuple of
-(file extension, description).
+``(file_extension, description)``.
 
-.. note::
+The ``sigima`` library supports any image format that can be read by the ``imageio``
+library, provided that the associated plugin(s) are installed (see `imageio
+documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)
+and that the output NumPy array data type and shape are supported by ``sigima``.
 
-    The `sigima` library supports any image format that can be read by the `imageio`
-    library, provided that the associated plugin(s) are installed (see `imageio
-    documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)
-    and that the output NumPy array data type and shape are supported by `sigima`.
-
-    To add a new file format, you may use the `imageio_formats` option to specify
-    additional formats. Each entry should be a tuple of (file extension, description).
-
-    Example:
-
-    .. autodata:: sigima.config.IMAGEIO_FORMATS
+To add a new file format, you may use the ``imageio_formats`` option to specify
+additional formats. Each entry should be a tuple of (file extension, description).
 """
             ),
         )
@@ -356,9 +339,29 @@ class OptionsContainer:
         for name in vars(self):
             opt = getattr(self, name)
             if isinstance(opt, OptionField):
-                doc += f"    * - {name}\n"
-                doc += f"      - {opt.get()}\n"
-                doc += f"      - {opt.description}\n"
+                # Process description to work within table cells
+                description = opt.description.strip()
+                # For table cells, we need to indent continuation lines properly
+                # and handle multi-line content correctly
+                description_lines = description.split("\n")
+                if len(description_lines) > 1:
+                    # Multi-line descriptions need special handling in RST tables
+                    processed_lines = [description_lines[0]]  # First line
+                    for line in description_lines[1:]:
+                        if line.strip():  # Non-empty lines
+                            processed_lines.append("        " + line.strip())
+                        else:  # Empty lines
+                            processed_lines.append("")
+                    description = "\n".join(processed_lines)
+
+                # Get the value and format it nicely
+                value = repr(opt.get(sync_env=False))
+                if len(value) > 200:  # Truncate very long values
+                    value = value[:197] + "..."
+
+                doc += f"    * - ``{name}``\n"
+                doc += f"      - ``{value}``\n"
+                doc += f"      - {description}\n"
         return doc
 
     def ensure_loaded_from_env(self) -> None:
@@ -412,8 +415,17 @@ class OptionsContainer:
 #: Global instance of the options container
 options = OptionsContainer()
 
-# TODO: The following line is only needed for the documentation generation and causes
-# a circular import if placed here. It should be moved to the documentation one way or
-# another, but for now we keep it here momentarily.
-#
-# OPTIONS_RST = options.generate_rst_doc()
+# Generate OPTIONS_RST at module load time after options is created
+# This avoids circular import issues since everything is already loaded
+OPTIONS_RST = options.generate_rst_doc()
+
+
+def __getattr__(name: str):
+    """Handle lazy evaluation of module-level attributes.
+
+    This provides backward compatibility for any code that might access OPTIONS_RST.
+    """
+    if name == "OPTIONS_RST":
+        # Return the global variable if it exists, otherwise generate it
+        return globals().get("OPTIONS_RST", options.generate_rst_doc())
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

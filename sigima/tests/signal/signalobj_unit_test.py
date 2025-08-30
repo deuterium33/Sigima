@@ -17,6 +17,7 @@ import pytest
 import sigima.io
 import sigima.objects
 from sigima.io.signal import SignalIORegistry
+from sigima.tests import guiutils
 from sigima.tests.data import iterate_signal_creation
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
@@ -94,10 +95,7 @@ def test_hdf5_signal_io() -> None:
 def test_signal_parameters_interactive() -> None:
     """Test interactive creation of signal parameters"""
     execenv.print(f"{test_signal_parameters_interactive.__doc__}:")
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         for stype in sigima.objects.SignalTypes:
             param = sigima.objects.create_signal_parameters(stype)
             if isinstance(param, sigima.objects.CustomSignalParam):
@@ -153,7 +151,7 @@ def test_create_signal() -> None:
     assert np.array_equal(signal.y, y)
     assert signal.dx is None
     assert signal.dy is None
-    assert signal.metadata == {}
+    assert not signal.metadata
     assert (signal.xunit, signal.yunit) == ("", "")
     assert (signal.xlabel, signal.ylabel) == ("", "")
 

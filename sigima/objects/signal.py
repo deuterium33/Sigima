@@ -518,10 +518,12 @@ class SignalTypes(enum.Enum):
 
     #: Signal filled with zeros
     ZEROS = _("Zeros")
-    #: Random signal (uniform law)
-    UNIFORMRANDOM = _("Random (uniform law)")
-    #: Random signal (normal law)
-    NORMALRANDOM = _("Random (normal law)")
+    #: Random signal (normal distribution)
+    NORMAL_DISTRIBUTION = _("Normal distribution")
+    #: Random signal (Poisson distribution)
+    POISSON_DISTRIBUTION = _("Poisson distribution")
+    #: Random signal (uniform distribution)
+    UNIFORM_DISTRIBUTION = _("Uniform distribution")
     #: Gaussian function
     GAUSS = _("Gaussian")
     #: Lorentzian function
@@ -686,40 +688,69 @@ class ZerosParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
 
 
-class UniformRandomParam(NewSignalParam, base.BaseUniformRandomParam):
-    """Uniform-law random signal/image parameters"""
+class UniformDistribution1DParam(NewSignalParam, base.UniformDistributionParam):
+    """Uniform-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Compute 1D data based on current parameters.
 
         Returns:
-            Tuple of (x, y) arrays
+            Tuple of (x, y) arrays.
         """
         x = self.generate_x_data()
         rng = np.random.default_rng(self.seed)
-        y = rng.random((len(x),)) * (self.vmax - self.vmin) + self.vmin
+        assert self.vmin is not None
+        assert self.vmax is not None
+        y = self.vmin + rng.random(len(x)) * (self.vmax - self.vmin)
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.UNIFORMRANDOM, UniformRandomParam)
+register_signal_parameters_class(
+    SignalTypes.UNIFORM_DISTRIBUTION, UniformDistribution1DParam
+)
 
 
-class NormalRandomParam(NewSignalParam, base.BaseNormalRandomParam):
-    """Normal-law random signal/image parameters"""
+class NormalDistribution1DParam(NewSignalParam, base.NormalDistributionParam):
+    """Normal-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Compute 1D data based on current parameters.
 
         Returns:
-            Tuple of (x, y) arrays
+            Tuple of (x, y) arrays.
         """
         x = self.generate_x_data()
         rng = np.random.default_rng(self.seed)
+        assert self.mu is not None
+        assert self.sigma is not None
         y = rng.normal(self.mu, self.sigma, len(x))
         return x, y
 
 
-register_signal_parameters_class(SignalTypes.NORMALRANDOM, NormalRandomParam)
+register_signal_parameters_class(
+    SignalTypes.NORMAL_DISTRIBUTION, NormalDistribution1DParam
+)
+
+
+class PoissonDistribution1DParam(NewSignalParam, base.PoissonDistributionParam):
+    """Poisson-distribution signal parameters."""
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Compute 1D data based on current parameters.
+
+        Returns:
+            Tuple of (x, y) arrays.
+        """
+        x = self.generate_x_data()
+        rng = np.random.default_rng(self.seed)
+        assert self.lam is not None
+        y = rng.poisson(lam=self.lam, size=len(x))
+        return x, y
+
+
+register_signal_parameters_class(
+    SignalTypes.POISSON_DISTRIBUTION, PoissonDistribution1DParam
+)
 
 
 class BaseGaussLorentzVoigtParam(NewSignalParam):

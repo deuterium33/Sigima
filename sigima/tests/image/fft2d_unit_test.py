@@ -15,6 +15,7 @@ import sigima.params
 import sigima.proc.image
 import sigima.tests.data
 import sigima.tools.image
+from sigima.tests import guiutils
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -22,12 +23,9 @@ from sigima.tests.helpers import check_array_result, check_scalar_result
 @pytest.mark.gui
 def test_image_fft_interactive():
     """2D FFT interactive test."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
+    with guiutils.lazy_qt_app_context(force=True):
+        from sigima.tests import vistools  # pylint: disable=import-outside-toplevel
 
-    from sigima.tests import vistools
-
-    with qt_app_context():
         # Create a 2D ring image
         execenv.print("Generating 2D ring image...", end=" ")
         data = sigima.tests.data.create_ring_image().data

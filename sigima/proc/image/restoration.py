@@ -4,6 +4,10 @@
 Restoration computation module
 ------------------------------
 
+This module provides image restoration techniques, such as
+denoising, inpainting, and deblurring. These methods aim to recover
+the original quality of images by removing artifacts, noise, or
+distortions.
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
@@ -26,6 +30,7 @@ from sigima.config import _
 from sigima.objects.image import ImageObj, ROI2DParam
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import ShrinkageMethod, ThresholdMethod, WaveletMode
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.proc.image.morphology import MorphologyParam
 
@@ -109,8 +114,7 @@ class DenoiseBilateralParam(gds.DataSet):
             "with larger spatial differences."
         ),
     )
-    modes = ("constant", "edge", "symmetric", "reflect", "wrap")
-    mode = gds.ChoiceItem(_("Mode"), list(zip(modes, modes)), default="constant")
+    mode = gds.ChoiceItem(_("Mode"), WaveletMode, default=WaveletMode.CONSTANT)
     cval = gds.FloatItem(
         "cval",
         default=0.0,
@@ -133,10 +137,11 @@ def denoise_bilateral(src: ImageObj, p: DenoiseBilateralParam) -> ImageObj:
     Returns:
         Output image object
     """
+    mode = p.mode.value
     return Wrap1to1Func(
         restoration.denoise_bilateral,
         sigma_spatial=p.sigma_spatial,
-        mode=p.mode,
+        mode=mode,
         cval=p.cval,
     )(src)
 
@@ -148,11 +153,9 @@ class DenoiseWaveletParam(gds.DataSet):
     wavelet = gds.ChoiceItem(
         _("Wavelet"), list(zip(wavelets, wavelets)), default="sym9"
     )
-    modes = ("soft", "hard")
-    mode = gds.ChoiceItem(_("Mode"), list(zip(modes, modes)), default="soft")
-    methods = ("BayesShrink", "VisuShrink")
+    mode = gds.ChoiceItem(_("Mode"), ThresholdMethod, default=ThresholdMethod.SOFT)
     method = gds.ChoiceItem(
-        _("Method"), list(zip(methods, methods)), default="VisuShrink"
+        _("Method"), ShrinkageMethod, default=ShrinkageMethod.VISU_SHRINK
     )
 
 
@@ -168,8 +171,10 @@ def denoise_wavelet(src: ImageObj, p: DenoiseWaveletParam) -> ImageObj:
     Returns:
         Output image object
     """
+    mode = p.mode.value
+    method = p.method.value
     return Wrap1to1Func(
-        restoration.denoise_wavelet, wavelet=p.wavelet, mode=p.mode, method=p.method
+        restoration.denoise_wavelet, wavelet=p.wavelet, mode=mode, method=method
     )(src)
 
 

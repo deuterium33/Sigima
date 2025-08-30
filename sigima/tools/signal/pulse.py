@@ -34,7 +34,7 @@ def full_width_at_y(
     Returns:
         Full width segment coordinates
     """
-    crossings = features.find_x_at_value(x, y, level)
+    crossings = features.find_all_x_at_given_y_value(x, y, level)
     if crossings.size < 2:
         raise ValueError("Not enough zero-crossing points found")
     return crossings[0], level, crossings[-1], level
@@ -77,7 +77,7 @@ def fwhm(
 
     if method == "zero-crossing":
         hmax = dy * 0.5 + np.min(y)
-        fx = features.find_x_at_value(x, y, hmax)
+        fx = features.find_all_x_at_given_y_value(x, y, hmax)
         if fx.size > 2:
             warnings.warn(f"Ambiguous zero-crossing points (found {fx.size} points)")
         elif fx.size < 2:

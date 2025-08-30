@@ -12,6 +12,7 @@ from skimage import morphology, restoration
 
 import sigima.objects
 import sigima.params
+import sigima.proc.enums
 import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.data import create_multigaussian_image, get_test_image
@@ -62,12 +63,12 @@ def test_denoise_wavelet() -> None:
     src.data = src.data[::8, ::8]
     p = sigima.params.DenoiseWaveletParam()
     for wavelets in ("db1", "db2", "db3"):
-        for mode in p.modes:
+        for mode in sigima.proc.enums.ThresholdMethod:
             for method in ("BayesShrink",):
                 p.wavelets, p.mode, p.method = wavelets, mode, method
                 dst = sigima.proc.image.denoise_wavelet(src, p)
                 exp = restoration.denoise_wavelet(
-                    src.data, wavelet=wavelets, mode=mode, method=method
+                    src.data, wavelet=wavelets, mode=mode.value, method=method
                 )
                 check_array_result(
                     f"DenoiseWavelet[wavelets={wavelets},mode={mode},method={method}]",
@@ -90,9 +91,8 @@ def test_denoise_tophat() -> None:
 
 
 @pytest.mark.validation
-def test_erase(request: pytest.FixtureRequest = None) -> None:
+def test_erase() -> None:
     """Validation test for the image erase processing."""
-    guiutils.set_current_request(request)
     obj = create_multigaussian_image()
 
     # Single ROI erase
@@ -104,16 +104,9 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
     dst = sigima.proc.image.erase(obj, p)
     exp = obj.data.copy()
     exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(
-                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
-            )
+    guiutils.view_images_side_by_side_if_gui(
+        [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+    )
     check_array_result("Erase", dst.data, exp)
 
     # Multiple ROIs erase
@@ -133,22 +126,16 @@ def test_erase(request: pytest.FixtureRequest = None) -> None:
         ix0, iy0 = int(p.x0), int(p.y0)
         ix1, iy1 = int(p.x0 + p.dx), int(p.y0 + p.dy)
         exp[iy0:iy1, ix0:ix1] = np.ma.mean(obj.data[iy0:iy1, ix0:ix1])
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_images_side_by_side
-
-        with qt_app_context():
-            view_images_side_by_side(
-                [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
-            )
+    guiutils.view_images_side_by_side_if_gui(
+        [obj.data, dst.data, exp], ["Original", "Erased", "Expected"]
+    )
     check_array_result("Erase", dst.data, exp)
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
     test_denoise_tv()
     test_denoise_bilateral()
     test_denoise_wavelet()
     test_denoise_tophat()
-    test_erase(request=guiutils.DummyRequest(gui=True))
+    test_erase()
