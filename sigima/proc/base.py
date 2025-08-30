@@ -96,7 +96,7 @@ class GaussianParam(gds.DataSet):
     """Gaussian filter parameters."""
 
     sigma = gds.FloatItem(
-        _("σ"),
+        "σ",
         default=1.0,
         min=0.0,
         help=_("Standard deviation of the Gaussian filter"),
