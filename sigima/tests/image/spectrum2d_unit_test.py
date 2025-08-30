@@ -10,18 +10,17 @@ Image spectrum unit test.
 import pytest
 
 import sigima.tools.image
+from sigima.tests import guiutils
 from sigima.tests.data import get_test_image
 
 
 @pytest.mark.gui
 def test_image_spectrum_interactive():
     """Interactive test of the magnitude/phase/power spectrum of an image."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
+    with guiutils.lazy_qt_app_context(force=True):
+        # pylint: disable=import-outside-toplevel
+        from sigima.tests.vistools import view_images_side_by_side
 
-    from sigima.tests.vistools import view_images_side_by_side
-
-    with qt_app_context():
         obj = get_test_image("NF 180338201.scor-data")
         data = obj.data
         ms = sigima.tools.image.magnitude_spectrum(data, log_scale=True)

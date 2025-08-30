@@ -15,6 +15,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.proc.enums import MathOperator
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
@@ -125,9 +126,8 @@ def test_image_product() -> None:
 
 
 @pytest.mark.validation
-def test_image_division(request: pytest.FixtureRequest = None) -> None:
+def test_image_division() -> None:
     """Image division test."""
-    guiutils.set_current_request(request)
     execenv.print("*** Testing image division:")
     for ima1, ima2 in iterate_noisy_image_couples(size=128):
         ima2.data = np.ones_like(ima2.data)
@@ -136,16 +136,9 @@ def test_image_division(request: pytest.FixtureRequest = None) -> None:
         exp = ima1.data.astype(float) / ima2.data.astype(float)
         ima3 = sigima.proc.image.division(ima1, ima2)
         if not np.allclose(ima3.data, exp):
-            if guiutils.is_gui_enabled():
-                # pylint: disable=import-outside-toplevel
-                from guidata.qthelpers import qt_app_context
-
-                from sigima.tests.vistools import view_images_side_by_side
-
-                with qt_app_context():
-                    view_images_side_by_side(
-                        [ima1.data, ima2.data, ima3.data], ["ima1", "ima2", "ima3"]
-                    )
+            guiutils.view_images_side_by_side_if_gui(
+                [ima1.data, ima2.data, ima3.data], ["ima1", "ima2", "ima3"]
+            )
         check_array_result("Image division", ima3.data, exp)
 
 
@@ -227,7 +220,7 @@ def test_image_arithmetic() -> None:
     for ima1, ima2 in iterate_noisy_image_couples(size=128):
         dtype1 = ima1.data.dtype
         p = sigima.params.ArithmeticParam.create()
-        for o in p.operators:
+        for o in MathOperator:
             p.operator = o
             for a in (0.0, 1.0, 2.0):
                 p.factor = a
@@ -235,15 +228,15 @@ def test_image_arithmetic() -> None:
                     p.constant = b
                     ima2.data = np.clip(ima2.data, 1, None)  # Avoid division by zero
                     ima3 = sigima.proc.image.arithmetic(ima1, ima2, p)
-                    if o in ("×", "/") and a == 0.0:
+                    if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
                         exp = np.ones_like(ima1.data) * b
-                    elif o == "+":
+                    elif o is MathOperator.ADD:
                         exp = np.add(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "×":
+                    elif o is MathOperator.MULTIPLY:
                         exp = np.multiply(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "-":
+                    elif o is MathOperator.SUBTRACT:
                         exp = np.subtract(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o == "/":
+                    elif o is MathOperator.DIVIDE:
                         exp = np.divide(ima1.data, ima2.data, dtype=float) * a + b
                     if p.restore_dtype:
                         if np.issubdtype(dtype1, np.integer):
@@ -368,10 +361,11 @@ def test_image_logp1() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
     test_image_addition()
     test_image_average()
     test_image_product()
-    test_image_division(request=guiutils.DummyRequest(gui=True))
+    test_image_division()
     test_image_difference()
     test_image_quadratic_difference()
     test_image_addition_constant()

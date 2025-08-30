@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-08 11:27+0200\n"
+"POT-Creation-Date: 2025-08-21 15:49+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -22,8 +22,8 @@ msgstr ""
 msgid "Computation (:mod:`sigima.proc`)"
 msgstr "Traitement (:mod:`sigima.proc`)"
 
-msgid "This package contains the Sigima computation functions that implement processing features for signal and image objects. These functions are designed to operate directly on :class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj` objects, which are defined in the :mod:`sigima.objects` package."
-msgstr "Ce package contient les fonctions de traitement de Sigima qui implémentent des fonctionnalités de traitement pour les objets signal et image. Ces fonctions sont conçues pour fonctionner directement sur les objets :class:`sigima.objects.SignalObj` et :class:`sigima.objects.ImageObj`, qui sont définis dans le package :mod:`sigima.objects`."
+msgid "This package contains the Sigima computation functions that implement processing features for signal, image and scalar objects. These functions are designed to operate directly on :class:`sigima.objects.SignalObj`, :class:`sigima.objects.ImageObj`, :class:`sigima.objects.GeometryResult` and :class:`sigima.objects.TableResult` objects, which are defined in the :mod:`sigima.objects` package."
+msgstr "Ce package contient les fonctions de traitement de Sigima qui implémentent des fonctionnalités de traitement pour les objets signal, image et scalaire. Ces fonctions sont conçues pour fonctionner directement sur les objets :class:`sigima.objects.SignalObj`, :class:`sigima.objects.ImageObj`, :class:`sigima.objects.GeometryResult` et :class:`sigima.objects.TableResult`, qui sont définis dans le package :mod:`sigima.objects`."
 
 msgid "Even though these functions are primarily designed to be used in the Sigima pipeline, they can also be used independently."
 msgstr "Bien que ces fonctions soient principalement conçues pour être utilisées dans le pipeline Sigima, elles peuvent également être utilisées de manière indépendante."
@@ -34,8 +34,8 @@ msgstr "Voir le package :mod:`sigima.tools` pour certains algorithmes qui opère
 msgid "Each computation module defines a set of computation objects, that is, functions that implement processing features and classes that implement the corresponding parameters (in the form of :py:class:`guidata.dataset.datatypes.Dataset` subclasses). The computation functions takes a signal or image object (e.g. :py:class:`sigima.objects.SignalObj`) and a parameter object (e.g. :py:class:`sigima.params.MovingAverageParam`) as input and return a signal or image object as output (the result of the computation). The parameter object is used to configure the computation function (e.g. the size of the moving average window)."
 msgstr "Chaque module de calcul définit un ensemble d'objets de calcul, c'est-à-dire des fonctions qui implémentent des fonctionnalités de traitement et des classes qui implémentent les paramètres correspondants (sous la forme de sous-classes :py:class:`guidata.dataset.datatypes.Dataset`). Les fonctions de calcul prennent un objet signal ou image (par exemple :py:class:`sigima.objects.SignalObj`) et un objet paramètre (par exemple :py:class:`sigima.params.MovingAverageParam`) en entrée et renvoient un objet signal ou image en sortie (le résultat du calcul). L'objet paramètre est utilisé pour configurer la fonction de calcul (par exemple, la taille de la fenêtre de moyenne mobile)."
 
-msgid "In Sigima overall architecture, the purpose of this package is to provide the computation functions that are used by the :mod:`sigima.core.gui.processor` module, based on the algorithms defined in the :mod:`sigima.tools` module and on the data model defined in the :mod:`sigima.objects` (or :mod:`sigima.core.model`) module."
-msgstr "Dans l'architecture globale de Sigima, le but de ce package est de fournir les fonctions de calcul qui sont utilisées par le module :mod:`sigima.core.gui.processor`, basées sur les algorithmes définis dans le module :mod:`sigima.tools` et sur le modèle de données défini dans le module :mod:`sigima.objects` (ou :mod:`sigima.core.model`)."
+msgid "In Sigima overall architecture, the purpose of this package is to provide the computation functions that are used by DataLab processor modules, based on the algorithms defined in the :mod:`sigima.tools` module and on the data model defined in the :mod:`sigima.objects` module."
+msgstr "Dans l'architecture globale de Sigima, le but de ce package est de fournir les fonctions de calcul qui sont utilisées par les modules de traitement de DataLab, basées sur les algorithmes définis dans le module :mod:`sigima.tools` et sur le modèle de données défini dans le module :mod:`sigima.objects`."
 
 msgid "The computation modules are organized in subpackages according to their purpose. The following subpackages are available:"
 msgstr "Les modules de calcul sont organisés en sous-packages selon leur objectif. Les sous-packages suivants sont disponibles :"
@@ -49,11 +49,14 @@ msgstr ":mod:`sigima.proc.signal`: Fonctionnalités de traitement du signal"
 msgid ":mod:`sigima.proc.image`: Image processing features"
 msgstr ":mod:`sigima.proc.image`: Fonctionnalités de traitement d'image"
 
+msgid ":mod:`sigima.proc.transformations`: Unified transformation system"
+msgstr ":mod:`sigima.proc.transformations`: Système de transformation unifié"
+
 msgid "Common processing features"
 msgstr "Fonctionnalités de traitement communes"
 
 msgid "Arithmetic parameters"
-msgstr ""
+msgstr "Paramètres arithmétiques"
 
 msgid "Single choice from: '+', '-', '×', '/'. Default: '+'."
 msgstr ""
@@ -296,21 +299,6 @@ msgstr ""
 msgid "Output signal object"
 msgstr ""
 
-msgid "Calculate result properties by executing a computation function on a signal/image object."
-msgstr ""
-
-msgid "title of the result properties"
-msgstr ""
-
-msgid "signal or image object"
-msgstr ""
-
-msgid "dictionary of labeled computation functions. The keys are the labels of the computation functions and the values are the functions themselves (each function must take a single argument - which is the data of the ROI or the whole signal/image - and return a float)"
-msgstr ""
-
-msgid "Result properties object"
-msgstr ""
-
 msgid "Signal processing features"
 msgstr ""
 
@@ -467,7 +455,7 @@ msgstr ""
 msgid "With a parameter ``ROI1DParam`` object:"
 msgstr ""
 
-msgid "Swap axes"
+msgid "Transpose signal (swap X and Y axes)"
 msgstr ""
 
 msgid "Compute inverse with :py:data:`numpy.invert`"
@@ -1034,9 +1022,6 @@ msgstr ""
 msgid "computation function arguments"
 msgstr ""
 
-msgid "if True, add a label item (and the geometrical shape) to plot (default to False)"
-msgstr ""
-
 msgid "Result shape object or None if no result is found"
 msgstr ""
 
@@ -1136,6 +1121,9 @@ msgstr ""
 msgid "Compute statistics on a signal"
 msgstr ""
 
+msgid "Result properties object"
+msgstr ""
+
 msgid "Compute bandwidth at -3 dB with :py:func:`sigima.tools.signal.misc.bandwidth`"
 msgstr ""
 
@@ -1226,7 +1214,13 @@ msgstr ""
 msgid "This module provides core classes and utility functions that serve as building blocks for the other computation modules."
 msgstr ""
 
-msgid "Main features include: - Generic helper functions used across image processing modules - Core wrappers and infrastructure for computation functions"
+msgid "Main features include:"
+msgstr ""
+
+msgid "Generic helper functions used across image processing modules"
+msgstr ""
+
+msgid "Core wrappers and infrastructure for computation functions"
 msgstr ""
 
 msgid "Intended primarily for internal use, these tools support consistent API design and code reuse."
@@ -1247,10 +1241,28 @@ msgstr ""
 msgid "Create a result signal object, for processing functions that take a single image object as input and return a single signal object (1-to-1-signal)."
 msgstr ""
 
-msgid "Calculate result shape by executing a computation function on an image object, taking into account the image origin (x0, y0), scale (dx, dy) and ROIs."
+msgid "Compute a geometry shape from an image object by executing a computation function on the data of the image object, for each ROI (Region Of Interest) in the image."
+msgstr ""
+
+msgid "A geometry result object or None if no result is found."
+msgstr ""
+
+msgid "**Coordinate Conversion**: This function automatically converts coordinates from pixel units (image indices) to physical units using the image object's calibration information."
+msgstr ""
+
+msgid "**Input**: Computation function returns coordinates in pixel units"
+msgstr ""
+
+msgid "**Output**: GeometryResult with coordinates in physical units (e.g., mm, µm)"
+msgstr ""
+
+msgid "The conversion is performed using the image's calibration parameters: ``physical_x = obj.dx * pixel_x + obj.x0`` and ``physical_y = obj.dy * pixel_y + obj.y0``"
 msgstr ""
 
 msgid "Moreover, the computation function must return a single value or a NumPy array containing the result of the computation. This array contains the coordinates of points, polygons, circles or ellipses in the form [[x, y], ...], or [[x0, y0, x1, y1, ...], ...], or [[x0, y0, r], ...], or [[x0, y0, a, b, theta], ...]."
+msgstr ""
+
+msgid ":class:`~sigima.objects.scalar.GeometryResult`: The result object that stores physical coordinates."
 msgstr ""
 
 msgid "Arithmetic"
@@ -1262,7 +1274,13 @@ msgstr ""
 msgid "This module provides arithmetic operations for images, such as pixel-wise addition, subtraction, multiplication, division, as well as operations with constants and combined arithmetic formulas."
 msgstr ""
 
-msgid "Main features include: - Pixel-wise addition, subtraction, multiplication, and division between images - Application of arithmetic operations with constants to images - Support for quadratic difference and general arithmetic expressions"
+msgid "Pixel-wise addition, subtraction, multiplication, and division between images"
+msgstr ""
+
+msgid "Application of arithmetic operations with constants to images"
+msgstr ""
+
+msgid "Support for quadratic difference and general arithmetic expressions"
 msgstr ""
 
 msgid "These functions are typically used for basic algebraic processing and normalization of image data."
@@ -1346,7 +1364,10 @@ msgstr ""
 msgid "This module implements mathematical operations on images, such as inversion, absolute value, real/imaginary part extraction, type casting, and exponentiation."
 msgstr ""
 
-msgid "Main features include: - Pixel-wise mathematical transformations (e.g., log, exp, abs, real, imag, log10) - Type casting and other value-level operations"
+msgid "Pixel-wise mathematical transformations (e.g., log, exp, abs, real, imag, log10)"
+msgstr ""
+
+msgid "Type casting and other value-level operations"
 msgstr ""
 
 msgid "These functions enable flexible manipulation of image data at the value level."
@@ -1412,7 +1433,13 @@ msgstr ""
 msgid "This module provides tools for extracting quantitative information from images, such as object centroids, enclosing circles, and region-based statistics."
 msgstr ""
 
-msgid "Main features include: - Centroid and enclosing circle computation - Region/property measurements - Statistical analysis of image regions"
+msgid "Centroid and enclosing circle computation"
+msgstr ""
+
+msgid "Region/property measurements"
+msgstr ""
+
+msgid "Statistical analysis of image regions"
 msgstr ""
 
 msgid "These functions are useful for image quantification and morphometric analysis."
@@ -1448,7 +1475,10 @@ msgstr ""
 msgid "This module provides spatial and frequency-based filtering operations for images."
 msgstr ""
 
-msgid "Main features include: - Gaussian, median, moving average, Wiener, and Butterworth filters - Noise reduction and image smoothing"
+msgid "Gaussian, median, moving average, Wiener, and Butterworth filters"
+msgstr ""
+
+msgid "Noise reduction and image smoothing"
 msgstr ""
 
 msgid "Filtering functions are essential for enhancing image quality and removing noise prior to further analysis."
@@ -1511,7 +1541,13 @@ msgstr ""
 msgid "This module implements Fourier transform operations and related spectral analysis tools for images."
 msgstr ""
 
-msgid "Main features include: - Forward and inverse Fast Fourier Transform (FFT) - Magnitude and phase spectrum calculation - Power spectral density (PSD) computation"
+msgid "Forward and inverse Fast Fourier Transform (FFT)"
+msgstr ""
+
+msgid "Magnitude and phase spectrum calculation"
+msgstr ""
+
+msgid "Power spectral density (PSD) computation"
 msgstr ""
 
 msgid "Fourier analysis is commonly used for frequency-domain filtering and periodicity analysis in images."
@@ -1575,6 +1611,9 @@ msgid "Thresholding"
 msgstr ""
 
 msgid "Threshold computation module"
+msgstr ""
+
+msgid "This module provides various thresholding techniques for image segmentation. Thresholding is a simple yet effective method to separate objects from the background in an image by converting it into a binary image based on a specified threshold value."
 msgstr ""
 
 msgid "Histogram threshold parameters"
@@ -1655,7 +1694,13 @@ msgstr ""
 msgid "This module provides tools for adjusting and analyzing image exposure and contrast."
 msgstr ""
 
-msgid "Main features include: - Histogram computation and equalization - Contrast adjustment and normalization - Logarithmic and gamma correction"
+msgid "Histogram computation and equalization"
+msgstr ""
+
+msgid "Contrast adjustment and normalization"
+msgstr ""
+
+msgid "Logarithmic and gamma correction"
 msgstr ""
 
 msgid "Exposure processing improves the visual quality and interpretability of images, especially under variable lighting conditions."
@@ -1850,6 +1895,9 @@ msgstr ""
 msgid "Restoration computation module"
 msgstr ""
 
+msgid "This module provides image restoration techniques, such as denoising, inpainting, and deblurring. These methods aim to recover the original quality of images by removing artifacts, noise, or distortions."
+msgstr ""
+
 msgid "Total Variation denoising parameters"
 msgstr ""
 
@@ -1955,6 +2003,9 @@ msgstr ""
 msgid "Morphology computation module"
 msgstr ""
 
+msgid "This module provides morphological operations for image processing, such as dilation, erosion, opening, and closing. These operations are useful for removing noise, filling gaps, and extracting structures in binary and grayscale images."
+msgstr ""
+
 msgid "White Top-Hat parameters"
 msgstr ""
 
@@ -1994,7 +2045,10 @@ msgstr ""
 msgid "This module implements edge detection algorithms for images, enabling the identification of boundaries and significant transitions in intensity."
 msgstr ""
 
-msgid "Main features include: - Standard edge detection filters (e.g., Sobel, Canny) - Gradient and Laplacian-based methods"
+msgid "Standard edge detection filters (e.g., Sobel, Canny)"
+msgstr ""
+
+msgid "Gradient and Laplacian-based methods"
 msgstr ""
 
 msgid "Edge detection is essential for image segmentation, shape analysis, and feature extraction."
@@ -2084,7 +2138,10 @@ msgstr ""
 msgid "This module provides algorithms for detecting objects or patterns in images, such as blobs, peaks, or custom structures."
 msgstr ""
 
-msgid "Main features include: - Blob and peak detection algorithms - Support for object localization and counting"
+msgid "Blob and peak detection algorithms"
+msgstr ""
+
+msgid "Support for object localization and counting"
 msgstr ""
 
 msgid "Detection algorithms are fundamental for many image analysis pipelines, enabling automated extraction of regions or features of interest."
@@ -2297,16 +2354,46 @@ msgstr ""
 msgid "This module implements geometric transformations and manipulations for images, such as rotations, flips, resizing, axis swapping, binning, and padding."
 msgstr ""
 
-msgid "Main features include: - Rotation by arbitrary or fixed angles - Horizontal and vertical flipping - Resizing and binning of images - Axis swapping and zero padding"
+msgid "Rotation by arbitrary or fixed angles"
+msgstr ""
+
+msgid "Horizontal and vertical flipping"
+msgstr ""
+
+msgid "Resizing and binning of images"
+msgstr ""
+
+msgid "Axis swapping and zero padding"
 msgstr ""
 
 msgid "These functions are useful for preparing and augmenting image data."
 msgstr ""
 
+msgid "Translate parameters"
+msgstr ""
+
+msgid "X translation\\.  Default: 0.0."
+msgstr ""
+
+msgid "Y translation\\.  Default: 0.0."
+msgstr ""
+
+msgid "Returns a new instance of :py:class:`TranslateParam` with the fields set to the given values."
+msgstr ""
+
+msgid "New instance of :py:class:`TranslateParam`."
+msgstr ""
+
+msgid "Translate data with :py:func:`scipy.ndimage.shift`"
+msgstr ""
+
+msgid "With a parameter ``TranslateParam`` object:"
+msgstr ""
+
 msgid "Rotate parameters"
 msgstr ""
 
-msgid "Angle (°)\\.  Default: None."
+msgid "Angle (°)\\.  Default: 0.0."
 msgstr ""
 
 msgid "Single choice from: 'constant', 'nearest', 'reflect', 'wrap'. Default: 'constant'."
@@ -2393,7 +2480,112 @@ msgstr ""
 msgid "With a parameter ``BinningParam`` object:"
 msgstr ""
 
-msgid "Swap image axes with :py:func:`numpy.transpose`"
+msgid "Transpose image with :py:func:`numpy.transpose`"
+msgstr ""
+
+msgid "Transformation features"
+msgstr ""
+
+msgid "Geometry transformations module"
+msgstr ""
+
+msgid "This module provides a unified interface for applying geometric transformations to both geometry results (:class:`sigima.objects.GeometryResult`) and ROI objects using the shape coordinate system (:mod:`sigima.objects.shape`)."
+msgstr ""
+
+msgid "Singleton class for applying transformations to geometry objects."
+msgstr ""
+
+msgid "Provides a unified interface for transforming both GeometryResult and ROI objects using the shape coordinate system."
+msgstr ""
+
+msgid "Transform a GeometryResult and return a new one."
+msgstr ""
+
+msgid "The GeometryResult to transform."
+msgstr ""
+
+msgid "Operation name ('rotate', 'translate', 'fliph', 'flipv', 'transpose', 'scale')."
+msgstr ""
+
+msgid "Operation-specific parameters."
+msgstr ""
+
+msgid "New GeometryResult with transformed coordinates."
+msgstr ""
+
+msgid "Raises"
+msgstr ""
+
+msgid "If operation is unknown or geometry kind is unsupported."
+msgstr ""
+
+msgid "Transform ROI coordinates inplace."
+msgstr ""
+
+msgid "ROI object with .coords attribute."
+msgstr ""
+
+msgid "Operation name."
+msgstr ""
+
+msgid "If ROI type is unsupported or operation is unknown."
+msgstr ""
+
+msgid "Transform all ROI coordinates in an ImageObj inplace."
+msgstr ""
+
+msgid "Image object whose ROI coordinates will be transformed."
+msgstr ""
+
+msgid "Rotate geometry or ROI by given angle around center."
+msgstr ""
+
+msgid "GeometryResult or single ROI object."
+msgstr ""
+
+msgid "Rotation angle in radians."
+msgstr ""
+
+msgid "Center of rotation (x, y)."
+msgstr ""
+
+msgid "New GeometryResult if input was GeometryResult, None if ROI (inplace)."
+msgstr ""
+
+msgid "Translate geometry or ROI by given offset."
+msgstr ""
+
+msgid "Translation in x direction."
+msgstr ""
+
+msgid "Translation in y direction."
+msgstr ""
+
+msgid "Flip geometry or ROI horizontally around given x-coordinate."
+msgstr ""
+
+msgid "X-coordinate of flip axis."
+msgstr ""
+
+msgid "Flip geometry or ROI vertically around given y-coordinate."
+msgstr ""
+
+msgid "Y-coordinate of flip axis."
+msgstr ""
+
+msgid "Transpose geometry or ROI (swap x and y coordinates)."
+msgstr ""
+
+msgid "Scale geometry or ROI by given factors around center."
+msgstr ""
+
+msgid "Scale factor in x direction."
+msgstr ""
+
+msgid "Scale factor in y direction."
+msgstr ""
+
+msgid "Center of scaling (x, y)."
 msgstr ""
 
 msgid "Decorators and utilities"
@@ -2456,9 +2648,6 @@ msgstr ""
 msgid "Computation function metadata."
 msgstr ""
 
-msgid "Raises"
-msgstr ""
-
 msgid "If the function is not a Sigima computation function."
 msgstr ""
 
@@ -2473,4 +2662,3 @@ msgstr ""
 
 msgid "A list of tuples, each containing the function name and the function object."
 msgstr ""
-

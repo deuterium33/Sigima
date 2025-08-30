@@ -9,16 +9,14 @@ Arithmetic parameters unit test.
 import pytest
 
 from sigima.params import ArithmeticParam
+from sigima.tests import guiutils
 from sigima.tests.env import execenv
 
 
 @pytest.mark.gui
 def test_arithmetic_param_interactive():
     """Arithmetic parameters interactive test."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         param = ArithmeticParam()
         if param.edit():
             execenv.print(param)

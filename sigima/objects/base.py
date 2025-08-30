@@ -9,20 +9,17 @@ Base model classes for signals and images.
 from __future__ import annotations
 
 import abc
-import enum
 import re
 import sys
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Generator
 from copy import deepcopy
-from typing import Any, Generic, Iterator, Literal, Type, TypeVar
+from typing import Any, Generic, Iterator, Type, TypeVar
 
 import guidata.dataset as gds
 import numpy as np
-import pandas as pd
 from numpy import ma
 
 from sigima.config import _
-from sigima.tools import coordinates
 
 if sys.version_info >= (3, 11):
     # Use Self from typing module in Python 3.11+
@@ -50,18 +47,16 @@ def deepcopy_metadata(
         except those in `special_keys`.
     """
     if special_keys is None:
-        special_keys = set()
-    special_keys = set([ROI_KEY]) | special_keys
-    mdcopy = deepcopy(metadata)
+        special_keys = set([ROI_KEY])
+    mdcopy = {}
     for key, value in metadata.items():
-        rshape = ResultShape.from_metadata_entry(key, value)
-        if rshape is None and key.startswith("_") and key not in special_keys:
-            mdcopy.pop(key)
+        if not key.startswith("_") or key in special_keys:
+            mdcopy[key] = deepcopy(value)
     return mdcopy
 
 
 class BaseProcParam(gds.DataSet):
-    """Base class for processing parameters"""
+    """Base class for processing parameters."""
 
     def __init__(
         self,
@@ -77,13 +72,13 @@ class BaseProcParam(gds.DataSet):
         self.set_global_prop("data", min=None, max=None)
 
     def apply_integer_range(self, vmin, vmax):  # pylint: disable=unused-argument
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
 
     def apply_float_range(self, vmin, vmax):  # pylint: disable=unused-argument
-        """Do something in case of float min-max range"""
+        """Do something in case of float min-max range."""
 
     def set_from_datatype(self, dtype):
-        """Set min/max range from NumPy datatype"""
+        """Set min/max range from NumPy datatype."""
         if np.issubdtype(dtype, np.integer):
             info = np.iinfo(dtype)
             self.apply_integer_range(info.min, info.max)
@@ -94,16 +89,16 @@ class BaseProcParam(gds.DataSet):
 
 
 class BaseRandomParam(BaseProcParam):
-    """Random signal/image parameters"""
+    """Random signal/image parameters."""
 
     seed = gds.IntItem(_("Seed"), default=1)
 
 
-class BaseUniformRandomParam(BaseRandomParam):
-    """Uniform-law random signal/image parameters"""
+class UniformDistributionParam(BaseRandomParam):
+    """Uniform-distribution signal/image parameters."""
 
     def apply_integer_range(self, vmin, vmax):
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
         self.vmin, self.vmax = float(vmin), float(vmax)
 
     vmin = gds.FloatItem(
@@ -118,24 +113,25 @@ class BaseUniformRandomParam(BaseRandomParam):
         return f"UniformRandom(vmin={self.vmin:g},vmax={self.vmax:g},seed={self.seed})"
 
 
-class BaseNormalRandomParam(BaseRandomParam):
-    """Normal-law random signal/image parameters"""
+class NormalDistributionParam(BaseRandomParam):
+    """Normal-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_MU = 0.1
     DEFAULT_RELATIVE_SIGMA = 0.02
 
     def apply_integer_range(self, vmin, vmax):
-        """Do something in case of integer min-max range"""
+        """Do something in case of integer min-max range."""
         delta = vmax - vmin
-        self.mu = float(self.DEFAULT_RELATIVE_MU * delta + vmin)
+        self.mu = float(vmin + self.DEFAULT_RELATIVE_MU * delta)
         self.sigma = float(self.DEFAULT_RELATIVE_SIGMA * delta)
 
     mu = gds.FloatItem(
-        "μ", default=DEFAULT_RELATIVE_MU, help=_("Normal distribution mean")
+        "μ", default=DEFAULT_RELATIVE_MU, min=0.0, help=_("Normal distribution mean")
     )
     sigma = gds.FloatItem(
         "σ",
         default=DEFAULT_RELATIVE_SIGMA,
+        min=0.0,
         help=_("Normal distribution standard deviation"),
     ).set_pos(col=1)
 
@@ -144,497 +140,26 @@ class BaseNormalRandomParam(BaseRandomParam):
         return f"NormalRandom(μ={self.mu:g},σ={self.sigma:g},seed={self.seed})"
 
 
-@enum.unique
-class ShapeTypes(enum.Enum):
-    """Shape types for image metadata"""
-
-    # Reimplement enum.Enum method as suggested by Python documentation:
-    # https://docs.python.org/3/library/enum.html#enum.Enum._generate_next_value_
-    # pylint: disable=unused-argument,no-self-argument,no-member
-    def _generate_next_value_(name, start, count, last_values):
-        return f"_{str(name).lower()[:3]}_"
-
-    #: Rectangle shape
-    RECTANGLE = enum.auto()
-    #: Circle shape
-    CIRCLE = enum.auto()
-    #: Ellipse shape
-    ELLIPSE = enum.auto()
-    #: Segment shape
-    SEGMENT = enum.auto()
-    #: Marker shape
-    MARKER = enum.auto()
-    #: Point shape
-    POINT = enum.auto()
-    #: Polygon shape
-    POLYGON = enum.auto()
-
-
-class BaseResult(abc.ABC):
-    """Base class for results, i.e. objects returned by computation functions
-    taking one signal or image as input, and returning a result that can be
-    serialized in signal/image metadata.
-
-    Args:
-        title: result title
-        category: result category
-        array: result array (one row per ROI, first column is ROI index)
-        labels: result labels (one label per column of result array)
-    """
-
-    #: Class attribute that defines a string prefix used to uniquely identify instances
-    #: of this class in metadata serialization. Each subclass should override this with
-    #: a unique identifier (e.g., "_properties_" for properties, "_shapes_" for shapes).
-    #: This prefix is prepended to the object title when creating metadata keys,
-    #: enabling type identification during deserialization.
-    PREFIX = ""  # To be overriden in children classes
-
-    #: Class attribute that defines a tuple of attributes to be serialized in metadata.
-    METADATA_ATTRS = ()  # To be overriden in children classes
-
-    def __init__(
-        self,
-        title: str,
-        array: np.ndarray,
-        labels: list[str] | None = None,
-    ) -> None:
-        assert isinstance(title, str)
-        self.title = title
-        self.array = array
-        if labels is None:
-            labels = []
-        self.__labels = labels
-        self.check_array()
-
-    @property
-    @abc.abstractmethod
-    def category(self) -> str:
-        """Return result category"""
-
-    def check_array(self) -> None:
-        """Check if array attribute is valid
-
-        Raises:
-            AssertionError: invalid array
-        """
-        # Allow to pass a list of lists or a NumPy array.
-        # For instance, the following are equivalent:
-        #   array = [[1, 2], [3, 4]]
-        #   array = np.array([[1, 2], [3, 4]])
-        # Or, for only one line (one single result), the following are equivalent:
-        #   array = [1, 2]
-        #   array = [[1, 2]]
-        #   array = np.array([[1, 2]])
-        if isinstance(self.array, (list, tuple)):
-            if isinstance(self.array[0], (list, tuple)):
-                self.array = np.array(self.array)
-            else:
-                self.array = np.array([self.array])
-        assert isinstance(self.array, np.ndarray)
-        assert len(self.array.shape) == 2
-
-    @property
-    def labels(self) -> list[str]:
-        """Return result labels (one label per column of result array)"""
-        return self.__labels
-
-    @property
-    def label_contents(self) -> tuple[tuple[int, str], ...]:
-        """Return label contents, i.e. a tuple of couples of (index, text)
-        where index is the column of raw_data and text is the associated
-        label format string"""
-        return tuple(enumerate(self.labels))
-
-    @property
-    def headers(self) -> list[str]:
-        """Return result headers (one header per column of result array)"""
-        # Default implementation: return labels
-        return self.__labels
-
-    def to_dataframe(self) -> pd.DataFrame:
-        """Return DataFrame from properties array"""
-        return pd.DataFrame(self.shown_array, columns=list(self.headers))
-
-    @property
-    @abc.abstractmethod
-    def shown_array(self) -> np.ndarray:
-        """Return array of shown results, i.e. including complementary array (if any)
-
-        Returns:
-            Array of shown results
-        """
-
-    @property
-    def raw_data(self):
-        """Return raw data (array without ROI informations)"""
-        return self.array[:, 1:]
-
-    @property
-    def key(self) -> str:
-        """Return metadata key associated to result"""
-        return self.PREFIX + self.title
-
-    @classmethod
-    def from_metadata_entry(cls, key: str, value: dict[str, Any]) -> Self | None:
-        """Create metadata shape object from (key, value) metadata entry"""
-        if (
-            isinstance(key, str)
-            and key.startswith(cls.PREFIX)
-            and isinstance(value, dict)
-        ):
-            try:
-                title = key[len(cls.PREFIX) :]
-                instance = cls(title, **value)
-                return instance
-            except (ValueError, TypeError):
-                pass
-        return None
-
-    @classmethod
-    def match(cls, key, value) -> bool:
-        """Return True if metadata dict entry (key, value) is a metadata result"""
-        return cls.from_metadata_entry(key, value) is not None
-
-    def add_to(self, obj: BaseObj) -> None:
-        """Add result to object metadata
-
-        Args:
-            obj: object (signal/image)
-        """
-        self.set_obj_metadata(obj)
-
-    def set_obj_metadata(self, obj: BaseObj) -> None:
-        """Set object metadata with properties
-
-        Args:
-            obj: object
-        """
-        obj.metadata[self.key] = {
-            key: getattr(self, key) for key in self.METADATA_ATTRS
-        }
-
-    def get_text(self, obj: TypeObj) -> str:
-        """Return text representation of result"""
-        text = ""
-        for i_row in range(self.array.shape[0]):
-            suffix = ""
-            i_roi = i_row - 1
-            if i_roi >= 0:
-                suffix = f"|{get_obj_roi_title(obj, i_roi)}"
-            text += f"<u>{self.title}{suffix}</u>:"
-            for i_col, label in self.label_contents:
-                # "label" may contains "<" and ">" characters which are interpreted
-                # as HTML tags by the LabelItem. We must escape them.
-                label = label.replace("<", "&lt;").replace(">", "&gt;")
-                if "%" not in label:
-                    label += " = %g"
-                text += (
-                    "<br>" + label.strip().format(obj) % self.shown_array[i_row, i_col]
-                )
-            if i_row < self.shown_array.shape[0] - 1:
-                text += "<br><br>"
-        return text
-
-
-class ResultProperties(BaseResult):
-    """Object representing properties serializable in signal/image metadata.
-
-    Result `array` is a NumPy 2-D array: each row is a list of properties, optionnally
-    associated to a ROI (first column value).
-
-    ROI index is starting at 0 (or is simply 0 if there is no ROI).
-
-    Args:
-        title: properties title
-        array: properties array
-        labels: properties labels (one label per column of result array)
-
-    .. note::
-
-        The `array` argument can be a list of lists or a NumPy array. For instance,
-        the following are equivalent:
-
-        - ``array = [[1, 2], [3, 4]]``
-        - ``array = np.array([[1, 2], [3, 4]])``
-
-        Or for only one line (one single result), the following are equivalent:
-
-        - ``array = [1, 2]``
-        - ``array = [[1, 2]]``
-        - ``array = np.array([[1, 2]])``
-    """
-
-    PREFIX = "_properties_"
-    METADATA_ATTRS = ("array", "labels")
-
-    def __init__(
-        self,
-        title: str,
-        array: np.ndarray,
-        labels: list[str] | None,
-    ) -> None:
-        super().__init__(title, array, labels)
-        if labels is not None:
-            assert len(labels) == self.array.shape[1] - 1
-
-    @property
-    def category(self) -> str:
-        """Return result category"""
-        return _("Properties") + f" | {self.title}"
-
-    @property
-    def headers(self) -> list[str]:
-        """Return result headers (one header per column of result array)"""
-        # ResultProperties implementation: return labels without units or "=" sign
-        return [label.split("=")[0].strip() for label in self.labels]
-
-    @property
-    def shown_array(self) -> np.ndarray:
-        """Return array of shown results, i.e. including complementary array (if any)
-
-        Returns:
-            Array of shown results
-        """
-        return self.raw_data
-
-
-class ResultShape(BaseResult):
-    """Object representing a geometrical shape serializable in signal/image metadata.
-
-    Result `array` is a NumPy 2-D array: each row is a result, optionnally associated
-    to a ROI (first column value).
-
-    ROI index is starting at 0 (or is simply 0 if there is no ROI).
-
-    Args:
-        title: result shape title
-        array: shape coordinates (multiple shapes: one shape per row),
-         first column is ROI index (0 if there is no ROI)
-        shape: shape kind
-        add_label: if True, add a label item (and the geometrical shape) to plot
-         (default to False)
-        roi: optional ROI associated to the result shape (default to None)
-
-    Raises:
-        AssertionError: invalid argument
-
-    .. note::
-
-        The `array` argument can be a list of lists or a NumPy array. For instance,
-        the following are equivalent:
-
-        - ``array = [[1, 2], [3, 4]]``
-        - ``array = np.array([[1, 2], [3, 4]])``
-
-        Or for only one line (one single result), the following are equivalent:
-
-        - ``array = [1, 2]``
-        - ``array = [[1, 2]]``
-        - ``array = np.array([[1, 2]])``
-    """
-
-    PREFIX = "_shapes_"
-    METADATA_ATTRS = ("array", "shape", "add_label")
-
-    def __init__(
-        self,
-        title: str,
-        array: np.ndarray,
-        shape: Literal[
-            "rectangle", "circle", "ellipse", "segment", "marker", "point", "polygon"
-        ],
-        add_label: bool = False,
-        roi: BaseROI | None = None,
-    ) -> None:
-        self.shape = shape
-        try:
-            self.shapetype = ShapeTypes[shape.upper()]
-        except KeyError as exc:
-            raise ValueError(f"Invalid shapetype {shape}") from exc
-        self.add_label = add_label
-        self.roi = roi
-        super().__init__(title, array)
-
-    @property
-    def category(self) -> str:
-        """Return result category"""
-        return self.shape.upper()
-
-    def check_array(self) -> None:
-        """Check if array attribute is valid
-
-        Raises:
-            AssertionError: invalid array
-        """
-        super().check_array()
-        if self.shapetype is ShapeTypes.POLYGON:
-            # Polygon is a special case: the number of data columns is variable
-            # (2 columns per point). So we only check if the number of columns
-            # is odd, which means that the first column is the ROI index, followed
-            # by an even number of data columns (flattened x, y coordinates).
-            assert self.array.shape[1] % 2 == 1
-        else:
-            data_colnb = len(self.__get_coords_labels())
-            # `data_colnb` is the number of data columns depends on the shape type,
-            # not counting the ROI index, hence the +1 in the following assertion
-            assert self.array.shape[1] == data_colnb + 1
-
-    def __get_coords_labels(self) -> list[str]:
-        """Return shape coordinates labels
-
-        Returns:
-            Shape coordinates labels
-        """
-        if self.shapetype is ShapeTypes.POLYGON:
-            labels = []
-            for i in range(0, self.array.shape[1] - 1, 2):
-                labels += [f"x{i // 2}", f"y{i // 2}"]
-            return labels
-        try:
-            return {
-                ShapeTypes.MARKER: ["x", "y"],
-                ShapeTypes.POINT: ["x", "y"],
-                ShapeTypes.RECTANGLE: ["x0", "y0", "x1", "y1"],
-                ShapeTypes.CIRCLE: ["x", "y", "r"],
-                ShapeTypes.SEGMENT: ["x0", "y0", "x1", "y1"],
-                ShapeTypes.ELLIPSE: ["x", "y", "a", "b", "θ"],
-            }[self.shapetype]
-        except KeyError as exc:
-            raise NotImplementedError(
-                f"Unsupported shapetype {self.shapetype}"
-            ) from exc
-
-    def __get_complementary_xlabels(self) -> list[str]:
-        """Return complementary labels for result array columns
-
-        Returns:
-            Complementary labels for result array columns, or empty list if there
-             is no complementary array
-        """
-        if self.shapetype is ShapeTypes.SEGMENT:
-            return ["L", "Xc", "Yc"]
-        if self.shapetype in (ShapeTypes.CIRCLE, ShapeTypes.ELLIPSE):
-            return ["A"]
-        return []
-
-    def __get_complementary_array(self) -> np.ndarray | None:
-        """Return the complementary array of results, e.g. the array of lengths
-        for a segment result shape, or the array of areas for a circle result shape
-
-        Returns:
-            Complementary array of results, or None if there is no complementary array
-        """
-        array = self.array
-        if self.shapetype is ShapeTypes.SEGMENT:
-            dx1, dy1 = array[:, 3] - array[:, 1], array[:, 4] - array[:, 2]
-            length = np.linalg.norm(np.vstack([dx1, dy1]).T, axis=1)
-            xc = (array[:, 1] + array[:, 3]) / 2
-            yc = (array[:, 2] + array[:, 4]) / 2
-            return np.vstack([length, xc, yc]).T
-        if self.shapetype is ShapeTypes.CIRCLE:
-            area = np.pi * array[:, 3] ** 2
-            return area.reshape(-1, 1)
-        if self.shapetype is ShapeTypes.ELLIPSE:
-            area = np.pi * array[:, 3] * array[:, 4]
-            return area.reshape(-1, 1)
-        return None
-
-    @property
-    def headers(self) -> list[str]:
-        """Return result headers (one header per column of result array)"""
-        labels = self.__get_coords_labels() + self.__get_complementary_xlabels()
-        return labels[-self.shown_array.shape[1] :]
-
-    @property
-    def shown_array(self) -> np.ndarray:
-        """Return array of shown results, i.e. including complementary array (if any)
-
-        Returns:
-            Array of shown results
-        """
-        comp_array = self.__get_complementary_array()
-        if comp_array is None:
-            return self.raw_data
-        return np.hstack([self.raw_data, comp_array])
-
-    def add_to(self, obj: BaseObj) -> None:
-        """Add result to object metadata
-
-        Args:
-            obj: object (signal/image)
-        """
-        super().add_to(obj)
-        if self.roi is not None:
-            if obj.roi is None:
-                obj.roi = self.roi.copy()
-            else:
-                roi: BaseROI = obj.roi
-                roi.add_roi(self.roi)
-                obj.roi = roi
-
-    @property
-    def label_contents(self) -> tuple[tuple[int, str], ...]:
-        """Return label contents, i.e. a tuple of couples of (index, text)
-        where index is the column of raw_data and text is the associated
-        label format string"""
-        contents = []
-        for idx, lbl in enumerate(self.__get_complementary_xlabels()):
-            contents.append((idx + self.raw_data.shape[1], lbl))
-        return tuple(contents)
-
-    def merge_with(self, obj: BaseObj, other_metadata: dict[str, Any]) -> None:
-        """Merge object resultshape with another's metadata (obj <-- other obj's
-        metadata)
-
-        Args:
-            obj: object (signal/image)
-            other_metadata: other object metadata
-        """
-        other_value = other_metadata.get(self.key)
-        if other_value is not None:
-            other = ResultShape.from_metadata_entry(self.key, other_value)
-            assert other is not None
-            other_array = np.array(other.array, copy=True)
-            other_array[:, 0] += self.array[-1, 0] + 1  # Adding ROI index offset
-            if other_array.shape[1] != self.array.shape[1]:
-                # This can only happen if the shape is a polygon
-                assert self.shapetype is ShapeTypes.POLYGON
-                # We must padd the array with NaNs
-                max_colnb = max(self.array.shape[1], other_array.shape[1])
-                new_array = np.full(
-                    (self.array.shape[0] + other_array.shape[0], max_colnb), np.nan
-                )
-                new_array[: self.array.shape[0], : self.array.shape[1]] = self.array
-                new_array[self.array.shape[0] :, : other_array.shape[1]] = other_array
-                self.array = new_array
-            else:
-                self.array = np.vstack([self.array, other_array])
-            self.add_to(obj)
-
-    def transform_coordinates(self, func: Callable[[np.ndarray], None]) -> None:
-        """Transform shape coordinates.
-
-        Args:
-            func: function to transform coordinates
-        """
-        if self.shapetype in (
-            ShapeTypes.MARKER,
-            ShapeTypes.POINT,
-            ShapeTypes.POLYGON,
-            ShapeTypes.RECTANGLE,
-            ShapeTypes.SEGMENT,
-        ):
-            func(self.raw_data)
-        elif self.shapetype is ShapeTypes.CIRCLE:
-            coords = coordinates.array_circle_to_diameter(self.raw_data)
-            func(coords)
-            self.raw_data[:] = coordinates.array_circle_to_center_radius(coords)
-        elif self.shapetype is ShapeTypes.ELLIPSE:
-            coords = coordinates.array_ellipse_to_diameters(self.raw_data)
-            func(coords)
-            self.raw_data[:] = coordinates.array_ellipse_to_center_axes_angle(coords)
-        else:
-            raise NotImplementedError(f"Unsupported shapetype {self.shapetype}")
+class PoissonDistributionParam(BaseRandomParam):
+    """Poisson-distribution signal/image parameters."""
+
+    DEFAULT_RELATIVE_LAMBDA = 0.1
+
+    def apply_integer_range(self, vmin, vmax):
+        """Adjust default λ based on integer min-max range."""
+        positive_span = max(0.0, float(vmax) - max(0.0, float(vmin)))
+        self.lam = float(max(self.DEFAULT_RELATIVE_LAMBDA * positive_span, 1.0))
+
+    lam = gds.FloatItem(
+        "λ",
+        default=DEFAULT_RELATIVE_LAMBDA,
+        min=0.0,
+        help=_("Poisson distribution mean"),
+    )
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"PoissonRandom(λ={self.lam:g},seed={self.seed})"
 
 
 TypeObj = TypeVar("TypeObj", bound="BaseObj")
@@ -852,108 +377,6 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         """Invalidate mask data cache: force to rebuild it"""
         self._maskdata_cache = None
 
-    def iterate_resultshapes(self) -> Iterable[ResultShape]:
-        """Iterate over object result shapes.
-
-        Yields:
-            Result shape
-        """
-        for key, value in self.metadata.items():
-            if ResultShape.match(key, value):
-                result_shape = ResultShape.from_metadata_entry(key, value)
-                assert result_shape is not None
-                yield result_shape
-
-    def iterate_resultproperties(self) -> Iterable[ResultProperties]:
-        """Iterate over object result properties.
-
-        Yields:
-            Result properties
-        """
-        for key, value in self.metadata.items():
-            if ResultProperties.match(key, value):
-                result_properties = ResultProperties.from_metadata_entry(key, value)
-                assert result_properties is not None
-                yield result_properties
-
-    def delete_results(self) -> None:
-        """Delete all object results (shapes and properties)"""
-        for key in list(self.metadata.keys()):
-            if ResultShape.match(key, self.metadata[key]) or ResultProperties.match(
-                key, self.metadata[key]
-            ):
-                self.metadata.pop(key)
-
-    def update_resultshapes_from(self, other: BaseObj[TypeROI]) -> None:
-        """Update geometric shape from another object (merge metadata).
-
-        Args:
-            other: other object, from which to update this object
-        """
-        # The following code is merging the result shapes of the `other` object
-        # with the result shapes of this object, but it is merging only the result
-        # shapes of the same type (`mshape.key`). Thus, if the `other` object has
-        # a result shape that is not present in this object, it will not be merged,
-        # and we will have to add it to this object manually.
-        for mshape in self.iterate_resultshapes():
-            assert mshape is not None
-            mshape.merge_with(self, other.metadata)
-        # Iterating on `other` object result shapes to find result shapes that are
-        # not present in this object, and add them to this object.
-        for mshape in other.iterate_resultshapes():
-            assert mshape is not None
-            if mshape.key not in self.metadata:
-                mshape.add_to(self)
-
-    def transform_coords(
-        self,
-        coords: np.ndarray,
-        orig: BaseObj[TypeROI],
-        func: Callable[[BaseObj[TypeROI], BaseObj[TypeROI], np.ndarray], None]
-        | Callable[[BaseObj[TypeROI], BaseObj[TypeROI], np.ndarray, gds.DataSet], None],
-        param: gds.DataSet | None,
-    ) -> None:
-        """Transform coordinates
-
-        Args:
-            coords: coordinates to transform
-            orig: original object (signal/image)
-            func: transform function
-            param: transform function parameter (optional)
-        """
-        if param is None:
-            func(self, orig, coords)
-        else:
-            func(self, orig, coords, param)
-
-    def transform_shapes(
-        self,
-        orig: BaseObj[TypeROI],
-        func: Callable[[BaseObj[TypeROI], BaseObj[TypeROI], np.ndarray], None]
-        | Callable[[BaseObj[TypeROI], BaseObj[TypeROI], np.ndarray, gds.DataSet], None],
-        param: gds.DataSet | None = None,
-    ) -> None:
-        """Apply transform function to result shape / annotations coordinates.
-
-        Args:
-            orig: original object
-            func: transform function
-            param: transform function parameter
-        """
-        for mshape in self.iterate_resultshapes():
-            assert mshape is not None
-            mshape.transform_coordinates(
-                lambda coords: self.transform_coords(coords, orig, func, param)
-            )
-
-    def remove_all_shapes(self) -> None:
-        """Remove metadata shapes and ROIs"""
-        for key, value in list(self.metadata.items()):
-            resultshape = ResultShape.from_metadata_entry(key, value)
-            if resultshape is not None or key == ROI_KEY:
-                # Metadata entry is a metadata shape or a ROI
-                self.metadata.pop(key)
-
     def update_metadata_from(self, other_metadata: dict[str, Any]) -> None:
         """Update metadata from another object's metadata (merge result shapes and
         annotations, and update the rest of the metadata).
@@ -961,19 +384,6 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         Args:
             other_metadata: other object metadata
         """
-        other_metadata = other_metadata.copy()
-        # Merge result shapes
-        for mshape in self.iterate_resultshapes():
-            assert mshape is not None
-            mshape.merge_with(self, other_metadata)
-        for key, value in other_metadata.copy().items():
-            if ResultShape.match(key, value):
-                mshape = ResultShape.from_metadata_entry(key, value)
-                assert mshape is not None
-                if mshape.key not in self.metadata:
-                    mshape.add_to(self)
-                other_metadata.pop(key)
-        # Updating the rest of the metadata
         self.metadata.update(other_metadata)
 
     # Method to set the default values of metadata options:
@@ -1138,7 +548,7 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
     """Base class for single ROI
 
     Args:
-        coords: ROI edge (physical coordinates for signal)
+        coords: ROI edge (physical or pixel coordinates)
         indices: if True, coords are indices (pixels) instead of physical coordinates
         title: ROI title
     """
@@ -1318,6 +728,26 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         """
         return self.single_rois[index]
 
+    def set_single_roi(self, index: int, roi: TypeSingleROI) -> None:
+        """Set single ROI at index
+
+        Args:
+            index: ROI index
+            roi: ROI to set
+        """
+        self.single_rois[index] = roi
+
+    def get_single_roi_title(self, index: int) -> str:
+        """Generate title for single ROI, based on its index, using either the
+        ROI title or a default generic title as fallback.
+
+        Args:
+            index: ROI index
+        """
+        single_roi = self.get_single_roi(index)
+        title = single_roi.title or get_generic_roi_title(index)
+        return title
+
     def is_empty(self) -> bool:
         """Return True if no ROI is defined"""
         return len(self) == 0
@@ -1486,21 +916,4 @@ def get_generic_roi_title(index: int) -> None:
     """Return a generic title for the ROI"""
     title = f"ROI{index:02d}"
     assert re.match(GENERIC_ROI_TITLE_REGEXP, title)
-    return title
-
-
-def get_obj_roi_title(obj: TypeObj, index: int) -> str:
-    """Get ROI title for an object
-
-    Args:
-        obj: object (signal/image)
-        index: ROI index
-
-    Returns:
-        ROI title
-    """
-    roi: BaseROI = obj.roi
-    assert roi is not None, "Object has no ROI defined"
-    single_roi: BaseSingleROI = roi.get_single_roi(index)
-    title = single_roi.title or get_generic_roi_title(index)
     return title

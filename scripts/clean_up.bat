@@ -54,3 +54,6 @@ if exist htmlcov ( rmdir /s /q htmlcov )
 del /s /q .coverage.* 1>nul 2>&1
 if exist sitecustomize.py ( del /q sitecustomize.py )
 if exist .pytest_cache ( rmdir /s /q .pytest_cache )
+
+@REM Removing .bak files
+del /s /q *.bak 1>nul 2>&1

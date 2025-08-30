@@ -237,23 +237,18 @@ def to_cartesian(
     return x, y
 
 
-def rotate(alpha: float) -> np.ndarray:
+def rotate(angle: float) -> np.ndarray:
     """Return rotation matrix
 
     Args:
-        alpha: Rotation angle (in radians)
+        angle: Rotation angle (in radians)
 
     Returns:
         Rotation matrix
     """
-    return np.array(
-        [
-            [np.cos(alpha), -np.sin(alpha), 0],
-            [np.sin(alpha), np.cos(alpha), 0],
-            [0, 0, 1],
-        ],
-        float,
-    )
+    cos_a = np.cos(angle)
+    sin_a = np.sin(angle)
+    return np.array([[cos_a, -sin_a, 0], [sin_a, cos_a, 0], [0, 0, 1]], dtype=float)
 
 
 def colvector(x: float, y: float) -> np.ndarray:
