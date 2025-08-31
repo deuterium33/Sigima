@@ -288,7 +288,7 @@ class Wrap1to1Func:
             elif self.func == np.exp:
                 # σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
                 dst.dy = np.abs(dst.y) * src.dy
-            elif self.func == np.clip:
+            elif self.func == np.clip:  # pylint: disable=comparison-with-callable
                 # σ(clip(y)) = σ(y) where not clipped, 0 where clipped
                 a_min = self.kwargs.get("a_min", None)
                 a_max = self.kwargs.get("a_max", None)
