@@ -27,6 +27,7 @@ import sigima.objects
 import sigima.proc.image
 import sigima.tools.image
 from sigima.config import _
+from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
     get_laser_spot_data,
@@ -121,10 +122,7 @@ def test_image_centroid_interactive() -> None:
     This test will display the centroid of laser spot data using different methods.
     It will also print the centroid coordinates and computation time for each method.
     """
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         centroid_test_data = get_test_image("centroid_test.npy").data
         for data in get_laser_spot_data() + [centroid_test_data]:
             execenv.print(f"Data[dtype={data.dtype},shape={data.shape}]")
@@ -143,9 +141,10 @@ def __check_centroid(
         expected_y: Expected y coordinate of the centroid
         debug_str: Debug string for logging
     """
-    df = sigima.proc.image.centroid(image).to_dataframe()
-    check_scalar_result(f"Centroid X [{debug_str}]", df.x[0], expected_x, atol=1.0)
-    check_scalar_result(f"Centroid Y [{debug_str}]", df.y[0], expected_y, atol=1.0)
+    geometry = sigima.proc.image.centroid(image)
+    x, y = geometry.coords[0]
+    check_scalar_result(f"Centroid X [{debug_str}]", x, expected_x, atol=1.0)
+    check_scalar_result(f"Centroid Y [{debug_str}]", y, expected_y, atol=1.0)
 
 
 @pytest.mark.validation

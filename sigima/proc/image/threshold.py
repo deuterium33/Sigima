@@ -4,6 +4,9 @@
 Threshold computation module
 ----------------------------
 
+This module provides various thresholding techniques for image segmentation.
+Thresholding is a simple yet effective method to separate objects from the background
+in an image by converting it into a binary image based on a specified threshold value.
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-21 14:18+0200\n"
+"POT-Creation-Date: 2025-08-09 16:13+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -25,38 +25,26 @@ msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante 
 
 msgid ""
 "List of supported image I/O formats. Each format is a tuple of\n"
-"(file extension, description).\n"
+"``(file_extension, description)``.\n"
 "\n"
-".. note::\n"
+"The ``sigima`` library supports any image format that can be read by the ``imageio``\n"
+"library, provided that the associated plugin(s) are installed (see `imageio\n"
+"documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
+"and that the output NumPy array data type and shape are supported by ``sigima``.\n"
 "\n"
-"    The `sigima` library supports any image format that can be read by the `imageio`\n"
-"    library, provided that the associated plugin(s) are installed (see `imageio\n"
-"    documentation <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
-"    and that the output NumPy array data type and shape are supported by `sigima`.\n"
-"\n"
-"    To add a new file format, you may use the `imageio_formats` option to specify\n"
-"    additional formats. Each entry should be a tuple of (file extension, description).\n"
-"\n"
-"    Example:\n"
-"\n"
-"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
+"To add a new file format, you may use the ``imageio_formats`` option to specify\n"
+"additional formats. Each entry should be a tuple of (file extension, description).\n"
 msgstr ""
 "Liste des formats d'entrée/sortie d'images pris en charge. Chaque format est un tuple de\n"
 "(extension de fichier, description).\n"
 "\n"
-".. note::\n"
+"La bibliothèque ``sigima`` prend en charge tout format d'image qui peut être lu par la bibliothèque ``imageio``\n"
+"à condition que le(s) plugin(s) associé(s) soient installés (voir la documentation ``imageio\n"
+"<https://imageio.readthedocs.io/en/stable/formats/index.html>``)\n"
+"et que le type de données et la forme du tableau NumPy de sortie soient pris en charge par ``sigima``.\n"
 "\n"
-"    La bibliothèque `sigima` prend en charge tout format d'image qui peut être lu par la bibliothèque `imageio`,\n"
-"    à condition que le(s) plugin(s) associé(s) soient installés (voir la documentation `imageio <https://imageio.readthedocs.io/en/stable/formats/index.html>`_)\n"
-"    et que le type de données et la forme du tableau NumPy de sortie soient pris en charge par `sigima`.\n"
-"\n"
-"    Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option `imageio_formats` pour spécifier\n"
-"    des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
-"\n"
-"    Exemple :\n"
-"\n"
-"    \n"
-"    .. autodata:: sigima.config.IMAGEIO_FORMATS\n"
+"Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option ``imageio_formats`` pour spécifier\n"
+"des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -100,8 +88,8 @@ msgstr "Moyenne de la distribution normale"
 msgid "Normal distribution standard deviation"
 msgstr "Ecart-type de la distribution normale"
 
-msgid "Properties"
-msgstr "Propriétés"
+msgid "Poisson distribution mean"
+msgstr "Moyenne de la distribution de Poisson"
 
 msgid "This is a set of parameters defining a <b>Region of Interest</b> (ROI) in an image. The parameters can be used to create a ROI object or to extract data from an image using the ROI.<br><br>All values are expressed in physical coordinates (floats). The conversion to pixel coordinates is done by taking into account the image pixel size and origin.<br>"
 msgstr "Ceci est un ensemble de paramètres définissant une <b>Région d'Intérêt</b> (ROI) dans une image. Les paramètres peuvent être utilisés pour créer un objet ROI ou pour extraire des données d'une image en utilisant la ROI.<br><br>Toutes les valeurs sont exprimées en coordonnées physiques (flottantes). La conversion en coordonnées de pixels est effectuée en tenant compte de la taille des pixels et de l'origine de l'image.<br>"
@@ -181,14 +169,14 @@ msgstr "Plage de LUT"
 msgid "Zeros"
 msgstr "Zéros"
 
-msgid "Empty"
-msgstr "Vide"
+msgid "Normal distribution"
+msgstr "Moyenne de la distribution normale"
 
-msgid "Random (uniform law)"
-msgstr "Aléatoire (loi uniforme)"
+msgid "Poisson distribution"
+msgstr "Moyenne de la distribution de Poisson"
 
-msgid "Random (normal law)"
-msgstr "Aléatoire (loi normale)"
+msgid "Uniform distribution"
+msgstr "Moyenne de la distribution uniforme"
 
 msgid "Gaussian"
 msgstr "Gaussienne"
@@ -376,6 +364,9 @@ msgstr "Convertir vers le type de données de `obj1`"
 msgid "Result"
 msgstr "Résultat"
 
+msgid "Standard deviation of the Gaussian filter"
+msgstr "Ecart-type du filtre gaussien"
+
 msgid ""
 "Mode of the filter:\n"
 "- 'reflect': Reflect the data at the boundary\n"
@@ -441,18 +432,19 @@ msgstr "Constante"
 
 msgid "Angle unit"
 msgstr "Unité de l'angle"
+msgid "columns"
+msgstr "colonnes"
 
 msgid "Unit of angle measurement"
 msgstr "Unité de mesure de l'angle"
 
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"
+msgid "rows"
+msgstr "lignes"
 
 msgid "columns"
 msgstr "colonnes"
-
-msgid "rows"
-msgstr "lignes"
 
 msgid "Distribute over"
 msgstr "Distribuer selon les"
@@ -713,35 +705,33 @@ msgid "Clipping limit (higher values give more contrast)."
 msgstr "Valeur d'écrêtage (plus la valeur est élevée, plus le contraste est important)."
 
 msgid "increasing"
-msgstr ""
+msgstr "croissant"
 
-#, fuzzy
 msgid "decreasing"
-msgstr "Passage par zéro"
+msgstr "décroissant"
 
 msgid "X translation"
-msgstr ""
+msgstr "Translation en X"
 
 msgid "Y translation"
-msgstr ""
+msgstr "Translation en Y"
 
-#, fuzzy
 msgid "ROI titles"
-msgstr "Titre de la ROI"
+msgstr "Titres des ROI"
 
 msgid "Base name"
-msgstr ""
+msgstr "Nom de base"
 
 msgid "Name pattern"
-msgstr ""
+msgstr "Modèle de nom"
 
 #, fuzzy
 msgid "X direction"
-msgstr "Direction"
+msgstr "Direction X"
 
 #, fuzzy
 msgid "Y direction"
-msgstr "Direction"
+msgstr "Direction Y"
 
 msgid "horizontal"
 msgstr "horizontal"
@@ -890,6 +880,9 @@ msgstr "Modifier la taille des pixels"
 msgid "If checked, pixel size is updated according to binning factors. Users who prefer to work with pixel coordinates may want to uncheck this."
 msgstr "Si coché, la taille des pixels est mise à jour en fonction de la taille des agrégats. Les utilisateurs qui préfèrent travailler avec les coordonnées de pixels peuvent vouloir décocher cette option."
 
+msgid "Image statistics"
+msgstr "Statistiques de l'image"
+
 msgid "Footprint (disk) radius."
 msgstr "Rayon de l'ouverture circulaire (disque)."
 
@@ -959,6 +952,9 @@ msgstr "Étalonner"
 msgid "Bessel"
 msgstr "Bessel"
 
+msgid "Brick wall"
+msgstr "Filtre idéal"
+
 msgid "Butterworth"
 msgstr "Butterworth"
 
@@ -972,7 +968,7 @@ msgid "Elliptic"
 msgstr "Elliptique"
 
 msgid "Brickwall"
-msgstr "Brickwall"
+msgstr "Filtre idéal"
 
 msgid "Filter method"
 msgstr "Méthode de filtrage"
@@ -1079,6 +1075,12 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
 
+msgid "Radian"
+msgstr "Radian"
+
+msgid "Angle unit"
+msgstr "Unité de l'angle"
+
 msgid "Angle"
 msgstr "Angle"
 
@@ -1112,6 +1114,9 @@ msgstr "Coordonnées"
 msgid "Abscissa"
 msgstr "Abscisse"
 
+msgid "Signal statistics"
+msgstr "Statistiques du signal"
+
 msgid "Full scale"
 msgstr "Pleine échelle"
 
@@ -1124,17 +1129,17 @@ msgstr "Nombre d'harmoniques"
 msgid "Number of harmonics to consider for THD"
 msgstr "Nombre d'harmoniques à considérer pour le THD"
 
-msgid "Mean of the Gaussian distribution"
-msgstr "Moyenne de la distribution gaussienne"
+msgid "Dynamic parameters"
+msgstr ""
 
-msgid "Standard deviation"
-msgstr "Ecart-type"
+msgid "Sampling rate and period"
+msgstr ""
 
-msgid "Standard deviation of the Gaussian distribution"
-msgstr "Ecart-type de la distribution gaussienne"
+msgid "Contrast"
+msgstr "Contraste"
 
-msgid "Seed for random number generator"
-msgstr "Graine du générateur de nombres aléatoires"
+msgid "X at min/max"
+msgstr ""
 
 msgid "Number"
 msgstr "Nombre"
@@ -1144,6 +1149,12 @@ msgstr "Sigma de la gaussienne 2D"
 
 msgid "Amplitude of the 2D Gaussian"
 msgstr "Amplitude de la gaussienne 2D"
+
+msgid "Mean of the Gaussian distribution"
+msgstr "Moyenne de la distribution gaussienne"
+
+msgid "Standard deviation of the Gaussian distribution"
+msgstr "Ecart-type de la distribution gaussienne"
 
 msgid "Attenuation"
 msgstr "Atténuation"
@@ -1168,4 +1179,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

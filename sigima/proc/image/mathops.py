@@ -8,6 +8,7 @@ This module implements mathematical operations on images, such as inversion,
 absolute value, real/imaginary part extraction, type casting, and exponentiation.
 
 Main features include:
+
 - Pixel-wise mathematical transformations (e.g., log, exp, abs, real, imag, log10)
 - Type casting and other value-level operations
 

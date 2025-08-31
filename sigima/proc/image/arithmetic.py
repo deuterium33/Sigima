@@ -9,6 +9,7 @@ subtraction, multiplication, division, as well as operations with constants
 and combined arithmetic formulas.
 
 Main features include:
+
 - Pixel-wise addition, subtraction, multiplication, and division between images
 - Application of arithmetic operations with constants to images
 - Support for quadratic difference and general arithmetic expressions
@@ -32,7 +33,6 @@ import warnings
 
 import numpy as np
 
-from sigima.config import options
 from sigima.objects.image import ImageObj
 from sigima.proc.base import (
     ArithmeticParam,
@@ -42,6 +42,7 @@ from sigima.proc.base import (
     dst_n_to_1,
 )
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import MathOperator
 from sigima.proc.image.base import restore_data_outside_roi
 from sigima.tools.datatypes import clip_astype
 
@@ -102,6 +103,36 @@ def average(src_list: list[ImageObj]) -> ImageObj:
     for src in src_list[1:]:
         dst.data = np.add(dst.data, src.data, dtype=float)
     dst.data /= len(src_list)
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
+
+
+@computation_function()
+def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
+    """Compute the element-wise standard deviation of multiple images.
+
+    The first image in the list defines the "base" image. All other images are
+    used to compute the element-wise standard deviation with the base image.
+
+    .. note::
+
+        If all images share the same region of interest (ROI), the standard deviation
+        is computed only within the ROI.
+
+    .. warning::
+
+        It is assumed that all images have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source images.
+
+    Returns:
+        Image object representing the standard deviation of the source images.
+    """
+    dst = dst_n_to_1(src_list, "𝜎")  # `dst` data is initialized to `src_list[0]` data
+    assert dst.data is not None
+    y_array = np.array([src.data for src in src_list], dtype=dst.data.dtype)
+    dst.data = np.std(y_array, axis=0, ddof=0)
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -226,19 +257,17 @@ def arithmetic(src1: ImageObj, src2: ImageObj, p: ArithmeticParam) -> ImageObj:
     initial_dtype = src1.data.dtype
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
     dst = src1.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
     o, a, b = p.operator, p.factor, p.constant
     # Apply operator
-    if o in ("×", "/") and a == 0.0:
+    if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
         dst.data = np.ones_like(src1.data) * b
-    elif o == "+":
+    elif o is MathOperator.ADD:
         dst.data = np.add(src1.data, src2.data, dtype=float) * a + b
-    elif o == "-":
+    elif o is MathOperator.SUBTRACT:
         dst.data = np.subtract(src1.data, src2.data, dtype=float) * a + b
-    elif o == "×":
+    elif o is MathOperator.MULTIPLY:
         dst.data = np.multiply(src1.data, src2.data, dtype=float) * a + b
-    elif o == "/":
+    elif o is MathOperator.DIVIDE:
         dst.data = np.divide(src1.data, src2.data, dtype=float) * a + b
     # Eventually convert to initial data type
     if p.restore_dtype:

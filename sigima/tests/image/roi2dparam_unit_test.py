@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from sigima.objects import ROI2DParam
+from sigima.tests import guiutils
 from sigima.tests.env import execenv
 
 
@@ -41,10 +42,7 @@ def test_roi_2d_param_unit():
 @pytest.mark.gui
 def test_roi_2d_param_interactive():
     """ROI parameters interactive test."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         group = __create_roi_2d_parameters()
         if group.edit():
             for param in group.datasets:

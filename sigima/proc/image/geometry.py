@@ -8,6 +8,7 @@ This module implements geometric transformations and manipulations for images,
 such as rotations, flips, resizing, axis swapping, binning, and padding.
 
 Main features include:
+
 - Rotation by arbitrary or fixed angles
 - Horizontal and vertical flipping
 - Resizing and binning of images
@@ -36,10 +37,12 @@ from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
-from sigima.proc.image.base import Wrap1to1Func
-from sigima.tools.coordinates import vector_rotation
+from sigima.proc.enums import BinningOperation, BorderMode
+from sigima.proc.transformations import transformer
 
 __all__ = [
+    "TranslateParam",
+    "translate",
     "RotateParam",
     "rotate",
     "rotate90",
@@ -50,20 +53,42 @@ __all__ = [
     "resize",
     "BinningParam",
     "binning",
-    "swap_axes",
+    "transpose",
 ]
+
+
+class TranslateParam(gds.DataSet):
+    """Translate parameters"""
+
+    dx = gds.FloatItem(_("X translation"), default=0.0)
+    dy = gds.FloatItem(_("Y translation"), default=0.0)
+
+
+@computation_function()
+def translate(src: ImageObj, p: TranslateParam) -> ImageObj:
+    """Translate data with :py:func:`scipy.ndimage.shift`
+
+    Args:
+        src: input image object
+        p: parameters
+
+    Returns:
+        Output image object
+    """
+    dst = dst_1_to_1(src, "translate", f"dx={p.dx}, dy={p.dy}")
+    dst.x0 += p.dx
+    dst.y0 += p.dy
+    transformer.transform_roi(dst, "translate", dx=p.dx, dy=p.dy)
+    return dst
 
 
 class RotateParam(gds.DataSet):
     """Rotate parameters"""
 
-    boundaries = ("constant", "nearest", "reflect", "wrap")
     prop = gds.ValueProp(False)
 
-    angle = gds.FloatItem(f"{_('Angle')} (°)")
-    mode = gds.ChoiceItem(
-        _("Mode"), list(zip(boundaries, boundaries)), default=boundaries[0]
-    )
+    angle = gds.FloatItem(f"{_('Angle')} (°)", default=0.0)
+    mode = gds.ChoiceItem(_("Mode"), BorderMode, default=BorderMode.CONSTANT)
     cval = gds.FloatItem(
         _("cval"),
         default=0.0,
@@ -94,37 +119,6 @@ class RotateParam(gds.DataSet):
     ).set_prop("display", active=prop)
 
 
-def rotate_obj_coords(
-    angle: float, obj: ImageObj, orig: ImageObj, coords: np.ndarray
-) -> None:
-    """Apply rotation to coords associated to image obj
-
-    Args:
-        angle: rotation angle (in degrees)
-        obj: image object
-        orig: original image object
-        coords: coordinates to rotate
-
-    Returns:
-        Output data
-    """
-    for row in range(coords.shape[0]):
-        for col in range(0, coords.shape[1], 2):
-            x1, y1 = coords[row, col : col + 2]
-            dx1 = x1 - orig.xc
-            dy1 = y1 - orig.yc
-            dx2, dy2 = vector_rotation(-angle * np.pi / 180.0, dx1, dy1)
-            coords[row, col : col + 2] = dx2 + obj.xc, dy2 + obj.yc
-    obj.roi = None
-
-
-def rotate_obj_alpha(
-    obj: ImageObj, orig: ImageObj, coords: np.ndarray, p: RotateParam
-) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(p.angle, obj, orig, coords)
-
-
 @computation_function()
 def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
     """Rotate data with :py:func:`scipy.ndimage.rotate`
@@ -136,23 +130,19 @@ def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = dst_1_to_1(src, "rotate", f"α={p.angle:.3f}°, mode='{p.mode}'")
+    mode = p.mode.value
+    dst = dst_1_to_1(src, "rotate", f"α={p.angle:.3f}°, mode='{mode}'")
     dst.data = spi.rotate(
         src.data,
         p.angle,
         reshape=p.reshape,
         order=p.order,
-        mode=p.mode,
+        mode=mode,
         cval=p.cval,
         prefilter=p.prefilter,
     )
-    dst.transform_shapes(src, rotate_obj_alpha, p)
+    dst.roi = None  # Reset ROI as it may change after rotation
     return dst
-
-
-def rotate_obj_90(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(90.0, dst, src, coords)
 
 
 @computation_function()
@@ -167,13 +157,8 @@ def rotate90(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate90")
     dst.data = np.rot90(src.data)
-    dst.transform_shapes(src, rotate_obj_90)
+    transformer.transform_roi(dst, "rotate", angle=-np.pi / 2, center=(dst.xc, dst.yc))
     return dst
-
-
-def rotate_obj_270(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply rotation to coords associated to image obj"""
-    rotate_obj_coords(270.0, dst, src, coords)
 
 
 @computation_function()
@@ -188,15 +173,8 @@ def rotate270(src: ImageObj) -> ImageObj:
     """
     dst = dst_1_to_1(src, "rotate270")
     dst.data = np.rot90(src.data, 3)
-    dst.transform_shapes(src, rotate_obj_270)
+    transformer.transform_roi(dst, "rotate", angle=np.pi / 2, center=(dst.xc, dst.yc))
     return dst
-
-
-# pylint: disable=unused-argument
-def hflip_coords(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply HFlip to coords"""
-    coords[:, ::2] = dst.x0 + dst.width - coords[:, ::2]
-    dst.roi = None
 
 
 @computation_function()
@@ -209,16 +187,10 @@ def fliph(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.fliplr)(src)
-    dst.transform_shapes(src, hflip_coords)
+    dst = dst_1_to_1(src, "fliph")
+    dst.data = np.fliplr(src.data)
+    transformer.transform_roi(dst, "fliph", cx=dst.xc)
     return dst
-
-
-# pylint: disable=unused-argument
-def vflip_coords(dst: ImageObj, src: ImageObj, coords: np.ndarray) -> None:
-    """Apply VFlip to coords"""
-    coords[:, 1::2] = dst.y0 + dst.height - coords[:, 1::2]
-    dst.roi = None
 
 
 @computation_function()
@@ -231,21 +203,19 @@ def flipv(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.flipud)(src)
-    dst.transform_shapes(src, vflip_coords)
+    dst = dst_1_to_1(src, "flipv")
+    dst.data = np.flipud(src.data)
+    transformer.transform_roi(dst, "flipv", cy=dst.yc)
     return dst
 
 
 class ResizeParam(gds.DataSet):
     """Resize parameters"""
 
-    boundaries = ("constant", "nearest", "reflect", "wrap")
     prop = gds.ValueProp(False)
 
-    zoom = gds.FloatItem(_("Zoom"))
-    mode = gds.ChoiceItem(
-        _("Mode"), list(zip(boundaries, boundaries)), default=boundaries[0]
-    )
+    zoom = gds.FloatItem(_("Zoom"), default=1.0)
+    mode = gds.ChoiceItem(_("Mode"), BorderMode, default=BorderMode.CONSTANT)
     cval = gds.FloatItem(
         _("cval"),
         default=0.0,
@@ -278,12 +248,13 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
     Returns:
         Output image object
     """
+    mode = p.mode.value
     dst = dst_1_to_1(src, "resize", f"zoom={p.zoom:.3f}")
     dst.data = spi.zoom(
         src.data,
         p.zoom,
         order=p.order,
-        mode=p.mode,
+        mode=mode,
         cval=p.cval,
         prefilter=p.prefilter,
     )
@@ -307,11 +278,8 @@ class BinningParam(gds.DataSet):
         min=2,
         help=_("Number of adjacent pixels to be combined together along Y-axis."),
     )
-    operations = sigima.tools.image.BINNING_OPERATIONS
     operation = gds.ChoiceItem(
-        _("Operation"),
-        list(zip(operations, operations)),
-        default=operations[0],
+        _("Operation"), BinningOperation, default=BinningOperation.SUM
     )
     dtypes = ["dtype"] + ImageObj.get_valid_dtypenames()
     dtype_str = gds.ChoiceItem(
@@ -330,7 +298,7 @@ class BinningParam(gds.DataSet):
 
 
 @computation_function()
-def binning(src: ImageObj, param: BinningParam) -> ImageObj:
+def binning(src: ImageObj, p: BinningParam) -> ImageObj:
     """Binning function on data with :py:func:`sigima.tools.image.binning`
 
     Args:
@@ -340,32 +308,29 @@ def binning(src: ImageObj, param: BinningParam) -> ImageObj:
     Returns:
         Output image object
     """
+    operation = p.operation.value
     dst = dst_1_to_1(
         src,
         "binning",
-        f"{param.sx}x{param.sy},{param.operation},"
-        f"change_pixel_size={param.change_pixel_size}",
+        f"{p.sx}x{p.sy},{operation},change_pixel_size={p.change_pixel_size}",
     )
     dst.data = sigima.tools.image.binning(
         src.data,
-        sx=param.sx,
-        sy=param.sy,
-        operation=param.operation,
-        dtype=None if param.dtype_str == "dtype" else param.dtype_str,
+        sx=p.sx,
+        sy=p.sy,
+        operation=operation,
+        dtype=None if p.dtype_str == "dtype" else p.dtype_str,
     )
-    if param.change_pixel_size:
+    if p.change_pixel_size:
         if src.dx is not None and src.dy is not None:
-            dst.dx = src.dx * param.sx
-            dst.dy = src.dy * param.sy
-    else:
-        # TODO: [P2] Instead of removing geometric shapes, apply zoom
-        dst.remove_all_shapes()
+            dst.dx = src.dx * p.sx
+            dst.dy = src.dy * p.sy
     return dst
 
 
 @computation_function()
-def swap_axes(src: ImageObj) -> ImageObj:
-    """Swap image axes with :py:func:`numpy.transpose`
+def transpose(src: ImageObj) -> ImageObj:
+    """Transpose image with :py:func:`numpy.transpose`
 
     Args:
         src: input image object
@@ -373,7 +338,7 @@ def swap_axes(src: ImageObj) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = Wrap1to1Func(np.transpose)(src)
-    # TODO: [P2] Instead of removing geometric shapes, apply swap
-    dst.remove_all_shapes()
+    dst = dst_1_to_1(src, "transpose")
+    dst.data = np.transpose(src.data)
+    transformer.transform_roi(dst, "transpose")
     return dst

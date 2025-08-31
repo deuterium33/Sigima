@@ -205,10 +205,8 @@ def test_image_roi_extraction() -> None:
             __test_extracting_from_roi(src, singleobj)
 
 
-def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> None:
+def test_roi_coordinates_validation() -> None:
     """Test ROI coordinates validation"""
-    guiutils.set_current_request(request)
-
     # Create a 20x20 Gaussian image
     param = sigima.objects.Gauss2DParam.create(a=10.0, height=20, width=20)
     src = sigima.objects.create_image_from_param(param)
@@ -243,19 +241,14 @@ def test_roi_coordinates_validation(request: pytest.FixtureRequest = None) -> No
             src2.roi = roi
             images.append(src2)
             titles.append(f"Image with {roi.get_single_roi(0).title} ROI")
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests import vistools
-
-        with qt_app_context():
-            vistools.view_images_side_by_side(
-                images, titles, rows=2, title="Image ROIs"
-            )
+        guiutils.view_images_side_by_side_if_gui(
+            images, titles, rows=2, title="Image ROIs"
+        )
 
 
 if __name__ == "__main__":
-    test_roi_coordinates_validation(request=guiutils.DummyRequest(gui=True))
+    guiutils.enable_gui()
+    test_roi_coordinates_validation()
     test_image_roi_merge()
     test_image_roi_combine()
     test_image_roi_processing()

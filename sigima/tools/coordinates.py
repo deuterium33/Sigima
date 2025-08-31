@@ -240,23 +240,18 @@ def to_cartesian(
     return x, y
 
 
-def rotate(alpha: float) -> np.ndarray:
+def rotate(angle: float) -> np.ndarray:
     """Return rotation matrix
 
     Args:
-        alpha: Rotation angle (in radians)
+        angle: Rotation angle (in radians)
 
     Returns:
         Rotation matrix
     """
-    return np.array(
-        [
-            [np.cos(alpha), -np.sin(alpha), 0],
-            [np.sin(alpha), np.cos(alpha), 0],
-            [0, 0, 1],
-        ],
-        float,
-    )
+    cos_a = np.cos(angle)
+    sin_a = np.sin(angle)
+    return np.array([[cos_a, -sin_a, 0], [sin_a, cos_a, 0], [0, 0, 1]], dtype=float)
 
 
 def colvector(x: float, y: float) -> np.ndarray:
@@ -286,7 +281,7 @@ def vector_rotation(theta: float, dx: float, dy: float) -> tuple[float, float]:
     return (rotate(theta) @ colvector(dx, dy)).ravel()[:2]
 
 
-@check_1d_arrays(x_1d=False, y_1d=False)
+@check_1d_arrays(x_require_1d=False, y_require_1d=False)
 def polar_to_complex(
     r: np.ndarray, theta: np.ndarray, unit: Literal["°", "rad"] = "rad"
 ) -> np.ndarray:

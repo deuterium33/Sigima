@@ -55,10 +55,8 @@ def build_clean_noisy_signals(
 
 
 @pytest.mark.validation
-def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_lowpass() -> None:
     """Validation test for frequency filtering."""
-    guiutils.set_current_request(request)
-
     clean, noisy = build_clean_noisy_signals()
 
     param = sigima.proc.signal.LowPassFilterParam.create(
@@ -68,16 +66,8 @@ def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
     )
     # Lowpass: should keep the sine, remove most noise
     filt = sigima.proc.signal.lowpass(noisy, param)
-
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            # Show original and filtered signals
-            view_curves([clean, filt])
+    # Show original and filtered signals
+    guiutils.view_curves_if_gui([clean, filt])
 
     # Compare filtered signal to clean signal (ignore edges)
     check_array_result(
@@ -89,10 +79,8 @@ def test_signal_lowpass(request: pytest.FixtureRequest | None = None) -> None:
 
 
 @pytest.mark.validation
-def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_highpass() -> None:
     """Validation test for highpass frequency filtering."""
-    guiutils.set_current_request(request)
-
     noise_level = 0.2  # Set noise level for the test
     clean, noisy = build_clean_noisy_signals(noise_level=noise_level)
     param = sigima.proc.signal.HighPassFilterParam.create(
@@ -102,14 +90,7 @@ def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
     )
     filt = sigima.proc.signal.highpass(noisy, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([clean, filt])
+    guiutils.view_curves_if_gui([clean, filt])
 
     # The mean of the filtered signal should be close to zero (since only noise remains)
     mean_variance = np.sqrt(noise_level / len(clean.x))
@@ -123,10 +104,8 @@ def test_signal_highpass(request: pytest.FixtureRequest | None = None) -> None:
 
 
 @pytest.mark.validation
-def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_stopband() -> None:
     """Validation test for stopband frequency filtering."""
-    guiutils.set_current_request(request)
-
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([1, 5]), noise_level=0)
 
@@ -138,14 +117,7 @@ def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
     )
     res_sig = sigima.proc.signal.bandstop(tst_sig, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([exp_sig, res_sig])
+    guiutils.view_curves_if_gui([exp_sig, res_sig])
 
     check_array_result(
         "brickwall stopband",
@@ -156,10 +128,8 @@ def test_signal_stopband(request: pytest.FixtureRequest | None = None) -> None:
 
 
 @pytest.mark.validation
-def test_signal_bandpass(request: pytest.FixtureRequest | None = None) -> None:
+def test_signal_bandpass() -> None:
     """Validation test for bandpass frequency filtering."""
-    guiutils.set_current_request(request)
-
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([3]), noise_level=0)
     param = sigima.proc.signal.BandPassFilterParam.create(
@@ -170,14 +140,7 @@ def test_signal_bandpass(request: pytest.FixtureRequest | None = None) -> None:
     )
     res_sig = sigima.proc.signal.bandpass(tst_sig, param)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            view_curves([exp_sig, res_sig])
+    guiutils.view_curves_if_gui([exp_sig, res_sig])
 
     check_array_result(
         "brickwall bandpass",
@@ -193,7 +156,7 @@ def test_brickwall_filter_invalid_x():
     x_bad = clean.x.copy()
     x_bad[5] += 0.01  # break uniformity
     with pytest.raises(ValueError, match="evenly spaced"):
-        brickwall_filter(x_bad, noisy.y, cut0=0.1)
+        brickwall_filter(x_bad, noisy.y, "lowpass", cut0=0.1)
 
 
 def test_tools_to_proc_interface():
@@ -204,7 +167,7 @@ def test_tools_to_proc_interface():
     _clean, tst_sig = build_clean_noisy_signals(freq=np.array([1, 3, 5]))
 
     # Lowpass
-    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, cut0=2.0, mode="lowpass")
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "lowpass", cut0=2.0)
     proc_res = sigima.proc.signal.lowpass(
         tst_sig,
         sigima.proc.signal.LowPassFilterParam.create(
@@ -214,7 +177,7 @@ def test_tools_to_proc_interface():
     check_array_result("Lowpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Highpass
-    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, cut0=2.0, mode="highpass")
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "highpass", cut0=2.0)
     proc_res = sigima.proc.signal.highpass(
         tst_sig,
         sigima.proc.signal.HighPassFilterParam.create(
@@ -224,9 +187,7 @@ def test_tools_to_proc_interface():
     check_array_result("Highpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandpass
-    tools_res = brickwall_filter(
-        tst_sig.x, tst_sig.y, cut0=2.0, cut1=4.0, mode="bandpass"
-    )
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandpass", cut0=2.0, cut1=4.0)
     proc_res = sigima.proc.signal.bandpass(
         tst_sig,
         sigima.proc.signal.BandPassFilterParam.create(
@@ -236,9 +197,7 @@ def test_tools_to_proc_interface():
     check_array_result("Bandpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandstop
-    tools_res = brickwall_filter(
-        tst_sig.x, tst_sig.y, cut0=2.0, cut1=4.0, mode="bandstop"
-    )
+    tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandstop", cut0=2.0, cut1=4.0)
     proc_res = sigima.proc.signal.bandstop(
         tst_sig,
         sigima.proc.signal.BandStopFilterParam.create(
@@ -249,9 +208,10 @@ def test_tools_to_proc_interface():
 
 
 if __name__ == "__main__":
-    test_signal_lowpass(request=guiutils.DummyRequest(gui=True))
-    test_signal_highpass(request=guiutils.DummyRequest(gui=True))
-    test_signal_stopband(request=guiutils.DummyRequest(gui=True))
-    test_signal_bandpass(request=guiutils.DummyRequest(gui=True))
+    guiutils.enable_gui()
+    test_signal_lowpass()
+    test_signal_highpass()
+    test_signal_stopband()
+    test_signal_bandpass()
     test_brickwall_filter_invalid_x()
     test_tools_to_proc_interface()

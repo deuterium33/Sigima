@@ -8,6 +8,33 @@ import shutil
 import sys
 
 import guidata.config as gcfg
+from docutils import nodes
+from docutils.parsers.rst import Directive
+from docutils.statemachine import StringList
+
+
+class OptionsTableDirective(Directive):
+    """Custom directive to include dynamically generated options table."""
+
+    has_content = False
+
+    def run(self):
+        """Generate and include the options table."""
+        from sigima.config import options
+
+        # Get the RST content
+        rst_content = options.generate_rst_doc()
+
+        # Create a container node
+        container = nodes.container()
+
+        # Parse the RST content and add it to the container
+        rst_lines = rst_content.splitlines()
+        string_list = StringList(rst_lines)
+        self.state.nested_parse(string_list, self.content_offset, container)
+
+        return [container]
+
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -37,13 +64,15 @@ def cleanup_changelog(app, exception):
     except Exception as exc:
         print(f"Warning: failed to remove {path}: {exc}")
     finally:
-        del app.env.temp_changelog_path
+        if hasattr(app.env, "temp_changelog_path"):
+            del app.env.temp_changelog_path
 
 
 def setup(app):
     """Setup function for Sphinx."""
     app.connect("builder-inited", copy_changelog)
     app.connect("build-finished", cleanup_changelog)
+    app.add_directive("options-table", OptionsTableDirective)
 
 
 # -- Project information -----------------------------------------------------
