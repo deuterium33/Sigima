@@ -17,7 +17,6 @@ import warnings
 from typing import Callable
 
 import numpy as np
-import pytest
 
 import sigima.objects
 import sigima.params
@@ -66,7 +65,6 @@ def __verify_uncertainty_propagation(
     )
 
 
-@pytest.mark.validation
 def test_sqrt_uncertainty_propagation() -> None:
     """Test uncertainty propagation for square root function."""
     # Test with uncertainty
@@ -92,7 +90,6 @@ def test_sqrt_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_log10_uncertainty_propagation() -> None:
     """Test uncertainty propagation for log10 function."""
     # Test with uncertainty - use positive values to avoid log domain issues
@@ -120,7 +117,6 @@ def test_log10_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_exp_uncertainty_propagation() -> None:
     """Test uncertainty propagation for exponential function."""
     # Test with uncertainty
@@ -142,7 +138,6 @@ def test_exp_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_clip_uncertainty_propagation() -> None:
     """Test uncertainty propagation for clipping function."""
     # Test with uncertainty
@@ -171,19 +166,16 @@ def test_clip_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_absolute_uncertainty_propagation() -> None:
     """Test uncertainty propagation for absolute value function."""
     __verify_uncertainty_propagation(sigima.proc.signal.absolute)
 
 
-@pytest.mark.validation
 def test_real_uncertainty_propagation() -> None:
     """Test uncertainty propagation for real part function."""
     __verify_uncertainty_propagation(sigima.proc.signal.real)
 
 
-@pytest.mark.validation
 def test_imag_uncertainty_propagation() -> None:
     """Test uncertainty propagation for imaginary part function."""
     # Test with uncertainty
@@ -204,7 +196,6 @@ def test_imag_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_is_uncertainty_data_available() -> None:
     """Test the is_uncertainty_data_available helper function."""
     # Single signal with uncertainty
@@ -241,7 +232,6 @@ def test_is_uncertainty_data_available() -> None:
     )
 
 
-@pytest.mark.validation
 def test_inverse_uncertainty_propagation() -> None:
     """Test uncertainty propagation for signal inversion."""
     # Test with uncertainty
@@ -273,27 +263,23 @@ def test_inverse_uncertainty_propagation() -> None:
     )
 
 
-@pytest.mark.validation
 def test_gaussian_filter_uncertainty_propagation() -> None:
     """Test uncertainty propagation for Gaussian filter."""
     param = sigima.params.GaussianParam.create(sigma=2.0)
     __verify_uncertainty_propagation(sigima.proc.signal.gaussian_filter, param)
 
 
-@pytest.mark.validation
 def test_wiener_filter_uncertainty_propagation() -> None:
     """Test uncertainty propagation for Wiener filter."""
     __verify_uncertainty_propagation(sigima.proc.signal.wiener)
 
 
-@pytest.mark.validation
 def test_moving_average_uncertainty_propagation() -> None:
     """Test uncertainty propagation for moving average filter."""
     param = sigima.params.MovingAverageParam.create(n=5)
     __verify_uncertainty_propagation(sigima.proc.signal.moving_average, param)
 
 
-@pytest.mark.validation
 def test_moving_median_uncertainty_propagation() -> None:
     """Test uncertainty propagation for moving median filter."""
     param = sigima.params.MovingMedianParam.create(n=5)
