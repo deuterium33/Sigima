@@ -399,7 +399,6 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
     """
     dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data.
     dst.y = np.sum(signals_y_to_array(src_list), axis=0)
-    dst.dy = None  # ! In case of missing uncertainty data.
     if is_uncertainty_data_available(src_list):
         dst.dy = np.sqrt(np.sum(signals_dy_to_array(src_list) ** 2, axis=0))
     restore_data_outside_roi(dst, src_list[0])
@@ -434,7 +433,6 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     """
     dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data.
     dst.y = np.mean(signals_y_to_array(src_list), axis=0)
-    dst.dy = None  # ! In case of missing uncertainty data.
     if is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
@@ -471,7 +469,6 @@ def product(src_list: list[SignalObj]) -> SignalObj:
     dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data.
     y_array = signals_y_to_array(src_list)
     dst.y = np.prod(y_array, axis=0)
-    dst.dy = None  # ! In case of missing uncertainty data.
     if is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
         with warnings.catch_warnings():
@@ -699,7 +696,6 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
-    dst.dy = None  # ! In case of missing uncertainty data.
     if is_uncertainty_data_available([src1, src2]):
         dy_array = signals_dy_to_array([src1, src2])
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0))
