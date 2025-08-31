@@ -390,13 +390,13 @@ def test_image_phase() -> None:
         )
 
 
-complex_from_magnitude_phase_parameters = [
+MAGNITUDE_PHASE_TEST_CASES = [
     (np.linspace(0, np.pi, 16).reshape(4, 4), AngleUnit.radian),
     (np.linspace(0, 360, 16).reshape(4, 4), AngleUnit.degree),
 ]
 
 
-@pytest.mark.parametrize("phase, unit", complex_from_magnitude_phase_parameters)
+@pytest.mark.parametrize("phase, unit", MAGNITUDE_PHASE_TEST_CASES)
 @pytest.mark.validation
 def test_image_complex_from_magnitude_phase(phase: np.ndarray, unit: AngleUnit) -> None:
     """Test :py:func:`sigima.proc.image.complex_from_magnitude_phase`.
@@ -420,6 +420,12 @@ def test_image_complex_from_magnitude_phase(phase: np.ndarray, unit: AngleUnit) 
         result.data,
         polar_to_complex(magnitude, phase, unit=unit_str),
     )
+
+
+def __test_all_complex_from_magnitude_phase() -> None:
+    """Test all combinations of magnitude and phase."""
+    for phase, unit in MAGNITUDE_PHASE_TEST_CASES:
+        test_image_complex_from_magnitude_phase(phase, unit)
 
 
 def __get_numpy_info(dtype: np.dtype) -> np.generic:
@@ -505,6 +511,7 @@ if __name__ == "__main__":
     test_image_real()
     test_image_imag()
     test_image_phase()
+    __test_all_complex_from_magnitude_phase()
     test_image_astype()
     test_image_exp()
     test_image_log10()
