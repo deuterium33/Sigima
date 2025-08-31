@@ -311,8 +311,10 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         Args:
             x: x data
             y: y data
-            dx: dx data (optional: error bars)
-            dy: dy data (optional: error bars)
+            dx: dx data (optional: error bars). Use None to reset dx data to None,
+             or provide array to set new dx data.
+            dy: dy data (optional: error bars). Use None to reset dy data to None,
+             or provide array to set new dy data.
         """
         if x is None and y is None:
             # Using empty arrays (this allows initialization of the object without data)

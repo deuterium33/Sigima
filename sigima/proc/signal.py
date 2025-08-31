@@ -269,7 +269,8 @@ class Wrap1to1Func:
         )
         dst = dst_1_to_1(src, self.__name__, suffix)
         x, y = src.get_data()
-        dst.set_xydata(x, self.func(y, *self.args, **self.kwargs))
+        # Propagate uncertainty without modification by default:
+        dst.set_xydata(x, self.func(y, *self.args, **self.kwargs), src.dx, src.dy)
 
         # Uncertainty propagation for common mathematical functions
         if is_uncertainty_data_available(src):
@@ -296,7 +297,7 @@ class Wrap1to1Func:
                     dst.dy[src.y <= a_min] = 0
                 if a_max is not None:
                     dst.dy[src.y >= a_max] = 0
-            # For absolute, real, imag: uncertainties unchanged (copied by dst_1_to_1)
+            # For absolute, real, imag and other functions: uncertainties are unchanged
         restore_data_outside_roi(dst, src)
         return dst
 
@@ -796,6 +797,7 @@ def extract_rois(src: SignalObj, params: list[ROI1DParam]) -> SignalObj:
         slice0 = slice(idx1, idx2)
         xout[slice0], yout[slice0] = x[slice0], y[slice0]
     nans = np.isnan(xout) | np.isnan(yout)
+    # TODO: Handle uncertainty data
     dst.set_xydata(xout[~nans], yout[~nans])
     return dst
 
@@ -813,6 +815,7 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "extract_roi", f"{p.xmin:.3g}≤x≤{p.xmax:.3g}")
     x, y = p.get_data(src).copy()
+    # TODO: Handle uncertainty data
     dst.set_xydata(x, y)
     return dst
 
