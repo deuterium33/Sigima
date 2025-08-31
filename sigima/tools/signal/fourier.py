@@ -20,7 +20,9 @@ from sigima.tools.signal.dynamic import sampling_rate
 def zero_padding(
     x: np.ndarray, y: np.ndarray, n_prepend: int = 0, n_append: int = 0
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Append n zeros at the end of the signal.
+    """Prepend and append zeros.
+
+    This function pads the input signal with zeros at the beginning and end.
 
     Args:
         x: X data.
@@ -172,57 +174,53 @@ def psd(
 def brickwall_filter(
     x: np.ndarray,
     y: np.ndarray,
+    mode: Literal["lowpass", "highpass", "bandpass", "bandstop"],
     cut0: float,
     cut1: float | None = None,
-    mode: Literal["lowpass", "highpass", "bandpass", "bandstop"] = "lowpass",
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Apply a brickwall filter (ideal frequency filter) to a 1D signal.
+    Apply an ideal frequency filter ("brick wall" filter) to a signal.
 
     Args:
-        x: 1D uniformly spaced axis (e.g. time or sample number).
+        x: Time domain axis (evenly spaced).
         y: Signal values (same length as x).
-        cut0: First cutoff frequency (Hz).
-        cut1: Second cutoff frequency (Hz), required for band filters.
         mode: Type of filter to apply.
+        cut0: First cutoff frequency.
+        cut1: Second cutoff frequency, required for band-pass and band-stop filters.
 
     Returns:
         Tuple (x, y_filtered), where y_filtered is the filtered signal.
 
     Raises:
-        ValueError: If x is not uniformly spaced, if cutoff frequencies are invalid,
-         or if required parameters are missing.
+        ValueError: If mode is unknown.
+        ValueError: If cut0 is not positive.
+        ValueError: If cut1 is missing for band-pass and band-stop filters.
+        ValueError: If cut0 > cut1 for band-pass and band-stop filters.
     """
-    if mode not in {"lowpass", "highpass", "bandpass", "bandstop"}:
+    if mode not in ("lowpass", "highpass", "bandpass", "bandstop"):
         raise ValueError(f"Unknown filter mode: {mode!r}")
 
-    # TODO: Replace by a mutualized function (e.g. a decorator) in sigima.proc
-    dx = np.diff(x)
-    if not np.allclose(dx, dx[0]):
-        raise ValueError("x must be uniformly spaced.")
+    if cut0 <= 0.0:
+        raise ValueError("Cutoff frequency must be positive.")
+
+    if mode in ("bandpass", "bandstop"):
+        if cut1 is None:
+            raise ValueError(f"cut1 must be specified for mode '{mode}'")
+        if cut0 > cut1:
+            raise ValueError("cut0 must be less than or equal to cut1.")
 
     freqs, ffty = fft1d(x, y, shift=False)
 
-    if mode in {"bandpass", "bandstop"}:
-        if cut1 is None:
-            raise ValueError(f"cut1 must be specified for mode '{mode}'")
-        f_low, f_high = sorted([cut0, cut1])
-        if f_low <= 0 or f_high <= 0:
-            raise ValueError("Cutoff frequencies must be positive.")
-        if mode == "bandpass":
-            mask = (np.abs(freqs) >= f_low) & (np.abs(freqs) <= f_high)
-        else:  # bandstop
-            mask = (np.abs(freqs) <= f_low) | (np.abs(freqs) >= f_high)
-    else:
-        if cut0 <= 0:
-            raise ValueError("Cutoff frequency must be positive.")
-        if mode == "lowpass":
-            mask = np.abs(freqs) <= cut0
-        else:  # highpass
-            mask = np.abs(freqs) >= cut0
+    if mode == "lowpass":
+        frequency_mask = np.abs(freqs) <= cut0
+    elif mode == "highpass":
+        frequency_mask = np.abs(freqs) >= cut0
+    elif mode == "bandpass":
+        frequency_mask = (np.abs(freqs) >= cut0) & (np.abs(freqs) <= cut1)
+    else:  # bandstop
+        frequency_mask = (np.abs(freqs) <= cut0) | (np.abs(freqs) >= cut1)
 
-    y_filtered = np.zeros_like(ffty)
-    y_filtered[mask] = ffty[mask]
-
-    _, y_out = ifft1d(freqs, y_filtered)
-    return x, y_out.real
+    ffty_filtered = ffty * frequency_mask
+    _, y_filtered = ifft1d(freqs, ffty_filtered)
+    y_filtered = y_filtered.real
+    return x, y_filtered

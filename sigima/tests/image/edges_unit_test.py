@@ -32,7 +32,7 @@ def test_canny() -> None:
             low_threshold=p.low_threshold,
             high_threshold=p.high_threshold,
             use_quantiles=p.use_quantiles,
-            mode=p.mode,
+            mode=p.mode.value,
             cval=p.cval,
         )
     )

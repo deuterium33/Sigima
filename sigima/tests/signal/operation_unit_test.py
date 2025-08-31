@@ -22,6 +22,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
+from sigima.proc.enums import MathOperator
 from sigima.tests.helpers import check_array_result
 
 
@@ -282,20 +283,20 @@ def test_signal_arithmetic() -> None:
     """Arithmetic operations validation test."""
     s1, s2 = __create_two_signals()
     p = sigima.params.ArithmeticParam.create()
-    for operator in p.operators:
+    for operator in MathOperator:
         p.operator = operator
         for factor in (0.0, 1.0, 2.0):
             p.factor = factor
             for constant in (0.0, 1.0, 2.0):
                 p.constant = constant
                 s3 = sigima.proc.signal.arithmetic(s1, s2, p)
-                if operator == "+":
+                if operator is MathOperator.ADD:
                     exp = s1.y + s2.y
-                elif operator == "×":
+                elif operator is MathOperator.MULTIPLY:
                     exp = s1.y * s2.y
-                elif operator == "-":
+                elif operator is MathOperator.SUBTRACT:
                     exp = s1.y - s2.y
-                elif operator == "/":
+                elif operator is MathOperator.DIVIDE:
                     exp = s1.y / s2.y
                 else:
                     raise ValueError(f"Unknown operator {operator}")
