@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from sigima.config import _
+
 
 class AngleUnit(Enum):
     """Angle units."""
@@ -88,3 +90,26 @@ class PowerUnit(Enum):
 
     DBC = "dBc"
     DBFS = "dBFS"
+
+
+class WindowingMethod(Enum):
+    """Windowing methods enumeration."""
+
+    BARTHANN = "Barthann"
+    BARTLETT = "Bartlett"
+    BLACKMAN = "Blackman"
+    BLACKMAN_HARRIS = "Blackman-Harris"
+    BOHMAN = "Bohman"
+    BOXCAR = "Boxcar"
+    COSINE = _("Cosine")
+    EXPONENTIAL = _("Exponential")
+    FLAT_TOP = _("Flat-Top")
+    GAUSSIAN = _("Gaussian")
+    HAMMING = "Hamming"
+    HANN = "Hann"
+    KAISER = "Kaiser"
+    LANCZOS = "Lanczos"
+    NUTTALL = "Nuttall"
+    PARZEN = "Parzen"
+    TAYLOR = "Taylor"
+    TUKEY = "Tukey"

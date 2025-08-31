@@ -58,7 +58,13 @@ from sigima.proc.base import (
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import AngleUnit, MathOperator, PadLocation, PowerUnit
+from sigima.proc.enums import (
+    AngleUnit,
+    MathOperator,
+    PadLocation,
+    PowerUnit,
+    WindowingMethod,
+)
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -2186,45 +2192,33 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
 class WindowingParam(gds.DataSet):
     """Windowing parameters."""
 
-    methods = (
-        ("barthann", "Barthann"),
-        ("bartlett", "Bartlett"),
-        ("blackman", "Blackman"),
-        ("blackman-harris", "Blackman-Harris"),
-        ("bohman", "Bohman"),
-        ("boxcar", "Boxcar"),
-        ("cosine", _("Cosine")),
-        ("exponential", _("Exponential")),
-        ("flat-top", _("Flat top")),
-        ("gaussian", _("Gaussian")),
-        ("hamming", "Hamming"),
-        ("hann", "Hann"),
-        ("kaiser", "Kaiser"),
-        ("lanczos", "Lanczos"),
-        ("nuttall", "Nuttall"),
-        ("parzen", "Parzen"),
-        ("taylor", "Taylor"),
-        ("tukey", "Tukey"),
-    )
     _meth_prop = gds.GetAttrProp("method")
-    method = gds.ChoiceItem(_("Method"), methods, default="hamming").set_prop(
-        "display", store=_meth_prop
-    )
+    method = gds.ChoiceItem(
+        _("Method"), WindowingMethod, default=WindowingMethod.HAMMING
+    ).set_prop("display", store=_meth_prop)
     alpha = gds.FloatItem(
         "Alpha",
         default=0.5,
         help=_("Shape parameter of the Tukey windowing function"),
-    ).set_prop("display", active=gds.FuncProp(_meth_prop, lambda x: x == "tukey"))
+    ).set_prop(
+        "display", active=gds.FuncProp(_meth_prop, lambda x: x == WindowingMethod.TUKEY)
+    )
     beta = gds.FloatItem(
         "Beta",
         default=14.0,
         help=_("Shape parameter of the Kaiser windowing function"),
-    ).set_prop("display", active=gds.FuncProp(_meth_prop, lambda x: x == "kaiser"))
+    ).set_prop(
+        "display",
+        active=gds.FuncProp(_meth_prop, lambda x: x == WindowingMethod.KAISER),
+    )
     sigma = gds.FloatItem(
         "Sigma",
         default=0.5,
         help=_("Shape parameter of the Gaussian windowing function"),
-    ).set_prop("display", active=gds.FuncProp(_meth_prop, lambda x: x == "gaussian"))
+    ).set_prop(
+        "display",
+        active=gds.FuncProp(_meth_prop, lambda x: x == WindowingMethod.GAUSSIAN),
+    )
 
 
 @computation_function()
@@ -2241,11 +2235,11 @@ def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
         Result signal object.
     """
     suffix = f"method={p.method}"
-    if p.method == "gaussian":
+    if p.method == WindowingMethod.GAUSSIAN:
         suffix += f", sigma={p.sigma:.3f}"
-    elif p.method == "kaiser":
+    elif p.method == WindowingMethod.KAISER:
         suffix += f", beta={p.beta:.3f}"
-    elif p.method == "tukey":
+    elif p.method == WindowingMethod.TUKEY:
         suffix += f", alpha={p.alpha:.3f}"
     dst = dst_1_to_1(src, "apply_window", suffix)
     assert p.method is not None
