@@ -268,33 +268,40 @@ def test_signal_complex_from_real_imag() -> None:
 @pytest.mark.validation
 def test_signal_phase() -> None:
     """Phase angle validation test."""
-    s1 = __create_two_signals()[0]
-    # Make a complex signal for testing
-    y_complex = s1.y + 1j * s1.y[::-1]
-    s_complex = sigima.objects.create_signal("complex", s1.x, y_complex)
+    # Create a base signal and make it complex for testing
+    base_signal = __create_two_signals()[0]
+    y_complex = base_signal.y + 1j * base_signal.y[::-1]
+    complex_signal = sigima.objects.create_signal("complex", base_signal.x, y_complex)
 
-    # Test output in radians, no unwrapping
-    p_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
-    phase_signal_rad = sigima.proc.signal.phase(s_complex, p_rad)
-    check_array_result("Phase|rad", phase_signal_rad.y, np.angle(y_complex))
-    # Test output in degrees, no unwrapping
-    p_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
-    phase_signal_deg = sigima.proc.signal.phase(s_complex, p_deg)
-    check_array_result("Phase|deg", phase_signal_deg.y, np.angle(y_complex, deg=True))
-    # Test output in radians, with unwrapping
-    p_rad_unwrap = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=True)
-    phase_signal_rad_unwrap = sigima.proc.signal.phase(s_complex, p_rad_unwrap)
+    # Test phase extraction in radians without unwrapping
+    param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
+    result_rad = sigima.proc.signal.phase(complex_signal, param_rad)
+    check_array_result("Phase in radians", result_rad.y, np.angle(y_complex))
+
+    # Test phase extraction in degrees without unwrapping
+    param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
+    result_deg = sigima.proc.signal.phase(complex_signal, param_deg)
+    check_array_result("Phase in degrees", result_deg.y, np.angle(y_complex, deg=True))
+
+    # Test phase extraction in radians with unwrapping
+    param_rad_unwrap = sigima.params.PhaseParam.create(
+        unit=AngleUnit.radian, unwrap=True
+    )
+    result_rad_unwrap = sigima.proc.signal.phase(complex_signal, param_rad_unwrap)
     check_array_result(
-        "Phase|unwrapping|rad",
-        phase_signal_rad_unwrap.y,
+        "Phase in radians with unwrapping",
+        result_rad_unwrap.y,
         np.unwrap(np.angle(y_complex)),
     )
-    # Test output in degrees, with unwrapping
-    p_deg_unwrap = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=True)
-    phase_signal_deg_unwrap = sigima.proc.signal.phase(s_complex, p_deg_unwrap)
+
+    # Test phase extraction in degrees with unwrapping
+    param_deg_unwrap = sigima.params.PhaseParam.create(
+        unit=AngleUnit.degree, unwrap=True
+    )
+    result_deg_unwrap = sigima.proc.signal.phase(complex_signal, param_deg_unwrap)
     check_array_result(
-        "Phase|unwrapping|deg",
-        phase_signal_deg_unwrap.y,
+        "Phase in degrees with unwrapping",
+        result_deg_unwrap.y,
         np.unwrap(np.angle(y_complex, deg=True), period=360.0),
     )
 
