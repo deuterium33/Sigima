@@ -20,18 +20,19 @@ from sigima.config import _
 from sigima.io import read_image, read_signal
 from sigima.objects import (
     GaussParam,
+    GeometryResult,
     ImageDatatypes,
     ImageObj,
     ImageROI,
     ImageTypes,
     NewImageParam,
     NewSignalParam,
-    NormalRandom2DParam,
-    ResultProperties,
-    ResultShape,
+    NormalDistribution2DParam,
+    NormalDistributionParam,
     SignalObj,
     SignalROI,
     SignalTypes,
+    TableResult,
     create_image,
     create_image_from_param,
     create_image_roi,
@@ -39,7 +40,8 @@ from sigima.objects import (
     create_signal_parameters,
     create_signal_roi,
 )
-from sigima.objects.image import UniformRandom2DParam, create_image_parameters
+from sigima.objects.image import UniformDistribution2DParam, create_image_parameters
+from sigima.objects.scalar import KindShape
 from sigima.tests.env import execenv
 from sigima.tests.helpers import get_test_fnames
 
@@ -131,34 +133,8 @@ def create_paracetamol_signal(
     return obj
 
 
-class GaussianNoiseParam(gds.DataSet):
-    """Gaussian noise parameters"""
-
-    mu = gds.FloatItem(
-        _("Mean"),
-        default=0.0,
-        min=-100.0,
-        max=100.0,
-        help=_("Mean of the Gaussian distribution"),
-    )
-    sigma = gds.FloatItem(
-        _("Standard deviation"),
-        default=0.1,
-        min=0.0,
-        max=100.0,
-        help=_("Standard deviation of the Gaussian distribution"),
-    )
-    seed = gds.IntItem(
-        _("Seed"),
-        default=1,
-        min=0,
-        max=1000000,
-        help=_("Seed for random number generator"),
-    )
-
-
 def add_gaussian_noise_to_signal(
-    signal: SignalObj, p: GaussianNoiseParam | None = None
+    signal: SignalObj, p: NormalDistributionParam | None = None
 ) -> None:
     """Add Gaussian (Normal-law) random noise to data
 
@@ -167,14 +143,14 @@ def add_gaussian_noise_to_signal(
         p: Gaussian noise parameters.
     """
     if p is None:
-        p = GaussianNoiseParam()
+        p = NormalDistributionParam()
     rng = np.random.default_rng(p.seed)
     signal.data += rng.normal(p.mu, p.sigma, size=signal.data.shape)
     signal.title = f"GaussNoise({signal.title}, µ={p.mu}, σ={p.sigma})"
 
 
 def create_noisy_signal(
-    noiseparam: GaussianNoiseParam | None = None,
+    noiseparam: NormalDistributionParam | None = None,
     param: NewSignalParam | None = None,
     title: str | None = None,
     noised: bool | None = None,
@@ -201,7 +177,7 @@ def create_noisy_signal(
         param.title = title
     param.title = "Test signal (noisy)" if param.title is None else param.title
     if noised is not None and noised and noiseparam is None:
-        noiseparam = GaussianNoiseParam()
+        noiseparam = NormalDistributionParam()
         noiseparam.sigma = 5.0
     sig = create_signal_from_param(param)
     if noiseparam is not None:
@@ -394,8 +370,8 @@ def get_peak2d_data(
     # Convert coordinates to indices
     coords = []
     for x0, y0 in coords_phys:
-        x = int((x0 + 10) / 20 * p.size)
-        y = int((y0 + 10) / 20 * p.size)
+        x = (x0 + 10) / 20 * p.size
+        y = (y0 + 10) / 20 * p.size
         if 0 <= x < p.size and 0 <= y < p.size:
             coords.append((x, y))
     return data, np.array(coords)
@@ -552,11 +528,11 @@ def __iterate_image_datatypes(
         )
         if itype == ImageTypes.RAMP and idtype is not ImageDatatypes.FLOAT64:
             continue  # Testing only float64 for ramp
-        if itype == ImageTypes.UNIFORMRANDOM:
-            assert isinstance(param, UniformRandom2DParam)
+        if itype == ImageTypes.UNIFORM_DISTRIBUTION:
+            assert isinstance(param, UniformDistribution2DParam)
             param.set_from_datatype(idtype.value)
-        elif itype == ImageTypes.NORMALRANDOM:
-            assert isinstance(param, NormalRandom2DParam)
+        elif itype == ImageTypes.NORMAL_DISTRIBUTION:
+            assert isinstance(param, NormalDistribution2DParam)
             param.set_from_datatype(idtype.value)
         if preproc is not None:
             preproc(param)
@@ -592,10 +568,7 @@ def iterate_image_creation(
             f"(size={size}, non_zero={non_zero}):"
         )
     for itype in ImageTypes:
-        if non_zero and itype in (
-            ImageTypes.EMPTY,
-            ImageTypes.ZEROS,
-        ):
+        if non_zero and itype == ImageTypes.ZEROS:
             continue
         if verbose:
             execenv.print(f"    {itype.value}")
@@ -619,20 +592,6 @@ def __set_default_size_dtype(
     p.width = 2000 if p.width is None else p.width
     p.dtype = ImageDatatypes.UINT16 if p.dtype is None else p.dtype
     return p
-
-
-def add_gaussian_noise_to_image(image: ImageObj, param: NormalRandom2DParam) -> None:
-    """Add Gaussian noise to image
-
-    Args:
-        src: Source image
-        param: Parameters for the normal distribution
-    """
-    param.height = image.data.shape[0]
-    param.width = image.data.shape[1]
-    param.dtype = ImageDatatypes.from_dtype(image.data.dtype)
-    noise = create_image_from_param(param)
-    image.data = image.data + noise.data
 
 
 def create_checkerboard(p: NewImageParam | None = None, num_checkers=8) -> ImageObj:
@@ -1006,37 +965,37 @@ def create_test_image_with_metadata() -> ImageObj:
     return image
 
 
-def create_resultshapes() -> Generator[ResultShape, None, None]:
-    """Create test result shapes (core.base.ResultShape test objects)
+def generate_geometry_results() -> Generator[GeometryResult, None, None]:
+    """Create test geometry results.
 
     Yields:
-        ResultShape object
+        GeometryResult object
     """
-    for shape, data in (
-        ("circle", [[0, 250, 250, 200], [0, 250, 250, 140]]),
-        ("rectangle", [0, 300, 200, 700, 700]),
-        ("segment", [0, 50, 250, 400, 400]),
-        ("point", [[0, 500, 500], [0, 15, 400]]),
+    for index, (shape, coords) in enumerate(
         (
-            "polygon",
-            [0, 100, 100, 150, 100, 150, 150, 200, 100, 250, 50],
-        ),
+            (KindShape.CIRCLE, [[250, 250, 200]]),
+            (KindShape.RECTANGLE, [[300, 200, 150, 250]]),
+            (KindShape.SEGMENT, [[50, 250, 400, 400]]),
+            (KindShape.POINT, [[500, 500]]),
+            (
+                KindShape.POLYGON,
+                [[100, 100, 150, 100, 150, 150, 200, 100, 250, 50]],
+            ),
+        )
     ):
-        yield ResultShape(shape, data, shape, add_label=shape == "segment")
+        yield GeometryResult(f"GeomResult{index}", shape, coords=np.asarray(coords))
 
 
-def create_resultproperties() -> Generator[ResultProperties, None, None]:
-    """Create test result properties (core.base.ResultProperties test object)
+def generate_table_results() -> Generator[TableResult, None, None]:
+    """Create test table results.
 
     Yields:
-        ResultProperties object
+        TableResult object
     """
-    for title, data, labels in (
-        ("TestProperties1", [-1, 2.5, -30909, 1.0, 0.0], ["A", "B", "C", "D"]),
+    for index, (names, data) in enumerate(
         (
-            "TestProperties2",
-            [[-1, 1.232325, -9, 0, 10], [-1, 250, -3, 12.0, 530.0]],
-            ["P1", "P2", "P3", "P4"],
-        ),
+            (["A", "B", "C", "D"], [[-1, 2.5, -30909, 1.0]]),
+            (["P1", "P2", "P3", "P4"], [[-1, 1.232325, -9, 0]]),
+        )
     ):
-        yield ResultProperties(title, data, labels)
+        yield TableResult(f"TestProperties{index}", names, data=np.asarray(data))

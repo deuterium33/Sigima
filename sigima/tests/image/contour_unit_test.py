@@ -12,6 +12,7 @@ import time
 
 import pytest
 
+from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
 from sigima.tools import coordinates
@@ -58,10 +59,7 @@ def find_contours(data):
 def test_contour_interactive():
     """2D peak detection test"""
     data, _coords = get_peak2d_data()
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         find_contours(data)
 
 

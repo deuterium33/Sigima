@@ -5,39 +5,43 @@ Model classes for signals and images (:mod:`sigima.objects`)
 ------------------------------------------------------------
 
 The :mod:`sigima.objects` module aims at providing all the necessary classes and
-functions to create and manipulate Sigima signal and image objects.
+functions to create and manipulate Sigima scalar, signal and image objects.
 
 Those classes and functions are defined in submodules:
 
 - :mod:`sigima.objects.base`
+- :mod:`sigima.objects.scalar`
 - :mod:`sigima.objects.image`
 - :mod:`sigima.objects.signal`
 
 .. code-block:: python
 
     # Full import statement
+    from sigima.objects.scalar import GeometryResult, TableResult
     from sigima.objects.signal import SignalObj
     from sigima.objects.image import ImageObj
 
     # Short import statement
-    from sigima.objects import SignalObj, ImageObj
+    from sigima.objects import SignalObj, ImageObj, GeometryResult, TableResult
 
-Common objects
+In Sigima, computation functions take signal or image objects as input and produce
+signal, image or scalar objects as output. Scalar objects are represented by the
+`GeometryResult` and `TableResult` classes.
+
+.. note::
+
+    The scalar results are not rigorously scalar as they can also represent vector of
+    coordinates for example, but the name 'scalar' is retained for simplicity and by
+    opposition to the more general 'signal' and 'image' terms).
+
+Scalar results
 ^^^^^^^^^^^^^^
 
-.. autoclass:: sigima.objects.ResultProperties
-    :members:
-.. autoclass:: sigima.objects.ResultShape
-    :members:
-.. autoclass:: sigima.objects.ShapeTypes
-    :members:
-.. autoclass:: sigima.objects.TypeObj
-.. autoclass:: sigima.objects.TypeROI
-.. autoclass:: sigima.objects.TypeROIParam
-.. autoclass:: sigima.objects.TypeSingleROI
+.. autoclass:: sigima.objects.GeometryResult
+.. autoclass:: sigima.objects.TableResult
 
-Signal model
-^^^^^^^^^^^^
+Signals
+^^^^^^^
 
 .. autodataset:: sigima.objects.SignalObj
     :members:
@@ -49,8 +53,9 @@ Signal model
 .. autoclass:: sigima.objects.SignalTypes
 .. autoclass:: sigima.objects.NewSignalParam
 .. autodataset:: sigima.objects.ZerosParam
-.. autodataset:: sigima.objects.UniformRandomParam
-.. autodataset:: sigima.objects.NormalRandomParam
+.. autodataset:: sigima.objects.UniformDistribution1DParam
+.. autodataset:: sigima.objects.NormalDistribution1DParam
+.. autodataset:: sigima.objects.PoissonDistribution1DParam
 .. autodataset:: sigima.objects.GaussParam
 .. autodataset:: sigima.objects.LorentzParam
 .. autodataset:: sigima.objects.VoigtParam
@@ -68,8 +73,8 @@ Signal model
 .. autodataset:: sigima.objects.ROI1DParam
 .. autoclass:: sigima.objects.SignalROI
 
-Image model
-^^^^^^^^^^^
+Images
+^^^^^^
 
 .. autodataset:: sigima.objects.ImageObj
     :members:
@@ -81,9 +86,9 @@ Image model
 .. autoclass:: sigima.objects.ImageTypes
 .. autoclass:: sigima.objects.NewImageParam
 .. autodataset:: sigima.objects.Zeros2DParam
-.. autodataset:: sigima.objects.Empty2DParam
-.. autodataset:: sigima.objects.UniformRandom2DParam
-.. autodataset:: sigima.objects.NormalRandom2DParam
+.. autodataset:: sigima.objects.UniformDistribution2DParam
+.. autodataset:: sigima.objects.NormalDistribution2DParam
+.. autodataset:: sigima.objects.PoissonDistribution2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
 .. autodataset:: sigima.objects.Ramp2DParam
 .. autodataset:: sigima.objects.ROI2DParam
@@ -91,38 +96,117 @@ Image model
 .. autoclass:: sigima.objects.ImageDatatypes
 """
 
-# pylint:disable=unused-import
-# flake8: noqa
+__all__ = [
+    "NormalDistributionParam",
+    "PoissonDistributionParam",
+    "UniformDistributionParam",
+    "TypeObj",
+    "TypeROI",
+    "TypeROIParam",
+    "TypeSingleROI",
+    "CircularROI",
+    "Gauss2DParam",
+    "ImageDatatypes",
+    "ImageObj",
+    "ImageROI",
+    "ImageTypes",
+    "NewImageParam",
+    "NormalDistribution2DParam",
+    "PoissonDistribution2DParam",
+    "PolygonalROI",
+    "Ramp2DParam",
+    "RectangularROI",
+    "ROI2DParam",
+    "UniformDistribution2DParam",
+    "Zeros2DParam",
+    "create_image",
+    "create_image_from_param",
+    "create_image_parameters",
+    "create_image_roi",
+    "NO_ROI",
+    "GeometryResult",
+    "KindShape",
+    "TableResult",
+    "TableResultBuilder",
+    "calc_table_from_data",
+    "concat_geometries",
+    "concat_tables",
+    "filter_geometry_by_roi",
+    "filter_table_by_roi",
+    "CosinusParam",
+    "CustomSignalParam",
+    "ExponentialParam",
+    "GaussParam",
+    "LinearChirpParam",
+    "LogisticParam",
+    "LorentzParam",
+    "NewSignalParam",
+    "NormalDistribution1DParam",
+    "PoissonDistribution1DParam",
+    "PlanckParam",
+    "PolyParam",
+    "PulseParam",
+    "ROI1DParam",
+    "SawtoothParam",
+    "SegmentROI",
+    "SignalObj",
+    "SignalROI",
+    "SignalTypes",
+    "SincParam",
+    "SinusParam",
+    "SquareParam",
+    "StepParam",
+    "TriangleParam",
+    "UniformDistribution1DParam",
+    "VoigtParam",
+    "ZerosParam",
+    "create_signal",
+    "create_signal_from_param",
+    "create_signal_parameters",
+    "create_signal_roi",
+]
 
 from sigima.objects.base import (
-    ResultProperties,
-    ResultShape,
-    ShapeTypes,
+    NormalDistributionParam,
+    PoissonDistributionParam,
     TypeObj,
     TypeROI,
     TypeROIParam,
     TypeSingleROI,
+    UniformDistributionParam,
 )
 from sigima.objects.image import (
     CircularROI,
-    Empty2DParam,
     Gauss2DParam,
     ImageDatatypes,
     ImageObj,
     ImageROI,
     ImageTypes,
     NewImageParam,
-    NormalRandom2DParam,
+    NormalDistribution2DParam,
+    PoissonDistribution2DParam,
     PolygonalROI,
     Ramp2DParam,
     RectangularROI,
     ROI2DParam,
-    UniformRandom2DParam,
+    UniformDistribution2DParam,
     Zeros2DParam,
     create_image,
     create_image_from_param,
     create_image_parameters,
     create_image_roi,
+)
+from sigima.objects.scalar import (
+    NO_ROI,
+    GeometryResult,
+    KindShape,
+    TableResult,
+    TableResultBuilder,
+    calc_table_from_data,
+    concat_geometries,
+    concat_tables,
+    filter_geometry_by_roi,
+    filter_table_by_roi,
 )
 from sigima.objects.signal import (
     CosinusParam,
@@ -133,8 +217,9 @@ from sigima.objects.signal import (
     LogisticParam,
     LorentzParam,
     NewSignalParam,
-    NormalRandomParam,
+    NormalDistribution1DParam,
     PlanckParam,
+    PoissonDistribution1DParam,
     PolyParam,
     PulseParam,
     ROI1DParam,
@@ -148,7 +233,7 @@ from sigima.objects.signal import (
     SquareParam,
     StepParam,
     TriangleParam,
-    UniformRandomParam,
+    UniformDistribution1DParam,
     VoigtParam,
     ZerosParam,
     create_signal,

@@ -15,22 +15,22 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.tests import guiutils
 from sigima.tests.data import create_noisy_gaussian_image
 
 
 @pytest.mark.gui
 def test_image_offset_correction_interactive() -> None:
     """Image offset correction interactive test."""
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-    from plotpy.builder import make
-    from plotpy.items import RectangleShape
-    from plotpy.tools import RectangleTool
-    from plotpy.widgets.selectdialog import SelectDialog, select_with_shape_tool
+    with guiutils.lazy_qt_app_context(force=True):
+        # pylint: disable=import-outside-toplevel
+        from plotpy.builder import make
+        from plotpy.items import RectangleShape
+        from plotpy.tools import RectangleTool
+        from plotpy.widgets.selectdialog import SelectDialog, select_with_shape_tool
 
-    from sigima.tests import vistools
+        from sigima.tests import vistools
 
-    with qt_app_context():
         i1 = create_noisy_gaussian_image()
         shape: RectangleShape = select_with_shape_tool(
             None,

@@ -17,7 +17,7 @@ import warnings
 from collections.abc import Callable
 from enum import Enum
 from math import ceil, log2
-from typing import Any, Literal
+from typing import Any
 
 import guidata.dataset as gds
 import numpy as np
@@ -25,9 +25,20 @@ import scipy.integrate as spt
 import scipy.ndimage as spi
 import scipy.signal as sps
 
-from sigima.config import _, options
-from sigima.objects.base import ResultProperties, ResultShape
-from sigima.objects.signal import ROI1DParam, SignalObj
+from sigima.config import _
+from sigima.objects import (
+    NO_ROI,
+    GeometryResult,
+    KindShape,
+    NormalDistribution1DParam,
+    PoissonDistributionParam,
+    ROI1DParam,
+    SignalObj,
+    TableResult,
+    TableResultBuilder,
+    UniformDistribution1DParam,
+    create_signal_from_param,
+)
 from sigima.proc.base import (
     ArithmeticParam,
     ClipParam,
@@ -39,13 +50,13 @@ from sigima.proc.base import (
     MovingMedianParam,
     NormalizeParam,
     SpectrumParam,
-    calc_resultproperties,
     dst_1_to_1,
     dst_2_to_1,
     dst_n_to_1,
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import MathOperator, PadLocation, PowerUnit
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -75,7 +86,7 @@ __all__ = [
     "division",
     "extract_rois",
     "extract_roi",
-    "swap_axes",
+    "transpose",
     "inverse",
     "absolute",
     "real",
@@ -139,7 +150,7 @@ __all__ = [
     "hadamard_variance",
     "total_variance",
     "time_deviation",
-    "calc_resultshape",
+    "compute_geometry_from_obj",
     "FWHMParam",
     "fwhm",
     "fw1e2",
@@ -155,6 +166,9 @@ __all__ = [
     "sampling_rate_period",
     "contrast",
     "x_at_minmax",
+    "add_gaussian_noise",
+    "add_poisson_noise",
+    "add_uniform_noise",
 ]
 
 
@@ -177,6 +191,23 @@ def restore_data_outside_roi(dst: SignalObj, src: SignalObj) -> None:
             and dst.xydata.shape == src.xydata.shape
         ):
             dst.xydata[src.maskdata] = src.xydata[src.maskdata]
+
+
+def is_uncertainty_data_available(signals: SignalObj | list[SignalObj]) -> bool:
+    """Check if all signals have uncertainty data.
+
+    This functions is used to determine whether enough information is available to
+    propagate uncertainty.
+
+    Args:
+        signals: Signal object or list of signal objects.
+
+    Returns:
+        True if all signals have uncertainty data, False otherwise.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return all(sig.dy is not None for sig in signals)
 
 
 class Wrap1to1Func:
@@ -208,13 +239,18 @@ class Wrap1to1Func:
         func: 1 array → 1 array function
         *args: Additional positional arguments to pass to the function
         **kwargs: Additional keyword arguments to pass to the function
+
+    .. note::
+
+        If `func_name` is provided in the keyword arguments, it will be used as the
+        function name instead of the default name derived from the function itself.
     """
 
     def __init__(self, func: Callable, *args: Any, **kwargs: Any) -> None:
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.__name__ = func.__name__
+        self.__name__ = self.kwargs.pop("func_name", func.__name__)
         self.__doc__ = func.__doc__
         self.__call__.__func__.__doc__ = self.func.__doc__
 
@@ -231,9 +267,36 @@ class Wrap1to1Func:
             [str(arg) for arg in self.args]
             + [f"{k}={v}" for k, v in self.kwargs.items() if v is not None]
         )
-        dst = dst_1_to_1(src, self.func.__name__, suffix)
+        dst = dst_1_to_1(src, self.__name__, suffix)
         x, y = src.get_data()
         dst.set_xydata(x, self.func(y, *self.args, **self.kwargs))
+
+        # Uncertainty propagation for common mathematical functions
+        if is_uncertainty_data_available(src):
+            if self.func == np.sqrt:
+                # σ(√y) = σ(y) / (2√y)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    dst.dy = src.dy / (2 * np.sqrt(src.y))
+                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+            elif self.func == np.log10:
+                # σ(log₁₀(y)) = σ(y) / (y * ln(10))
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    dst.dy = src.dy / (src.y * np.log(10))
+                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+            elif self.func == np.exp:
+                # σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
+                dst.dy = np.abs(dst.y) * src.dy
+            elif self.func == np.clip:
+                # σ(clip(y)) = σ(y) where not clipped, 0 where clipped
+                a_min = self.kwargs.get("a_min", None)
+                a_max = self.kwargs.get("a_max", None)
+                if a_min is not None:
+                    dst.dy[src.y <= a_min] = 0
+                if a_max is not None:
+                    dst.dy[src.y >= a_max] = 0
+            # For absolute, real, imag: uncertainties unchanged (copied by dst_1_to_1)
         restore_data_outside_roi(dst, src)
         return dst
 
@@ -250,75 +313,199 @@ class Wrap1to1Func:
 # the modified object from the worker processes.
 
 
-@computation_function()
-def addition(src_list: list[SignalObj]) -> SignalObj:
-    """Add **src** signals and return a new result signal object
+def signals_to_array(
+    signals: list[SignalObj], attr: str = "y", dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals.
 
     Args:
-        src_list: list of source signals
+        signals: List of signal objects.
+        attr: Name of the attribute to extract ("y", "dy", etc.). Defaults to "y".
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        A NumPy array stacking the specified attribute from all signals.
+
+    Raises:
+        ValueError: If the signals list is empty.
     """
-    dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y += np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = np.sqrt(dst.dy**2 + src.dy**2)
+    if not signals:
+        raise ValueError("The signal list is empty.")
+    if dtype is None:
+        dtype = getattr(signals[0], attr).dtype
+    arr = np.array([getattr(sig, attr) for sig in signals], dtype=dtype)
+    return arr
+
+
+def signals_y_to_array(
+    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `y` attribute.
+
+    Args:
+        signals: List of signal objects.
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
+
+    Returns:
+        A NumPy array stacking the `y` attribute from all signals.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return signals_to_array(signals, attr="y", dtype=dtype)
+
+
+def signals_dy_to_array(
+    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
+) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `dy` attribute.
+
+    Args:
+        signals: List of signal objects.
+        dtype: Desired type for the output array. If None, use the first signal's dtype.
+
+    Returns:
+        A NumPy array stacking the `dy` attribute from all signals.
+    """
+    if isinstance(signals, SignalObj):
+        signals = [signals]
+    return signals_to_array(signals, attr="dy", dtype=dtype)
+
+
+@computation_function()
+def addition(src_list: list[SignalObj]) -> SignalObj:
+    """Compute the element-wise sum of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are added
+    element-wise to the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the sum is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source signals.
+
+    Returns:
+        Signal object representing the sum of the source signals.
+    """
+    dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.sum(signals_y_to_array(src_list), axis=0)
+    if is_uncertainty_data_available(src_list):
+        dst.dy = np.sqrt(np.sum(signals_dy_to_array(src_list) ** 2, axis=0))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
 
 @computation_function()
 def average(src_list: list[SignalObj]) -> SignalObj:
-    """Average **src** signals and return a new result signal object
+    """Compute the element-wise average of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are
+    averaged element-wise with the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the average is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source signals.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Signal object representing the average of the source signals.
     """
-    dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y += np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = np.sqrt(dst.dy**2 + src.dy**2)
-    dst.y /= len(src_list)
+    dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.mean(signals_y_to_array(src_list), axis=0)
+    if is_uncertainty_data_available(src_list):
+        dy_array = signals_dy_to_array(src_list)
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
 
 @computation_function()
 def product(src_list: list[SignalObj]) -> SignalObj:
-    """Multiply **dst** by **src** signals and return a new result signal object
+    """Compute the element-wise product of multiple signals.
+
+    The first signal in the list defines the "base" signal. All other signals are
+    multiplied element-wise with the base signal.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the product is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
 
     Args:
-        src_list: list of source signals
+        src_list: List of source signals.
 
     Returns:
-        Modified **dst** signal (modified in place)
+        Signal object representing the product of the source signals.
     """
-    dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data
-    for src in src_list[1:]:
-        dst.y *= np.array(src.y, dtype=dst.y.dtype)
-        if dst.dy is not None:
-            dst.dy = dst.y * np.sqrt((dst.dy / dst.y) ** 2 + (src.dy / src.y) ** 2)
+    dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data.
+    y_array = signals_y_to_array(src_list)
+    dst.y = np.prod(y_array, axis=0)
+    if is_uncertainty_data_available(src_list):
+        dy_array = signals_dy_to_array(src_list)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            uncertainty = np.abs(dst.y) * np.sqrt(
+                np.sum((dy_array / y_array) ** 2, axis=0)
+            )
+            uncertainty[np.isinf(uncertainty)] = np.nan
+            dst.dy = uncertainty
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
 
 @computation_function()
 def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Add **dst** and a constant value and return a the new result signal object
+    """Compute the sum of a signal and a constant value.
+
+    The function adds a constant value to each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the addition is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** + **p.value** (new object)
+        Result signal object representing the sum of the input signal and the constant.
     """
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For addition with constant: σ(y + c) = σ(y), so no modification needed.
     dst = dst_1_to_1(src, "+", str(p.value))
     dst.y += p.value
     restore_data_outside_roi(dst, src)
@@ -327,15 +514,29 @@ def addition_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 @computation_function()
 def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Subtract a constant value from a signal
+    """Compute the difference between a signal and a constant value.
+
+    The function subtracts a constant value from each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the subtraction is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** - **p.value** (new object)
+        Result signal object representing the difference between the input signal and
+        the constant.
     """
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For subtraction with constant: σ(y - c) = σ(y), so no modification needed.
     dst = dst_1_to_1(src, "-", str(p.value))
     dst.y -= p.value
     restore_data_outside_roi(dst, src)
@@ -344,75 +545,121 @@ def difference_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
 
 @computation_function()
 def product_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Multiply **dst** by a constant value and return the new result signal object
+    """Compute the product of a signal and a constant value.
+
+    The function multiplies each element of the input signal by a constant value.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the multiplication is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** * **p.value** (new object)
+        Result signal object representing the product of the input signal and the
+        constant.
     """
+    assert p.value is not None
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For multiplication with constant: σ(c*y) = |c| * σ(y), so modification needed.
     dst = dst_1_to_1(src, "×", str(p.value))
     dst.y *= p.value
+    if is_uncertainty_data_available(src):
+        dst.dy *= np.abs(p.value)  # Modify in-place since dy already copied from src
     restore_data_outside_roi(dst, src)
     return dst
 
 
 @computation_function()
 def division_constant(src: SignalObj, p: ConstantParam) -> SignalObj:
-    """Divide a signal by a constant value
+    """Compute the division of a signal by a constant value.
+
+    The function divides each element of the input signal by a constant value.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the division is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: input signal object
-        p: constant value
+        src: Input signal object.
+        p: Constant value.
 
     Returns:
-        Result signal object **src** / **p.value** (new object)
+        Result signal object representing the division of the input signal by the
+        constant.
     """
+    assert p.value is not None
+    # Uncertainty propagation: dst_1_to_1() copies all data including uncertainties.
+    # For division with constant: σ(y/c) = σ(y) / |c|, so modification needed.
     dst = dst_1_to_1(src, "/", str(p.value))
-    dst.y /= p.value
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        dst.y /= p.value
+        dst.y[np.isinf(dst.y)] = np.nan
+        if is_uncertainty_data_available(src):
+            dst.dy /= np.abs(p.value)  # Modify in-place since dy already copied
+            dst.dy[np.isinf(dst.dy)] = np.nan
     restore_data_outside_roi(dst, src)
     return dst
 
 
 # MARK: 2_to_1 functions -------------------------------------------------------
-# Functions with N input images + 1 input image and N output images
+# Functions with N input signals + 1 input signal and N output signals
 # --------------------------------------------------------------------------------------
 
 
 @computation_function()
 def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalObj:
-    """Perform arithmetic operation on two signals
+    """Perform an arithmetic operation on two signals.
+
+    The function applies the specified arithmetic operation to each element of the input
+    signals.
+
+    .. note::
+
+        The operation is performed only within the region of interest of `src1`.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
-        p: parameters
+        src1: First input signal.
+        src2: Second input signal.
+        p: Arithmetic operation parameters.
 
     Returns:
-        Result signal object
+        Result signal object representing the arithmetic operation on the input signals.
     """
     initial_dtype = src1.xydata.dtype
     title = p.operation.replace("obj1", "{0}").replace("obj2", "{1}")
     dst = src1.copy(title=title)
-    if not options.keep_results.get():
-        dst.delete_results()  # Remove any previous results
-    o, a, b = p.operator, p.factor, p.constant
-    if o in ("×", "/") and a == 0.0:
-        dst.y = np.ones_like(src1.y) * b
-    elif p.operator == "+":
-        dst.y = (src1.y + src2.y) * a + b
-    elif p.operator == "-":
-        dst.y = (src1.y - src2.y) * a + b
-    elif p.operator == "×":
-        dst.y = (src1.y * src2.y) * a + b
-    elif p.operator == "/":
-        dst.y = (src1.y / src2.y) * a + b
-    if dst.dy is not None and p.operator in ("+", "-"):
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
-    if dst.dy is not None:
-        dst.dy *= p.factor
+    a = ConstantParam.create(value=p.factor)
+    b = ConstantParam.create(value=p.constant)
+    if p.operator is MathOperator.ADD:
+        dst = addition_constant(product_constant(addition([src1, src2]), a), b)
+    elif p.operator is MathOperator.SUBTRACT:
+        dst = addition_constant(product_constant(difference(src1, src2), a), b)
+    elif p.operator is MathOperator.MULTIPLY:
+        dst = addition_constant(product_constant(product([src1, src2]), a), b)
+    elif p.operator is MathOperator.DIVIDE:
+        dst = addition_constant(product_constant(division(src1, src2), a), b)
     # Eventually convert to initial data type
     if p.restore_dtype:
         dst.xydata = dst.xydata.astype(initial_dtype)
@@ -422,72 +669,102 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
 
 @computation_function()
 def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute difference between two signals
+    """Compute the element-wise difference between two signals.
+
+    The function subtracts each element of the second signal from the corresponding
+    element of the first signal.
 
     .. note::
 
-        If uncertainty is available, it is propagated.
+        If both signals share the same region of interest (ROI), the difference is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object **src1** - **src2**
+        Result signal object representing the difference between the input signals.
     """
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
-    if dst.dy is not None:
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
+    if is_uncertainty_data_available([src1, src2]):
+        dy_array = signals_dy_to_array([src1, src2])
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0))
     restore_data_outside_roi(dst, src1)
     return dst
 
 
 @computation_function()
 def quadratic_difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute quadratic difference between two signals
+    """Compute the normalized difference between two signals.
+
+    The function computes the element-wise difference between the two signals and
+    divides the result by sqrt(2.0).
 
     .. note::
 
-        If uncertainty is available, it is propagated.
+        If both signals share the same region of interest (ROI), the operation is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated. For two input signals with identical standard
+        deviations, the standard deviation of the output signal equals the standard
+        deviation of each of the input signals.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object (**src1** - **src2**) / sqrt(2.0)
+        Result signal object representing the quadratic difference between the input
+        signals.
     """
-    dst = dst_2_to_1(src1, src2, "quadratic_difference")
-    x1, y1 = src1.get_data()
-    _x2, y2 = src2.get_data()
-    dst.set_xydata(x1, (y1 - np.array(y2, dtype=y1.dtype)) / np.sqrt(2.0))
-    if np.issubdtype(dst.data.dtype, np.unsignedinteger):
-        dst.data[src1.data < src2.data] = 0
-    if dst.dy is not None:
-        dst.dy = np.sqrt(src1.dy**2 + src2.dy**2)
-    restore_data_outside_roi(dst, src1)
-    return dst
+    norm = ConstantParam.create(value=1.0 / np.sqrt(2.0))
+    return product_constant(difference(src1, src2), norm)
 
 
 @computation_function()
 def division(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute division between two signals
+    """Compute the element-wise division between two signals.
+
+    The function divides each element of the first signal by the corresponding element
+    of the second signal.
+
+    .. note::
+
+        If both signals share the same region of interest (ROI), the division is
+        performed only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
+
+    .. warning::
+
+        It is assumed that both signals have the same size and x-coordinates.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: First input signal.
+        src2: Second input signal.
 
     Returns:
-        Result signal object **src1** / **src2**
+        Result signal object representing the division of the input signals.
     """
-    dst = dst_2_to_1(src1, src2, "/")
-    x1, y1 = src1.get_data()
-    _x2, y2 = src2.get_data()
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        dst.set_xydata(x1, y1 / np.array(y2, dtype=y1.dtype))
-    restore_data_outside_roi(dst, src1)
+    dst = product([src1, inverse(src2)])
     return dst
 
 
@@ -520,8 +797,6 @@ def extract_rois(src: SignalObj, params: list[ROI1DParam]) -> SignalObj:
         xout[slice0], yout[slice0] = x[slice0], y[slice0]
     nans = np.isnan(xout) | np.isnan(yout)
     dst.set_xydata(xout[~nans], yout[~nans])
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
@@ -539,14 +814,12 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
     dst = dst_1_to_1(src, "extract_roi", f"{p.xmin:.3g}≤x≤{p.xmax:.3g}")
     x, y = p.get_data(src).copy()
     dst.set_xydata(x, y)
-    # TODO: [P2] Instead of removing geometric shapes, apply roi extract
-    dst.remove_all_shapes()
     return dst
 
 
 @computation_function()
-def swap_axes(src: SignalObj) -> SignalObj:
-    """Swap axes
+def transpose(src: SignalObj) -> SignalObj:
+    """Transpose signal (swap X and Y axes)
 
     Args:
         src: source signal
@@ -554,7 +827,7 @@ def swap_axes(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    dst = dst_1_to_1(src, "swap_axes")
+    dst = dst_1_to_1(src, "transpose")
     x, y = src.get_data()
     dst.set_xydata(y, x)
     return dst
@@ -562,13 +835,24 @@ def swap_axes(src: SignalObj) -> SignalObj:
 
 @computation_function()
 def inverse(src: SignalObj) -> SignalObj:
-    """Compute inverse with :py:data:`numpy.invert`
+    """Compute the element-wise inverse of a signal.
+
+    The function computes the reciprocal (1/y) of each element of the input signal.
+
+    .. note::
+
+        If the signal has a region of interest (ROI), the inverse is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are propagated.
 
     Args:
-        src: source signal
+        src: Input signal object.
 
     Returns:
-        Result signal object
+        Result signal object representing the inverse of the input signal.
     """
     dst = dst_1_to_1(src, "invert")
     x, y = src.get_data()
@@ -576,9 +860,10 @@ def inverse(src: SignalObj) -> SignalObj:
         warnings.simplefilter("ignore", category=RuntimeWarning)
         dst.set_xydata(x, np.reciprocal(y))
         dst.y[np.isinf(dst.y)] = np.nan
-    if dst.dy is not None:
-        dst.dy = dst.y * src.dy / (src.y**2)
-        dst.dy[np.isinf(dst.dy)] = np.nan
+        if is_uncertainty_data_available(src):
+            err = np.abs(dst.y) * (src.dy / np.abs(src.y))
+            err[np.isinf(err)] = np.nan
+            dst.dy = err
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -706,6 +991,14 @@ def power(src: SignalObj, p: PowerParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "^", str(p.power))
     dst.y = np.power(src.y, p.power)
+
+    # Uncertainty propagation: σ(y^n) = |n * y^(n-1)| * σ(y)
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            dst.dy *= np.abs(p.power * np.power(src.y, p.power - 1))
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -756,7 +1049,32 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
     """
     dst = dst_1_to_1(src, "normalize", f"ref={p.method}")
     x, y = src.get_data()
-    dst.set_xydata(x, scaling.normalize(y, p.method))
+    normalized_y = scaling.normalize(y, p.method)
+    dst.set_xydata(x, normalized_y)
+
+    # Uncertainty propagation for normalization
+    # σ(y/norm_factor) = σ(y) / norm_factor
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            # Calculate normalization factor
+            if p.method == "maximum":
+                norm_factor = np.max(y)
+            elif p.method == "minimum":
+                norm_factor = np.min(y)
+            elif p.method == "amplitude":
+                norm_factor = np.max(y) - np.min(y)
+            else:  # mean, rms, etc.
+                if p.method == "mean":
+                    norm_factor = np.mean(y)
+                else:
+                    norm_factor = np.sqrt(np.mean(y**2))
+
+            if norm_factor != 0:
+                dst.dy /= np.abs(norm_factor)
+            else:
+                dst.dy[:] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -774,6 +1092,16 @@ def derivative(src: SignalObj) -> SignalObj:
     dst = dst_1_to_1(src, "derivative")
     x, y = src.get_data()
     dst.set_xydata(x, np.gradient(y, x))
+
+    # Uncertainty propagation for numerical derivative
+    # For gradient using finite differences: σ(dy/dx) ≈ σ(y) / Δx
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            # Use the same gradient approach as numpy.gradient for uncertainty
+            dst.dy = np.gradient(src.dy, x)
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -791,6 +1119,18 @@ def integral(src: SignalObj) -> SignalObj:
     dst = dst_1_to_1(src, "integral")
     x, y = src.get_data()
     dst.set_xydata(x, spt.cumulative_trapezoid(y, x, initial=0.0))
+
+    # Uncertainty propagation for numerical integration
+    # For cumulative trapezoidal integration, uncertainties accumulate
+    if is_uncertainty_data_available(src):
+        # Propagate uncertainties through cumulative trapezoidal rule
+        # σ(∫y dx) ≈ √(Σ(σ(y_i) * Δx_i)²) for independent measurements
+        dx = np.diff(x)
+        dy_squared = src.dy[:-1] ** 2 + src.dy[1:] ** 2  # Trapezoidal rule uncertainty
+        # Propagated variance for trapezoidal integration
+        dst.dy[0] = 0.0  # Initial value has no uncertainty
+        dst.dy[1:] = np.sqrt(np.cumsum(dy_squared * (dx**2) / 4))
+
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -819,8 +1159,15 @@ def calibration(src: SignalObj, p: XYCalibrateParam) -> SignalObj:
     x, y = src.get_data()
     if p.axis == "x":
         dst.set_xydata(p.a * x + p.b, y)
+        # For X-axis calibration: uncertainties in x are scaled, y unchanged
+        if is_uncertainty_data_available(src):
+            dst.dx = np.abs(p.a) * src.dx if src.dx is not None else None
+            # Y uncertainties remain the same
     else:
         dst.set_xydata(x, p.a * y + p.b)
+        # For Y-axis calibration: σ(a*y + b) = |a| * σ(y)
+        if is_uncertainty_data_available(src):
+            dst.dy *= np.abs(p.a)
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -883,7 +1230,9 @@ def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(
+        spi.uniform_filter, size=p.n, mode=p.mode.value, func_name="moving_average"
+    )(src)
 
 
 @computation_function()
@@ -897,7 +1246,9 @@ def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(
+        spi.median_filter, size=p.n, mode=p.mode.value, func_name="moving_median"
+    )(src)
 
 
 @computation_function()
@@ -911,6 +1262,69 @@ def wiener(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(sps.wiener)(src)
+
+
+@computation_function()
+def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalObj:
+    """Add normal noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = NormalDistribution1DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_gaussian_noise", f"µ={p.mu}, σ={p.sigma}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
+    """Add Poisson noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = PoissonDistributionParam.create(seed=p.seed, lam=p.lam)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_poisson_noise", f"λ={p.lam}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
+
+
+@computation_function()
+def add_uniform_noise(src: SignalObj, p: UniformDistribution1DParam) -> SignalObj:
+    """Add uniform noise to the input signal.
+
+    Args:
+        src: Source signal.
+        p: Parameters.
+
+    Returns:
+        Result signal object.
+    """
+    param = UniformDistribution1DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param.xmin = src.x[0]
+    param.xmax = src.x[-1]
+    param.size = src.x.size
+    noise = create_signal_from_param(param)
+    dst = dst_1_to_1(src, "add_uniform_noise", f"low={p.vmin}, high={p.vmax}")
+    dst.xydata = addition([src, noise]).xydata
+    return dst
 
 
 class FilterType(Enum):
@@ -927,6 +1341,7 @@ class BaseHighLowBandParam(gds.DataSet):
 
     methods = (
         ("bessel", _("Bessel")),
+        ("brickwall", _("Brick wall")),
         ("butter", _("Butterworth")),
         ("cheby1", _("Chebyshev type 1")),
         ("cheby2", _("Chebyshev type 2")),
@@ -1087,6 +1502,13 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
 
     Returns:
         Result signal object
+
+    .. note::
+
+        Uses zero-phase filtering (`filtfilt`) when possible for better phase response.
+        If numerical instability occurs (e.g., singular matrix errors), automatically
+        falls back to forward filtering (`lfilter`) with a warning. This ensures
+        cross-platform compatibility while maintaining optimal filtering when possible.
     """
     name = f"{p.TYPE.value}"
     suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
@@ -1097,21 +1519,37 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
     dst = dst_1_to_1(src, name, suffix)
 
     if p.method == "brickwall":
-        x_pad, y_pad = src.get_data()
-        if p.zero_padding:
-            min_lenght = max(len(src.y), p.nfft) if p.nfft is not None else len(src.y)
-            lenght = 2 ** int(np.ceil(np.log2(min_lenght)))
-
-            if len(src.y) < lenght:
-                # Zero-pad the signal to the specified nfft length
-                x_pad, y_pad = fourier.zero_padding(
-                    src.x, src.y, int(lenght - len(src.y))
+        src_padded = src.copy()
+        if p.zero_padding and p.nfft is not None:
+            size_padded = ZeroPadding1DParam.next_power_of_two(max(p.nfft, src.y.size))
+            if size_padded > 1:
+                src_padded = zero_padding(
+                    src_padded,
+                    ZeroPadding1DParam.create(
+                        location="append",
+                        strategy="custom",
+                        n=size_padded,
+                    ),
                 )
-        x, y = fourier.brickwall_filter(x_pad, y_pad, p.cut0, p.cut1, p.TYPE.value)
+        x_padded, y_padded = src_padded.get_data()
+        x, y = fourier.brickwall_filter(
+            x_padded, y_padded, p.TYPE.value, p.cut0, p.cut1
+        )
         dst.set_xydata(x, y)
     else:
         b, a = p.get_filter_params(dst)
-        dst.y = sps.filtfilt(b, a, dst.y)
+        try:
+            # Prefer zero-phase filtering
+            dst.y = sps.filtfilt(b, a, dst.y)
+        except np.linalg.LinAlgError:
+            # Fallback to forward filtering if filtfilt fails due to numerical issues
+            warnings.warn(
+                "Zero-phase filtering failed due to numerical instability. "
+                "Using forward filtering instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            dst.y = sps.lfilter(b, a, dst.y)
 
     restore_data_outside_roi(dst, src)
     return dst
@@ -1237,11 +1675,10 @@ class ZeroPadding1DParam(gds.DataSet):
     strategy = gds.ChoiceItem(
         _("Strategy"), zip(strategies, strategies), default=strategies[0]
     ).set_prop("display", store=_prop, callback=strategy_callback)
-    locations = ("append", "prepend", "both")
     location = gds.ChoiceItem(
         _("Location"),
-        zip(locations, locations),
-        default=locations[0],
+        PadLocation,
+        default=PadLocation.APPEND,
         help=_("Where to add the padding"),
     )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
@@ -1267,13 +1704,13 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
         suffix = f"strategy={p.strategy}"
 
     assert p.n is not None
-    if p.location == "append":
+    if p.location is PadLocation.APPEND:
         n_prepend = 0
         n_append = p.n
-    elif p.location == "prepend":
+    elif p.location is PadLocation.PREPEND:
         n_prepend = p.n
         n_append = 0
-    elif p.location == "both":
+    elif p.location is PadLocation.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
     else:
@@ -1917,16 +2354,13 @@ def time_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
 # --------------------------------------------------------------------------------------
 
 
-def calc_resultshape(
+def compute_geometry_from_obj(
     title: str,
-    shape: Literal[
-        "rectangle", "circle", "ellipse", "segment", "marker", "point", "polygon"
-    ],
+    shape: KindShape,
     obj: SignalObj,
     func: Callable,
     *args: Any,
-    add_label: bool = False,
-) -> ResultShape | None:
+) -> GeometryResult | None:
     """Calculate result shape by executing a computation function on a signal object,
     taking into account the signal ROIs.
 
@@ -1936,8 +2370,6 @@ def calc_resultshape(
         obj: input image object
         func: computation function
         *args: computation function arguments
-        add_label: if True, add a label item (and the geometrical shape) to plot
-         (default to False)
 
     Returns:
         Result shape object or None if no result is found
@@ -1950,7 +2382,8 @@ def calc_resultshape(
         Moreover, the computation function must return a 1D NumPy array (or a list,
         or a tuple) containing the result of the computation.
     """
-    res = []
+    rows: list[np.ndarray] = []
+    roi_idx: list[int] = []
     for i_roi in obj.iterate_roi_indices():
         x, y = obj.get_data(i_roi)
         if args is None:
@@ -1967,10 +2400,11 @@ def calc_resultshape(
                 raise ValueError(
                     "The computation function must return a 1D NumPy array"
                 )
-            results = np.array([-1 if i_roi is None else i_roi] + results.tolist())
-            res.append(results)
-    if res:
-        return ResultShape(title, np.vstack(res), shape, add_label=add_label)
+            rows.append(results.tolist())
+            roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
+    if rows:
+        array = np.vstack(rows)
+        return GeometryResult(title, shape, array, np.asarray(roi_idx, dtype=int))
     return None
 
 
@@ -1999,7 +2433,7 @@ class FWHMParam(gds.DataSet):
 
 
 @computation_function()
-def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
+def fwhm(obj: SignalObj, param: FWHMParam) -> GeometryResult | None:
     """Compute FWHM with :py:func:`sigima.tools.signal.pulse.fwhm`
 
     Args:
@@ -2009,7 +2443,7 @@ def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape(
+    return compute_geometry_from_obj(
         "fwhm",
         "segment",
         obj,
@@ -2017,12 +2451,11 @@ def fwhm(obj: SignalObj, param: FWHMParam) -> ResultShape | None:
         param.method,
         param.xmin,
         param.xmax,
-        add_label=True,
     )
 
 
 @computation_function()
-def fw1e2(obj: SignalObj) -> ResultShape | None:
+def fw1e2(obj: SignalObj) -> GeometryResult | None:
     """Compute FW at 1/e² with :py:func:`sigima.tools.signal.pulse.fw1e2`
 
     Args:
@@ -2031,17 +2464,17 @@ def fw1e2(obj: SignalObj) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape("fw1e2", "segment", obj, pulse.fw1e2, add_label=True)
+    return compute_geometry_from_obj("fw1e2", "segment", obj, pulse.fw1e2)
 
 
 class OrdinateParam(gds.DataSet):
-    """Ordinate parameter"""
+    """Ordinate parameter."""
 
     y = gds.FloatItem(_("Ordinate"), default=0.0)
 
 
 @computation_function()
-def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> ResultShape | None:
+def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     """
     Compute full width at a given y value for a signal object.
 
@@ -2052,13 +2485,11 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> ResultShape | None:
     Returns:
         Segment coordinates
     """
-    return calc_resultshape(
-        "∆X", "segment", obj, pulse.full_width_at_y, p.y, add_label=True
-    )
+    return compute_geometry_from_obj("∆X", "segment", obj, pulse.full_width_at_y, p.y)
 
 
 @computation_function()
-def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
+def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     """
     Compute the smallest x-value at a given y-value for a signal object.
 
@@ -2069,25 +2500,23 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> ResultProperties:
     Returns:
          An object containing the x-value.
     """
-    return calc_resultproperties(
-        f"x|y={p.y}",
-        obj,
-        {
-            "x = %g {.xunit}": lambda xy: features.find_first_x_at_y_value(
-                xy[0], xy[1], p.y
-            )
-        },
+    table = TableResultBuilder(f"x|y={p.y}")
+    table.add(
+        lambda xy: features.find_first_x_at_given_y_value(xy[0], xy[1], p.y),
+        "x@y",
+        "x = %g {.xunit}",
     )
+    return table.compute(obj)
 
 
 class AbscissaParam(gds.DataSet):
-    """Abscissa parameter"""
+    """Abscissa parameter."""
 
     x = gds.FloatItem(_("Abscissa"), default=0.0)
 
 
 @computation_function()
-def y_at_x(obj: SignalObj, p: AbscissaParam) -> ResultProperties:
+def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
     """
     Compute the smallest y-value at a given x-value for a signal object.
 
@@ -2098,15 +2527,17 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> ResultProperties:
     Returns:
          An object containing the y-value.
     """
-    return calc_resultproperties(
-        f"y|x={p.x}",
-        obj,
-        {"y = %g {.yunit}": lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x)},
+    table = TableResultBuilder(f"y|x={p.x}")
+    table.add(
+        lambda xy: features.find_y_at_given_x_value(xy[0], xy[1], p.x),
+        "y@x",
+        "y = %g {.yunit}",
     )
+    return table.compute(obj)
 
 
 @computation_function()
-def stats(obj: SignalObj) -> ResultProperties:
+def stats(obj: SignalObj) -> TableResult:
     """Compute statistics on a signal
 
     Args:
@@ -2115,33 +2546,49 @@ def stats(obj: SignalObj) -> ResultProperties:
     Returns:
         Result properties object
     """
-    statfuncs = {
-        "min(y) = %g {.yunit}": lambda xy: np.nanmin(xy[1]),
-        "max(y) = %g {.yunit}": lambda xy: np.nanmax(xy[1]),
-        "<y> = %g {.yunit}": lambda xy: np.nanmean(xy[1]),
-        "median(y) = %g {.yunit}": lambda xy: np.nanmedian(xy[1]),
-        "σ(y) = %g {.yunit}": lambda xy: np.nanstd(xy[1]),
-        "<y>/σ(y)": lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]),
-        "peak-to-peak(y) = %g {.yunit}": lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]),
-        "Σ(y) = %g {.yunit}": lambda xy: np.nansum(xy[1]),
-        "∫ydx": lambda xy: spt.trapezoid(xy[1], xy[0]),
-    }
-    return calc_resultproperties("stats", obj, statfuncs)
+    table = TableResultBuilder(_("Signal statistics"))
+    table.add(lambda xy: np.nanmin(xy[1]), "min", "min(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmax(xy[1]), "max", "max(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmean(xy[1]), "mean", "<y> = %g {.yunit}")
+    table.add(lambda xy: np.nanmedian(xy[1]), "median", "median(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanstd(xy[1]), "std", "σ(y) = %g {.yunit}")
+    table.add(lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]), "snr", "<y>/σ(y) = %g")
+    table.add(
+        lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]),
+        "ptp",
+        "peak-to-peak(y) = %g {.yunit}",
+    )
+    table.add(lambda xy: np.nansum(xy[1]), "sum", "Σ(y) = %g {.yunit}")
+    table.add(lambda xy: spt.trapezoid(xy[1], xy[0]), "trapz", "∫ydx = %g {.yunit}")
+    return table.compute(obj)
 
 
 @computation_function()
-def bandwidth_3db(obj: SignalObj) -> ResultShape | None:
+def bandwidth_3db(obj: SignalObj) -> GeometryResult | None:
     """Compute bandwidth at -3 dB with
     :py:func:`sigima.tools.signal.misc.bandwidth`
 
+    .. note::
+
+       The bandwidth is defined as the range of frequencies over which the signal
+       maintains a certain level relative to its peak.
+
+    .. warning::
+
+        The signal is assumed to be smooth enough for the bandwidth calculation to be
+        meaningful. If the signal contains excessive noise, multiple peaks, or is not
+        sufficiently continuous, the computed bandwidth may not accurately represent the
+        true -3dB range. It is recommended to preprocess the signal to ensure reliable
+        results.
+
     Args:
-        obj: source signal
+        obj: Source signal.
 
     Returns:
-        Result properties with bandwidth
+        Result shape with bandwidth.
     """
-    return calc_resultshape(
-        "bandwidth", "segment", obj, features.bandwidth, 3.0, add_label=True
+    return compute_geometry_from_obj(
+        "bandwidth", "segment", obj, features.bandwidth, -3.0
     )
 
 
@@ -2149,9 +2596,8 @@ class DynamicParam(gds.DataSet):
     """Parameters for dynamic range computation (ENOB, SNR, SINAD, THD, SFDR)"""
 
     full_scale = gds.FloatItem(_("Full scale"), default=0.16, min=0.0, unit="V")
-    _units = ("dBc", "dBFS")
     unit = gds.ChoiceItem(
-        _("Unit"), zip(_units, _units), default="dBc", help=_("Unit for SINAD")
+        _("Unit"), PowerUnit, default=PowerUnit.DBC, help=_("Unit for SINAD")
     )
     nb_harm = gds.IntItem(
         _("Number of harmonics"),
@@ -2162,7 +2608,7 @@ class DynamicParam(gds.DataSet):
 
 
 @computation_function()
-def dynamic_parameters(src: SignalObj, p: DynamicParam) -> ResultProperties:
+def dynamic_parameters(src: SignalObj, p: DynamicParam) -> TableResult:
     """Compute Dynamic parameters
     using the following functions:
 
@@ -2181,21 +2627,28 @@ def dynamic_parameters(src: SignalObj, p: DynamicParam) -> ResultProperties:
         Result properties with ENOB, SNR, SINAD, THD, SFDR
     """
     dsfx = f" = %g {p.unit}"
-    funcs = {
-        "Freq": lambda xy: dynamic.sinus_frequency(xy[0], xy[1]),
-        "ENOB = %.1f bits": lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale),
-        "SNR" + dsfx: lambda xy: dynamic.snr(xy[0], xy[1], p.unit),
-        "SINAD" + dsfx: lambda xy: dynamic.sinad(xy[0], xy[1], p.unit),
-        "THD" + dsfx: lambda xy: dynamic.thd(
-            xy[0], xy[1], p.full_scale, p.unit, p.nb_harm
-        ),
-        "SFDR" + dsfx: lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, p.unit),
-    }
-    return calc_resultproperties("ADC", src, funcs)
+    table = TableResultBuilder(_("Dynamic parameters"))
+    table.add(lambda xy: dynamic.sinus_frequency(xy[0], xy[1]), "freq")
+    table.add(
+        lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale), "enob", "ENOB = %.1f bits"
+    )
+    table.add(lambda xy: dynamic.snr(xy[0], xy[1], p.unit), "snr", "SNR" + dsfx)
+    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], p.unit), "sinad", "SINAD" + dsfx)
+    table.add(
+        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, p.unit, p.nb_harm),
+        "thd",
+        "THD" + dsfx,
+    )
+    table.add(
+        lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, p.unit),
+        "sfdr",
+        "SFDR" + dsfx,
+    )
+    return table.compute(src)
 
 
 @computation_function()
-def sampling_rate_period(obj: SignalObj) -> ResultProperties:
+def sampling_rate_period(obj: SignalObj) -> TableResult:
     """Compute sampling rate and period
     using the following functions:
 
@@ -2208,30 +2661,22 @@ def sampling_rate_period(obj: SignalObj) -> ResultProperties:
     Returns:
         Result properties with sampling rate and period
     """
-    return calc_resultproperties(
-        "sampling_rate_period",
-        obj,
-        {
-            "fs = %g": lambda xy: dynamic.sampling_rate(xy[0]),
-            "T = %g {.xunit}": lambda xy: dynamic.sampling_period(xy[0]),
-        },
-    )
+    table = TableResultBuilder(_("Sampling rate and period"))
+    table.add(lambda xy: dynamic.sampling_rate(xy[0]), "fs", "fs = %g")
+    table.add(lambda xy: dynamic.sampling_period(xy[0]), "T", "T = %g {.xunit}")
+    return table.compute(obj)
 
 
 @computation_function()
-def contrast(obj: SignalObj) -> ResultProperties:
+def contrast(obj: SignalObj) -> TableResult:
     """Compute contrast with :py:func:`sigima.tools.signal.misc.contrast`"""
-    return calc_resultproperties(
-        "contrast",
-        obj,
-        {
-            "contrast": lambda xy: features.contrast(xy[1]),
-        },
-    )
+    table = TableResultBuilder(_("Contrast"))
+    table.add(lambda xy: features.contrast(xy[1]), "contrast")
+    return table.compute(obj)
 
 
 @computation_function()
-def x_at_minmax(obj: SignalObj) -> ResultProperties:
+def x_at_minmax(obj: SignalObj) -> TableResult:
     """
     Compute the smallest argument at the minima and the smallest argument at the maxima.
 
@@ -2241,11 +2686,7 @@ def x_at_minmax(obj: SignalObj) -> ResultProperties:
     Returns:
         An object containing the x-values at the minima and the maxima.
     """
-    return calc_resultproperties(
-        "x@min,max",
-        obj,
-        {
-            "X@Ymin = %g {.xunit}": lambda xy: xy[0][np.argmin(xy[1])],
-            "X@Ymax = %g {.xunit}": lambda xy: xy[0][np.argmax(xy[1])],
-        },
-    )
+    table = TableResultBuilder(_("X at min/max"))
+    table.add(lambda xy: xy[0][np.argmin(xy[1])], "X@Ymin", "X@Ymin = %g {.xunit}")
+    table.add(lambda xy: xy[0][np.argmax(xy[1])], "X@Ymax", "X@Ymax = %g {.xunit}")
+    return table.compute(obj)

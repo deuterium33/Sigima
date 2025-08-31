@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-09 15:59+0200\n"
+"POT-Creation-Date: 2025-08-30 20:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -28,8 +28,41 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 msgid "sigima 0.3.0"
 msgstr "sigima 0.3.0"
 
+msgid "✨ Core architecture update: scalar result types"
+msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
+
+msgid "Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects."
+msgstr "Introduction de deux nouveaux types de résultats immuables: `TableResult` et `GeometryResult`, remplaçant les anciens objets `ResultProperties` et `ResultShape`."
+
+msgid "These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse."
+msgstr "Ces nouveaux types de résultats sont orientés vers le calcul et dépourvus de logique spécifique à l'application (par exemple, Qt, métadonnées), permettant une meilleure séparation des préoccupations et une réutilisation future."
+
+msgid "Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object."
+msgstr "Ajout d'un utilitaire `TableResultBuilder` pour définir progressivement des calculs tabulaires (par exemple, des statistiques sur les signaux ou les images) et générer un objet `TableResult`."
+
+msgid "All metadata-related behaviors of former result types have been migrated to the DataLab application layer."
+msgstr "Tous les comportements liés aux métadonnées des anciens types de résultats ont été migrés vers la couche d'application DataLab."
+
+msgid "Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core."
+msgstr "Suppression de fonctionnalités obsolètes ou étroitement couplées telles que `from_metadata_entry()` et `transform_shapes()` du cœur de Sigima."
+
+msgid "This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API."
+msgstr "Cette refonte améliore considérablement la modularité, la testabilité et la clarté de l'API de calcul scalaire."
+
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "New common signal/image feature:"
+msgstr "Nouvelles fonctionnalités communes signal/image :"
+
+msgid "Generate new signal or image: Poisson noise."
+msgstr "Générer un nouveau signal ou une nouvelle image : bruit de Poisson."
+
+msgid "Add noise to the selected signals or images."
+msgstr "Ajouter du bruit aux signaux ou images sélectionnés."
+
+msgid "Gaussian, Poisson or uniform noise can be added."
+msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
@@ -39,6 +72,15 @@ msgstr "Amélioration de la gestion du titre de la ROI unique, en utilisant un t
 
 msgid "Added `combine_with` method to ROI objects (`SignalROI` and `ImageROI`) to return a new ROI that combines the current ROI with another one (union) and handling duplicate ROIs."
 msgstr "Ajout de la méthode `combine_with` aux objets ROI (`SignalROI` et `ImageROI`) pour renvoyer un nouvel ROI qui combine le ROI actuel avec un autre (union) et gère les ROIs en double."
+
+msgid "Image ROI transformations:"
+msgstr "Transformations de ROI d'image:"
+
+msgid "Before this change, image ROI were removed after applying each single computation function."
+msgstr "Avant ce changement, les ROI d'image étaient supprimées après l'application de chaque fonction de calcul unique."
+
+msgid "Now, the geometry computation functions preserve the ROI information across transformations: the transformed ROIs are automatically updated in the image object."
+msgstr "Maintenant, les fonctions de calcul géométrique préservent les informations de ROI à travers les transformations: les ROIs transformées sont automatiquement mises à jour dans l'objet image."
 
 msgid "Image ROI coordinates:"
 msgstr "Coordonnées de ROI d'image:"
@@ -79,14 +121,14 @@ msgstr "`xdirection` / `ydirection`: Direction de la grille (croissante/décrois
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
 
-msgid "New \"Gaussian frequency filter\" feature:"
-msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\":"
+msgid "New \"Frequency domain Gaussian filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\" :"
 
 msgid "This feature allows to filter an image in the frequency domain using a Gaussian filter."
 msgstr "Cette fonctionnalité permet de filtrer une image dans le domaine fréquentiel à l'aide d'un filtre gaussien."
 
-msgid "It is implemented in the `sigima.proc.image.freq_fft` function."
-msgstr "Elle est implémentée dans la fonction `sigima.proc.image.freq_fft`."
+msgid "It is implemented in the `sigima.proc.image.frequency_domain_gaussian_filter` function."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.image.frequency_domain_gaussian_filter`."
 
 msgid "New \"Erase\" feature:"
 msgstr "Nouvelle fonctionnalité \"Gommage\":"
@@ -124,17 +166,41 @@ msgstr "Voir l'[issue DataLab #251](https://github.com/DataLab-Platform/DataLab/
 msgid "New signal processing features:"
 msgstr "Nouvelles fonctionnalités de traitement du signal:"
 
-msgid "New \"Brickwall frequency filter\" feature:"
-msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel Brickwall\":"
+msgid "New \"Brick wall filter\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel idéal\" :"
 
-msgid "This feature allows to filter a signal in the frequency domain using a brickwall filter."
-msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre Brickwall."
+msgid "This feature allows to filter a signal in the frequency domain using an ideal (\"brick wall\") filter."
+msgstr "Cette fonctionnalité permet de filtrer un signal dans le domaine fréquentiel à l'aide d'un filtre idéal."
 
-msgid "It is implemented in the `sigima.proc.signal.freq_fft` function, among the other frequency domain filtering features that were already available (e.g., `Bessel`, `Butterworth`, etc.)."
-msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.freq_fft`."
+msgid "It is implemented in `sigima.proc.signal.frequency_filter`, along the other frequency domain filtering features (`Bessel`, `Butterworth`, etc.)."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.frequency_filter`, parmi les autres fonctionnalités de filtrage dans le domaine fréquentiel (`Bessel`, `Butterworth`, etc.)."
 
 msgid "Enhanced zero padding to support prepend and append. Change default strategy to next power of 2."
 msgstr "Amélioration du remplissage de zéros pour prendre en charge l'ajout au début et à la fin. Changement de la stratégie par défaut vers la prochaine puissance de 2."
+
+msgid "Comprehensive uncertainty propagation implementation:"
+msgstr "Mise en œuvre complète de la propagation des incertitudes :"
+
+msgid "Added mathematically correct uncertainty propagation to ~15 core signal processing functions."
+msgstr "Ajout de la propagation des incertitudes mathématiquement correcte à ~15 fonctions de traitement du signal de base."
+
+msgid "Enhanced `Wrap1to1Func` class to handle uncertainty propagation for mathematical functions (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`)."
+msgstr "Amélioration de la classe `Wrap1to1Func` pour gérer la propagation des incertitudes pour les fonctions mathématiques (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`)."
+
+msgid "Implemented uncertainty propagation for arithmetic operations (`product_constant`, `division_constant`)."
+msgstr "Mise en œuvre de la propagation des incertitudes pour les opérations arithmétiques (`product_constant`, `division_constant`)."
+
+msgid "Added uncertainty propagation for advanced processing functions (`power`, `normalize`, `derivative`, `integral`, `calibration`)."
+msgstr "Ajout de la propagation des incertitudes pour les fonctions de traitement avancées (`power`, `normalize`, `derivative`, `integral`, `calibration`)."
+
+msgid "All implementations use proper error propagation formulas with numerical stability handling (NaN/infinity protection)."
+msgstr "Toutes les implémentations utilisent des formules de propagation des erreurs appropriées avec une gestion de la stabilité numérique (protection contre les NaN/l'infini)."
+
+msgid "Optimized for memory efficiency by leveraging `dst_1_to_1` automatic uncertainty copying and in-place modifications."
+msgstr "Optimisé pour l'efficacité mémoire en tirant parti de la copie automatique des incertitudes `dst_1_to_1` et des modifications sur place."
+
+msgid "Maintains backward compatibility with existing signal processing workflows."
+msgstr "Maintient la compatibilité avec les flux de travail de traitement du signal existants."
 
 msgid "New 2D ramp image generator:"
 msgstr "Nouveau générateur d'image de rampe 2D:"

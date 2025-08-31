@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from skimage.feature import canny
 
+from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
 from sigima.tools.image import get_hough_circle_peaks
@@ -56,10 +57,7 @@ def __exec_hough_circle_test(data):
 def test_hough_circle():
     """2D peak detection test"""
     data, _coords = get_peak2d_data(multi=False)
-    # pylint: disable=import-outside-toplevel
-    from guidata.qthelpers import qt_app_context
-
-    with qt_app_context():
+    with guiutils.lazy_qt_app_context(force=True):
         __exec_hough_circle_test(data)
 
 

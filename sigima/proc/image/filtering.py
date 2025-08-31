@@ -1,35 +1,36 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
-"""
-Filtering computation module
-----------------------------
+"""Filtering computation module.
+--------------------------------
 
 This module provides spatial and frequency-based filtering operations for images.
+Filtering functions are essential for enhancing image quality and removing noise.
 
 Main features include:
-- Gaussian, median, moving average, Wiener, and Butterworth filters
-- Noise reduction and image smoothing
+    * Gaussian, median, moving average and Wiener filters
+    * Butterworth and frequency domain Gaussian filters.
 
 Filtering functions are essential for enhancing image quality
 and removing noise prior to further analysis.
 """
 
-# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+# pylint: disable=invalid-name  # Allows short names like x, y...
 
 # Note:
 # ----
-# - All `guidata.dataset.DataSet` parameter classes must also be imported
-#   in the `sigima.params` module.
-# - All functions decorated by `computation_function` must be imported in the upper
+# - All `guidata.dataset.DataSet` parameter classes must also be imported in the
+#   `sigima.params` module.
+# - All functions decorated with `computation_function` must be imported in the upper
 #   level `sigima.proc.image` module.
 
 from __future__ import annotations
 
-import guidata.dataset as gds
-import scipy.ndimage as spi
-import scipy.signal as sps
-from skimage import filters
+import guidata.dataset as gds  # type: ignore[import]
+import scipy.ndimage as spi  # type: ignore[import]
+import scipy.signal as sps  # type: ignore[import]
+from skimage import filters  # type: ignore[import]
 
+import sigima.tools.image
 from sigima.config import _
 from sigima.objects.image import ImageObj
 from sigima.proc.base import (
@@ -40,60 +41,67 @@ from sigima.proc.base import (
 )
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
-from sigima.tools.image import freq_fft_filter
 
 __all__ = [
+    "ButterworthParam",
+    "GaussianFreqFilterParam",
+    "butterworth",
+    "gaussian_freq_filter",
     "gaussian_filter",
     "moving_average",
     "moving_median",
     "wiener",
     "ButterworthParam",
     "butterworth",
-    "FreqFFTParam",
-    "freq_fft",
 ]
+
+# MARK: Noise reduction filters
 
 
 @computation_function()
 def gaussian_filter(src: ImageObj, p: GaussianParam) -> ImageObj:
-    """Compute gaussian filter with :py:func:`scipy.ndimage.gaussian_filter`
+    """Compute gaussian filter with :py:func:`scipy.ndimage.gaussian_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(spi.gaussian_filter, sigma=p.sigma)(src)
 
 
 @computation_function()
 def moving_average(src: ImageObj, p: MovingAverageParam) -> ImageObj:
-    """Compute moving average with :py:func:`scipy.ndimage.uniform_filter`
+    """Compute moving average with :py:func:`scipy.ndimage.uniform_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(
+        spi.uniform_filter, size=p.n, mode=p.mode.value, func_name="moving_average"
+    )(src)
 
 
 @computation_function()
 def moving_median(src: ImageObj, p: MovingMedianParam) -> ImageObj:
-    """Compute moving median with :py:func:`scipy.ndimage.median_filter`
+    """Compute moving median with :py:func:`scipy.ndimage.median_filter`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode)(src)
+    return Wrap1to1Func(
+        spi.median_filter, size=p.n, mode=p.mode.value, func_name="moving_median"
+    )(src)
 
 
 @computation_function()
@@ -101,16 +109,16 @@ def wiener(src: ImageObj) -> ImageObj:
     """Compute Wiener filter with :py:func:`scipy.signal.wiener`
 
     Args:
-        src: input image object
+        src: Input image object.
 
     Returns:
-        Output image object
+        Output image object.
     """
     return Wrap1to1Func(sps.wiener)(src)
 
 
 class ButterworthParam(gds.DataSet):
-    """Butterworth filter parameters"""
+    """Butterworth filter parameters."""
 
     cut_off = gds.FloatItem(
         _("Cut-off frequency ratio"),
@@ -132,16 +140,19 @@ class ButterworthParam(gds.DataSet):
     )
 
 
+# MARK: Frequency filters
+
+
 @computation_function()
 def butterworth(src: ImageObj, p: ButterworthParam) -> ImageObj:
-    """Compute Butterworth filter with :py:func:`skimage.filters.butterworth`
+    """Compute Butterworth filter with :py:func:`skimage.filters.butterworth`.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Input image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     dst = dst_1_to_1(
         src,
@@ -153,18 +164,25 @@ def butterworth(src: ImageObj, p: ButterworthParam) -> ImageObj:
     return dst
 
 
-class FreqFFTParam(gds.DataSet):
-    """2D Gaussian bandpass FFT filter parameters"""
+class GaussianFreqFilterParam(GaussianParam):
+    """Parameters for Gaussian filter applied in the frequency domain."""
 
+    sigma = gds.FloatItem(
+        "σ",
+        default=1.0,
+        unit="pixel⁻¹",
+        min=0.0,
+        help=_("Standard deviation of the Gaussian filter"),
+    )
     f0 = gds.FloatItem(
         _("Center frequency"),
         default=1.0,
-        unit="pixels⁻¹",
+        unit="pixel⁻¹",
         min=0.0,
         help=_("Center frequency of the Gaussian filter"),
     )
     sigma = gds.FloatItem(
-        _("σ"),
+        "σ",
         default=0.5,
         unit="pixels⁻¹",
         min=0.0,
@@ -179,21 +197,21 @@ class FreqFFTParam(gds.DataSet):
 
 
 @computation_function()
-def freq_fft(src: ImageObj, p: FreqFFTParam) -> ImageObj:
-    """Apply a 2D Gaussian bandpass filter in the frequency domain to an image.
+def gaussian_freq_filter(src: ImageObj, p: GaussianFreqFilterParam) -> ImageObj:
+    """Apply a Gaussian filter in the frequency domain.
 
     Args:
-        src: input image object
-        p: parameters
+        src: Source image object.
+        p: Parameters.
 
     Returns:
-        Output image object
+        Output image object.
     """
     dst = dst_1_to_1(
         src,
-        "freq_fft",
-        f"f0={p.f0:.3f}, sigma={p.sigma:.3f}, type={p.ifft_result_type}",
+        "frequency_domain_gaussian_filter",
+        f"sigma={p.sigma:.3f}, f0={p.f0:.3f}",
     )
-    dst.data = freq_fft_filter(src.data, p.f0, p.sigma, p.ifft_result_type)
+    dst.data = sigima.tools.image.gaussian_freq_filter(src.data, p.f0, p.sigma)
     restore_data_outside_roi(dst, src)
     return dst
