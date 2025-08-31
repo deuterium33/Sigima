@@ -85,13 +85,18 @@ class Wrap1to1Func:
         func: 1 array → 1 array function
         *args: Additional positional arguments to pass to the function
         **kwargs: Additional keyword arguments to pass to the function
+
+    .. note::
+
+        If `func_name` is provided in the keyword arguments, it will be used as the
+        function name instead of the default name derived from the function itself.
     """
 
     def __init__(self, func: Callable, *args: Any, **kwargs: Any) -> None:
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.__name__ = func.__name__
+        self.__name__ = self.kwargs.pop("func_name", func.__name__)
         self.__doc__ = func.__doc__
         self.__call__.__func__.__doc__ = self.func.__doc__
 
@@ -108,7 +113,7 @@ class Wrap1to1Func:
             [str(arg) for arg in self.args]
             + [f"{k}={v}" for k, v in self.kwargs.items() if v is not None]
         )
-        dst = dst_1_to_1(src, self.func.__name__, suffix)
+        dst = dst_1_to_1(src, self.__name__, suffix)
         dst.data = self.func(src.data, *self.args, **self.kwargs)
         restore_data_outside_roi(dst, src)
         return dst

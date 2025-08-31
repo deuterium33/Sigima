@@ -96,6 +96,7 @@ def denoise_tv(src: ImageObj, p: DenoiseTVParam) -> ImageObj:
         weight=p.weight,
         eps=p.eps,
         max_num_iter=p.max_num_iter,
+        func_name="denoise_tv",
     )(src)
 
 

@@ -83,7 +83,9 @@ def moving_average(src: ImageObj, p: MovingAverageParam) -> ImageObj:
     Returns:
         Output image object.
     """
-    return Wrap1to1Func(spi.uniform_filter, size=p.n, mode=p.mode.value)(src)
+    return Wrap1to1Func(
+        spi.uniform_filter, size=p.n, mode=p.mode.value, func_name="moving_average"
+    )(src)
 
 
 @computation_function()
@@ -97,7 +99,9 @@ def moving_median(src: ImageObj, p: MovingMedianParam) -> ImageObj:
     Returns:
         Output image object.
     """
-    return Wrap1to1Func(spi.median_filter, size=p.n, mode=p.mode.value)(src)
+    return Wrap1to1Func(
+        spi.median_filter, size=p.n, mode=p.mode.value, func_name="moving_median"
+    )(src)
 
 
 @computation_function()
