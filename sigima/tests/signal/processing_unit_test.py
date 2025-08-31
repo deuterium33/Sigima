@@ -31,7 +31,6 @@ import sigima.proc.enums
 import sigima.proc.signal
 import sigima.tests.data
 import sigima.tools.coordinates
-from sigima.proc.base import AngleUnit
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -130,7 +129,7 @@ def test_signal_to_polar() -> None:
     y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     src = sigima.objects.create_signal("test", x, y)
 
-    for p.unit in AngleUnit:
+    for p.unit in sigima.proc.enums.AngleUnit:
         dst1 = sigima.proc.signal.to_polar(src, p)
         dst2 = sigima.proc.signal.to_cartesian(dst1, p)
         check_array_result(f"{title}|x", dst2.x, x)
@@ -144,10 +143,10 @@ def test_signal_to_cartesian() -> None:
     p = sigima.params.AngleUnitParam()
     r = np.array([0.0, np.sqrt(2.0), np.sqrt(8.0), np.sqrt(18.0), np.sqrt(32.0)])
 
-    angles_deg = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
-    angles_rad = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
-    for p.unit in AngleUnit:
-        theta = angles_rad if p.unit == AngleUnit.radian else angles_deg
+    a_deg = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
+    a_rad = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
+    for p.unit in sigima.proc.enums.AngleUnit:
+        theta = a_rad if p.unit == sigima.proc.enums.AngleUnit.RADIAN else a_deg
         src = sigima.objects.create_signal("test", r, theta)
         dst1 = sigima.proc.signal.to_cartesian(src, p)
         dst2 = sigima.proc.signal.to_polar(dst1, p)

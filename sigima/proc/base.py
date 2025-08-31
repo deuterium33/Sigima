@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-import enum
 from typing import TypeVar, cast
 
 import guidata.dataset as gds
@@ -20,10 +19,9 @@ import numpy as np
 
 from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
-from sigima.proc.enums import FilterMode, MathOperator
+from sigima.proc.enums import AngleUnit, FilterMode, MathOperator
 
 __all__ = [
-    "AngleUnit",
     "AngleUnitParam",
     "ArithmeticParam",
     "GaussianParam",
@@ -195,22 +193,13 @@ class ConstantParam(gds.DataSet):
     value = gds.FloatItem(_("Constant value"))
 
 
-class AngleUnit(enum.Enum):
-    """Enumeration for specifying angle measurement units and their symbols."""
-
-    #: Radian unit.
-    radian = "rad"
-    #: Degree unit.
-    degree = "°"
-
-
 class AngleUnitParam(gds.DataSet):
     """Choice of angle unit."""
 
     unit = gds.ChoiceItem(
         _("Angle unit"),
         AngleUnit,
-        default=AngleUnit.radian,
+        default=AngleUnit.RADIAN,
         help=_("Unit of angle measurement"),
     )
 
@@ -224,7 +213,7 @@ class PhaseParam(gds.DataSet):
     unit = gds.ChoiceItem(
         _("Unit"),
         AngleUnit,
-        default=AngleUnit.degree,
+        default=AngleUnit.DEGREE,
         help=_("Unit of angle measurement"),
     )
 

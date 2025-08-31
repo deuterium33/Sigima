@@ -5,6 +5,13 @@ from __future__ import annotations
 from enum import Enum
 
 
+class AngleUnit(Enum):
+    """Angle units."""
+
+    RADIAN = "rad"
+    DEGREE = "°"
+
+
 class BinningOperation(Enum):
     """Binning operations for image processing."""
 

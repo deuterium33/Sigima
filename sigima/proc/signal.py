@@ -40,7 +40,6 @@ from sigima.objects import (
     create_signal_from_param,
 )
 from sigima.proc.base import (
-    AngleUnit,
     AngleUnitParam,
     ArithmeticParam,
     ClipParam,
@@ -59,7 +58,7 @@ from sigima.proc.base import (
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import MathOperator, PadLocation, PowerUnit
+from sigima.proc.enums import AngleUnit, MathOperator, PadLocation, PowerUnit
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -963,7 +962,7 @@ def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
     argument = np.angle(y)
     if p.unwrap:
         argument = np.unwrap(argument)
-    if p.unit == AngleUnit.degree:
+    if p.unit == AngleUnit.DEGREE:
         argument = np.rad2deg(argument)
     dst.set_xydata(x, argument, src.dx, None)
     dst.yunit = p.unit.value

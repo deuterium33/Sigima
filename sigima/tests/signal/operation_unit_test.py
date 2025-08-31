@@ -23,8 +23,8 @@ import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
 from sigima.objects.signal import SignalObj
-from sigima.proc.base import AngleUnit, AngleUnitParam
-from sigima.proc.enums import MathOperator
+from sigima.proc.base import AngleUnitParam
+from sigima.proc.enums import AngleUnit, MathOperator
 from sigima.proc.signal import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests.helpers import check_array_result
 from sigima.tools.coordinates import polar_to_complex
@@ -274,18 +274,18 @@ def test_signal_phase() -> None:
     complex_signal = sigima.objects.create_signal("complex", base_signal.x, y_complex)
 
     # Test phase extraction in radians without unwrapping
-    param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
+    param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.RADIAN, unwrap=False)
     result_rad = sigima.proc.signal.phase(complex_signal, param_rad)
     check_array_result("Phase in radians", result_rad.y, np.angle(y_complex))
 
     # Test phase extraction in degrees without unwrapping
-    param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
+    param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.DEGREE, unwrap=False)
     result_deg = sigima.proc.signal.phase(complex_signal, param_deg)
     check_array_result("Phase in degrees", result_deg.y, np.angle(y_complex, deg=True))
 
     # Test phase extraction in radians with unwrapping
     param_rad_unwrap = sigima.params.PhaseParam.create(
-        unit=AngleUnit.radian, unwrap=True
+        unit=AngleUnit.RADIAN, unwrap=True
     )
     result_rad_unwrap = sigima.proc.signal.phase(complex_signal, param_rad_unwrap)
     check_array_result(
@@ -296,7 +296,7 @@ def test_signal_phase() -> None:
 
     # Test phase extraction in degrees with unwrapping
     param_deg_unwrap = sigima.params.PhaseParam.create(
-        unit=AngleUnit.degree, unwrap=True
+        unit=AngleUnit.DEGREE, unwrap=True
     )
     result_deg_unwrap = sigima.proc.signal.phase(complex_signal, param_deg_unwrap)
     check_array_result(
@@ -307,8 +307,8 @@ def test_signal_phase() -> None:
 
 
 MAGNITUDE_PHASE_TEST_CASES = [
-    (np.array([0.0, np.pi / 2, np.pi, 3.0 * np.pi / 2.0, 0.0]), AngleUnit.radian),
-    (np.array([0.0, 90.0, 180.0, 270.0, 0.0]), AngleUnit.degree),
+    (np.array([0.0, np.pi / 2, np.pi, 3.0 * np.pi / 2.0, 0.0]), AngleUnit.RADIAN),
+    (np.array([0.0, 90.0, 180.0, 270.0, 0.0]), AngleUnit.DEGREE),
 ]
 
 
@@ -333,7 +333,7 @@ def test_signal_complex_from_magnitude_phase(
     # Create complex signal from magnitude and phase
     p = AngleUnitParam.create(unit=unit)
     result = complex_from_magnitude_phase(s_mag, s_phase, p)
-    unit_str = "rad" if unit == AngleUnit.radian else "°"
+    unit_str = "rad" if unit == AngleUnit.RADIAN else "°"
     check_array_result(
         f"complex_from_magnitude_phase_{unit_str}",
         result.y,
