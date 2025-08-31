@@ -335,51 +335,58 @@ def test_image_complex_from_real_imag() -> None:
 def test_image_phase() -> None:
     """Image phase test."""
     execenv.print("*** Testing image phase:")
-    for ima1 in iterate_noisy_images():
-        # Make a complex image for testing
-        assert ima1.data is not None, "Input image data is None."
-        data = ima1.data.astype(np.complex128)
-        data += 1j * (0.5 * ima1.data + 1.0)
-        ima_complex = ima1.copy()
-        ima_complex.data = data
+    for base_image in iterate_noisy_images():
+        # Create a complex image for testing
+        assert base_image.data is not None, "Input image data is None."
+        complex_data = base_image.data.astype(np.complex128)
+        complex_data += 1j * (0.5 * base_image.data + 1.0)
+        complex_image = base_image.copy()
+        complex_image.data = complex_data
 
-        # Test output in radians, no unwrapping
-        p_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
-        phase_ima_rad = sigima.proc.image.phase(ima_complex, p_rad)
-        assert phase_ima_rad.data is not None, "Phase|rad data is None."
-        exp_rad = np.angle(ima_complex.data, deg=False)
-        check_array_result("Phase|rad", phase_ima_rad.data, exp_rad)
+        # Test phase extraction in radians without unwrapping
+        param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.radian, unwrap=False)
+        result_rad = sigima.proc.image.phase(complex_image, param_rad)
+        assert result_rad.data is not None, "Phase in radians data is None."
+        expected_rad = np.angle(complex_image.data, deg=False)
+        check_array_result("Phase in radians", result_rad.data, expected_rad)
 
-        # Test output in degrees, no unwrapping
-        p_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
-        phase_ima_deg = sigima.proc.image.phase(ima_complex, p_deg)
-        assert phase_ima_deg.data is not None, "Phase|deg data is None."
-        exp_deg = np.angle(ima_complex.data, deg=True)
-        check_array_result("Phase|deg", phase_ima_deg.data, exp_deg)
+        # Test phase extraction in degrees without unwrapping
+        param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.degree, unwrap=False)
+        result_deg = sigima.proc.image.phase(complex_image, param_deg)
+        assert result_deg.data is not None, "Phase in degrees data is None."
+        expected_deg = np.angle(complex_image.data, deg=True)
+        check_array_result("Phase in degrees", result_deg.data, expected_deg)
 
-        # Test output in radians, with unwrapping
-        p_rad_unwrap = sigima.params.PhaseParam.create(
+        # Test phase extraction in radians with unwrapping
+        param_rad_unwrap = sigima.params.PhaseParam.create(
             unit=AngleUnit.radian, unwrap=True
         )
-        phase_ima_rad_unwrap = sigima.proc.image.phase(ima_complex, p_rad_unwrap)
-        exp_rad_unwrap = np.unwrap(np.angle(ima_complex.data, deg=False))
-        assert phase_ima_rad_unwrap.data is not None, (
-            "Phase|unwrapping|rad data is None."
+        result_rad_unwrap = sigima.proc.image.phase(complex_image, param_rad_unwrap)
+        expected_rad_unwrap = np.unwrap(np.angle(complex_image.data, deg=False))
+        assert result_rad_unwrap.data is not None, (
+            "Phase in radians with unwrapping data is None."
         )
         check_array_result(
-            "Phase|unwrapping|rad", phase_ima_rad_unwrap.data, exp_rad_unwrap
+            "Phase in radians with unwrapping",
+            result_rad_unwrap.data,
+            expected_rad_unwrap,
         )
-        # Test output in degrees, with unwrapping
-        p_deg_unwrap = sigima.params.PhaseParam.create(
+
+        # Test phase extraction in degrees with unwrapping
+        param_deg_unwrap = sigima.params.PhaseParam.create(
             unit=AngleUnit.degree, unwrap=True
         )
-        phase_ima_deg_unwrap = sigima.proc.image.phase(ima_complex, p_deg_unwrap)
-        exp_deg_unwrap = np.unwrap(np.angle(ima_complex.data, deg=True), period=360.0)
-        assert phase_ima_deg_unwrap.data is not None, (
-            "Phase|unwrapping|deg data is None."
+        result_deg_unwrap = sigima.proc.image.phase(complex_image, param_deg_unwrap)
+        expected_deg_unwrap = np.unwrap(
+            np.angle(complex_image.data, deg=True), period=360.0
+        )
+        assert result_deg_unwrap.data is not None, (
+            "Phase in degrees with unwrapping data is None."
         )
         check_array_result(
-            "Phase|unwrapping|deg", phase_ima_deg_unwrap.data, exp_deg_unwrap
+            "Phase in degrees with unwrapping",
+            result_deg_unwrap.data,
+            expected_deg_unwrap,
         )
 
 
