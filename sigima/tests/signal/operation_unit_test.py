@@ -107,6 +107,12 @@ def test_signal_standard_deviation() -> None:
         exp += (s.y - average) ** 2
     exp = np.sqrt(exp / n)
     check_array_result(f"Standard Deviation of {n} signals", s1.y, exp)
+    # Add uncertainty to source signals:
+    for sig in slist:
+        sig.dy = np.abs(0.1 * sig.y) + 0.1
+    s2 = sigima.proc.signal.standard_deviation(slist)
+    expected_dy = np.sqrt(sum(s.dy**2 for s in slist) / n)
+    check_array_result("Standard Deviation error propagation", s2.dy, expected_dy)
 
 
 @pytest.mark.validation

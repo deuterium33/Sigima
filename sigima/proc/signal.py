@@ -465,7 +465,9 @@ def standard_deviation(src_list: list[SignalObj]) -> SignalObj:
     """
     dst = dst_n_to_1(src_list, "𝜎")  # `dst` data is initialized to `src_list[0]` data
     dst.y = np.std(signals_y_to_array(src_list), axis=0, ddof=0)
-    dst.dy = np.full_like(dst.y, np.nan)
+    if is_uncertainty_data_available(src_list):
+        dy_array = signals_dy_to_array(src_list)
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
