@@ -33,9 +33,11 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects.image import ImageObj
-from sigima.proc.base import dst_1_to_1
+from sigima.proc.base import AngleUnitParam, PhaseParam, dst_1_to_1, dst_2_to_1
 from sigima.proc.decorator import computation_function
+from sigima.proc.enums import AngleUnit
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
+from sigima.tools import coordinates
 from sigima.tools.datatypes import clip_astype
 
 __all__ = [
@@ -49,6 +51,8 @@ __all__ = [
     "logp1",
     "DataTypeIParam",
     "astype",
+    "complex_from_magnitude_phase",
+    "complex_from_real_imag",
 ]
 
 
@@ -108,6 +112,84 @@ def imag(src: ImageObj) -> ImageObj:
         Output image object
     """
     return Wrap1to1Func(np.imag)(src)
+
+
+@computation_function()
+def phase(src: ImageObj, p: PhaseParam) -> ImageObj:
+    """Compute the phase (argument) of a complex image.
+
+    The function uses :py:func:`numpy.angle` to compute the argument and
+    :py:func:`numpy.unwrap` to unwrap it.
+
+    Args:
+        src: Input image object.
+        p: Phase parameters.
+
+    Returns:
+        Image object containing the phase, optionally unwrapped.
+    """
+    suffix = "unwrap" if p.unwrap else ""
+    dst = dst_1_to_1(src, "phase", suffix)
+    data = src.get_data()
+    argument = np.angle(data)
+    if p.unwrap:
+        argument = np.unwrap(argument)
+    if p.unit == AngleUnit.DEGREE:
+        argument = np.rad2deg(argument)
+    dst.data = argument
+    dst.zunit = p.unit.value
+    restore_data_outside_roi(dst, src)
+    return dst
+
+
+@computation_function()
+def complex_from_magnitude_phase(
+    src1: ImageObj, src2: ImageObj, p: AngleUnitParam
+) -> ImageObj:
+    """Combine magnitude and phase images into a complex image.
+
+    .. warning::
+
+        This function assumes that the input images have the same dimensions.
+
+    Args:
+        src1: Magnitude (module) image.
+        src2: Phase (argument) image.
+        p: Parameters (provides unit for the phase).
+
+    Returns:
+        Image object with complex-valued z.
+    """
+    dst = dst_2_to_1(src1, src2, "mag_phase")
+    assert p.unit is not None
+    dst.data = coordinates.polar_to_complex(src1.data, src2.data, unit=p.unit.value)
+    return dst
+
+
+@computation_function()
+def complex_from_real_imag(src1: ImageObj, src2: ImageObj) -> ImageObj:
+    """Combine two real images into a complex image using real + i * imag.
+
+    .. warning::
+
+        This function assumes that the input images have the same dimensions and are
+        properly aligned.
+
+    Args:
+        src1: Real part image.
+        src2: Imaginary part image.
+
+    Returns:
+        Image object with complex-valued z.
+
+    Raises:
+        ValueError: If the x or y coordinates of the two images are not the same.
+    """
+    dst = dst_2_to_1(src1, src2, "real_imag")
+    assert src1.data is not None
+    assert src2.data is not None
+    dst.data = src1.data + 1j * src2.data
+    return dst
 
 
 @computation_function()

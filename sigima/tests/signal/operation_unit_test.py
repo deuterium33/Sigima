@@ -22,8 +22,12 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-from sigima.proc.enums import MathOperator
+from sigima.objects.signal import SignalObj
+from sigima.proc.base import AngleUnitParam
+from sigima.proc.enums import AngleUnit, MathOperator
+from sigima.proc.signal import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests.helpers import check_array_result
+from sigima.tools.coordinates import polar_to_complex
 
 
 def __create_two_signals() -> tuple[sigima.objects.SignalObj, sigima.objects.SignalObj]:
@@ -242,6 +246,108 @@ def test_signal_imag() -> None:
 
 
 @pytest.mark.validation
+def test_signal_complex_from_real_imag() -> None:
+    """Test :py:func:`sigima.proc.signal.complex_from_real_imag`."""
+    x = np.linspace(0.0, 1.0, 5)
+    real = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    imag = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
+    # Create SignalObj instances for real and imaginary parts
+    s_real = SignalObj("real")
+    s_real.set_xydata(x, real)
+    s_imag = SignalObj("imag")
+    s_imag.set_xydata(x, imag)
+    # Create complex signal from real and imaginary parts
+    result = complex_from_real_imag(s_real, s_imag)
+    check_array_result(
+        "complex_from_real_imag",
+        result.y,
+        real + 1j * imag,
+    )
+
+
+@pytest.mark.validation
+def test_signal_phase() -> None:
+    """Phase angle validation test."""
+    # Create a base signal and make it complex for testing
+    base_signal = __create_two_signals()[0]
+    y_complex = base_signal.y + 1j * base_signal.y[::-1]
+    complex_signal = sigima.objects.create_signal("complex", base_signal.x, y_complex)
+
+    # Test phase extraction in radians without unwrapping
+    param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.RADIAN, unwrap=False)
+    result_rad = sigima.proc.signal.phase(complex_signal, param_rad)
+    check_array_result("Phase in radians", result_rad.y, np.angle(y_complex))
+
+    # Test phase extraction in degrees without unwrapping
+    param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.DEGREE, unwrap=False)
+    result_deg = sigima.proc.signal.phase(complex_signal, param_deg)
+    check_array_result("Phase in degrees", result_deg.y, np.angle(y_complex, deg=True))
+
+    # Test phase extraction in radians with unwrapping
+    param_rad_unwrap = sigima.params.PhaseParam.create(
+        unit=AngleUnit.RADIAN, unwrap=True
+    )
+    result_rad_unwrap = sigima.proc.signal.phase(complex_signal, param_rad_unwrap)
+    check_array_result(
+        "Phase in radians with unwrapping",
+        result_rad_unwrap.y,
+        np.unwrap(np.angle(y_complex)),
+    )
+
+    # Test phase extraction in degrees with unwrapping
+    param_deg_unwrap = sigima.params.PhaseParam.create(
+        unit=AngleUnit.DEGREE, unwrap=True
+    )
+    result_deg_unwrap = sigima.proc.signal.phase(complex_signal, param_deg_unwrap)
+    check_array_result(
+        "Phase in degrees with unwrapping",
+        result_deg_unwrap.y,
+        np.unwrap(np.angle(y_complex, deg=True), period=360.0),
+    )
+
+
+MAGNITUDE_PHASE_TEST_CASES = [
+    (np.array([0.0, np.pi / 2, np.pi, 3.0 * np.pi / 2.0, 0.0]), AngleUnit.RADIAN),
+    (np.array([0.0, 90.0, 180.0, 270.0, 0.0]), AngleUnit.DEGREE),
+]
+
+
+@pytest.mark.parametrize("phase, unit", MAGNITUDE_PHASE_TEST_CASES)
+@pytest.mark.validation
+def test_signal_complex_from_magnitude_phase(
+    phase: np.ndarray, unit: AngleUnit
+) -> None:
+    """Test :py:func:`sigima.proc.signal.complex_from_magnitude_phase`.
+
+    Args:
+        phase (np.ndarray): Angles in radians or degrees.
+        unit (AngleUnit): Unit of the angles, either radian or degree.
+    """
+    x = np.linspace(0.0, 1.0, 5)
+    magnitude = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
+    # Create signal instances for magnitude and phase
+    s_mag = SignalObj("magnitude")
+    s_mag.set_xydata(x, magnitude)
+    s_phase = SignalObj("phase")
+    s_phase.set_xydata(x, phase)
+    # Create complex signal from magnitude and phase
+    p = AngleUnitParam.create(unit=unit)
+    result = complex_from_magnitude_phase(s_mag, s_phase, p)
+    unit_str = "rad" if unit == AngleUnit.RADIAN else "°"
+    check_array_result(
+        f"complex_from_magnitude_phase_{unit_str}",
+        result.y,
+        polar_to_complex(magnitude, phase, unit=unit_str),
+    )
+
+
+def __test_all_complex_from_magnitude_phase() -> None:
+    """Test all combinations of magnitude and phase."""
+    for phase, unit in MAGNITUDE_PHASE_TEST_CASES:
+        test_signal_complex_from_magnitude_phase(phase, unit)
+
+
+@pytest.mark.validation
 def test_signal_astype() -> None:
     """Data type conversion validation test."""
     s1 = __create_two_signals()[0]
@@ -325,6 +431,9 @@ if __name__ == "__main__":
     test_signal_absolute()
     test_signal_real()
     test_signal_imag()
+    test_signal_complex_from_real_imag()
+    test_signal_phase()
+    __test_all_complex_from_magnitude_phase()
     test_signal_astype()
     test_signal_exp()
     test_signal_log10()

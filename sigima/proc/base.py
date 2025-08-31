@@ -17,11 +17,12 @@ from typing import TypeVar, cast
 import guidata.dataset as gds
 import numpy as np
 
+from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
-from sigima.objects import ImageObj, SignalObj, create_signal
-from sigima.proc.enums import FilterMode, MathOperator
+from sigima.proc.enums import AngleUnit, FilterMode, MathOperator
 
 __all__ = [
+    "AngleUnitParam",
     "ArithmeticParam",
     "GaussianParam",
     "MovingAverageParam",
@@ -36,6 +37,7 @@ __all__ = [
     "dst_n_to_1",
     "dst_2_to_1",
     "new_signal_result",
+    "PhaseParam",
 ]
 
 
@@ -189,6 +191,31 @@ class ConstantParam(gds.DataSet):
     """Parameter used to set a constant value to used in operations"""
 
     value = gds.FloatItem(_("Constant value"))
+
+
+class AngleUnitParam(gds.DataSet):
+    """Choice of angle unit."""
+
+    unit = gds.ChoiceItem(
+        _("Angle unit"),
+        AngleUnit,
+        default=AngleUnit.RADIAN,
+        help=_("Unit of angle measurement"),
+    )
+
+
+class PhaseParam(gds.DataSet):
+    """Parameters for phase computation."""
+
+    unwrap = gds.BoolItem(
+        "unwrap", default=True, help=_("Unwrapping removes discontinuities in phase")
+    )
+    unit = gds.ChoiceItem(
+        _("Unit"),
+        AngleUnit,
+        default=AngleUnit.DEGREE,
+        help=_("Unit of angle measurement"),
+    )
 
 
 # MARK: Helper functions for creating result objects -----------------------------------

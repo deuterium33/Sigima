@@ -40,6 +40,7 @@ from sigima.objects import (
     create_signal_from_param,
 )
 from sigima.proc.base import (
+    AngleUnitParam,
     ArithmeticParam,
     ClipParam,
     ConstantParam,
@@ -49,6 +50,7 @@ from sigima.proc.base import (
     MovingAverageParam,
     MovingMedianParam,
     NormalizeParam,
+    PhaseParam,
     SpectrumParam,
     dst_1_to_1,
     dst_2_to_1,
@@ -56,7 +58,7 @@ from sigima.proc.base import (
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import MathOperator, PadLocation, PowerUnit
+from sigima.proc.enums import AngleUnit, MathOperator, PadLocation, PowerUnit
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
@@ -140,7 +142,6 @@ __all__ = [
     "WindowingParam",
     "apply_window",
     "reverse_x",
-    "AngleUnitParam",
     "to_polar",
     "to_cartesian",
     "AllanVarianceParam",
@@ -167,6 +168,8 @@ __all__ = [
     "sampling_rate_period",
     "contrast",
     "x_at_minmax",
+    "complex_from_magnitude_phase",
+    "complex_from_real_imag",
     "add_gaussian_noise",
     "add_poisson_noise",
     "add_uniform_noise",
@@ -940,6 +943,97 @@ def imag(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(np.imag)(src)
+
+
+@computation_function()
+def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
+    """Compute the phase (argument) of a complex signal.
+
+    The function uses :py:func:`numpy.angle` to compute the argument and
+    :py:func:`numpy.unwrap` to unwrap it.
+
+    Args:
+        src: Input signal object.
+        p: Phase parameters.
+
+    Returns:
+        Signal object containing the phase, optionally unwrapped.
+    """
+    suffix = "unwrap" if p.unwrap else ""
+    dst = dst_1_to_1(src, "phase", suffix)
+    x, y = src.get_data()
+    argument = np.angle(y)
+    if p.unwrap:
+        argument = np.unwrap(argument)
+    if p.unit == AngleUnit.DEGREE:
+        argument = np.rad2deg(argument)
+    dst.set_xydata(x, argument, src.dx, None)
+    dst.yunit = p.unit.value
+    restore_data_outside_roi(dst, src)
+    return dst
+
+
+@computation_function()
+def complex_from_real_imag(src1: SignalObj, src2: SignalObj) -> SignalObj:
+    """Combine two real signals into a complex signal using real + i * imag.
+
+    .. warning::
+
+        The x coordinates of the two signals must be the same.
+
+    Args:
+        src1: Real part signal.
+        src2: Imaginary part signal.
+
+    Returns:
+        Result signal object with complex-valued y.
+    """
+    if not np.array_equal(src1.x, src2.x):
+        warnings.warn(
+            "The x coordinates of the two signals are not the same. "
+            "Results may be incorrect."
+        )
+    dst = dst_2_to_1(src1, src2, "real_imag")
+    y = src1.y + 1j * src2.y
+    dst.set_xydata(src1.x, y, src1.dx, None)
+    return dst
+
+
+@computation_function()
+def complex_from_magnitude_phase(
+    src1: SignalObj, src2: SignalObj, p: AngleUnitParam
+) -> SignalObj:
+    """Combine magnitude and phase signals into a complex signal.
+
+    .. warning::
+
+        The x coordinates of the two signals must be the same.
+
+    .. warning::
+
+        Negative values are not allowed for the radius and will be clipped to 0.
+
+    Args:
+        src1: Magnitude (module) signal.
+        src2: Phase (argument) signal.
+        p: Parameters (must provide unit for the phase).
+
+    Returns:
+        Result signal object with complex-valued y.
+    """
+    if not np.array_equal(src1.x, src2.x):
+        warnings.warn(
+            "The x coordinates of the two signals are not the same. "
+            "Results may be incorrect."
+        )
+    if np.any(src1.y < 0.0):
+        warnings.warn("Negative radius values are not allowed. They will be set to 0.")
+        src1.y = np.maximum(src1.y, 0.0)
+    dst = dst_2_to_1(src1, src2, "mag_phase")
+    assert p.unit is not None
+    y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit.value)
+    dst.set_xydata(src1.x, y, src1.x, None)
+    return dst
 
 
 class DataTypeSParam(gds.DataSet):
@@ -2176,19 +2270,16 @@ def reverse_x(src: SignalObj) -> SignalObj:
     return dst
 
 
-class AngleUnitParam(gds.DataSet):
-    """Choice of angle unit."""
-
-    units = (("rad", _("Radian")), ("deg", _("Degree")))
-    unit = gds.ChoiceItem(_("Angle unit"), units, default="rad")
-
-
 @computation_function()
 def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert cartesian coordinates to polar coordinates.
+    """Convert Cartesian coordinates to polar coordinates.
 
     This function converts the x and y coordinates of a signal to polar coordinates
     using :py:func:`sigima.tools.coordinates.to_polar`.
+
+    .. warning::
+
+        X and y must share the same units for the computation to make sense.
 
     Args:
         src: Source signal.
@@ -2202,23 +2293,34 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     """
     assert p.unit is not None
     if src.xunit != src.yunit:
-        warnings.warn(f"X and Y units are not the same: {src.xunit} != {src.yunit}.")
+        warnings.warn(
+            f"X and y units are not the same: {src.xunit} != {src.yunit}. "
+            "Results will be incorrect."
+        )
     dst = dst_1_to_1(src, "Polar coordinates", f"unit={p.unit}")
     x, y = src.get_data()
-    r, theta = coordinates.to_polar(x, y, p.unit)
+    r, theta = coordinates.to_polar(x, y, p.unit.value)
     dst.set_xydata(r, theta)
     dst.xlabel = _("Radius")
     dst.ylabel = _("Angle")
-    dst.yunit = p.unit
+    dst.yunit = p.unit.value
     return dst
 
 
 @computation_function()
 def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
-    """Convert polar coordinates to cartesian coordinates.
+    """Convert polar coordinates to Cartesian coordinates.
 
-    This function converts the r and theta coordinates of a signal to cartesian
+    This function converts the r and theta coordinates of a signal to Cartesian
     coordinates using :py:func:`sigima.tools.coordinates.to_cartesian`.
+
+    .. note::
+
+        It is assumed that the x-axis represents the radius and the y-axis the angle.
+
+    .. warning::
+
+        Negative values are not allowed for the radius and will be clipped to 0.
 
     Args:
         src: Source signal.
@@ -2226,16 +2328,13 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
 
     Returns:
         Result signal object.
-
-    .. note::
-
-        This function assumes that the x-axis represents the radius and the y-axis
-        represents the angle. Negative values are not allowed for the radius, and will
-        be clipped to 0 (a warning will be raised).
     """
     dst = dst_1_to_1(src, "Cartesian coordinates", f"unit={p.unit}")
     r, theta = src.get_data()
-    x, y = coordinates.to_cartesian(r, theta, p.unit)
+    if np.any(r < 0.0):
+        warnings.warn("Negative radius values are not allowed. They will be set to 0.")
+        r = np.maximum(r, 0.0)
+    x, y = coordinates.to_cartesian(r, theta, p.unit.value)
     dst.set_xydata(x, y)
     dst.xlabel = _("x")
     dst.ylabel = _("y")

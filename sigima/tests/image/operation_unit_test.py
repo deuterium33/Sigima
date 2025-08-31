@@ -15,7 +15,10 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-from sigima.proc.enums import MathOperator
+from sigima.objects.image import ImageObj
+from sigima.proc.base import AngleUnitParam
+from sigima.proc.enums import AngleUnit, MathOperator
+from sigima.proc.image import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_noisy_gaussian_image,
@@ -24,6 +27,7 @@ from sigima.tests.data import (
 )
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result
+from sigima.tools.coordinates import polar_to_complex
 
 
 def __create_n_images(n: int = 100) -> list[sigima.objects.ImageObj]:
@@ -310,6 +314,120 @@ def test_image_imag() -> None:
         check_array_result("Imaginary part", ima2.data, exp)
 
 
+@pytest.mark.validation
+def test_image_complex_from_real_imag() -> None:
+    """Test :py:func:`sigima.proc.image.complex_from_real_imag`."""
+    real = np.ones((4, 4))
+    ima = np.arange(16).reshape(4, 4)
+    ima_real = ImageObj("real")
+    ima_real.data = real
+    ima_imag = ImageObj("imag")
+    ima_imag.data = ima
+    result = complex_from_real_imag(ima_real, ima_imag)
+    check_array_result(
+        "complex_from_real_imag",
+        result.data,
+        real + 1j * ima,
+    )
+
+
+@pytest.mark.validation
+def test_image_phase() -> None:
+    """Image phase test."""
+    execenv.print("*** Testing image phase:")
+    for base_image in iterate_noisy_images():
+        # Create a complex image for testing
+        assert base_image.data is not None, "Input image data is None."
+        complex_data = base_image.data.astype(np.complex128)
+        complex_data += 1j * (0.5 * base_image.data + 1.0)
+        complex_image = base_image.copy()
+        complex_image.data = complex_data
+
+        # Test phase extraction in radians without unwrapping
+        param_rad = sigima.params.PhaseParam.create(unit=AngleUnit.RADIAN, unwrap=False)
+        result_rad = sigima.proc.image.phase(complex_image, param_rad)
+        assert result_rad.data is not None, "Phase in radians data is None."
+        expected_rad = np.angle(complex_image.data, deg=False)
+        check_array_result("Phase in radians", result_rad.data, expected_rad)
+
+        # Test phase extraction in degrees without unwrapping
+        param_deg = sigima.params.PhaseParam.create(unit=AngleUnit.DEGREE, unwrap=False)
+        result_deg = sigima.proc.image.phase(complex_image, param_deg)
+        assert result_deg.data is not None, "Phase in degrees data is None."
+        expected_deg = np.angle(complex_image.data, deg=True)
+        check_array_result("Phase in degrees", result_deg.data, expected_deg)
+
+        # Test phase extraction in radians with unwrapping
+        param_rad_unwrap = sigima.params.PhaseParam.create(
+            unit=AngleUnit.RADIAN, unwrap=True
+        )
+        result_rad_unwrap = sigima.proc.image.phase(complex_image, param_rad_unwrap)
+        expected_rad_unwrap = np.unwrap(np.angle(complex_image.data, deg=False))
+        assert result_rad_unwrap.data is not None, (
+            "Phase in radians with unwrapping data is None."
+        )
+        check_array_result(
+            "Phase in radians with unwrapping",
+            result_rad_unwrap.data,
+            expected_rad_unwrap,
+        )
+
+        # Test phase extraction in degrees with unwrapping
+        param_deg_unwrap = sigima.params.PhaseParam.create(
+            unit=AngleUnit.DEGREE, unwrap=True
+        )
+        result_deg_unwrap = sigima.proc.image.phase(complex_image, param_deg_unwrap)
+        expected_deg_unwrap = np.unwrap(
+            np.angle(complex_image.data, deg=True), period=360.0
+        )
+        assert result_deg_unwrap.data is not None, (
+            "Phase in degrees with unwrapping data is None."
+        )
+        check_array_result(
+            "Phase in degrees with unwrapping",
+            result_deg_unwrap.data,
+            expected_deg_unwrap,
+        )
+
+
+MAGNITUDE_PHASE_TEST_CASES = [
+    (np.linspace(0, np.pi, 16).reshape(4, 4), AngleUnit.RADIAN),
+    (np.linspace(0, 360, 16).reshape(4, 4), AngleUnit.DEGREE),
+]
+
+
+@pytest.mark.parametrize("phase, unit", MAGNITUDE_PHASE_TEST_CASES)
+@pytest.mark.validation
+def test_image_complex_from_magnitude_phase(phase: np.ndarray, unit: AngleUnit) -> None:
+    """Test :py:func:`sigima.proc.image.complex_from_magnitude_phase`.
+
+    Args:
+    phase (np.ndarray): Angles in radians or degrees.
+    unit (AngleUnit): Unit of the angles, either radian or degree.
+    """
+    magnitude = np.full((4, 4), 2.0)
+    # Create image instances for magnitude and phase
+    ima_mag = ImageObj("magnitude")
+    ima_mag.data = magnitude
+    ima_phase = ImageObj("phase")
+    ima_phase.data = phase
+    # Create complex signal from magnitude and phase
+    p = AngleUnitParam.create(unit=unit)
+    result = complex_from_magnitude_phase(ima_mag, ima_phase, p)
+    unit_str = "rad" if p.unit == AngleUnit.RADIAN else "°"
+    check_array_result(
+        "complex_from_magnitude_phase",
+        result.data,
+        polar_to_complex(magnitude, phase, unit=unit_str),
+    )
+
+
+def __test_all_complex_from_magnitude_phase() -> None:
+    """Test all combinations of magnitude and phase."""
+    for phase, unit in MAGNITUDE_PHASE_TEST_CASES:
+        test_image_complex_from_magnitude_phase(phase, unit)
+
+
 def __get_numpy_info(dtype: np.dtype) -> np.generic:
     """Get numpy info for a given data type."""
     if np.issubdtype(dtype, np.integer):
@@ -392,6 +510,8 @@ if __name__ == "__main__":
     test_image_absolute()
     test_image_real()
     test_image_imag()
+    test_image_phase()
+    __test_all_complex_from_magnitude_phase()
     test_image_astype()
     test_image_exp()
     test_image_log10()

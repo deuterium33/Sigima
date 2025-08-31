@@ -8,10 +8,11 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Literal
 
 import numpy as np
+
+from sigima.tools.checks import check_1d_arrays
 
 
 def circle_to_diameter(
@@ -183,54 +184,56 @@ def array_ellipse_to_center_axes_angle(data: np.ndarray) -> np.ndarray:
     return result
 
 
+@check_1d_arrays
 def to_polar(
-    x: np.ndarray, y: np.ndarray, unit: Literal["rad", "deg"] = "rad"
+    x: np.ndarray, y: np.ndarray, unit: Literal["°", "rad"] = "rad"
 ) -> tuple[np.ndarray, np.ndarray]:
     """Convert Cartesian coordinates to polar coordinates.
 
     Args:
         x: Cartesian x-coordinate.
         y: Cartesian y-coordinate.
-        unit: Unit of the angle ('rad' or 'deg').
+        unit: Unit of the angle ("°" or "rad").
 
     Returns:
         Polar coordinates (r, theta) where r is the radius and theta is the angle.
+
+    Raises:
+        ValueError: If the unit is not "°" or "rad".
     """
-    assert x.shape == y.shape, "x and y must have the same shape"
-    assert unit in ["rad", "deg"], "unit must be 'rad' or 'deg'"
+    if unit not in ["rad", "°"]:
+        raise ValueError(f"Unit must be radian ('rad') or degree ('°'), got {unit}.")
     r = np.sqrt(x**2 + y**2)
     theta = np.arctan2(y, x)
-    if unit == "deg":
+    if unit == "°":
         theta = np.rad2deg(theta)
     return r, theta
 
 
+@check_1d_arrays
 def to_cartesian(
-    r: np.ndarray, theta: np.ndarray, unit: Literal["rad", "deg"] = "rad"
+    r: np.ndarray, theta: np.ndarray, unit: Literal["°", "rad"] = "rad"
 ) -> tuple[np.ndarray, np.ndarray]:
     """Convert polar coordinates to Cartesian coordinates.
 
     Args:
         r: Polar radius.
         theta: Polar angle.
-        unit: Unit of the angle ('rad' or 'deg').
+        unit: Unit of the angle ("°" or "rad").
 
     Returns:
         Cartesian coordinates (x, y) where x is the x-coordinate and y is the
         y-coordinate.
 
-    .. note::
-
-        Negative radius values are not supported. They will be set to 0.
+    Raises:
+        ValueError: If the unit is not "°" or "rad".
+        ValueError: If any value of the radius is negative.
     """
-    assert r.shape == theta.shape, "r and theta must have the same shape"
-    assert unit in ["rad", "deg"], "unit must be 'rad' or 'deg'"
-    if np.any(r < 0):
-        warnings.warn(
-            "Negative radius values are not supported. They will be set to 0."
-        )
-        r = np.maximum(r, 0)
-    if unit == "deg":
+    if unit not in ["rad", "°"]:
+        raise ValueError(f"Unit must be radian ('rad') or degree ('°'), got {unit}.")
+    if np.any(r < 0.0):
+        raise ValueError("Negative radius values are not allowed.")
+    if unit == "°":
         theta = np.deg2rad(theta)
     x = r * np.cos(theta)
     y = r * np.sin(theta)
@@ -276,3 +279,30 @@ def vector_rotation(theta: float, dx: float, dy: float) -> tuple[float, float]:
         Tuple of (x, y) coordinates of rotated vector
     """
     return (rotate(theta) @ colvector(dx, dy)).ravel()[:2]
+
+
+@check_1d_arrays(x_require_1d=False, y_require_1d=False)
+def polar_to_complex(
+    r: np.ndarray, theta: np.ndarray, unit: Literal["°", "rad"] = "rad"
+) -> np.ndarray:
+    """Convert polar coordinates to complex number.
+
+    Args:
+        r: Polar radius.
+        theta: Polar angle.
+        unit: Unit of the angle ("°" or "rad").
+
+    Returns:
+        Complex numbers corresponding to the polar coordinates.
+
+    Raises:
+        ValueError: If the unit is not "°" or "rad".
+        ValueError: If any value of the radius is negative.
+    """
+    if unit not in ["rad", "°"]:
+        raise ValueError(f"Unit must be radian ('rad') or degree ('°'), got {unit}.")
+    if np.any(r < 0.0):
+        raise ValueError("Negative radius values are not allowed.")
+    if unit == "°":
+        theta = np.deg2rad(theta)
+    return r * np.exp(1j * theta)

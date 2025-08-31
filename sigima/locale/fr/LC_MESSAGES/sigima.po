@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-30 20:33+0200\n"
+"POT-Creation-Date: 2025-08-09 16:13+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -16,6 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
+
+msgid "If True, computation functions will not delete previous results when creating new objects. This allows for retaining results across invocations."
+msgstr "Si vrai, les fonctions de calcul ne supprimeront pas les résultats précédents lors de la création de nouveaux objets. Cela permet de conserver les résultats entre les appels."
 
 msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
 msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
@@ -427,11 +430,21 @@ msgstr "Sortie en décibels (dB)"
 msgid "Constant value"
 msgstr "Constante"
 
+msgid "Angle unit"
+msgstr "Unité de l'angle"
 msgid "columns"
 msgstr "colonnes"
 
+msgid "Unit of angle measurement"
+msgstr "Unité de mesure de l'angle"
+
+msgid "Unwrapping removes discontinuities in phase"
+msgstr "Déplier supprime les discontinuités de phase"
 msgid "rows"
 msgstr "lignes"
+
+msgid "columns"
+msgstr "colonnes"
 
 msgid "Distribute over"
 msgstr "Distribuer selon les"
@@ -798,6 +811,12 @@ msgstr "Fréquence centrale"
 msgid "Center frequency of the Gaussian filter"
 msgstr "Fréquence centrale du filtre gaussien"
 
+msgid "σ"
+msgstr "σ"
+
+msgid "Standard deviation of the Gaussian filter"
+msgstr "Ecart-type du filtre gaussien"
+
 msgid "Inverse FFT result"
 msgstr "Résultat de la FFT inverse"
 
@@ -1041,6 +1060,9 @@ msgstr "Cosinus"
 msgid "Flat top"
 msgstr "Sommet plat"
 
+msgid "Rectangular"
+msgstr "Rectangulaire"
+
 msgid "Method"
 msgstr "Méthode"
 
@@ -1157,4 +1179,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

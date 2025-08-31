@@ -17,6 +17,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 💥 New features and enhancements:
 
 * New common signal/image feature:
+  * Added `phase` (argument) feature to extract the phase information from complex signals or images.
+  * Added operation to create complex-valued signal/image from real and imaginary parts.
+  * Added operation to create complex-valued signal/image from magnitude and phase.
   * Standard deviation of the selected signals or images (this complements the "Average" feature).
   * Generate new signal or image: Poisson noise.
   * Add noise to the selected signals or images.
