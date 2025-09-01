@@ -95,7 +95,7 @@ def test_signal_average() -> None:
         exp_y += s.y
     exp_y /= n
     check_array_result(f"Average of {n} signals", s1.y, exp_y)
-    expected_dy = np.sqrt(sum(s.dy**2 for s in slist) / n)
+    expected_dy = np.sqrt(sum(s.dy**2 for s in slist)) / n
     check_array_result("Average error propagation", s1.dy, expected_dy)
 
 
@@ -115,7 +115,7 @@ def test_signal_standard_deviation() -> None:
     for sig in slist:
         sig.dy = np.abs(0.1 * sig.y) + 0.1
     s2 = sigima.proc.signal.standard_deviation(slist)
-    expected_dy = np.sqrt(sum(s.dy**2 for s in slist) / n)
+    expected_dy = exp / np.sqrt(2 * (n - 1))
     check_array_result("Standard Deviation error propagation", s2.dy, expected_dy)
 
 
