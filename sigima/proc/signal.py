@@ -446,7 +446,7 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     dst.y = np.mean(signals_y_to_array(src_list), axis=0)
     if is_uncertainty_data_available(src_list):
         dy_array = signals_dy_to_array(src_list)
-        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0) / len(dy_array))
+        dst.dy = np.sqrt(np.sum(dy_array**2, axis=0)) / len(src_list)
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
