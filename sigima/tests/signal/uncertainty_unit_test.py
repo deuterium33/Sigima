@@ -286,6 +286,90 @@ def test_moving_median_uncertainty_propagation() -> None:
     __verify_uncertainty_propagation(sigima.proc.signal.moving_median, param)
 
 
+def test_wrap1to1func_basic_behavior() -> None:
+    """Test basic Wrap1to1Func behavior with uncertainty propagation.
+
+    Wrap1to1Func should preserve uncertainty unchanged for any wrapped function.
+    """
+    # Test with a mathematical function (np.sqrt)
+    # Note: This tests the wrapper behavior, not the direct sqrt function
+    compute_sqrt_wrapped = sigima.proc.signal.Wrap1to1Func(np.sqrt)
+
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    result = compute_sqrt_wrapped(src)
+
+    # Check result values
+    check_array_result("Wrapped sqrt values", result.y, np.sqrt(src.y))
+
+    # Check uncertainty propagation (should be unchanged when using Wrap1to1Func)
+    check_array_result("Wrapped sqrt uncertainty propagation", result.dy, src.dy)
+
+    # Test with a custom function
+    def custom_multiply(y):
+        """Custom function: multiply by 3."""
+        return 3 * y
+
+    compute_custom = sigima.proc.signal.Wrap1to1Func(custom_multiply)
+
+    result_custom = compute_custom(src)
+
+    # Check result values
+    check_array_result("Custom multiply values", result_custom.y, 3 * src.y)
+
+    # Check uncertainty propagation (should be unchanged for any wrapped function)
+    check_array_result(
+        "Custom multiply uncertainty propagation", result_custom.dy, src.dy
+    )
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = compute_custom(src_no_unc)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
+def test_wrap1to1func_with_args_kwargs() -> None:
+    """Test Wrap1to1Func with additional args and kwargs."""
+
+    def power_func(y, power=2):
+        """Raise y to a power."""
+        return y**power
+
+    # Test with power=3 using kwargs
+    compute_power = sigima.proc.signal.Wrap1to1Func(power_func, power=3)
+
+    src = __create_signal_with_uncertainty()
+    result = compute_power(src)
+
+    # Check result values
+    check_array_result("Power 3 values", result.y, src.y**3)
+
+    # Check uncertainty propagation (should be unchanged when using Wrap1to1Func)
+    # Note: This is different from the mathematical uncertainty propagation
+    # which would be σ(y³) = 3 * y² * σ(y)
+    check_array_result("Power 3 uncertainty propagation", result.dy, src.dy)
+
+    # Test with positional arguments
+    def multiply_add(y, multiplier, addend):
+        """Custom function: y * multiplier + addend."""
+        return y * multiplier + addend
+
+    compute_multiply_add = sigima.proc.signal.Wrap1to1Func(multiply_add, 2, addend=5)
+
+    result_multiply_add = compute_multiply_add(src)
+
+    # Check result values
+    expected_y = src.y * 2 + 5
+    check_array_result("Multiply-add values", result_multiply_add.y, expected_y)
+
+    # Check uncertainty propagation (preserved unchanged)
+    check_array_result(
+        "Multiply-add uncertainty propagation", result_multiply_add.dy, src.dy
+    )
+
+
 if __name__ == "__main__":
     test_sqrt_uncertainty_propagation()
     test_log10_uncertainty_propagation()
@@ -300,3 +384,5 @@ if __name__ == "__main__":
     test_wiener_filter_uncertainty_propagation()
     test_moving_average_uncertainty_propagation()
     test_moving_median_uncertainty_propagation()
+    test_wrap1to1func_basic_behavior()
+    test_wrap1to1func_with_args_kwargs()
