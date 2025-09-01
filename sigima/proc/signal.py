@@ -254,6 +254,13 @@ class Wrap1to1Func:
 
         If `func_name` is provided in the keyword arguments, it will be used as the
         function name instead of the default name derived from the function itself.
+
+    .. note::
+
+        This wrapper is suitable for functions that don't require custom uncertainty
+        propagation. For mathematical functions with specific uncertainty formulas
+        (sqrt, log10, exp, etc.), implement uncertainty propagation directly in the
+        computation function.
     """
 
     def __init__(self, func: Callable, *args: Any, **kwargs: Any) -> None:
@@ -279,35 +286,9 @@ class Wrap1to1Func:
         )
         dst = dst_1_to_1(src, self.__name__, suffix)
         x, y = src.get_data()
-        # Propagate uncertainty without modification by default:
+        # Apply function and propagate uncertainty unchanged
         dst.set_xydata(x, self.func(y, *self.args, **self.kwargs), src.dx, src.dy)
 
-        # Uncertainty propagation for common mathematical functions
-        if is_uncertainty_data_available(src):
-            if self.func == np.sqrt:
-                # σ(√y) = σ(y) / (2√y)
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", category=RuntimeWarning)
-                    dst.dy = src.dy / (2 * np.sqrt(src.y))
-                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
-            elif self.func == np.log10:
-                # σ(log₁₀(y)) = σ(y) / (y * ln(10))
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", category=RuntimeWarning)
-                    dst.dy = src.dy / (src.y * np.log(10))
-                    dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
-            elif self.func == np.exp:
-                # σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
-                dst.dy = np.abs(dst.y) * src.dy
-            elif self.func == np.clip:  # pylint: disable=comparison-with-callable
-                # σ(clip(y)) = σ(y) where not clipped, 0 where clipped
-                a_min = self.kwargs.get("a_min", None)
-                a_max = self.kwargs.get("a_max", None)
-                if a_min is not None:
-                    dst.dy[src.y <= a_min] = 0
-                if a_max is not None:
-                    dst.dy[src.y >= a_max] = 0
-            # For absolute, real, imag and other functions: uncertainties are unchanged
         restore_data_outside_roi(dst, src)
         return dst
 
@@ -1077,7 +1058,22 @@ def log10(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(np.log10)(src)
+    dst = dst_1_to_1(src, "log10")
+    x, y = src.get_data()
+
+    # Compute result
+    result_y = np.log10(y)
+    dst.set_xydata(x, result_y, src.dx, src.dy)
+
+    # Uncertainty propagation: σ(log₁₀(y)) = σ(y) / (y * ln(10))
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            dst.dy = src.dy / (y * np.log(10))
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 @computation_function()
@@ -1090,7 +1086,19 @@ def exp(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(np.exp)(src)
+    dst = dst_1_to_1(src, "exp")
+    x, y = src.get_data()
+
+    # Compute result
+    result_y = np.exp(y)
+    dst.set_xydata(x, result_y, src.dx, src.dy)
+
+    # Uncertainty propagation: σ(eʸ) = eʸ * σ(y)
+    if is_uncertainty_data_available(src):
+        dst.dy = np.abs(result_y) * src.dy
+
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 @computation_function()
@@ -1103,7 +1111,22 @@ def sqrt(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(np.sqrt)(src)
+    dst = dst_1_to_1(src, "sqrt")
+    x, y = src.get_data()
+
+    # Compute result
+    result_y = np.sqrt(y)
+    dst.set_xydata(x, result_y, src.dx, src.dy)
+
+    # Uncertainty propagation: σ(√y) = σ(y) / (2√y)
+    if is_uncertainty_data_available(src):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            dst.dy = src.dy / (2 * np.sqrt(y))
+            dst.dy[np.isinf(dst.dy) | np.isnan(dst.dy)] = np.nan
+
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 class PowerParam(gds.DataSet):
@@ -1317,7 +1340,23 @@ def clip(src: SignalObj, p: ClipParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    return Wrap1to1Func(np.clip, a_min=p.lower, a_max=p.upper)(src)
+    dst = dst_1_to_1(src, "clip", f"[{p.lower}, {p.upper}]")
+    x, y = src.get_data()
+
+    # Compute result
+    result_y = np.clip(y, p.lower, p.upper)
+    dst.set_xydata(x, result_y, src.dx, src.dy)
+
+    # Uncertainty propagation: σ(clip(y)) = σ(y) where not clipped, 0 where clipped
+    if is_uncertainty_data_available(src):
+        dst.dy = src.dy.copy()
+        if p.lower is not None:
+            dst.dy[y <= p.lower] = 0
+        if p.upper is not None:
+            dst.dy[y >= p.upper] = 0
+
+    restore_data_outside_roi(dst, src)
+    return dst
 
 
 @computation_function()
