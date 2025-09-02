@@ -297,14 +297,14 @@ class BaseIORegistry(type):
 
 
 def get_file_extensions(string: str) -> list[str]:
-    """Return a list of file extensions in a string
+    """Return a sorted list of unique file extensions contained in `string`.
 
     Args:
-        string: string containing file extensions
+        string: String containing file extensions.
 
     Returns:
-        List of file extensions
+        List of file extensions.
     """
     pattern = r"\S+\.[\w-]+"
     matches = re.findall(pattern, string)
-    return [match.split(".")[-1].lower() for match in matches]
+    return sorted({match.split(".")[-1].lower() for match in matches})

@@ -16,12 +16,12 @@ def test_get_file_extensions() -> None:
     extensions = "*.bmp *.jpg *.jpeg *.png *.tif *.tiff *.jp2"
     assert get_file_extensions(extensions) == [
         "bmp",
-        "jpg",
+        "jp2",
         "jpeg",
+        "jpg",
         "png",
         "tif",
         "tiff",
-        "jp2",
     ], "get_file_extensions did not return expected list of extensions"
 
 
