@@ -1,3 +1,5 @@
+# Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
+
 """Common enum definitions for Sigima processing."""
 
 from __future__ import annotations
