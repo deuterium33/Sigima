@@ -15,9 +15,9 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.enums import AngleUnit, MathOperator
 from sigima.objects.image import ImageObj
 from sigima.proc.base import AngleUnitParam
-from sigima.proc.enums import AngleUnit, MathOperator
 from sigima.proc.image import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests import guiutils
 from sigima.tests.data import (

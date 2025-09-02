@@ -44,10 +44,10 @@ from skimage import feature, filters  # type: ignore[import]
 from skimage.util import img_as_ubyte  # type: ignore[import]
 
 from sigima.config import _
+from sigima.enums import FilterMode
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import FilterMode
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
 __all__ = [

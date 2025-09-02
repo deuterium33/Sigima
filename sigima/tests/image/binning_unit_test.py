@@ -15,7 +15,7 @@ from numpy import ma
 
 import sigima.params
 import sigima.proc.image
-from sigima.proc.enums import BinningOperation
+from sigima.enums import BinningOperation
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_image
 from sigima.tests.env import execenv

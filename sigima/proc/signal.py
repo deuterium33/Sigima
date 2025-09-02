@@ -26,6 +26,13 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 
 from sigima.config import _
+from sigima.enums import (
+    AngleUnit,
+    MathOperator,
+    PadLocation,
+    PowerUnit,
+    WindowingMethod,
+)
 from sigima.objects import (
     NO_ROI,
     GeometryResult,
@@ -58,13 +65,6 @@ from sigima.proc.base import (
     new_signal_result,
 )
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import (
-    AngleUnit,
-    MathOperator,
-    PadLocation,
-    PowerUnit,
-    WindowingMethod,
-)
 from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,

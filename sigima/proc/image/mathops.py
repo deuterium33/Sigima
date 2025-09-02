@@ -32,10 +32,10 @@ import guidata.dataset as gds
 import numpy as np
 
 from sigima.config import _
+from sigima.enums import AngleUnit
 from sigima.objects.image import ImageObj
 from sigima.proc.base import AngleUnitParam, PhaseParam, dst_1_to_1, dst_2_to_1
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import AngleUnit
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 from sigima.tools import coordinates
 from sigima.tools.datatypes import clip_astype

@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 from skimage import morphology, restoration
 
+import sigima.enums
 import sigima.objects
 import sigima.params
-import sigima.proc.enums
 import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.data import create_multigaussian_image, get_test_image
@@ -63,7 +63,7 @@ def test_denoise_wavelet() -> None:
     src.data = src.data[::8, ::8]
     p = sigima.params.DenoiseWaveletParam()
     for wavelets in ("db1", "db2", "db3"):
-        for mode in sigima.proc.enums.ThresholdMethod:
+        for mode in sigima.enums.ThresholdMethod:
             for method in ("BayesShrink",):
                 p.wavelets, p.mode, p.method = wavelets, mode, method
                 dst = sigima.proc.image.denoise_wavelet(src, p)

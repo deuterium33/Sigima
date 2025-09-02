@@ -22,9 +22,9 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
+from sigima.enums import AngleUnit, MathOperator
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import AngleUnitParam
-from sigima.proc.enums import AngleUnit, MathOperator
 from sigima.proc.signal import complex_from_magnitude_phase, complex_from_real_imag
 from sigima.tests.helpers import check_array_result
 from sigima.tools.coordinates import polar_to_complex

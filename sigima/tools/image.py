@@ -16,7 +16,7 @@ import scipy.spatial as spt
 from numpy import ma
 from skimage import exposure, feature, measure, transform
 
-from sigima.proc.enums import BinningOperation
+from sigima.enums import BinningOperation
 from sigima.tools.checks import check_2d_array
 
 # MARK: Level adjustment ---------------------------------------------------------------

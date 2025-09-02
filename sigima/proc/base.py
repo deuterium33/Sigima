@@ -19,7 +19,7 @@ import numpy as np
 
 from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
-from sigima.proc.enums import AngleUnit, FilterMode, MathOperator
+from sigima.enums import AngleUnit, FilterMode, MathOperator
 
 __all__ = [
     "AngleUnitParam",

@@ -33,6 +33,7 @@ import warnings
 
 import numpy as np
 
+from sigima.enums import MathOperator
 from sigima.objects.image import ImageObj
 from sigima.proc.base import (
     ArithmeticParam,
@@ -42,7 +43,6 @@ from sigima.proc.base import (
     dst_n_to_1,
 )
 from sigima.proc.decorator import computation_function
-from sigima.proc.enums import MathOperator
 from sigima.proc.image.base import restore_data_outside_roi
 from sigima.tools.datatypes import clip_astype
 

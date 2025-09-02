@@ -12,7 +12,7 @@ from typing import Callable
 import numpy as np
 import scipy.signal.windows
 
-from sigima.proc.enums import WindowingMethod
+from sigima.enums import WindowingMethod
 
 
 def get_window(method: WindowingMethod) -> Callable[[int], np.ndarray]:

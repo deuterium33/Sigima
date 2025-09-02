@@ -15,7 +15,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-from sigima.proc.enums import PadLocation
+from sigima.enums import PadLocation
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv

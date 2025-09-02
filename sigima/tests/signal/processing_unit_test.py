@@ -25,9 +25,9 @@ import scipy.ndimage as spi
 import scipy.signal as sps
 from packaging.version import Version
 
+import sigima.enums
 import sigima.objects
 import sigima.params
-import sigima.proc.enums
 import sigima.proc.signal
 import sigima.tests.data
 import sigima.tools.coordinates
@@ -129,7 +129,7 @@ def test_signal_to_polar() -> None:
     y = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     src = sigima.objects.create_signal("test", x, y)
 
-    for p.unit in sigima.proc.enums.AngleUnit:
+    for p.unit in sigima.enums.AngleUnit:
         dst1 = sigima.proc.signal.to_polar(src, p)
         dst2 = sigima.proc.signal.to_cartesian(dst1, p)
         check_array_result(f"{title}|x", dst2.x, x)
@@ -145,8 +145,8 @@ def test_signal_to_cartesian() -> None:
 
     a_deg = np.array([0.0, 45.0, 45.0, 45.0, 45.0])
     a_rad = np.array([0.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0, np.pi / 4.0])
-    for p.unit in sigima.proc.enums.AngleUnit:
-        theta = a_rad if p.unit == sigima.proc.enums.AngleUnit.RADIAN else a_deg
+    for p.unit in sigima.enums.AngleUnit:
+        theta = a_rad if p.unit == sigima.enums.AngleUnit.RADIAN else a_deg
         src = sigima.objects.create_signal("test", r, theta)
         dst1 = sigima.proc.signal.to_cartesian(src, p)
         dst2 = sigima.proc.signal.to_polar(dst1, p)
@@ -296,7 +296,7 @@ def test_signal_moving_average() -> None:
     """Validation test for the signal moving average processing."""
     src = get_test_signal("paracetamol.txt")
     p = sigima.params.MovingAverageParam.create(n=30)
-    for mode in sigima.proc.enums.FilterMode:
+    for mode in sigima.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.signal.moving_average(src, p)
         exp = spi.uniform_filter(src.data, size=p.n, mode=mode.value)
@@ -325,7 +325,7 @@ def test_signal_moving_median() -> None:
     """Validation test for the signal moving median processing."""
     src = get_test_signal("paracetamol.txt")
     p = sigima.params.MovingMedianParam.create(n=15)
-    for mode in sigima.proc.enums.FilterMode:
+    for mode in sigima.enums.FilterMode:
         p.mode = mode
         dst = sigima.proc.signal.moving_median(src, p)
         exp = spi.median_filter(src.data, size=p.n, mode=mode.value)
