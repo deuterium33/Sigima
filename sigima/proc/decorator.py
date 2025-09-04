@@ -27,6 +27,10 @@ else:
     # Use ParamSpec from typing_extensions module in Python < 3.10
     from typing_extensions import ParamSpec
 
+# NOTE: Parameter classes should NOT be included in __all__ to avoid Sphinx
+# cross-reference conflicts. All parameter classes are re-exported through
+# sigima.params module which serves as the single source of truth for the
+# public API. Only utility functions should be exported from this module.
 __all__ = [
     "computation_function",
     "is_computation_function",

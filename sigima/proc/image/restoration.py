@@ -21,6 +21,8 @@ distortions.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import guidata.dataset as gds
 import numpy as np
 import pywt
@@ -32,8 +34,15 @@ from sigima.objects.image import ImageObj, ROI2DParam
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
-from sigima.proc.image.morphology import MorphologyParam
 
+if TYPE_CHECKING:
+    import sigima.params
+
+
+# NOTE: Only parameter classes DEFINED in this module should be included in __all__.
+# Parameter classes imported from other modules (like sigima.proc.base) should NOT
+# be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
+# serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "DenoiseTVParam",
     "denoise_tv",
@@ -180,7 +189,7 @@ def denoise_wavelet(src: ImageObj, p: DenoiseWaveletParam) -> ImageObj:
 
 
 @computation_function()
-def denoise_tophat(src: ImageObj, p: MorphologyParam) -> ImageObj:
+def denoise_tophat(src: ImageObj, p: sigima.params.MorphologyParam) -> ImageObj:
     """Denoise using White Top-Hat
     with :py:func:`skimage.morphology.white_tophat`
 

@@ -21,23 +21,18 @@ from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
 from sigima.enums import AngleUnit, FilterMode, MathOperator
 
+# NOTE: This module is a shared utilities library that defines common parameter classes
+# used by multiple other modules (signal processing, image processing, etc.).
+# Unlike other modules, the parameter classes DEFINED in this module should NOT be
+# included in __all__ because they are imported and re-exported by the modules that
+# use them, and including them here would create Sphinx cross-reference conflicts.
+# The sigima.params module serves as the central API point that imports and re-exports
+# all parameter classes from their canonical locations.
 __all__ = [
-    "AngleUnitParam",
-    "ArithmeticParam",
-    "GaussianParam",
-    "MovingAverageParam",
-    "MovingMedianParam",
-    "ClipParam",
-    "NormalizeParam",
-    "HistogramParam",
-    "FFTParam",
-    "SpectrumParam",
-    "ConstantParam",
     "dst_1_to_1",
     "dst_n_to_1",
     "dst_2_to_1",
     "new_signal_result",
-    "PhaseParam",
 ]
 
 

@@ -42,17 +42,19 @@ from sigima.proc.base import (
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 
+# NOTE: Only parameter classes DEFINED in this module should be included in __all__.
+# Parameter classes imported from other modules (like sigima.proc.base) should NOT
+# be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
+# serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "ButterworthParam",
-    "GaussianFreqFilterParam",
     "butterworth",
+    "GaussianFreqFilterParam",
     "gaussian_freq_filter",
     "gaussian_filter",
     "moving_average",
     "moving_median",
     "wiener",
-    "ButterworthParam",
-    "butterworth",
 ]
 
 # MARK: Noise reduction filters

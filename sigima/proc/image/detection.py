@@ -33,6 +33,10 @@ from sigima.objects import GeometryResult, ImageObj, KindShape, create_image_roi
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import compute_geometry_from_obj
 
+# NOTE: Only parameter classes DEFINED in this module should be included in __all__.
+# Parameter classes imported from other modules (like sigima.proc.base) should NOT
+# be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
+# serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "GenericDetectionParam",
     "Peak2DDetectionParam",

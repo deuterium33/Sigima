@@ -26,6 +26,10 @@ import numpy as np
 from sigima.objects import NO_ROI, GeometryResult, ImageObj, KindShape, SignalObj
 from sigima.proc.base import dst_1_to_1, new_signal_result
 
+# NOTE: Only parameter classes DEFINED in this module should be included in __all__.
+# Parameter classes imported from other modules (like sigima.proc.base) should NOT
+# be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
+# serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "restore_data_outside_roi",
     "Wrap1to1Func",
