@@ -52,7 +52,7 @@ Sigima requires the following :
 
 Installing all required packages :
 
-    pip install --upgrade -r requirements-min.txt
+    pip install --upgrade -r requirements.txt
 
 If you are using [WinPython](https://winpython.github.io/), thank you for supporting
 the scientific open-source Python community!
@@ -68,7 +68,7 @@ The following table lists the currently officially used Python distributions:
 | 3.13           | OK           | 3.13.2.0          |
 
 ⚠ We strongly recommend using the `.dot` versions of WinPython which are lightweight
-and can be customized to your needs (using `pip install -r requirements-min.txt`).
+and can be customized to your needs (using `pip install -r requirements.txt`).
 
 ✅ We also recommend using a dedicated WinPython instance for Sigima.
 
