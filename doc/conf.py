@@ -81,6 +81,15 @@ def exclude_api_from_gettext(app):
                     if pattern not in app.config.exclude_patterns:
                         app.config.exclude_patterns.append(pattern)
 
+                # Also check subdirectories (may be useful in the future)
+                for dirname in os.listdir(api_dir):
+                    subdir_path = osp.join(api_dir, dirname)
+                    if osp.isdir(subdir_path):
+                        # Exclude entire subdirectories except their index files
+                        pattern = f"api/{dirname}/*"
+                        if pattern not in app.config.exclude_patterns:
+                            app.config.exclude_patterns.append(pattern)
+
         # Suppress warnings about excluded API documents during gettext builds
         app.config.suppress_warnings.extend(["toc.excluded", "ref.doc"])
 
