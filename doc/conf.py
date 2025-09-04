@@ -68,11 +68,29 @@ def cleanup_changelog(app, exception):
             del app.env.temp_changelog_path
 
 
+def exclude_api_from_gettext(app):
+    """Exclude detailed API documentation from gettext extraction (keep `index.rst`)."""
+    if app.builder.name == "gettext":
+        # Get all RST files in the api directory
+        api_dir = osp.join(app.srcdir, "api")
+        if osp.exists(api_dir):
+            for filename in os.listdir(api_dir):
+                if filename.endswith(".rst") and filename != "index.rst":
+                    # Remove .rst extension and add wildcard
+                    pattern = f"api/{filename[:-4]}*"
+                    if pattern not in app.config.exclude_patterns:
+                        app.config.exclude_patterns.append(pattern)
+
+        # Suppress warnings about excluded API documents during gettext builds
+        app.config.suppress_warnings.extend(["toc.excluded", "ref.doc"])
+
+
 def setup(app):
     """Setup function for Sphinx."""
     app.connect("builder-inited", copy_changelog)
     app.connect("build-finished", cleanup_changelog)
     app.add_directive("options-table", OptionsTableDirective)
+    app.connect("builder-inited", exclude_api_from_gettext)
 
 
 # -- Project information -----------------------------------------------------
