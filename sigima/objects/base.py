@@ -682,9 +682,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
     """Abstract base class for ROIs (Regions of Interest)
 
     Args:
-        singleobj: if True, when extracting data defined by ROIs, only one object
-         is created (default to True). If False, one object is created per single ROI.
-         If None, the value is get from the user configuration
         inverse: if True, ROI is outside the region of interest
     """
 
@@ -694,9 +691,8 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
     #: Each ROI subclass should override this with a unique string identifier.
     PREFIX = ""  # This is overriden in children classes
 
-    def __init__(self, singleobj: bool | None = None, inverse: bool = False) -> None:
+    def __init__(self, inverse: bool = False) -> None:
         self.single_rois: list[TypeSingleROI] = []
-        self.singleobj = singleobj
         self.inverse = inverse
 
     @staticmethod
@@ -806,14 +802,12 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
 
         Raises:
             TypeError: if roi type is not supported (not a single ROI or a ROI)
-            ValueError: if `singleobj` or `inverse` values are incompatible
+            ValueError: if `inverse` values are incompatible
         """
         if isinstance(roi, BaseSingleROI):
             self.single_rois.append(roi)
         elif isinstance(roi, BaseROI):
             self.single_rois.extend(roi.single_rois)
-            if roi.singleobj != self.singleobj:
-                raise ValueError("Incompatible `singleobj` values")
             if roi.inverse != self.inverse:
                 raise ValueError("Incompatible `inverse` values")
         else:
@@ -846,7 +840,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         cls: Type[BaseROI],
         obj: TypeObj,
         params: list[TypeROIParam],
-        singleobj: bool | None = None,
         inverse: bool = False,
     ) -> BaseROI[TypeObj, TypeSingleROI, TypeROIParam]:
         """Create ROIs from parameters
@@ -854,7 +847,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         Args:
             obj: object (signal/image)
             params: ROI parameters
-            singleobj: If True, extract all ROIs into a single object
             inverse: If True, extract the inverse of the ROIs
 
         Returns:
@@ -864,7 +856,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         for param in params:
             assert isinstance(param, BaseROIParam), "Invalid ROI parameter type"
             roi.add_roi(param.to_single_roi(obj))
-        roi.singleobj = singleobj
         roi.inverse = inverse
         return roi
 
@@ -875,7 +866,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             Dictionary
         """
         return {
-            "singleobj": self.singleobj,
             "inverse": self.inverse,
             "single_rois": [roi.to_dict() for roi in self.single_rois],
         }
@@ -891,12 +881,10 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             ROIs
         """
         instance = cls()
-        if not all(key in dictdata for key in ["singleobj", "inverse", "single_rois"]):
+        if not all(key in dictdata for key in ["inverse", "single_rois"]):
             raise ValueError(
-                "Invalid ROI: dictionary must contain 'singleobj', 'inverse', "
-                "and 'single_rois' keys"
+                "Invalid ROI: dictionary must contain 'inverse' and 'single_rois' keys"
             )
-        instance.singleobj = dictdata["singleobj"]
         instance.inverse = dictdata["inverse"]
         instance.single_rois = []
         for single_roi in dictdata["single_rois"]:

@@ -125,9 +125,6 @@ class SignalROI(base.BaseROI["SignalObj", SegmentROI, ROI1DParam]):
     """Signal Regions of Interest
 
     Args:
-        singleobj: if True, when extracting data defined by ROIs, only one object
-         is created (default to True). If False, one object is created per single ROI.
-         If None, the value is get from the user configuration
         inverse: if True, ROI is outside the region
     """
 
@@ -156,7 +153,6 @@ class SignalROI(base.BaseROI["SignalObj", SegmentROI, ROI1DParam]):
 def create_signal_roi(
     coords: np.ndarray | list[float] | list[list[float]],
     indices: bool = False,
-    singleobj: bool | None = None,
     inverse: bool = False,
     title: str = "",
 ) -> SignalROI:
@@ -168,9 +164,6 @@ def create_signal_roi(
          `[[xmin1, xmax1], [xmin2, xmax2], ...]` (lists or NumPy arrays)
         indices: if True, coordinates are indices, if False, they are physical values
          (default to False for signals)
-        singleobj: if True, when extracting data defined by ROIs, only one object
-         is created (default to True). If False, one object is created per single ROI.
-         If None, the value is get from the user configuration
         inverse: if True, ROI is outside the region
         title: title
 
@@ -183,7 +176,7 @@ def create_signal_roi(
     coords = np.array(coords, float)
     if coords.ndim == 1:
         coords = coords.reshape(1, -1)
-    roi = SignalROI(singleobj, inverse)
+    roi = SignalROI(inverse)
     for row in coords:
         roi.add_roi(SegmentROI(row, indices=indices, title=title))
     return roi

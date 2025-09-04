@@ -642,9 +642,6 @@ class ImageROI(
     """Image Regions of Interest
 
     Args:
-        singleobj: if True, when extracting data defined by ROIs, only one object
-         is created (default to True). If False, one object is created per single ROI.
-         If None, the value is get from the user configuration
         inverse: if True, ROI is outside the region
     """
 
@@ -678,7 +675,6 @@ def create_image_roi(
     geometry: Literal["rectangle", "circle", "polygon"],
     coords: np.ndarray | list[float] | list[list[float]],
     indices: bool = False,
-    singleobj: bool | None = None,
     inverse: bool = False,
     title: str = "",
 ) -> ImageROI:
@@ -694,9 +690,6 @@ def create_image_roi(
          `[[xc1, yc1, r1], [xc2, yc2, r2], ...]` for circles).
         indices: if True, coordinates are indices, if False, they are physical values
          (default to False)
-        singleobj: if True, when extracting data defined by ROIs, only one object
-         is created (default to True). If False, one object is created per single ROI.
-         If None, the value is get from the user configuration
         inverse: if True, ROI is outside the region
         title: title
 
@@ -709,7 +702,7 @@ def create_image_roi(
     coords = np.array(coords, float)
     if coords.ndim == 1:
         coords = coords.reshape(1, -1)
-    roi = ImageROI(singleobj, inverse)
+    roi = ImageROI(inverse)
     if geometry == "rectangle":
         if coords.shape[1] != 4:
             raise ValueError("Rectangle ROI requires 4 coordinates")

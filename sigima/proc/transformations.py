@@ -185,7 +185,7 @@ class GeometryTransformer:
         from sigima.objects.image import ImageROI
 
         # Determine ROI type and set up appropriate classes
-        new_roi = ImageROI(image.roi.singleobj, image.roi.inverse)
+        new_roi = ImageROI(image.roi.inverse)
 
         # Transform each single ROI
         for single_roi in image.roi.single_rois:
