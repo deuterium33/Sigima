@@ -105,7 +105,7 @@ class WindowingMethod(Enum):
     BOXCAR = "Boxcar"
     COSINE = _("Cosine")
     EXPONENTIAL = _("Exponential")
-    FLAT_TOP = _("Flat-Top")
+    FLAT_TOP = _("Flat Top")
     GAUSSIAN = _("Gaussian")
     HAMMING = "Hamming"
     HANN = "Hann"

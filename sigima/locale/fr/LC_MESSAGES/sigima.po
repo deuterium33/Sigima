@@ -49,6 +49,9 @@ msgstr "Cosinus"
 msgid "Exponential"
 msgstr "Exponentielle"
 
+msgid "Flat Top"
+msgstr "Flat Top"
+
 msgid "Gaussian"
 msgstr "Gaussienne"
 
