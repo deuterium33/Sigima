@@ -24,6 +24,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Generate new signal or image: Poisson noise.
   * Add noise to the selected signals or images.
     * Gaussian, Poisson or uniform noise can be added.
+  * New utility functions to generate file basenames.
 
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.

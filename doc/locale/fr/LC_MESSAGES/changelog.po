@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-09 15:59+0200\n"
+"POT-Creation-Date: 2025-09-04 18:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -34,20 +34,12 @@ msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaire
 msgid "Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects."
 msgstr "Introduction de deux nouveaux types de résultats immuables: `TableResult` et `GeometryResult`, remplaçant les anciens objets `ResultProperties` et `ResultShape`."
 
-msgid "Added `phase` (argument) feature to extract the phase information from complex signals or images."
-msgstr "Ajout de la fonctionnalité `phase` (argument) pour extraire les informations de phase des signaux ou des images complexes."
-msgid "Standard deviation of the selected signals or images (this complements the \"Average\" feature)."
-msgstr "Écart-type des signaux ou images de la sélection (ceci complète la fonctionnalité \"Moyenne\")."
 msgid "These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse."
 msgstr "Ces nouveaux types de résultats sont orientés vers le calcul et dépourvus de logique spécifique à l'application (par exemple, Qt, métadonnées), permettant une meilleure séparation des préoccupations et une réutilisation future."
 
-msgid "Added operation to create complex-valued signal/image from real and imaginary parts."
-msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir des parties réelle et imaginaire."
 msgid "Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object."
 msgstr "Ajout d'un utilitaire `TableResultBuilder` pour définir progressivement des calculs tabulaires (par exemple, des statistiques sur les signaux ou les images) et générer un objet `TableResult`."
 
-msgid "Added operation to create complex-valued signal/image from magnitude and phase."
-msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir de l'amplitude et de la phase."
 msgid "All metadata-related behaviors of former result types have been migrated to the DataLab application layer."
 msgstr "Tous les comportements liés aux métadonnées des anciens types de résultats ont été migrés vers la couche d'application DataLab."
 
@@ -63,6 +55,18 @@ msgstr "💥 Nouvelles fonctionnalités et améliorations:"
 msgid "New common signal/image feature:"
 msgstr "Nouvelles fonctionnalités communes signal/image :"
 
+msgid "Added `phase` (argument) feature to extract the phase information from complex signals or images."
+msgstr "Ajout de la fonctionnalité `phase` (argument) pour extraire les informations de phase des signaux ou des images complexes."
+
+msgid "Added operation to create complex-valued signal/image from real and imaginary parts."
+msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir des parties réelle et imaginaire."
+
+msgid "Added operation to create complex-valued signal/image from magnitude and phase."
+msgstr "Ajout de l'opération pour créer un signal/image à valeurs complexes à partir de l'amplitude et de la phase."
+
+msgid "Standard deviation of the selected signals or images (this complements the \"Average\" feature)."
+msgstr "Écart-type des signaux ou images de la sélection (ceci complète la fonctionnalité \"Moyenne\")."
+
 msgid "Generate new signal or image: Poisson noise."
 msgstr "Générer un nouveau signal ou une nouvelle image : bruit de Poisson."
 
@@ -71,6 +75,9 @@ msgstr "Ajouter du bruit aux signaux ou images sélectionnés."
 
 msgid "Gaussian, Poisson or uniform noise can be added."
 msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
+
+msgid "New utility functions to generate file basenames."
+msgstr "Nouvelles fonctions utilitaires pour générer des noms de fichiers."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
