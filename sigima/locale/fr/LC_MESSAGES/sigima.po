@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-08-09 16:13+0200\n"
+"POT-Creation-Date: 2025-09-04 13:55+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -16,9 +16,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
-
-msgid "If True, computation functions will not delete previous results when creating new objects. This allows for retaining results across invocations."
-msgstr "Si vrai, les fonctions de calcul ne supprimeront pas les résultats précédents lors de la création de nouveaux objets. Cela permet de conserver les résultats entre les appels."
 
 msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
 msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
@@ -45,6 +42,15 @@ msgstr ""
 "\n"
 "Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option ``imageio_formats`` pour spécifier\n"
 "des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
+
+msgid "Cosine"
+msgstr "Cosinus"
+
+msgid "Exponential"
+msgstr "Exponentielle"
+
+msgid "Gaussian"
+msgstr "Gaussienne"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -178,9 +184,6 @@ msgstr "Moyenne de la distribution de Poisson"
 msgid "Uniform distribution"
 msgstr "Moyenne de la distribution uniforme"
 
-msgid "Gaussian"
-msgstr "Gaussienne"
-
 msgid "2D ramp"
 msgstr "Rampe 2D"
 
@@ -279,9 +282,6 @@ msgstr "Modulation linéaire de fréquence"
 
 msgid "Step"
 msgstr "Echelon"
-
-msgid "Exponential"
-msgstr "Exponentielle"
 
 msgid "Logistic"
 msgstr "Logistique"
@@ -432,19 +432,18 @@ msgstr "Constante"
 
 msgid "Angle unit"
 msgstr "Unité de l'angle"
-msgid "columns"
-msgstr "colonnes"
 
 msgid "Unit of angle measurement"
 msgstr "Unité de mesure de l'angle"
 
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"
-msgid "rows"
-msgstr "lignes"
 
 msgid "columns"
 msgstr "colonnes"
+
+msgid "rows"
+msgstr "lignes"
 
 msgid "Distribute over"
 msgstr "Distribuer selon les"
@@ -725,11 +724,9 @@ msgstr "Nom de base"
 msgid "Name pattern"
 msgstr "Modèle de nom"
 
-#, fuzzy
 msgid "X direction"
 msgstr "Direction X"
 
-#, fuzzy
 msgid "Y direction"
 msgstr "Direction Y"
 
@@ -810,12 +807,6 @@ msgstr "Fréquence centrale"
 
 msgid "Center frequency of the Gaussian filter"
 msgstr "Fréquence centrale du filtre gaussien"
-
-msgid "σ"
-msgstr "σ"
-
-msgid "Standard deviation of the Gaussian filter"
-msgstr "Ecart-type du filtre gaussien"
 
 msgid "Inverse FFT result"
 msgstr "Résultat de la FFT inverse"
@@ -1054,15 +1045,6 @@ msgstr "X<sub>max</sub>"
 msgid "Detrending method"
 msgstr "Méthode d'élimation de la tendance"
 
-msgid "Cosine"
-msgstr "Cosinus"
-
-msgid "Flat top"
-msgstr "Sommet plat"
-
-msgid "Rectangular"
-msgstr "Rectangulaire"
-
 msgid "Method"
 msgstr "Méthode"
 
@@ -1074,12 +1056,6 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
-
-msgid "Radian"
-msgstr "Radian"
-
-msgid "Angle unit"
-msgstr "Unité de l'angle"
 
 msgid "Angle"
 msgstr "Angle"
@@ -1130,16 +1106,16 @@ msgid "Number of harmonics to consider for THD"
 msgstr "Nombre d'harmoniques à considérer pour le THD"
 
 msgid "Dynamic parameters"
-msgstr ""
+msgstr "Paramètres dynamiques"
 
 msgid "Sampling rate and period"
-msgstr ""
+msgstr "Taux d'échantillonnage et période"
 
 msgid "Contrast"
 msgstr "Contraste"
 
 msgid "X at min/max"
-msgstr ""
+msgstr "X à min/max"
 
 msgid "Number"
 msgstr "Nombre"
