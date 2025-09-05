@@ -25,7 +25,6 @@ from sigima.config import _
 from sigima.objects import ImageObj, SignalObj
 from sigima.objects.image import CircularROI, PolygonalROI, RectangularROI
 from sigima.tests.helpers import get_default_test_name
-import copy
 
 TEST_NB = {}
 
@@ -304,25 +303,16 @@ def view_images(
             data = data_or_obj
         else:
             raise TypeError(f"Unsupported data type: {type(data_or_obj)}")
-        #take care of complex images
-        if (
-            data.dtype == np.complexfloating
-            or data.dtype == complex
-        ):
-            real_item = make.image(np.real(data), interpolation="nearest", eliminate_outliers=0.1)
-            if image_title is not None:
-                real_item.setTitle(f"{image_title} (real part)")
-            items.append(real_item)
-
-            imag_item = make.image(np.imag(data), interpolation="nearest", eliminate_outliers=0.1)
-            if image_title is not None:
-                imag_item.setTitle(f"{image_title} (imaginary part)")
-            items.append(imag_item)
+        # Display real and imaginary parts of complex images.
+        assert data is not None
+        kwargs = {"interpolation": "nearest", "eliminate_outliers": 0.1}
+        if data.dtype == np.complexfloating:
+            re_title = f"Re({image_title})" if image_title is not None else "Real"
+            im_title = f"Im({image_title})" if image_title is not None else "Imaginary"
+            items.append(make.image(data.real, title=re_title, **kwargs))
+            items.append(make.image(data.imag, title=im_title, **kwargs))
         else:
-            item = make.image(data, interpolation="nearest", eliminate_outliers=0.1)
-            if image_title is not None:
-                item.setTitle(image_title)
-            items.append(item)
+            items.append(make.image(data, title=image_title, **kwargs))
     view_image_items(items, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
 
 
