@@ -81,13 +81,6 @@ def test_format_basenames_with_metadata_and_axes_placeholders():
     assert names == ["My_Signal_Time[s]_Amp[V]_42"]
 
 
-def test_format_basenames_with_panel_placeholder():
-    """Test with panel placeholder for signal or image."""
-    objs = [make_signal("s"), make_image("i")]
-    names = format_basenames(objs, fmt="{panel}_{title}")
-    assert names == ["signal_s", "image_i"]
-
-
 def test_format_basenames_sanitization():
     """Test with sanitization for titles."""
     objs = [make_signal("A/B"), make_image("C/D")]  # '/' must be sanitized on all OSes
@@ -118,7 +111,6 @@ def test_format_basenames_with_unknown_placeholder():
 if __name__ == "__main__":
     test_format_basenames_with_indices_and_total_count()
     test_format_basenames_with_metadata_and_axes_placeholders()
-    test_format_basenames_with_panel_placeholder()
     test_format_basenames_sanitization()
     test_format_basenames_sanitization_with_custom_replacement()
     test_format_basenames_with_unknown_placeholder()

@@ -54,7 +54,6 @@ def format_basenames(
     Format each object's name using the provided Python format string, then sanitize
     the result for safe use as a filename. The format string may reference any of:
         - {title}: object title
-        - {panel}: "signal" or "image"
         - {index}: 1-based index
         - {count}: total number of objects
         - {xlabel}, {xunit}, {ylabel}, {yunit}: axis labels/units (if present)
@@ -76,7 +75,6 @@ def format_basenames(
     for i, obj in enumerate(objects):
         context: dict[str, Any] = {
             "title": getattr(obj, "title", ""),
-            "panel": "signal" if isinstance(obj, SignalObj) else "image",
             "index": i + 1,
             "count": len(list(objects)),
             # Attributes may not exist on all objects.
