@@ -109,7 +109,9 @@ Signal parameters
     :no-index:
 .. autodataset:: sigima.params.PowerParam
     :no-index:
-.. autodataset:: sigima.params.ResamplingParam
+.. autodataset:: sigima.params.Resampling1DParam
+    :no-index:
+.. autodataset:: sigima.params.Resampling2DParam
     :no-index:
 .. autodataset:: sigima.params.WindowingParam
     :no-index:
@@ -309,7 +311,8 @@ __all__ = [
     "PeakDetectionParam",
     "PolynomialFitParam",
     "PowerParam",
-    "ResamplingParam",
+    "Resampling1DParam",
+    "Resampling2DParam",
     "WindowingParam",
     "XYCalibrateParam",
     "ZeroPadding1DParam",
@@ -359,6 +362,7 @@ from sigima.proc.image import (
     MorphologyParam,
     Peak2DDetectionParam,
     RadialProfileParam,
+    Resampling2DParam,
     RescaleIntensityParam,
     ResizeParam,
     ROIGridParam,
@@ -386,7 +390,7 @@ from sigima.proc.signal import (
     PeakDetectionParam,
     PolynomialFitParam,
     PowerParam,
-    ResamplingParam,
+    Resampling1DParam,
     WindowingParam,
     XYCalibrateParam,
     ZeroPadding1DParam,

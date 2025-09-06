@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-06 13:36+0200\n"
+"POT-Creation-Date: 2025-09-06 18:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -135,6 +135,27 @@ msgstr "`xdirection` / `ydirection`: Direction de la grille (croissante/décrois
 
 msgid "New image processing features:"
 msgstr "Nouvelles fonctionnalités de traitement d'image:"
+
+msgid "New \"2D resampling\" feature:"
+msgstr "Nouvelle fonctionnalité de \"Rééchantillonnage 2D\" :"
+
+msgid "This feature allows to resample 2D images to a new coordinate grid using interpolation."
+msgstr "Cette fonctionnalité permet de rééchantillonner des images 2D vers une nouvelle grille de coordonnées à l'aide d'une interpolation."
+
+msgid "It supports two resampling modes: pixel size and output shape."
+msgstr "Elle prend en charge deux modes de rééchantillonnage : la taille des pixels et la forme de sortie."
+
+msgid "Multiple interpolation methods are available: linear, cubic, and nearest neighbor."
+msgstr "Plusieurs méthodes d'interpolation sont disponibles : linéaire, cubique et plus proche voisin."
+
+msgid "The `fill_value` parameter controls how out-of-bounds pixels are handled, with support for numeric values or NaN."
+msgstr "Le paramètre `fill_value` contrôle la manière dont les pixels hors limites sont gérés, avec prise en charge des valeurs numériques ou de NaN."
+
+msgid "Automatic data type conversion ensures proper NaN handling for integer images."
+msgstr "La conversion automatique du type de données garantit une gestion appropriée des NaN pour les images entières."
+
+msgid "It is implemented in the `sigima.proc.image.resampling` function with parameters defined in `Resampling2DParam`."
+msgstr "Elle est implémentée dans la fonction `sigima.proc.image.resampling` avec des paramètres définis dans `Resampling2DParam`."
 
 msgid "New \"Frequency domain Gaussian filter\" feature:"
 msgstr "Nouvelle fonctionnalité de \"Filtre fréquentiel gaussien\" :"

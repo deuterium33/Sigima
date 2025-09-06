@@ -28,6 +28,7 @@ import scipy.signal as sps
 from sigima.config import _
 from sigima.enums import (
     AngleUnit,
+    Interpolation1DMethod,
     MathOperator,
     PadLocation,
     PowerUnit,
@@ -143,7 +144,7 @@ __all__ = [
     "histogram",
     "InterpolationParam",
     "interpolate",
-    "ResamplingParam",
+    "Resampling1DParam",
     "resampling",
     "DetrendingParam",
     "detrending",
@@ -2055,15 +2056,11 @@ def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
 class InterpolationParam(gds.DataSet):
     """Interpolation parameters"""
 
-    methods = (
-        ("linear", _("Linear")),
-        ("spline", _("Spline")),
-        ("quadratic", _("Quadratic")),
-        ("cubic", _("Cubic")),
-        ("barycentric", _("Barycentric")),
-        ("pchip", _("PCHIP")),
+    method = gds.ChoiceItem(
+        _("Interpolation method"),
+        Interpolation1DMethod,
+        default=Interpolation1DMethod.LINEAR,
     )
-    method = gds.ChoiceItem(_("Interpolation method"), methods, default="linear")
     fill_value = gds.FloatItem(
         _("Fill value"),
         default=None,
@@ -2088,19 +2085,24 @@ def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> Sign
     Returns:
         Result signal object
     """
-    suffix = f"method={p.method}"
-    if p.fill_value is not None and p.method in ("linear", "cubic", "pchip"):
+    method: Interpolation1DMethod = p.method
+    suffix = f"method={method.value}"
+    if p.fill_value is not None and method in (
+        Interpolation1DMethod.LINEAR,
+        Interpolation1DMethod.CUBIC,
+        Interpolation1DMethod.PCHIP,
+    ):
         suffix += f", fill_value={p.fill_value}"
     dst = dst_2_to_1(src1, src2, "interpolate", suffix)
     x1, y1 = src1.get_data()
     xnew, _y2 = src2.get_data()
-    ynew = interpolation.interpolate(x1, y1, xnew, p.method, p.fill_value)
+    ynew = interpolation.interpolate(x1, y1, xnew, method, p.fill_value)
     dst.set_xydata(xnew, ynew)
     return dst
 
 
-class ResamplingParam(InterpolationParam):
-    """Resample parameters"""
+class Resampling1DParam(InterpolationParam):
+    """Resample parameters for 1D signals"""
 
     xmin = gds.FloatItem(_("X<sub>min</sub>"), allow_none=True)
     xmax = gds.FloatItem(_("X<sub>max</sub>"), allow_none=True)
@@ -2129,7 +2131,7 @@ class ResamplingParam(InterpolationParam):
 
 
 @computation_function()
-def resampling(src: SignalObj, p: ResamplingParam) -> SignalObj:
+def resampling(src: SignalObj, p: Resampling1DParam) -> SignalObj:
     """Resample data with :py:func:`sigima.tools.signal.interpolation.interpolate`
 
     Args:
@@ -2139,8 +2141,13 @@ def resampling(src: SignalObj, p: ResamplingParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    suffix = f"method={p.method}"
-    if p.fill_value is not None and p.method in ("linear", "cubic", "pchip"):
+    method: Interpolation1DMethod = p.method
+    suffix = f"method={method.value}"
+    if p.fill_value is not None and method in (
+        Interpolation1DMethod.LINEAR,
+        Interpolation1DMethod.CUBIC,
+        Interpolation1DMethod.PCHIP,
+    ):
         suffix += f", fill_value={p.fill_value}"
     if p.mode == "dx":
         suffix += f", dx={p.dx:.3f}"
@@ -2152,7 +2159,7 @@ def resampling(src: SignalObj, p: ResamplingParam) -> SignalObj:
         xnew = np.arange(p.xmin, p.xmax, p.dx)
     else:
         xnew = np.linspace(p.xmin, p.xmax, p.nbpts)
-    ynew = interpolation.interpolate(x, y, xnew, p.method, p.fill_value)
+    ynew = interpolation.interpolate(x, y, xnew, method, p.fill_value)
     dst.set_xydata(xnew, ynew)
     return dst
 
@@ -2196,7 +2203,7 @@ def xy_mode(src1: SignalObj, src2: SignalObj) -> SignalObj:
         A signal object representing the X-Y mode.
     """
     dst = dst_2_to_1(src1, src2, "", "X-Y Mode")
-    p = ResamplingParam()
+    p = Resampling1DParam()
     p.xmin = max(src1.x[0], src2.x[0])
     p.xmax = min(src1.x[-1], src2.x[-1])
     assert p.xmin < p.xmax, "X-Y mode: No overlap between signals."

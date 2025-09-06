@@ -7,11 +7,10 @@
 
 from __future__ import annotations
 
-from typing import Literal
-
 import numpy as np
 import scipy.interpolate
 
+from sigima.enums import Interpolation1DMethod
 from sigima.tools.checks import check_1d_arrays
 
 
@@ -20,7 +19,7 @@ def interpolate(
     x: np.ndarray,
     y: np.ndarray,
     xnew: np.ndarray,
-    method: Literal["linear", "spline", "quadratic", "cubic", "barycentric", "pchip"],
+    method: Interpolation1DMethod,
     fill_value: float | None = None,
 ) -> np.ndarray:
     """Interpolate data.
@@ -39,26 +38,26 @@ def interpolate(
         Interpolated Y data
     """
     interpolator_extrap = None
-    if method == "linear":
+    if method == Interpolation1DMethod.LINEAR:
         # Linear interpolation using NumPy's interp function:
         ynew = np.interp(xnew, x, y, left=fill_value, right=fill_value)
-    elif method == "spline":
+    elif method == Interpolation1DMethod.SPLINE:
         # Spline using 1-D interpolation with SciPy's interpolate package:
         # pylint: disable=unbalanced-tuple-unpacking
         knots, coeffs, degree = scipy.interpolate.splrep(x, y, s=0)
         ynew = scipy.interpolate.splev(xnew, (knots, coeffs, degree), der=0)
-    elif method == "quadratic":
+    elif method == Interpolation1DMethod.QUADRATIC:
         # Quadratic interpolation using NumPy's polyval function:
         coeffs = np.polyfit(x, y, 2)
         ynew = np.polyval(coeffs, xnew)
-    elif method == "cubic":
+    elif method == Interpolation1DMethod.CUBIC:
         # Cubic interpolation using SciPy's Akima1DInterpolator class:
         interpolator_extrap = scipy.interpolate.Akima1DInterpolator(x, y)
-    elif method == "barycentric":
+    elif method == Interpolation1DMethod.BARYCENTRIC:
         # Barycentric interpolation using SciPy's BarycentricInterpolator class:
         interpolator = scipy.interpolate.BarycentricInterpolator(x, y)
         ynew = interpolator(xnew)
-    elif method == "pchip":
+    elif method == Interpolation1DMethod.PCHIP:
         # PCHIP interpolation using SciPy's PchipInterpolator class:
         interpolator_extrap = scipy.interpolate.PchipInterpolator(x, y)
     else:

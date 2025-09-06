@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-06 13:36+0200\n"
+"POT-Creation-Date: 2025-09-06 18:19+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -54,6 +54,27 @@ msgstr "Flat Top"
 
 msgid "Gaussian"
 msgstr "Gaussienne"
+
+msgid "Linear"
+msgstr "Linéaire"
+
+msgid "Spline"
+msgstr "Spline"
+
+msgid "Quadratic"
+msgstr "Quadratique"
+
+msgid "Cubic"
+msgstr "Cubique"
+
+msgid "Barycentric"
+msgstr "Barycentrique"
+
+msgid "PCHIP"
+msgstr "PCHIP"
+
+msgid "Nearest"
+msgstr "Plus proche voisin"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -225,17 +246,17 @@ msgstr "Rampe 2D"
 msgid "Untitled image"
 msgstr "Image sans titre"
 
-msgid "Height"
-msgstr "Hauteur"
-
 msgid "Image height: number of rows"
 msgstr "Hauteur de l'image : nombre de lignes"
 
-msgid "Width"
-msgstr "Largeur"
+msgid "Height"
+msgstr "Hauteur"
 
 msgid "Image width: number of columns"
 msgstr "Largeur de l'image : nombre de colonnes"
+
+msgid "Width"
+msgstr "Largeur"
 
 msgid "Data type"
 msgstr "Type de données"
@@ -906,6 +927,39 @@ msgstr "Modifier la taille des pixels"
 msgid "If checked, pixel size is updated according to binning factors. Users who prefer to work with pixel coordinates may want to uncheck this."
 msgstr "Si coché, la taille des pixels est mise à jour en fonction de la taille des agrégats. Les utilisateurs qui préfèrent travailler avec les coordonnées de pixels peuvent vouloir décocher cette option."
 
+msgid "Minimum X-coordinate of the output image"
+msgstr "Coordonnée X minimale de l'image de sortie"
+
+msgid "Maximum X-coordinate of the output image"
+msgstr "Coordonnée X maximale de l'image de sortie"
+
+msgid "Minimum Y-coordinate of the output image"
+msgstr "Coordonnée Y minimale de l'image de sortie"
+
+msgid "Maximum Y-coordinate of the output image"
+msgstr "Coordonnée Y maximale de l'image de sortie"
+
+msgid "Pixel size"
+msgstr "Taille de pixel"
+
+msgid "Output shape"
+msgstr "Taille de l'image de sortie"
+
+msgid "Pixel size in X direction"
+msgstr "Taille du pixel selon X"
+
+msgid "Pixel size in Y direction"
+msgstr "Taille du pixel selon Y"
+
+msgid "Output image width in pixels"
+msgstr "Largeur de l'image de sortie en pixels"
+
+msgid "Output image height in pixels"
+msgstr "Hauteur de l'image de sortie en pixels."
+
+msgid "Value to use for points outside the input image domain. If None, uses NaN for extrapolation."
+msgstr "Valeur à utiliser pour les points en dehors du domaine de l'image d'origine. Si aucune valeur n'est fournie, alors NaN est utilisé pour l'extrapolation."
+
 msgid "Image statistics"
 msgstr "Statistiques de l'image"
 
@@ -1043,24 +1097,6 @@ msgstr "Degré"
 
 msgid "Counts"
 msgstr "Coups"
-
-msgid "Linear"
-msgstr "Linéaire"
-
-msgid "Spline"
-msgstr "Spline"
-
-msgid "Quadratic"
-msgstr "Quadratique"
-
-msgid "Cubic"
-msgstr "Cubique"
-
-msgid "Barycentric"
-msgstr "Barycentrique"
-
-msgid "PCHIP"
-msgstr "PCHIP"
 
 msgid "Interpolation method"
 msgstr "Méthode d'interpolation"

@@ -348,7 +348,7 @@ def test_signal_resampling() -> None:
         sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
     )
     x1, y1 = src1.xydata
-    p1 = sigima.params.ResamplingParam.create(
+    p1 = sigima.params.Resampling1DParam.create(
         xmin=src1.x[0], xmax=src1.x[-1], nbpts=src1.x.size
     )
     dst1 = sigima.proc.signal.resampling(src1, p1)
@@ -359,7 +359,7 @@ def test_signal_resampling() -> None:
     src2 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.SINUS, freq=50.0, size=9
     )
-    p2 = sigima.params.ResamplingParam.create(
+    p2 = sigima.params.Resampling1DParam.create(
         xmin=src1.x[0], xmax=src1.x[-1], nbpts=src1.x.size
     )
     dst2 = sigima.proc.signal.resampling(src2, p2)

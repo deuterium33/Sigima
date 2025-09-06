@@ -115,3 +115,22 @@ class WindowingMethod(Enum):
     PARZEN = "Parzen"
     TAYLOR = "Taylor"
     TUKEY = "Tukey"
+
+
+class Interpolation1DMethod(Enum):
+    """Methods for 1D interpolation and resampling."""
+
+    LINEAR = _("Linear")
+    SPLINE = _("Spline")
+    QUADRATIC = _("Quadratic")
+    CUBIC = _("Cubic")
+    BARYCENTRIC = _("Barycentric")
+    PCHIP = _("PCHIP")
+
+
+class Interpolation2DMethod(Enum):
+    """Methods for 2D interpolation and resampling."""
+
+    NEAREST = _("Nearest")
+    LINEAR = _("Linear")
+    CUBIC = _("Cubic")

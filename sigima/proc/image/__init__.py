@@ -214,17 +214,19 @@ from sigima.proc.image.fourier import (
 )
 from sigima.proc.image.geometry import (
     BinningParam,
+    Resampling2DParam,
     ResizeParam,
     RotateParam,
     TranslateParam,
-    translate,
     binning,
     fliph,
     flipv,
+    resampling,
     resize,
     rotate,
     rotate90,
     rotate270,
+    translate,
     transpose,
 )
 from sigima.proc.image.mathops import (
