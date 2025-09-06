@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-04 18:30+0200\n"
+"POT-Creation-Date: 2025-09-06 13:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -246,6 +246,21 @@ msgstr "`sigima.io.read_metadata` et `sigima.io.write_metadata` pour les métado
 
 msgid "`sigima.io.read_roi` and `sigima.io.write_roi` for ROIs."
 msgstr "`sigima.io.read_roi` et `sigima.io.write_roi` pour les ROIs."
+
+msgid "Added convenience I/O functions `write_signals` and `write_images` with `SaveToDirectoryParam` support:"
+msgstr "Ajout de fonctions d'E/S de commodité `write_signals` et `write_images` avec prise en charge de `SaveToDirectoryParam`:"
+
+msgid "These functions enable batch saving of multiple signal or image objects to a directory with configurable naming patterns."
+msgstr "Ces fonctions permettent d'enregistrer par lots plusieurs objets de signal ou d'image dans un répertoire avec des modèles de nommage configurables."
+
+msgid "`SaveToDirectoryParam` provides control over file basenames (with Python format string support), extensions, directory paths, and overwrite behavior."
+msgstr "`SaveToDirectoryParam` fournit un contrôle sur les noms de fichiers de base (avec prise en charge des chaînes de format Python), des extensions, des chemins de répertoire et du comportement d'écrasement."
+
+msgid "Automatic filename conflict resolution ensures unique filenames when duplicates would occur."
+msgstr "La résolution automatique des conflits de noms de fichiers garantit des noms de fichiers uniques en cas de doublons."
+
+msgid "Enhanced workflow efficiency for processing and saving multiple objects in batch operations."
+msgstr "Efficacité améliorée du flux de travail pour le traitement et l'enregistrement de plusieurs objets dans des opérations par lots."
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Corrections de bogues:"

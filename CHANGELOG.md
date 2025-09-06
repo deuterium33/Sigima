@@ -106,6 +106,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Added functions to read and write metadata and ROIs in JSON format:
     * `sigima.io.read_metadata` and `sigima.io.write_metadata` for metadata.
     * `sigima.io.read_roi` and `sigima.io.write_roi` for ROIs.
+  * Added convenience I/O functions `write_signals` and `write_images` with `SaveToDirectoryParam` support:
+    * These functions enable batch saving of multiple signal or image objects to a directory with configurable naming patterns.
+    * `SaveToDirectoryParam` provides control over file basenames (with Python format string support), extensions, directory paths, and overwrite behavior.
+    * Automatic filename conflict resolution ensures unique filenames when duplicates would occur.
+    * Enhanced workflow efficiency for processing and saving multiple objects in batch operations.
 
 🛠️ Bug fixes:
 

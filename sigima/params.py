@@ -44,6 +44,12 @@ with the :py:class:`sigima.params.BinningParam` dataset:
         :no-index:
         :shownote:
 
+I/O parameters
+^^^^^^^^^^^^^^
+
+.. autodataset:: sigima.io.convenience.SaveToDirectoryParam
+    :no-index:
+
 Common parameters
 ^^^^^^^^^^^^^^^^^
 
@@ -307,8 +313,10 @@ __all__ = [
     "WindowingParam",
     "XYCalibrateParam",
     "ZeroPadding1DParam",
+    "SaveToDirectoryParam",
 ]
 
+from sigima.io.convenience import SaveToDirectoryParam
 from sigima.proc.base import (
     ArithmeticParam,
     ClipParam,

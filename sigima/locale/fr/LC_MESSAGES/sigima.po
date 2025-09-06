@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-04 13:55+0200\n"
+"POT-Creation-Date: 2025-09-06 13:36+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -57,6 +57,38 @@ msgstr "Gaussienne"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
+
+msgid "Directory"
+msgstr "Répertoire"
+
+msgid "Basename pattern"
+msgstr "Modèle de nom de base"
+
+#, python-brace-format
+msgid ""
+"Pattern accepts a Python format string.\n"
+"\n"
+"Standard Python formatting fields may be used, including:\n"
+"{title}, {index}, {count}, {xlabel}, {xunit}, {ylabel}, {yunit},\n"
+"{metadata}, {metadata[key]}"
+msgstr ""
+"Le modèle accepte une chaîne de format Python.\n"
+"\n"
+"Les champs de formatage Python standard peuvent être utilisés, y compris :\n"
+"{title}, {index}, {count}, {xlabel}, {xunit}, {ylabel}, {yunit},\n"
+"{metadata}, {metadata[key]}"
+
+msgid "Extension"
+msgstr "Extension"
+
+msgid "File extension with leading dot (e.g. .txt or .csv)"
+msgstr "Extension de fichier avec un point de tête (par exemple .txt ou .csv)"
+
+msgid "Overwrite"
+msgstr "Écraser"
+
+msgid "Overwrite existing files"
+msgstr "Écraser les fichiers existants"
 
 msgid "Image I/O formats"
 msgstr "Formats d'entrée/sortie d'images"

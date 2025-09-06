@@ -91,7 +91,9 @@ from sigima.io.convenience import (
     read_signal,
     read_signals,
     write_image,
+    write_images,
     write_signal,
+    write_signals,
 )
 from sigima.io.image.base import ImageIORegistry
 from sigima.io.signal.base import SignalIORegistry
@@ -106,9 +108,11 @@ __all__ = [
     "read_signals",
     "read_signal",
     "write_signal",
+    "write_signals",
     "read_images",
     "read_image",
     "write_image",
+    "write_images",
     "SignalIORegistry",
     "ImageIORegistry",
     "SIGNAL_FORMAT_INFO",
