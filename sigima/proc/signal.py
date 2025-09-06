@@ -1891,8 +1891,6 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
     elif p.location is PadLocation.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
-    else:
-        raise ValueError(f"Unknown location: {p.location}")
 
     dst = dst_1_to_1(src, "zero_padding", suffix)
     x, y = src.get_data()
@@ -2274,8 +2272,6 @@ class WindowingParam(gds.DataSet):
 def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
     """Compute windowing with :py:func:`sigima.tools.signal.windowing.apply_window`.
 
-    Available methods are listed in :py:attr:`WindowingParam.methods`.
-
     Args:
         src: Source signal.
         p: Parameters for windowing.
@@ -2283,17 +2279,17 @@ def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    suffix = f"method={p.method}"
-    if p.method == WindowingMethod.GAUSSIAN:
+    method: WindowingMethod = p.method
+    suffix = f"method={method.value}"
+    if method == WindowingMethod.GAUSSIAN:
         suffix += f", sigma={p.sigma:.3f}"
-    elif p.method == WindowingMethod.KAISER:
+    elif method == WindowingMethod.KAISER:
         suffix += f", beta={p.beta:.3f}"
-    elif p.method == WindowingMethod.TUKEY:
+    elif method == WindowingMethod.TUKEY:
         suffix += f", alpha={p.alpha:.3f}"
     dst = dst_1_to_1(src, "apply_window", suffix)
-    assert p.method is not None
     assert p.alpha is not None
-    dst.y = windowing.apply_window(dst.y, p.method, p.alpha)
+    dst.y = windowing.apply_window(dst.y, method, p.alpha)
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -2803,21 +2799,22 @@ def dynamic_parameters(src: SignalObj, p: DynamicParam) -> TableResult:
     Returns:
         Result properties with ENOB, SNR, SINAD, THD, SFDR
     """
-    dsfx = f" = %g {p.unit}"
+    unit: PowerUnit = p.unit
+    dsfx = f" = %g {unit.value}"
     table = TableResultBuilder(_("Dynamic parameters"))
     table.add(lambda xy: dynamic.sinus_frequency(xy[0], xy[1]), "freq")
     table.add(
         lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale), "enob", "ENOB = %.1f bits"
     )
-    table.add(lambda xy: dynamic.snr(xy[0], xy[1], p.unit), "snr", "SNR" + dsfx)
-    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], p.unit), "sinad", "SINAD" + dsfx)
+    table.add(lambda xy: dynamic.snr(xy[0], xy[1], unit), "snr", "SNR" + dsfx)
+    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], unit), "sinad", "SINAD" + dsfx)
     table.add(
-        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, p.unit, p.nb_harm),
+        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, unit, p.nb_harm),
         "thd",
         "THD" + dsfx,
     )
     table.add(
-        lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, p.unit),
+        lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, unit),
         "sfdr",
         "SFDR" + dsfx,
     )

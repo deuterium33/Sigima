@@ -10,11 +10,11 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal
 
 import numpy as np
 import scipy.optimize
 
+from sigima.enums import PowerUnit
 from sigima.tools.checks import check_1d_arrays
 
 
@@ -102,7 +102,7 @@ def sinad(
     x: np.ndarray,
     y: np.ndarray,
     full_scale: float = 1.0,
-    unit: Literal["dBc", "dBFS"] = "dBc",
+    unit: PowerUnit = PowerUnit.DBC,
 ) -> float:
     """Compute Signal-to-Noise and Distortion Ratio (SINAD).
 
@@ -110,8 +110,7 @@ def sinad(
         x: x signal data
         y: y signal data
         full_scale: Full scale(V). Defaults to 1.0.
-        unit: Unit of the input data. Valid values are 'dBc' and 'dBFS'.
-         Defaults to 'dBc'.
+        unit: Unit of the input data. Defaults to PowerUnit.DBC.
 
     Returns:
         Signal-to-Noise and Distortion Ratio (SINAD)
@@ -120,7 +119,10 @@ def sinad(
     amp = fitparams[0]
 
     # Compute the power of the fundamental
-    powf = np.abs(amp / np.sqrt(2)) if unit == "dBc" else full_scale / (2 * np.sqrt(2))
+    if unit == PowerUnit.DBC:
+        powf = np.abs(amp / np.sqrt(2))
+    else:
+        powf = full_scale / (2 * np.sqrt(2))
 
     return 20 * np.log10(powf / residuals)
 
@@ -130,7 +132,7 @@ def thd(
     x: np.ndarray,
     y: np.ndarray,
     full_scale: float = 1.0,
-    unit: Literal["dBc", "dBFS"] = "dBc",
+    unit: PowerUnit = PowerUnit.DBC,
     nb_harm: int = 5,
 ) -> float:
     """Compute Total Harmonic Distortion (THD).
@@ -139,8 +141,7 @@ def thd(
         x: x signal data
         y: y signal data
         full_scale: Full scale(V). Defaults to 1.0.
-        unit: Unit of the input data. Valid values are 'dBc' and 'dBFS'.
-         Defaults to 'dBc'.
+        unit: Unit of the input data. Defaults to PowerUnit.DBC.
         nb_harm: Number of harmonics to consider. Defaults to 5.
 
     Returns:
@@ -152,7 +153,7 @@ def thd(
     ampfft = np.abs(np.fft.fft(y - offset))
 
     # Compute the power of the fundamental
-    if unit == "dBc":
+    if unit == PowerUnit.DBC:
         powfund = np.max(ampfft[: len(ampfft) // 2])
     else:
         powfund = (full_scale / (2 * np.sqrt(2))) * (len(x) / np.sqrt(2))
@@ -171,7 +172,7 @@ def sfdr(
     x: np.ndarray,
     y: np.ndarray,
     full_scale: float = 1.0,
-    unit: Literal["dBc", "dBFS"] = "dBc",
+    unit: PowerUnit = PowerUnit.DBC,
 ) -> float:
     """Compute Spurious-Free Dynamic Range (SFDR).
 
@@ -179,8 +180,7 @@ def sfdr(
         x: x signal data
         y: y signal data
         full_scale: Full scale(V). Defaults to 1.0.
-        unit: Unit of the input data. Valid values are 'dBc' and 'dBFS'.
-         Defaults to 'dBc'.
+        unit: Unit of the input data. Defaults to PowerUnit.DBC.
 
     Returns:
         Spurious-Free Dynamic Range (SFDR)
@@ -188,7 +188,7 @@ def sfdr(
     fitparams, _residuals = sinusoidal_fit(x, y)
 
     # Compute the power of the fundamental
-    if unit == "dBc":
+    if unit == PowerUnit.DBC:
         powfund = np.max(np.abs(np.fft.fft(y)))
     else:
         powfund = (full_scale / (2 * np.sqrt(2))) * (len(x) / np.sqrt(2))
@@ -202,7 +202,7 @@ def snr(
     x: np.ndarray,
     y: np.ndarray,
     full_scale: float = 1.0,
-    unit: Literal["dBc", "dBFS"] = "dBc",
+    unit: PowerUnit = PowerUnit.DBC,
 ) -> float:
     """Compute Signal-to-Noise Ratio (SNR).
 
@@ -210,8 +210,7 @@ def snr(
         x: x signal data
         y: y signal data
         full_scale: Full scale(V). Defaults to 1.0.
-        unit: Unit of the input data. Valid values are 'dBc' and 'dBFS'.
-         Defaults to 'dBc'.
+        unit: Unit of the input data. Defaults to PowerUnit.DBC.
 
     Returns:
         Signal-to-Noise Ratio (SNR)
@@ -219,7 +218,7 @@ def snr(
     fitparams, _residuals = sinusoidal_fit(x, y)
 
     # Compute the power of the fundamental
-    if unit == "dBc":
+    if unit == PowerUnit.DBC:
         powfund = np.max(np.abs(np.fft.fft(y)))
     else:
         powfund = (full_scale / (2 * np.sqrt(2))) * (len(x) / np.sqrt(2))
