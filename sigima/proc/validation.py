@@ -22,6 +22,27 @@ from sigima import __version__
 from sigima.proc.decorator import find_computation_functions
 
 
+def generate_valid_test_names_for_function(
+    module_name: str, func_name: str
+) -> list[str]:
+    """Generate all valid test names for a computation function.
+
+    Args:
+        module_name: Module name containing the computation function
+            (e.g., "sigima.proc.image")
+        func_name: Function name (e.g., "compute_add_gaussian_noise")
+
+    Returns:
+        List of valid test names that could test this computation function
+    """
+    family = module_name.split(".")[-1]  # "signal" or "image"
+    shortname = func_name.removeprefix("compute_")
+    endings = [shortname, shortname + "_unit", shortname + "_validation"]
+    beginnings = ["test", f"test_{family}", f"test_{family[:3]}", f"test_{family[0]}"]
+    names = [f"{beginning}_{ending}" for beginning in beginnings for ending in endings]
+    return names
+
+
 def check_for_validation_test(
     full_function_name: str, validation_tests: list[tuple[str, str]]
 ) -> str:
@@ -34,11 +55,14 @@ def check_for_validation_test(
     Returns:
         Text to be included in the CSV file or None if it doesn't exist
     """
-    family, funcname = full_function_name.split(".")[-2:]  # "signal" or "image"
-    shortname = funcname.removeprefix("compute_")
-    endings = [shortname, shortname + "_unit", shortname + "_validation"]
-    beginnings = ["test", f"test_{family}", f"test_{family[:3]}", f"test_{family[0]}"]
-    names = [f"{beginning}_{ending}" for beginning in beginnings for ending in endings]
+    # Extract module name and function name from full function name
+    module_parts = full_function_name.split(".")
+    module_name = ".".join(module_parts[:-1])  # e.g., "sigima.proc.image"
+    func_name = module_parts[-1]  # e.g., "compute_add_gaussian_noise"
+
+    # Generate all valid test names for this computation function
+    names = generate_valid_test_names_for_function(module_name, func_name)
+
     stable_version = re.sub(r"\.?(post|dev|rc|b|a)\S*", "", __version__)
     for test, path, line_number in validation_tests:
         if test in names:
