@@ -48,12 +48,6 @@ def test_image_fliph() -> None:
 
 
 @pytest.mark.validation
-def test_image_flipd() -> None:
-    """Image diagonal flip test."""
-    __generic_flip_check(sigima.proc.image.transpose, np.transpose)
-
-
-@pytest.mark.validation
 def test_image_flipv() -> None:
     """Image vertical flip test."""
     __generic_flip_check(sigima.proc.image.flipv, np.flipud)

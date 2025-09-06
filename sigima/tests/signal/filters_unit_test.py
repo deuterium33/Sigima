@@ -104,7 +104,7 @@ def test_signal_highpass() -> None:
 
 
 @pytest.mark.validation
-def test_signal_stopband() -> None:
+def test_signal_bandstop() -> None:
     """Validation test for stopband frequency filtering."""
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([1, 5]), noise_level=0)
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     guiutils.enable_gui()
     test_signal_lowpass()
     test_signal_highpass()
-    test_signal_stopband()
+    test_signal_bandstop()
     test_signal_bandpass()
     test_brickwall_filter_invalid_x()
     test_tools_to_proc_interface()
