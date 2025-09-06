@@ -15,7 +15,7 @@ from sigima.tests.helpers import check_array_result, check_scalar_result
 
 
 @pytest.mark.validation
-def test_add_gaussian_noise_image() -> None:
+def test_image_add_gaussian_noise() -> None:
     """Test :py:func:`sigima.proc.image.add_gaussian_noise`."""
     # Generate a clean image.
     size = 512
@@ -54,4 +54,4 @@ def test_add_gaussian_noise_image() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_add_gaussian_noise_image()
+    test_image_add_gaussian_noise()

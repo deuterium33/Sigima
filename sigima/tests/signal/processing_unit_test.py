@@ -369,7 +369,7 @@ def test_signal_resampling() -> None:
 
 
 @pytest.mark.validation
-def test_signal_XY_mode() -> None:
+def test_signal_xy_mode() -> None:
     """Validation test for the signal X-Y mode processing."""
     s1 = sigima.tests.data.create_periodic_signal(
         sigima.objects.SignalTypes.COSINUS, freq=50.0, size=5
@@ -415,4 +415,4 @@ if __name__ == "__main__":
     test_signal_moving_median()
     test_signal_wiener()
     test_signal_resampling()
-    test_signal_XY_mode()
+    test_signal_xy_mode()
