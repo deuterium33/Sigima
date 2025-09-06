@@ -17,7 +17,6 @@ import os
 import os.path as osp
 
 import numpy as np
-import pytest
 
 from sigima.io import ImageIORegistry, SignalIORegistry, write_images, write_signals
 from sigima.objects import create_image, create_signal
@@ -301,7 +300,6 @@ def test_savetodir_param_collision_handling() -> None:
     execenv.print(f"{test_savetodir_param_collision_handling.__doc__}: OK")
 
 
-@pytest.mark.validation
 def test_savetodir_param_metadata_access() -> None:
     """Test SaveToDirectoryParam accessing metadata fields in basename patterns."""
     execenv.print(f"{test_savetodir_param_metadata_access.__doc__}:")
@@ -351,7 +349,6 @@ def test_savetodir_param_metadata_access() -> None:
     execenv.print(f"{test_savetodir_param_metadata_access.__doc__}: OK")
 
 
-@pytest.mark.validation
 def test_savetodir_param_units_formatting() -> None:
     """Test SaveToDirectoryParam accessing units in basename patterns."""
     execenv.print(f"{test_savetodir_param_units_formatting.__doc__}:")
@@ -401,7 +398,6 @@ def test_savetodir_param_units_formatting() -> None:
     execenv.print(f"{test_savetodir_param_units_formatting.__doc__}: OK")
 
 
-@pytest.mark.validation
 def test_savetodir_param_edge_cases() -> None:
     """Test SaveToDirectoryParam edge cases and error handling."""
     execenv.print(f"{test_savetodir_param_edge_cases.__doc__}:")
