@@ -3,7 +3,7 @@
 The `sigima` library is part of the DataLab open-source platform.
 See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones.
 
-## sigima 0.3.0 ##
+## sigima 1.0.0 ##
 
 ✨ Core architecture update: scalar result types
 
