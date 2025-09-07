@@ -141,64 +141,6 @@ def __test_processing_in_roi(src: sigima.objects.ImageObj) -> None:
         assert np.all(new == orig + value), f"Image data mismatch{context}"
 
 
-def __test_extracting_from_roi(
-    src: sigima.objects.ImageObj, singleobj: bool | None = None
-) -> None:
-    """Run image extraction from ROI
-
-    Args:
-        src: Source image object (with or without ROI)
-        singleobj: Whether to use single object ROI
-    """
-    context = f" [ROI: {__roi_str(src)}]"
-    # Assertions texts:
-    nzroi = f"Non-zero values expected in ROI{context}"
-    zroi = f"Zero values expected outside ROI{context}"
-    roisham = f"ROI shape mismatch{context}"
-
-    if src.roi is not None and not src.roi.is_empty():
-        # A ROI has been set in the source image.
-        if singleobj:
-            im1 = sigima.proc.image.extract_rois(src, src.roi.to_params(src))
-
-            mask1 = np.zeros(shape=(SIZE, SIZE), dtype=bool)
-            mask1[IROI1[1] : IROI1[1] + IROI1[3], IROI1[0] : IROI1[0] + IROI1[2]] = 1
-            xc, yc, r = IROI2
-            mask2 = np.zeros(shape=(SIZE, SIZE), dtype=bool)
-            rr, cc = draw.disk((yc, xc), r)
-            mask2[rr, cc] = 1
-            mask = mask1 | mask2
-            row_min = int(min(IROI1[1], IROI2[1] - r))
-            col_min = int(min(IROI1[0], IROI2[0] - r))
-            row_max = int(max(IROI1[1] + IROI1[3], IROI2[1] + r))
-            col_max = int(max(IROI1[0] + IROI1[2], IROI2[0] + r))
-            mask = mask[row_min:row_max, col_min:col_max]
-
-            assert np.all(im1.data[mask] != 0), nzroi
-            assert np.all(im1.data[~mask] == 0), zroi
-        else:
-            images: list[sigima.objects.ImageObj] = []
-            for index, single_roi in enumerate(src.roi):
-                roiparam = single_roi.to_param(src, index)
-                image = sigima.proc.image.extract_roi(src, roiparam)
-                images.append(image)
-            assert len(images) == 3, f"Three images expected{context}"
-            im1, im2 = images[:2]  # pylint: disable=unbalanced-tuple-unpacking
-            assert np.all(im1.data != 0), nzroi
-            assert im1.data.shape == (IROI1[3], IROI1[2]), roisham
-            assert np.all(im2.data != 0), nzroi
-            assert im2.data.shape == (IROI2[2] * 2, IROI2[2] * 2), roisham
-            mask2 = np.zeros(shape=im2.data.shape, dtype=bool)
-            xc = yc = r = IROI2[2]  # Adjust for ROI origin
-            rr, cc = draw.disk((yc, xc), r, shape=im2.data.shape)
-            mask2[rr, cc] = 1
-            assert np.all(im2.maskdata == ~mask2), f"Mask data mismatch{context}"
-    else:
-        # No ROI has been set in the source image.
-        im1 = sigima.proc.image.extract_roi(src, src.roi.to_params(src))
-        assert im1.data.shape == (0, 0), f"Extracted image should be empty{context}"
-
-
 def test_image_roi_processing() -> None:
     """Test image ROI processing"""
     src = __create_test_image()
@@ -209,15 +151,75 @@ def test_image_roi_processing() -> None:
         __test_processing_in_roi(src)
 
 
-def test_image_roi_extraction() -> None:
-    """Test image ROI extraction"""
+def test_empty_image_roi() -> None:
+    """Test empty image ROI"""
     src = __create_test_image()
-    base_roi = __create_test_roi()
     empty_roi = sigima.objects.ImageROI()
-    for roi in (empty_roi, base_roi):
+    for roi in (None, empty_roi):
         src.roi = roi
-        for singleobj in (False, True):
-            __test_extracting_from_roi(src, singleobj)
+        context = f" [ROI: {__roi_str(src)}]"
+        assert src.roi is None or src.roi.is_empty(), (
+            f"Source object ROI should be empty or None{context}"
+        )
+        if src.roi is not None:
+            # No ROI has been set in the source image
+            im1 = sigima.proc.image.extract_roi(src, src.roi.to_params(src))
+            assert im1.data.shape == (0, 0), f"Extracted image should be empty{context}"
+
+
+@pytest.mark.validation
+def test_image_extract_rois() -> None:
+    """Validation test for image ROI extraction into a single object"""
+    src = __create_test_image()
+    src.roi = __create_test_roi()
+    context = f" [ROI: {__roi_str(src)}]"
+    nzroi = f"Non-zero values expected in ROI{context}"
+    zroi = f"Zero values expected outside ROI{context}"
+
+    im1 = sigima.proc.image.extract_rois(src, src.roi.to_params(src))
+
+    mask1 = np.zeros(shape=(SIZE, SIZE), dtype=bool)
+    mask1[IROI1[1] : IROI1[1] + IROI1[3], IROI1[0] : IROI1[0] + IROI1[2]] = 1
+    xc, yc, r = IROI2
+    mask2 = np.zeros(shape=(SIZE, SIZE), dtype=bool)
+    rr, cc = draw.disk((yc, xc), r)
+    mask2[rr, cc] = 1
+    mask = mask1 | mask2
+    row_min = int(min(IROI1[1], IROI2[1] - r))
+    col_min = int(min(IROI1[0], IROI2[0] - r))
+    row_max = int(max(IROI1[1] + IROI1[3], IROI2[1] + r))
+    col_max = int(max(IROI1[0] + IROI1[2], IROI2[0] + r))
+    mask = mask[row_min:row_max, col_min:col_max]
+
+    assert np.all(im1.data[mask] != 0), nzroi
+    assert np.all(im1.data[~mask] == 0), zroi
+
+
+@pytest.mark.validation
+def test_image_extract_roi() -> None:
+    """Validation test for image ROI extraction into multiple objects"""
+    src = __create_test_image()
+    src.roi = __create_test_roi()
+    context = f" [ROI: {__roi_str(src)}]"
+    nzroi = f"Non-zero values expected in ROI{context}"
+    roisham = f"ROI shape mismatch{context}"
+
+    images: list[sigima.objects.ImageObj] = []
+    for index, single_roi in enumerate(src.roi):
+        roiparam = single_roi.to_param(src, index)
+        image = sigima.proc.image.extract_roi(src, roiparam)
+        images.append(image)
+    assert len(images) == 3, f"Three images expected{context}"
+    im1, im2 = images[:2]  # pylint: disable=unbalanced-tuple-unpacking
+    assert np.all(im1.data != 0), nzroi
+    assert im1.data.shape == (IROI1[3], IROI1[2]), roisham
+    assert np.all(im2.data != 0), nzroi
+    assert im2.data.shape == (IROI2[2] * 2, IROI2[2] * 2), roisham
+    mask2 = np.zeros(shape=im2.data.shape, dtype=bool)
+    xc = yc = r = IROI2[2]  # Adjust for ROI origin
+    rr, cc = draw.disk((yc, xc), r, shape=im2.data.shape)
+    mask2[rr, cc] = 1
+    assert np.all(im2.maskdata == ~mask2), f"Mask data mismatch{context}"
 
 
 def test_roi_coordinates_validation() -> None:
@@ -271,4 +273,6 @@ if __name__ == "__main__":
     test_image_roi_merge()
     test_image_roi_combine()
     test_image_roi_processing()
-    test_image_roi_extraction()
+    test_empty_image_roi()
+    test_image_extract_rois()
+    test_image_extract_roi()
