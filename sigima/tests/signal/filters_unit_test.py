@@ -350,9 +350,11 @@ def test_tools_to_proc_interface():
         method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         zero_padding=False,
     )
-    # Just test the 'update_from_obj' method, not needed here (and no need to test it
-    # for each filter function because they all use the same base class).
-    param.update_from_obj(tst_sig)
+    for cut0 in (None, 2.0):
+        param.cut0 = cut0
+        # Just test the 'update_from_obj' method, not needed here (and no need to test
+        # it for each filter function because they all use the same base class).
+        param.update_from_obj(tst_sig)
     proc_res = sigima.proc.signal.lowpass(tst_sig, param)
     check_array_result("Lowpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 

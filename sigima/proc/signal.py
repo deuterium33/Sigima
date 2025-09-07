@@ -1652,7 +1652,9 @@ class LowPassFilterParam(BaseHighLowBandParam):
     TYPE = FilterType.LOWPASS
 
     # Redefine cut0 just to change its label (instead of "Low cutoff frequency")
-    cut0 = gds.FloatItem(_("Cutoff frequency"), min=0, nonzero=True, unit="Hz")
+    cut0 = gds.FloatItem(
+        _("Cutoff frequency"), min=0, nonzero=True, unit="Hz", allow_none=True
+    )
 
 
 class HighPassFilterParam(BaseHighLowBandParam):
@@ -1661,7 +1663,9 @@ class HighPassFilterParam(BaseHighLowBandParam):
     TYPE = FilterType.HIGHPASS
 
     # Redefine cut0 just to change its label (instead of "High cutoff frequency")
-    cut0 = gds.FloatItem(_("Cutoff frequency"), min=0, nonzero=True, unit="Hz")
+    cut0 = gds.FloatItem(
+        _("Cutoff frequency"), min=0, nonzero=True, unit="Hz", allow_none=True
+    )
 
 
 class BandPassFilterParam(BaseHighLowBandParam):
