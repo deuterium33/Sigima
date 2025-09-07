@@ -145,8 +145,12 @@ class SignalROI(base.BaseROI["SignalObj", SegmentROI, ROI1DParam]):
             Mask (boolean array where True values are inside the ROI)
         """
         mask = np.ones_like(obj.xydata, dtype=bool)
-        for roi in self.single_rois:
-            mask &= roi.to_mask(obj)
+        if self.single_rois:
+            for roi in self.single_rois:
+                mask &= roi.to_mask(obj)
+        else:
+            # If no single ROIs, the mask is empty (no ROI defined)
+            mask[:] = False
         return mask
 
 
