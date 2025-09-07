@@ -11,19 +11,18 @@ import numpy as np
 import pytest
 from skimage.feature import canny
 
+import sigima.objects
+import sigima.params
+import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
+from sigima.tests.helpers import check_array_result
 from sigima.tools.image import get_hough_circle_peaks
 
 
-def __exec_hough_circle_test(data):
-    """Peak detection using circle Hough transform"""
-    # pylint: disable=import-outside-toplevel
-    from plotpy.builder import make
-
-    from sigima.tests import vistools
-
+def __compute_hough_circle_peaks(data):
+    """Compute peaks using circle Hough transform, return coordinates"""
     edges = canny(
         data,
         sigma=30,
@@ -31,6 +30,21 @@ def __exec_hough_circle_test(data):
         high_threshold=0.8,
         use_quantiles=True,
     )
+    coords = get_hough_circle_peaks(
+        edges, min_radius=25, max_radius=35, min_distance=70
+    )
+    execenv.print(f"Coordinates: {coords}")
+    return edges, coords
+
+
+def __exec_hough_circle_test(data):
+    """Peak detection using circle Hough transform with visualization"""
+    # pylint: disable=import-outside-toplevel
+    from plotpy.builder import make
+
+    from sigima.tests import vistools
+
+    edges, coords = __compute_hough_circle_peaks(data)
     items = [
         make.image(
             data, interpolation="linear", colormap="gray", eliminate_outliers=2.0
@@ -42,15 +56,83 @@ def __exec_hough_circle_test(data):
             alpha_function="tanh",
         ),
     ]
-    coords = get_hough_circle_peaks(
-        edges, min_radius=25, max_radius=35, min_distance=70
-    )
-    execenv.print(f"Coordinates: {coords}")
     for shapeargs in coords:
         xc, yc, r = shapeargs
         item = make.circle(xc - r, yc, xc + r, yc)
         items.append(item)
     vistools.view_image_items(items)
+
+
+@pytest.mark.validation
+def test_image_hough_circle_peaks():
+    """Validation test for Hough circle peaks detection"""
+    # Create synthetic circular features for testing
+    size = 200
+    data = np.zeros((size, size), dtype=np.uint8)
+
+    # Add known circles with specific centers and radii
+    y, x = np.ogrid[:size, :size]
+
+    # Circle 1: center at (50, 50), radius 30
+    ring1 = ((x - 50) ** 2 + (y - 50) ** 2 <= 30**2) & (
+        (x - 50) ** 2 + (y - 50) ** 2 >= 28**2
+    )
+    data[ring1] = 255
+
+    # Circle 2: center at (150, 150), radius 30
+    ring2 = ((x - 150) ** 2 + (y - 150) ** 2 <= 30**2) & (
+        (x - 150) ** 2 + (y - 150) ** 2 >= 28**2
+    )
+    data[ring2] = 255
+
+    # Create ImageObj for testing
+    obj = sigima.objects.create_image("hough_circle_test", data=data)
+
+    # Set up parameters for hough_circle_peaks
+    param = sigima.params.HoughCircleParam()
+    param.min_radius = 25
+    param.max_radius = 35
+    param.min_distance = 50
+
+    # Apply edge detection first (hough_circle_peaks expects edge-detected data)
+    edges = canny(
+        data,
+        sigma=1,
+        low_threshold=0.1,
+        high_threshold=0.2,
+    )
+
+    # Update the object data with edges for processing
+    obj.data = edges.astype(np.uint8)
+
+    # Test the hough_circle_peaks function
+    geometry = sigima.proc.image.hough_circle_peaks(obj, param)
+
+    # Check that we got a GeometryResult
+    assert geometry is not None, "hough_circle_peaks should return a GeometryResult"
+    assert hasattr(geometry, "coords"), "GeometryResult should have coords attribute"
+
+    coords = geometry.coords
+    execenv.print(f"Detected coordinates: {coords}")
+
+    # Expected circle coordinates in physical units (considering image calibration)
+    # Since obj.dx=1, obj.dy=1, obj.x0=0, obj.y0=0 by default,
+    # physical coords = pixel coords
+    expected_coords = np.array([[50, 50, 30], [150, 150, 30]], dtype=float)
+
+    # Verify we detected the expected number of circles
+    assert coords.shape[0] == expected_coords.shape[0], (
+        f"Expected {expected_coords.shape[0]} circles, got {coords.shape[0]}"
+    )
+
+    # Check coordinates (tolerance for discretization and edge detection)
+    check_array_result(
+        "Hough circle centers and radii",
+        coords,
+        expected_coords,
+        atol=5.0,  # Allow 5 pixel tolerance for center coordinates and radius
+        sort=True,  # Sort to handle detection order differences
+    )
 
 
 @pytest.mark.gui

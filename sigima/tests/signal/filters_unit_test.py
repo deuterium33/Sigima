@@ -9,6 +9,8 @@ Frequency filters unit tests.
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -126,7 +128,15 @@ def _test_filter_method(
     """
     try:
         param = param_class.create(method=method, zero_padding=False, **filter_params)
-        result_signal = filter_func(test_signal, param)
+        # Suppress expected warnings from scipy filter design
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", category=RuntimeWarning, message=".*divide by zero.*"
+            )
+            warnings.filterwarnings(
+                "ignore", category=RuntimeWarning, message=".*invalid value.*"
+            )
+            result_signal = filter_func(test_signal, param)
     except (ValueError, np.linalg.LinAlgError, RuntimeError) as e:
         print(
             f"⚠ {method.value} {filter_type} filter: skipped due to "
@@ -340,9 +350,11 @@ def test_tools_to_proc_interface():
         method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         zero_padding=False,
     )
-    # Just test the 'update_from_obj' method, not needed here (and no need to test it
-    # for each filter function because they all use the same base class).
-    param.update_from_obj(tst_sig)
+    for cut0 in (None, 2.0):
+        param.cut0 = cut0
+        # Just test the 'update_from_obj' method, not needed here (and no need to test
+        # it for each filter function because they all use the same base class).
+        param.update_from_obj(tst_sig)
     proc_res = sigima.proc.signal.lowpass(tst_sig, param)
     check_array_result("Lowpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 

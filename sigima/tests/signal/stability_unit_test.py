@@ -117,6 +117,231 @@ def test_signal_allan_deviation():
     check_array_result("Drift Allan deviation", res2.y, np.sqrt(th_av_drift), atol=0.01)
 
 
+@pytest.mark.validation
+def test_signal_overlapping_allan_variance():
+    """Test Overlapping Allan variance computation."""
+    n_points = 10000
+    sigma = 1.0
+
+    # Generate and test white noise signal
+    time_white = np.arange(n_points)
+    values_white = generate_white_noise(n_points, sigma)
+    sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
+
+    # Define Allan variance parameters
+    param = sigima.params.AllanVarianceParam()
+    param.max_tau = 50
+
+    # Compute Overlapping Allan variance using the high-level function
+    res1 = sigima.proc.signal.overlapping_allan_variance(sig1, param)
+
+    # Overlapping Allan variance should produce finite, positive results
+    assert len(res1.y) > 0, "Overlapping Allan variance should produce results"
+    valid_values = res1.y[~np.isnan(res1.y)]
+    assert len(valid_values) > 0, "Overlapping Allan variance should have valid values"
+    assert np.all(valid_values > 0), "Overlapping Allan variance should be positive"
+
+    # For white noise, overlapping Allan variance should be related to the noise level
+    # and generally decrease with tau (though not necessarily following exact 1/tau)
+    expected_order = sigma**2
+    assert np.mean(valid_values) < 10 * expected_order, (
+        "Overlapping Allan variance should be reasonable for white noise"
+    )
+
+    # Generate and test drift signal
+    slope = 0.01
+    time, values = generate_drift_signal(n_points, slope)
+    sig2 = sigima.objects.create_signal("Drift Test", time, values)
+
+    # Compute Overlapping Allan variance using the high-level function
+    res2 = sigima.proc.signal.overlapping_allan_variance(sig2, param)
+
+    # For drift signals, overlapping Allan variance should also be finite and positive
+    valid_drift_values = res2.y[~np.isnan(res2.y)]
+    assert len(valid_drift_values) > 0, (
+        "Overlapping Allan variance should work for drift"
+    )
+    assert np.all(valid_drift_values > 0), (
+        "Overlapping Allan variance should be positive"
+    )
+
+    # Compare with regular Allan variance to ensure overlapping version
+    # produces reasonable results
+    res_regular = sigima.proc.signal.allan_variance(sig1, param)
+    valid_regular = res_regular.y[~np.isnan(res_regular.y)]
+    if len(valid_regular) > 0 and len(valid_values) > 0:
+        # Results should be of similar order of magnitude
+        ratio = np.mean(valid_values) / np.mean(valid_regular)
+        assert 0.1 < ratio < 10, (
+            "Overlapping and regular Allan variance should be of similar magnitude"
+        )
+
+
+@pytest.mark.validation
+def test_signal_modified_allan_variance():
+    """Test Modified Allan variance computation."""
+    n_points = 10000
+    sigma = 1.0
+
+    # Generate and test white noise signal
+    time_white = np.arange(n_points)
+    values_white = generate_white_noise(n_points, sigma)
+    sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
+
+    # Define Allan variance parameters
+    param = sigima.params.AllanVarianceParam()
+    param.max_tau = 50
+
+    # Compute Modified Allan variance using the high-level function
+    res1 = sigima.proc.signal.modified_allan_variance(sig1, param)
+
+    # For white noise, Modified Allan variance should be proportional to 1/tau
+    # The exact relationship depends on the specific implementation
+    # We check that values are reasonable and decrease with tau
+    assert len(res1.y) > 0, "Modified Allan variance should produce results"
+    assert np.all(res1.y[~np.isnan(res1.y)] > 0), (
+        "Modified Allan variance should be positive"
+    )
+
+    # For white noise, Modified Allan variance typically decreases with tau
+    valid_indices = ~np.isnan(res1.y)
+    if np.sum(valid_indices) > 1:
+        valid_y = res1.y[valid_indices]
+        # Check general decreasing trend for first few points
+        if len(valid_y) >= 3:
+            assert valid_y[2] < valid_y[0], (
+                "Modified Allan variance should generally decrease for white noise"
+            )
+
+
+@pytest.mark.validation
+def test_signal_hadamard_variance():
+    """Test Hadamard variance computation."""
+    n_points = 10000
+    sigma = 1.0
+
+    # Generate and test white noise signal
+    time_white = np.arange(n_points)
+    values_white = generate_white_noise(n_points, sigma)
+    sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
+
+    # Define Allan variance parameters
+    param = sigima.params.AllanVarianceParam()
+    param.max_tau = 50
+
+    # Compute Hadamard variance using the high-level function
+    res1 = sigima.proc.signal.hadamard_variance(sig1, param)
+
+    # For white noise, Hadamard variance should be finite and positive
+    assert len(res1.y) > 0, "Hadamard variance should produce results"
+    valid_values = res1.y[~np.isnan(res1.y)]
+    assert len(valid_values) > 0, "Hadamard variance should have valid values"
+    assert np.all(valid_values > 0), "Hadamard variance should be positive"
+
+    # Generate and test linear drift signal
+    # (Hadamard variance is robust to linear drift)
+    slope = 0.01
+    time, values = generate_drift_signal(n_points, slope)
+    sig2 = sigima.objects.create_signal("Drift Test", time, values)
+
+    # Compute Hadamard variance for drift signal
+    res2 = sigima.proc.signal.hadamard_variance(sig2, param)
+
+    # Hadamard variance should be less sensitive to linear drift than Allan variance
+    # For pure linear drift, Hadamard variance should be close to zero or very small
+    valid_drift_values = res2.y[~np.isnan(res2.y)]
+    if len(valid_drift_values) > 0:
+        # Hadamard variance should be smaller for drift signals
+        assert np.mean(valid_drift_values) < np.mean(valid_values), (
+            "Hadamard variance should be smaller for drift signals than white noise"
+        )
+
+
+@pytest.mark.validation
+def test_signal_total_variance():
+    """Test Total variance computation."""
+    n_points = 10000
+    sigma = 1.0
+
+    # Generate and test white noise signal
+    time_white = np.arange(n_points)
+    values_white = generate_white_noise(n_points, sigma)
+    sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
+
+    # Define Allan variance parameters
+    param = sigima.params.AllanVarianceParam()
+    param.max_tau = 50
+
+    # Compute Total variance using the high-level function
+    res1 = sigima.proc.signal.total_variance(sig1, param)
+
+    # Total variance should be finite and positive
+    assert len(res1.y) > 0, "Total variance should produce results"
+    valid_values = res1.y[~np.isnan(res1.y)]
+    assert len(valid_values) > 0, "Total variance should have valid values"
+    assert np.all(valid_values > 0), "Total variance should be positive"
+
+    # For white noise, total variance should be related to the noise level
+    # and should be of the same order of magnitude as the square of the noise
+    expected_order = sigma**2
+    assert np.mean(valid_values) < 100 * expected_order, (
+        "Total variance should be reasonable for white noise"
+    )
+
+
+@pytest.mark.validation
+def test_signal_time_deviation():
+    """Test Time Deviation computation."""
+    n_points = 10000
+    sigma = 1.0
+
+    # Generate and test white noise signal
+    time_white = np.arange(n_points)
+    values_white = generate_white_noise(n_points, sigma)
+    sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
+
+    # Define Allan variance parameters
+    param = sigima.params.AllanVarianceParam()
+    param.max_tau = 50
+
+    # Compute Time Deviation using the high-level function
+    res1 = sigima.proc.signal.time_deviation(sig1, param)
+
+    # Time deviation should be finite and positive
+    assert len(res1.y) > 0, "Time deviation should produce results"
+    valid_values = res1.y[~np.isnan(res1.y)]
+    assert len(valid_values) > 0, "Time deviation should have valid values"
+    assert np.all(valid_values > 0), "Time deviation should be positive"
+
+    # Time deviation is related to Allan variance: TDEV = sqrt(AVAR) * tau
+    # So it should increase with tau for white noise
+    if len(valid_values) >= 2:
+        valid_x = res1.x[~np.isnan(res1.y)]
+        # Check that time deviation generally increases with tau for white noise
+        correlation = np.corrcoef(valid_x[: len(valid_values)], valid_values)[0, 1]
+        assert correlation > 0.5, (
+            "Time deviation should generally increase with tau for white noise"
+        )
+
+    # Compare with Allan deviation to verify the relationship
+    res_adev = sigima.proc.signal.allan_deviation(sig1, param)
+
+    # TDEV = ADEV * tau (approximately)
+    # Check this relationship for some values
+    for i, tau in enumerate(res1.x[: min(5, len(res1.x))]):
+        if not np.isnan(res1.y[i]) and not np.isnan(res_adev.y[i]) and tau > 0:
+            expected_tdev = res_adev.y[i] * tau
+            relative_error = abs(res1.y[i] - expected_tdev) / expected_tdev
+            assert relative_error < 0.1, (
+                f"Time deviation should match ADEV * tau relationship at tau={tau}"
+            )
+
+
 if __name__ == "__main__":
     test_signal_allan_variance()
     test_signal_allan_deviation()
+    test_signal_overlapping_allan_variance()
+    test_signal_modified_allan_variance()
+    test_signal_hadamard_variance()
+    test_signal_total_variance()
+    test_signal_time_deviation()

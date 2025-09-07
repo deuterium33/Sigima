@@ -133,7 +133,9 @@ class ContourShapeParam(GenericDetectionParam):
     """Contour shape parameters"""
 
     # Keep choices aligned with supported geometry kinds
-    assert set(sigima.enums.ContourShape).issubset(set(KindShape))
+    assert set(item.name for item in sigima.enums.ContourShape).issubset(
+        set(item.name for item in KindShape)
+    )
     shape = gds.ChoiceItem(_("Shape"), sigima.enums.ContourShape)
 
 

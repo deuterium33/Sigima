@@ -123,56 +123,6 @@ def __test_processing_in_roi(src: sigima.objects.SignalObj) -> None:
         assert np.all(new == orig + value), f"Signal data mismatch{context}"
 
 
-def __test_extracting_from_roi(
-    src: sigima.objects.SignalObj, singleobj: bool | None
-) -> None:
-    """Run signal extraction from ROI.
-
-    Args:
-        src: The source signal object (with or without ROI)
-        singleobj: Whether to extract a single object or not
-    """
-    context = f" [ROI: {__roi_str(src)}]"
-    if src.roi is not None and not src.roi.is_empty():
-        size_roi1 = SROI1[1] - SROI1[0]
-        size_roi2 = SROI2[1] - SROI2[0]
-        assert len(src.roi) == 2, f"Source object should have two ROIs{context}"
-        if singleobj:
-            # Single object mode: merge all ROIs into a single object
-            sig1 = sigima.proc.signal.extract_rois(src, src.roi.to_params(src))
-            assert sig1.data.size == size_roi1 + size_roi2, (
-                f"Signal size mismatch{context}"
-            )
-            assert np.all(sig1.data[:size_roi1] == src.data[SROI1[0] : SROI1[1]]), (
-                f"Signal 1 data mismatch{context}"
-            )
-            assert np.all(sig1.data[size_roi1:] == src.data[SROI2[0] : SROI2[1]]), (
-                f"Signal 2 data mismatch{context}"
-            )
-        else:
-            # Multiple objects mode: extract each ROI as a separate object
-            signals: list[sigima.objects.SignalObj] = []
-            for index, single_roi in enumerate(src.roi):
-                roiparam = single_roi.to_param(src, index)
-                signal = sigima.proc.signal.extract_roi(src, roiparam)
-                signals.append(signal)
-            assert len(signals) == len(src.roi), (
-                f"Number of extracted signals mismatch{context}"
-            )
-            assert signals[0].data.size == size_roi1, f"Signal 1 size mismatch{context}"
-            assert signals[1].data.size == size_roi2, f"Signal 2 size mismatch{context}"
-            assert np.all(signals[0].data == src.data[SROI1[0] : SROI1[1]]), (
-                f"Signal 1 data mismatch{context}"
-            )
-            assert np.all(signals[1].data == src.data[SROI2[0] : SROI2[1]]), (
-                f"Signal 2 data mismatch{context}"
-            )
-    else:
-        # No ROI has been set in the source signal
-        sig1 = sigima.proc.signal.extract_roi(src, src.roi.to_params(src))
-        assert sig1.data.size == 0, f"Extracted signal should be empty{context}"
-
-
 def test_signal_roi_processing() -> None:
     """Test signal ROI processing"""
     src = __create_test_signal()
@@ -183,19 +133,72 @@ def test_signal_roi_processing() -> None:
         __test_processing_in_roi(src)
 
 
-def test_signal_roi_extraction() -> None:
-    """Test signal ROI extraction"""
+def test_empty_signal_roi() -> None:
+    """Test empty signal ROI"""
     src = __create_test_signal()
-    base_roi = __create_test_roi()
     empty_roi = sigima.objects.SignalROI()
-    for roi in (empty_roi, base_roi):
+    for roi in (None, empty_roi):
         src.roi = roi
-        for singleobj in (True, False):
-            __test_extracting_from_roi(src, singleobj)
+        context = f" [ROI: {__roi_str(src)}]"
+        assert src.roi is None or src.roi.is_empty(), (
+            f"Source object ROI should be empty or None{context}"
+        )
+        if src.roi is not None:
+            # No ROI has been set in the source signal
+            sig1 = sigima.proc.signal.extract_roi(src, src.roi.to_params(src))
+            assert sig1.data.size == 0, f"Extracted signal should be empty{context}"
+
+
+@pytest.mark.validation
+def test_signal_extract_rois() -> None:
+    """Validation test for signal ROI extraction into a single object"""
+    src = __create_test_signal()
+    src.roi = __create_test_roi()
+    context = f" [ROI: {__roi_str(src)}]"
+    size_roi1, size_roi2 = SROI1[1] - SROI1[0], SROI2[1] - SROI2[0]
+    assert len(src.roi) == 2, f"Source object should have two ROIs{context}"
+    # Single object mode: merge all ROIs into a single object
+    sig1 = sigima.proc.signal.extract_rois(src, src.roi.to_params(src))
+    assert sig1.data.size == size_roi1 + size_roi2, f"Signal size mismatch{context}"
+    assert np.all(sig1.data[:size_roi1] == src.data[SROI1[0] : SROI1[1]]), (
+        f"Signal 1 data mismatch{context}"
+    )
+    assert np.all(sig1.data[size_roi1:] == src.data[SROI2[0] : SROI2[1]]), (
+        f"Signal 2 data mismatch{context}"
+    )
+
+
+@pytest.mark.validation
+def test_signal_extract_roi() -> None:
+    """Validation test for signal ROI extraction into multiple objects"""
+    src = __create_test_signal()
+    src.roi = __create_test_roi()
+    context = f" [ROI: {__roi_str(src)}]"
+    size_roi1, size_roi2 = SROI1[1] - SROI1[0], SROI2[1] - SROI2[0]
+    assert len(src.roi) == 2, f"Source object should have two ROIs{context}"
+    # Multiple objects mode: extract each ROI as a separate object
+    signals: list[sigima.objects.SignalObj] = []
+    for index, single_roi in enumerate(src.roi):
+        roiparam = single_roi.to_param(src, index)
+        signal = sigima.proc.signal.extract_roi(src, roiparam)
+        signals.append(signal)
+    assert len(signals) == len(src.roi), (
+        f"Number of extracted signals mismatch{context}"
+    )
+    assert signals[0].data.size == size_roi1, f"Signal 1 size mismatch{context}"
+    assert signals[1].data.size == size_roi2, f"Signal 2 size mismatch{context}"
+    assert np.all(signals[0].data == src.data[SROI1[0] : SROI1[1]]), (
+        f"Signal 1 data mismatch{context}"
+    )
+    assert np.all(signals[1].data == src.data[SROI2[0] : SROI2[1]]), (
+        f"Signal 2 data mismatch{context}"
+    )
 
 
 if __name__ == "__main__":
     test_signal_roi_merge()
     test_signal_roi_combine()
     test_signal_roi_processing()
-    test_signal_roi_extraction()
+    test_empty_signal_roi()
+    test_signal_extract_rois()
+    test_signal_extract_roi()
