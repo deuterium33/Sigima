@@ -18,6 +18,7 @@ from typing import Callable
 
 import numpy as np
 
+import sigima.enums
 import sigima.objects
 import sigima.params
 import sigima.proc.signal
@@ -65,14 +66,41 @@ def __verify_uncertainty_propagation(
     )
 
 
+def test_exp_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for exponential function."""
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    result = sigima.proc.signal.exp(src)
+
+    # Check result values
+    check_array_result("Exponential values", result.y, np.exp(src.y))
+
+    # Check uncertainty propagation: σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
+    expected_dy = np.abs(result.y) * src.dy
+    check_array_result("Exponential uncertainty propagation", result.dy, expected_dy)
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = sigima.proc.signal.exp(src_no_unc)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
 def test_sqrt_uncertainty_propagation() -> None:
     """Test uncertainty propagation for square root function."""
     # Test with uncertainty
     src = __create_signal_with_uncertainty()
-    result = sigima.proc.signal.sqrt(src)
+
+    # Suppress warnings for sqrt of negative values in test data
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        result = sigima.proc.signal.sqrt(src)
 
     # Check result values
-    check_array_result("Square root values", result.y, np.sqrt(src.y))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        check_array_result("Square root values", result.y, np.sqrt(src.y))
 
     # Check uncertainty propagation: σ(√y) = σ(y) / (2√y)
     with warnings.catch_warnings():
@@ -84,7 +112,36 @@ def test_sqrt_uncertainty_propagation() -> None:
 
     # Test without uncertainty
     src_no_unc = __create_signal_without_uncertainty()
-    result_no_unc = sigima.proc.signal.sqrt(src_no_unc)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        result_no_unc = sigima.proc.signal.sqrt(src_no_unc)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
+def test_power_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for power function."""
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    p = 3.0
+    param = sigima.params.PowerParam.create(power=p)
+    result = sigima.proc.signal.power(src, param)
+
+    # Check result values
+    check_array_result("Power values", result.y, src.y**p)
+
+    # Check uncertainty propagation: σ(yᵖ) = |p * y^(p-1)| * σ(y)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        expected_dy = np.abs(p * src.y ** (p - 1)) * src.dy
+        expected_dy[np.isinf(expected_dy) | np.isnan(expected_dy)] = np.nan
+
+    check_array_result("Power uncertainty propagation", result.dy, expected_dy)
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = sigima.proc.signal.power(src_no_unc, param)
     assert result_no_unc.dy is None, (
         "Uncertainty should be None when input has no uncertainty"
     )
@@ -117,27 +174,6 @@ def test_log10_uncertainty_propagation() -> None:
     )
 
 
-def test_exp_uncertainty_propagation() -> None:
-    """Test uncertainty propagation for exponential function."""
-    # Test with uncertainty
-    src = __create_signal_with_uncertainty()
-    result = sigima.proc.signal.exp(src)
-
-    # Check result values
-    check_array_result("Exponential values", result.y, np.exp(src.y))
-
-    # Check uncertainty propagation: σ(eʸ) = eʸ * σ(y) = dst.y * σ(y)
-    expected_dy = np.abs(result.y) * src.dy
-    check_array_result("Exponential uncertainty propagation", result.dy, expected_dy)
-
-    # Test without uncertainty
-    src_no_unc = __create_signal_without_uncertainty()
-    result_no_unc = sigima.proc.signal.exp(src_no_unc)
-    assert result_no_unc.dy is None, (
-        "Uncertainty should be None when input has no uncertainty"
-    )
-
-
 def test_clip_uncertainty_propagation() -> None:
     """Test uncertainty propagation for clipping function."""
     # Test with uncertainty
@@ -161,6 +197,140 @@ def test_clip_uncertainty_propagation() -> None:
     # Test without uncertainty
     src_no_unc = __create_signal_without_uncertainty()
     result_no_unc = sigima.proc.signal.clip(src_no_unc, param)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
+def test_normalize_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for normalization function."""
+    # Test different normalization methods
+    for method in sigima.enums.NormalizationMethod:
+        # Test with uncertainty
+        src = __create_signal_with_uncertainty()
+        param = sigima.params.NormalizeParam()
+        param.method = method
+        result = sigima.proc.signal.normalize(src, param)
+
+        # Check that uncertainties are propagated appropriately for each method
+        assert result.dy is not None, f"Uncertainty should be propagated for {method}"
+
+        # For most methods, uncertainty should be non-zero where input uncertainty
+        # exists
+        if method != sigima.enums.NormalizationMethod.AMPLITUDE:
+            # For non-amplitude methods, check that uncertainties exist and are finite
+            assert np.any(np.isfinite(result.dy)), (
+                f"Some uncertainties should be finite for {method}"
+            )
+        else:
+            # For amplitude normalization, check the specific uncertainty formula
+            # σ(amplitude_norm(y)) = σ(y) / (max(y) - min(y))
+            denom = np.max(src.y) - np.min(src.y)
+            if denom != 0:
+                expected_dy = src.dy / denom
+                check_array_result(
+                    "Amplitude normalize uncertainty propagation",
+                    result.dy,
+                    expected_dy,
+                )
+
+        # Test without uncertainty
+        src_no_unc = __create_signal_without_uncertainty()
+        result_no_unc = sigima.proc.signal.normalize(src_no_unc, param)
+        assert result_no_unc.dy is None, (
+            f"Uncertainty should be None when input has no uncertainty for {method}"
+        )
+
+
+def test_derivative_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for derivative function."""
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    result = sigima.proc.signal.derivative(src)
+
+    # Check that uncertainties are propagated
+    assert result.dy is not None, "Uncertainty should be propagated"
+
+    # For numerical derivatives, the uncertainty depends on the finite difference scheme
+    # numpy.gradient uses central differences for interior points:
+    # dy/dx ≈ (y[i+1] - y[i-1]) / (x[i+1] - x[i-1])
+    # So σ(dy/dx) ≈ sqrt(σ(y[i+1])² + σ(y[i-1])²) / (x[i+1] - x[i-1])
+
+    # For a more general test, we verify that:
+    # 1. Uncertainties exist and are finite where input uncertainties exist
+    # 2. The uncertainty scaling is reasonable compared to input uncertainties
+    assert np.any(np.isfinite(result.dy)), "Some uncertainties should be finite"
+
+    # The derivative uncertainty should generally be larger than input uncertainty
+    # due to the division by dx (assuming dx < 1 for typical signals)
+    x = src.x
+    typical_dx = np.median(np.diff(x))
+    if typical_dx > 0:
+        # Expected rough scaling: derivative uncertainty ~ input uncertainty / dx
+        expected_scale = 1.0 / typical_dx
+        # Allow for significant variation due to the complexity of gradient calculation
+        max_ratio = np.nanmax(result.dy / src.dy)
+        assert max_ratio > 0.1 * expected_scale, (
+            f"Derivative uncertainty scaling seems too small: {max_ratio} vs "
+            f"expected ~{expected_scale}"
+        )
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = sigima.proc.signal.derivative(src_no_unc)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
+def test_integral_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for integral function."""
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    result = sigima.proc.signal.integral(src)
+
+    # Check that uncertainties are propagated
+    assert result.dy is not None, "Uncertainty should be propagated"
+
+    # For cumulative integration, uncertainties should accumulate
+    # The first point should have zero uncertainty (initial value)
+    assert result.dy[0] == 0.0, "Initial integral value should have zero uncertainty"
+
+    # For cumulative trapezoidal integration, uncertainties should generally increase
+    # as we accumulate more measurements
+    # Check that uncertainties are non-decreasing (allowing for numerical precision)
+    diff_dy = np.diff(result.dy)
+    # Allow small negative differences due to numerical precision
+    assert np.all(diff_dy >= -1e-10), "Integral uncertainties should generally increase"
+
+    # The integral uncertainties should be finite and non-negative
+    assert np.all(np.isfinite(result.dy)), "All integral uncertainties should be finite"
+    assert np.all(result.dy >= 0), "All integral uncertainties should be non-negative"
+
+    # Integral uncertainty should be positive (assuming we have some integration range)
+    max_integral_uncertainty = np.max(result.dy)
+    assert max_integral_uncertainty > 0, (
+        "Maximum integral uncertainty should be positive"
+    )
+
+    # Validate the uncertainty propagation formula implementation
+    # The integral function uses: σ(∫y dx) ≈ √(Σ(σ(y_i) * Δx_i)²) for trapezoidal rule
+    # Specifically: dy_squared = src.dy[:-1]² + src.dy[1:]²
+    # and dst.dy[1:] = √(cumsum(dy_squared * dx² / 4))
+    dx = np.diff(src.x)
+    dy_squared = src.dy[:-1] ** 2 + src.dy[1:] ** 2
+    expected_uncertainties = np.zeros_like(result.dy)
+    expected_uncertainties[0] = 0.0  # Initial value
+    expected_uncertainties[1:] = np.sqrt(np.cumsum(dy_squared * (dx**2) / 4))
+
+    # The computed uncertainties should match the expected formula
+    check_array_result(
+        "Integral uncertainty propagation", result.dy, expected_uncertainties
+    )
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = sigima.proc.signal.integral(src_no_unc)
     assert result_no_unc.dy is None, (
         "Uncertainty should be None when input has no uncertainty"
     )
@@ -291,19 +461,19 @@ def test_wrap1to1func_basic_behavior() -> None:
 
     Wrap1to1Func should preserve uncertainty unchanged for any wrapped function.
     """
-    # Test with a mathematical function (np.sqrt)
-    # Note: This tests the wrapper behavior, not the direct sqrt function
-    compute_sqrt_wrapped = sigima.proc.signal.Wrap1to1Func(np.sqrt)
+    # Test with a mathematical function (np.sin)
+    # Note: This tests the wrapper behavior, not the direct sin function
+    compute_sin_wrapped = sigima.proc.signal.Wrap1to1Func(np.sin)
 
     # Test with uncertainty
     src = __create_signal_with_uncertainty()
-    result = compute_sqrt_wrapped(src)
+    result = compute_sin_wrapped(src)
 
     # Check result values
-    check_array_result("Wrapped sqrt values", result.y, np.sqrt(src.y))
+    check_array_result("Wrapped sin values", result.y, np.sin(src.y))
 
     # Check uncertainty propagation (should be unchanged when using Wrap1to1Func)
-    check_array_result("Wrapped sqrt uncertainty propagation", result.dy, src.dy)
+    check_array_result("Wrapped sin uncertainty propagation", result.dy, src.dy)
 
     # Test with a custom function
     def custom_multiply(y):
@@ -375,6 +545,8 @@ if __name__ == "__main__":
     test_log10_uncertainty_propagation()
     test_exp_uncertainty_propagation()
     test_clip_uncertainty_propagation()
+    test_derivative_uncertainty_propagation()
+    test_integral_uncertainty_propagation()
     test_absolute_uncertainty_propagation()
     test_real_uncertainty_propagation()
     test_imag_uncertainty_propagation()
