@@ -495,6 +495,78 @@ def test_signal_histogram() -> None:
     check_array_result("Histogram|binary_counts", y_binary, np.array([10.0, 10.0]))
 
 
+@pytest.mark.validation
+def test_signal_interpolate() -> None:
+    """Validation test for the signal interpolation processing."""
+    # Create test signals
+    x1 = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+    y1 = np.array([0.0, 1.0, 4.0, 9.0, 16.0])  # Quadratic function: y = x²
+    src1 = sigima.objects.create_signal("src1", x1, y1)
+
+    # Create target x-axis for interpolation (denser sampling)
+    x2 = np.array([0.5, 1.5, 2.5, 3.5])
+    y2 = np.zeros_like(x2)  # Y values don't matter for interpolation target
+    src2 = sigima.objects.create_signal("src2", x2, y2)
+
+    p = sigima.params.InterpolationParam()
+
+    # Test linear interpolation
+    p.method = sigima.enums.Interpolation1DMethod.LINEAR
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_linear = np.array([0.5, 2.5, 6.5, 12.5])  # Linear interpolation of x²
+    check_array_result("Interpolate[LINEAR]", dst.y, expected_linear)
+    check_array_result("Interpolate[LINEAR]|x", dst.x, x2)
+
+    # Test spline interpolation (should be exact for polynomial functions)
+    p.method = sigima.enums.Interpolation1DMethod.SPLINE
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_spline = np.array([0.25, 2.25, 6.25, 12.25])  # Exact values for x²
+    check_array_result("Interpolate[SPLINE]", dst.y, expected_spline, atol=1e-10)
+    check_array_result("Interpolate[SPLINE]|x", dst.x, x2)
+
+    # Test quadratic interpolation (should be exact for polynomial functions)
+    p.method = sigima.enums.Interpolation1DMethod.QUADRATIC
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_quadratic = np.array([0.25, 2.25, 6.25, 12.25])  # Exact values for x²
+    check_array_result("Interpolate[QUADRATIC]", dst.y, expected_quadratic, atol=1e-10)
+    check_array_result("Interpolate[QUADRATIC]|x", dst.x, x2)
+
+    # Test cubic interpolation
+    p.method = sigima.enums.Interpolation1DMethod.CUBIC
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_cubic = np.array([0.25, 2.25, 6.25, 12.25])  # Should be exact for x²
+    check_array_result("Interpolate[CUBIC]", dst.y, expected_cubic, atol=1e-10)
+    check_array_result("Interpolate[CUBIC]|x", dst.x, x2)
+
+    # Test PCHIP interpolation
+    p.method = sigima.enums.Interpolation1DMethod.PCHIP
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_pchip = np.array([0.3125, 2.21875, 6.23958333, 12.22916667])
+    check_array_result("Interpolate[PCHIP]", dst.y, expected_pchip, atol=1e-10)
+    check_array_result("Interpolate[PCHIP]|x", dst.x, x2)
+
+    # Test barycentric interpolation
+    p.method = sigima.enums.Interpolation1DMethod.BARYCENTRIC
+    dst = sigima.proc.signal.interpolate(src1, src2, p)
+    expected_barycentric = np.array([0.25, 2.25, 6.25, 12.25])  # Should be exact
+    check_array_result(
+        "Interpolate[BARYCENTRIC]", dst.y, expected_barycentric, atol=1e-10
+    )
+    check_array_result("Interpolate[BARYCENTRIC]|x", dst.x, x2)
+
+    # Test fill_value parameter with extrapolation
+    x2_extrap = np.array([-1.0, 0.5, 1.5, 5.0])  # Include points outside range
+    y2_extrap = np.zeros_like(x2_extrap)
+    src2_extrap = sigima.objects.create_signal("src2_extrap", x2_extrap, y2_extrap)
+
+    p.method = sigima.enums.Interpolation1DMethod.LINEAR
+    p.fill_value = -999.0  # Custom fill value for extrapolation
+    dst = sigima.proc.signal.interpolate(src1, src2_extrap, p)
+    expected_with_fill = np.array([-999.0, 0.5, 2.5, -999.0])
+    check_array_result("Interpolate[LINEAR+fill_value]", dst.y, expected_with_fill)
+    check_array_result("Interpolate[LINEAR+fill_value]|x", dst.x, x2_extrap)
+
+
 if __name__ == "__main__":
     test_signal_calibration()
     test_signal_transpose()
@@ -516,3 +588,4 @@ if __name__ == "__main__":
     test_signal_resampling()
     test_signal_xy_mode()
     test_signal_histogram()
+    test_signal_interpolate()
