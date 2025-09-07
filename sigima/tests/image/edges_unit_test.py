@@ -19,7 +19,7 @@ from sigima.tests.helpers import check_array_result
 @pytest.mark.validation
 def test_canny() -> None:
     """Validation test for the image Canny edge detection processing."""
-    # See [1] for more information about the validation of edge detection methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     p = sigima.params.CannyParam.create(
         sigma=1.0, low_threshold=0.1, high_threshold=0.2
@@ -46,7 +46,7 @@ def test_canny() -> None:
 
 def __generic_edge_validation(method: str) -> None:
     """Generic test for edge detection methods."""
-    # See [1] for more information about the validation of edge detection methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     dst: sigima.objects.ImageObj = getattr(sigima.proc.image, method)(src)
     exp = getattr(filters, method)(src.data)

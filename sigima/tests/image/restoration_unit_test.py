@@ -22,7 +22,7 @@ from sigima.tests.helpers import check_array_result
 @pytest.mark.validation
 def test_denoise_tv() -> None:
     """Validation test for the image Total Variation denoising processing."""
-    # See [1] for more information about the validation of restoration methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     src.data = src.data[::8, ::8]
     for weight, eps, mni in ((0.1, 0.0002, 200), (0.5, 0.0001, 100)):
@@ -41,7 +41,7 @@ def test_denoise_tv() -> None:
 @pytest.mark.validation
 def test_denoise_bilateral() -> None:
     """Validation test for the image bilateral denoising processing."""
-    # See [1] for more information about the validation of restoration methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     src.data = src.data[::8, ::8]
     for sigma, mode in ((1.0, "constant"), (2.0, "edge")):
@@ -58,7 +58,7 @@ def test_denoise_bilateral() -> None:
 @pytest.mark.validation
 def test_denoise_wavelet() -> None:
     """Validation test for the image wavelet denoising processing."""
-    # See [1] for more information about the validation of restoration methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     src.data = src.data[::8, ::8]
     p = sigima.params.DenoiseWaveletParam()
@@ -81,7 +81,7 @@ def test_denoise_wavelet() -> None:
 @pytest.mark.validation
 def test_denoise_tophat() -> None:
     """Validation test for the image top-hat denoising processing."""
-    # See [1] for more information about the validation of restoration methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     p = sigima.params.MorphologyParam.create(radius=10)
     dst = sigima.proc.image.denoise_tophat(src, p)

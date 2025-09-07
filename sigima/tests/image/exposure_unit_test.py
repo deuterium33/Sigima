@@ -21,7 +21,7 @@ from sigima.tests.helpers import check_array_result, check_scalar_result
 @pytest.mark.validation
 def test_adjust_gamma() -> None:
     """Validation test for the image gamma adjustment processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     for gamma, gain in ((0.5, 1.0), (1.0, 2.0), (1.5, 0.5)):
         p = sigima.params.AdjustGammaParam.create(gamma=gamma, gain=gain)
@@ -33,7 +33,7 @@ def test_adjust_gamma() -> None:
 @pytest.mark.validation
 def test_adjust_log() -> None:
     """Validation test for the image logarithmic adjustment processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     for gain, inv in ((1.0, False), (2.0, True)):
         p = sigima.params.AdjustLogParam.create(gain=gain, inv=inv)
@@ -45,7 +45,7 @@ def test_adjust_log() -> None:
 @pytest.mark.validation
 def test_adjust_sigmoid() -> None:
     """Validation test for the image sigmoid adjustment processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     for cutoff, gain, inv in ((0.5, 1.0, False), (0.25, 2.0, True)):
         p = sigima.params.AdjustSigmoidParam.create(cutoff=cutoff, gain=gain, inv=inv)
@@ -59,7 +59,7 @@ def test_adjust_sigmoid() -> None:
 @pytest.mark.validation
 def test_rescale_intensity() -> None:
     """Validation test for the image intensity rescaling processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     p = sigima.params.RescaleIntensityParam.create(in_range="dtype", out_range="image")
     dst = sigima.proc.image.rescale_intensity(src, p)
@@ -72,7 +72,7 @@ def test_rescale_intensity() -> None:
 @pytest.mark.validation
 def test_equalize_hist() -> None:
     """Validation test for the image histogram equalization processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     for nbins in (256, 512):
         p = sigima.params.EqualizeHistParam.create(nbins=nbins)
@@ -84,7 +84,7 @@ def test_equalize_hist() -> None:
 @pytest.mark.validation
 def test_equalize_adapthist() -> None:
     """Validation test for the image adaptive histogram equalization processing."""
-    # See [1] for more information about the validation of exposure methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     for clip_limit in (0.01, 0.1):
         p = sigima.params.EqualizeAdaptHistParam.create(clip_limit=clip_limit)
@@ -221,6 +221,7 @@ if __name__ == "__main__":
     test_rescale_intensity()
     test_equalize_hist()
     test_equalize_adapthist()
+    test_flatfield()
     test_image_normalize()
     test_image_calibration()
     test_image_clip()

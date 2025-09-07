@@ -18,7 +18,7 @@ from sigima.tests.helpers import check_array_result
 
 def __generic_morphology_validation(method: str) -> None:
     """Generic test for morphology methods."""
-    # See [1] for more information about the validation of morphology methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     p = sigima.params.MorphologyParam.create(radius=10)
     dst: sigima.objects.ImageObj = getattr(sigima.proc.image, method)(src, p)

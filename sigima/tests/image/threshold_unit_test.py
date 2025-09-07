@@ -27,7 +27,7 @@ def test_threshold() -> None:
 
 def __generic_threshold_validation(method: str) -> None:
     """Generic test for thresholding methods."""
-    # See [1] for more information about the validation of thresholding methods.
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
     dst = sigima.proc.image.threshold(
         src, sigima.params.ThresholdParam.create(method=method)
