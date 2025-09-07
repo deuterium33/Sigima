@@ -351,6 +351,7 @@ def test_signal_resampling() -> None:
     p1 = sigima.params.Resampling1DParam.create(
         xmin=src1.x[0], xmax=src1.x[-1], nbpts=src1.x.size
     )
+    p1.update_from_obj(src1)  # Just to test this method
     dst1 = sigima.proc.signal.resampling(src1, p1)
     dst1x, dst1y = dst1.xydata
     check_array_result("x1new", dst1x, x1)
