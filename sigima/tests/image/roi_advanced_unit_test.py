@@ -11,7 +11,6 @@ from skimage import draw
 import sigima.objects
 import sigima.params
 import sigima.proc.image
-from sigima.objects import ImageObj, ImageROI, NewImageParam, create_image_roi
 from sigima.tests import guiutils
 from sigima.tests.data import create_multigaussian_image
 from sigima.tests.helpers import print_obj_data_dimensions
@@ -69,23 +68,35 @@ IROI2 = [66, 100, 50]  # Circle
 IROI3 = [100, 100, 100, 150, 150, 133]
 
 
-def __create_test_roi() -> ImageROI:
+def __roi_str(obj: sigima.objects.ImageObj) -> str:
+    """Return a string representation of a ImageROI object for context."""
+    if obj.roi is None:
+        return "None"
+    if obj.roi.is_empty():
+        return "Empty"
+    return ", ".join(
+        f"{single_roi.__class__.__name__}({single_roi.get_indices_coords(obj)})"
+        for single_roi in obj.roi.single_rois
+    )
+
+
+def __create_test_roi() -> sigima.objects.ImageROI:
     """Create test ROI"""
-    roi = create_image_roi("rectangle", IROI1)
-    roi.add_roi(create_image_roi("circle", IROI2))
-    roi.add_roi(create_image_roi("polygon", IROI3))
+    roi = sigima.objects.create_image_roi("rectangle", IROI1)
+    roi.add_roi(sigima.objects.create_image_roi("circle", IROI2))
+    roi.add_roi(sigima.objects.create_image_roi("polygon", IROI3))
     return roi
 
 
-def __create_test_image() -> ImageObj:
+def __create_test_image() -> sigima.objects.ImageObj:
     """Create test image"""
-    param = NewImageParam.create(height=SIZE, width=SIZE)
+    param = sigima.objects.NewImageParam.create(height=SIZE, width=SIZE)
     ima = create_multigaussian_image(param)
     ima.data += 1  # Ensure that the image has non-zero values (for ROI check tests)
     return ima
 
 
-def __test_processing_in_roi(src: ImageObj) -> None:
+def __test_processing_in_roi(src: sigima.objects.ImageObj) -> None:
     """Run image processing in ROI
 
     Args:
@@ -97,49 +108,53 @@ def __test_processing_in_roi(src: ImageObj) -> None:
     dst = sigima.proc.image.addition_constant(src, p)
     orig = src.data
     new = dst.data
+    context = f" [ROI: {__roi_str(src)}]"
     if src.roi is not None and not src.roi.is_empty():
         # A ROI has been set in the source image.
         assert np.all(
             new[IROI1[1] : IROI1[3] + IROI1[1], IROI1[0] : IROI1[2] + IROI1[0]]
             == orig[IROI1[1] : IROI1[3] + IROI1[1], IROI1[0] : IROI1[2] + IROI1[0]]
             + value
-        ), "Image ROI 1 data mismatch"
+        ), f"Image ROI 1 data mismatch{context}"
         assert np.all(
             new[IROI2[1] : IROI1[1] + 1, IROI2[0] : IROI2[0] + 2 * IROI2[2]]
             == orig[IROI2[1] : IROI1[1] + 1, IROI2[0] : IROI2[0] + 2 * IROI2[2]] + value
-        ), "Image ROI 2 data mismatch"
+        ), f"Image ROI 2 data mismatch{context}"
         first_col = min(IROI1[0], IROI2[0] - IROI2[2])
         first_row = min(IROI1[1], IROI2[1] - IROI2[2])
         last_col = max(IROI1[0] + IROI1[2], IROI2[0] + 2 * IROI2[2])
         last_row = max(IROI1[1] + IROI1[3], IROI2[1] + 2 * IROI2[2])
         assert np.all(
             new[:first_row, :first_col] == np.array(orig[:first_row, :first_col], float)
-        ), "Image before ROIs data mismatch"
+        ), f"Image before ROIs data mismatch{context}"
         assert np.all(new[:first_row, last_col:] == orig[:first_row, last_col:]), (
-            "Image after ROIs data mismatch"
+            f"Image after ROIs data mismatch{context}"
         )
         assert np.all(new[last_row:, :first_col] == orig[last_row:, :first_col]), (
-            "Image before ROIs data mismatch"
+            f"Image before ROIs data mismatch{context}"
         )
         assert np.all(new[last_row:, last_col:] == orig[last_row:, last_col:]), (
-            "Image after ROIs data mismatch"
+            f"Image after ROIs data mismatch{context}"
         )
     else:
         # No ROI has been set in the source image.
-        assert np.all(new == orig + value), "Image data mismatch"
+        assert np.all(new == orig + value), f"Image data mismatch{context}"
 
 
-def __test_extracting_from_roi(src: ImageObj, singleobj: bool | None = None) -> None:
+def __test_extracting_from_roi(
+    src: sigima.objects.ImageObj, singleobj: bool | None = None
+) -> None:
     """Run image extraction from ROI
 
     Args:
         src: Source image object (with or without ROI)
         singleobj: Whether to use single object ROI
     """
+    context = f" [ROI: {__roi_str(src)}]"
     # Assertions texts:
-    nzroi = "Non-zero values expected in ROI"
-    zroi = "Zero values expected outside ROI"
-    roisham = "ROI shape mismatch"
+    nzroi = f"Non-zero values expected in ROI{context}"
+    zroi = f"Zero values expected outside ROI{context}"
+    roisham = f"ROI shape mismatch{context}"
 
     if src.roi is not None and not src.roi.is_empty():
         # A ROI has been set in the source image.
@@ -162,12 +177,12 @@ def __test_extracting_from_roi(src: ImageObj, singleobj: bool | None = None) -> 
             assert np.all(im1.data[mask] != 0), nzroi
             assert np.all(im1.data[~mask] == 0), zroi
         else:
-            images: list[ImageObj] = []
+            images: list[sigima.objects.ImageObj] = []
             for index, single_roi in enumerate(src.roi):
                 roiparam = single_roi.to_param(src, index)
                 image = sigima.proc.image.extract_roi(src, roiparam)
                 images.append(image)
-            assert len(images) == 3, "Three images expected"
+            assert len(images) == 3, f"Three images expected{context}"
             im1, im2 = images[:2]  # pylint: disable=unbalanced-tuple-unpacking
             assert np.all(im1.data != 0), nzroi
             assert im1.data.shape == (IROI1[3], IROI1[2]), roisham
@@ -177,18 +192,18 @@ def __test_extracting_from_roi(src: ImageObj, singleobj: bool | None = None) -> 
             xc = yc = r = IROI2[2]  # Adjust for ROI origin
             rr, cc = draw.disk((yc, xc), r, shape=im2.data.shape)
             mask2[rr, cc] = 1
-            assert np.all(im2.maskdata == ~mask2), "Mask data mismatch"
+            assert np.all(im2.maskdata == ~mask2), f"Mask data mismatch{context}"
     else:
         # No ROI has been set in the source image.
         im1 = sigima.proc.image.extract_roi(src, src.roi.to_params(src))
-        assert im1.data.shape == (0, 0), "Extracted image should be empty"
+        assert im1.data.shape == (0, 0), f"Extracted image should be empty{context}"
 
 
 def test_image_roi_processing() -> None:
     """Test image ROI processing"""
     src = __create_test_image()
     base_roi = __create_test_roi()
-    empty_roi = ImageROI()
+    empty_roi = sigima.objects.ImageROI()
     for roi in (empty_roi, base_roi):
         src.roi = roi
         __test_processing_in_roi(src)
@@ -198,10 +213,10 @@ def test_image_roi_extraction() -> None:
     """Test image ROI extraction"""
     src = __create_test_image()
     base_roi = __create_test_roi()
-    empty_roi = ImageROI()
+    empty_roi = sigima.objects.ImageROI()
     for roi in (empty_roi, base_roi):
+        src.roi = roi
         for singleobj in (False, True):
-            src.roi = roi
             __test_extracting_from_roi(src, singleobj)
 
 
@@ -217,9 +232,13 @@ def test_roi_coordinates_validation() -> None:
     poly_coords = np.array([5.1, 15.1, 14.7, 12.0, 12.5, 7.0, 5.2, 4.9])
 
     # Create ROIs
-    rect_roi = create_image_roi("rectangle", rect_coords, title="rectangular")
-    circ_roi = create_image_roi("circle", circ_coords, title="circular")
-    poly_roi = create_image_roi("polygon", poly_coords, title="polygonal")
+    rect_roi = sigima.objects.create_image_roi(
+        "rectangle", rect_coords, title="rectangular"
+    )
+    circ_roi = sigima.objects.create_image_roi("circle", circ_coords, title="circular")
+    poly_roi = sigima.objects.create_image_roi(
+        "polygon", poly_coords, title="polygonal"
+    )
 
     # Check that coordinates are correct
     assert np.all(rect_roi.get_single_roi(0).get_physical_coords(src) == rect_coords)
