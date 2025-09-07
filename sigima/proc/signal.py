@@ -1293,6 +1293,7 @@ def integral(src: SignalObj) -> SignalObj:
         dx = np.diff(x)
         dy_squared = src.dy[:-1] ** 2 + src.dy[1:] ** 2  # Trapezoidal rule uncertainty
         # Propagated variance for trapezoidal integration
+        dst.dy = np.zeros_like(dst.y)  # Initialize uncertainty array
         dst.dy[0] = 0.0  # Initial value has no uncertainty
         dst.dy[1:] = np.sqrt(np.cumsum(dy_squared * (dx**2) / 4))
 
