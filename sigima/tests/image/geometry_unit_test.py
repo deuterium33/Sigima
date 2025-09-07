@@ -359,6 +359,110 @@ def test_image_resampling() -> None:
     )
 
 
+@pytest.mark.validation
+def test_image_resize() -> None:
+    """Image resize test."""
+    execenv.print("*** Testing image resize")
+
+    # Test with different zoom factors
+    zoom_factors = [0.5, 2.0, 1.5, 0.75]
+
+    for ima1 in iterate_noisy_images(size=128):
+        execenv.print(f"  Testing on {ima1.data.dtype} image")
+
+        for zoom in zoom_factors:
+            execenv.print(f"    zoom={zoom}: ", end="")
+
+            # Test resize with default parameters
+            p = sigima.params.ResizeParam.create(zoom=zoom)
+            ima2 = sigima.proc.image.resize(ima1, p)
+
+            # Check that scipy.ndimage.zoom produces the same result
+            expected_data = spi.zoom(
+                ima1.data, zoom, order=3, mode="constant", cval=0.0, prefilter=True
+            )
+            check_array_result(f"Resize zoom={zoom}", ima2.data, expected_data)
+
+            # Check that pixel sizes are updated correctly
+            if ima1.dx is not None and ima1.dy is not None:
+                expected_dx = ima1.dx / zoom
+                expected_dy = ima1.dy / zoom
+                check_scalar_result(
+                    f"Resize dx zoom={zoom}", ima2.dx, expected_dx, rtol=1e-10
+                )
+                check_scalar_result(
+                    f"Resize dy zoom={zoom}", ima2.dy, expected_dy, rtol=1e-10
+                )
+
+    # Test different border modes and parameters
+    execenv.print("  Testing different border modes and parameters")
+    ima_test = get_test_image("flower.npy")
+
+    # Test different modes
+    for mode in sigima.enums.BorderMode:
+        execenv.print(f"    mode={mode.name}: ", end="")
+        p = sigima.params.ResizeParam.create(zoom=1.5, mode=mode, cval=100.0)
+        ima_resized = sigima.proc.image.resize(ima_test, p)
+
+        # Compare with scipy implementation
+        expected_data = spi.zoom(
+            ima_test.data, 1.5, order=3, mode=mode.value, cval=100.0, prefilter=True
+        )
+        check_array_result(f"Resize mode={mode.name}", ima_resized.data, expected_data)
+
+    # Test different interpolation orders
+    execenv.print("  Testing different interpolation orders")
+    for order in [0, 1, 2, 3, 4, 5]:
+        execenv.print(f"    order={order}: ", end="")
+        p = sigima.params.ResizeParam.create(zoom=1.3, order=order, prefilter=False)
+        ima_resized = sigima.proc.image.resize(ima_test, p)
+
+        # Compare with scipy implementation
+        expected_data = spi.zoom(
+            ima_test.data, 1.3, order=order, mode="constant", cval=0.0, prefilter=False
+        )
+        check_array_result(f"Resize order={order}", ima_resized.data, expected_data)
+
+    # Test with prefilter disabled
+    execenv.print("  Testing prefilter parameter")
+    for prefilter in [True, False]:
+        execenv.print(f"    prefilter={prefilter}: ", end="")
+        p = sigima.params.ResizeParam.create(zoom=0.8, prefilter=prefilter)
+        ima_resized = sigima.proc.image.resize(ima_test, p)
+
+        # Compare with scipy implementation
+        expected_data = spi.zoom(
+            ima_test.data, 0.8, order=3, mode="constant", cval=0.0, prefilter=prefilter
+        )
+        check_array_result(
+            f"Resize prefilter={prefilter}", ima_resized.data, expected_data
+        )
+
+    # Test edge cases
+    execenv.print("  Testing edge cases")
+
+    # Test zoom=1.0 (identity)
+    p_identity = sigima.params.ResizeParam.create(zoom=1.0)
+    ima_identity = sigima.proc.image.resize(ima_test, p_identity)
+    check_array_result("Resize identity zoom=1.0", ima_identity.data, ima_test.data)
+
+    # Test very small zoom
+    p_small = sigima.params.ResizeParam.create(zoom=0.1)
+    ima_small = sigima.proc.image.resize(ima_test, p_small)
+    expected_small = spi.zoom(
+        ima_test.data, 0.1, order=3, mode="constant", cval=0.0, prefilter=True
+    )
+    check_array_result("Resize small zoom=0.1", ima_small.data, expected_small)
+
+    # Test large zoom
+    p_large = sigima.params.ResizeParam.create(zoom=5.0)
+    ima_large = sigima.proc.image.resize(ima_test, p_large)
+    expected_large = spi.zoom(
+        ima_test.data, 5.0, order=3, mode="constant", cval=0.0, prefilter=True
+    )
+    check_array_result("Resize large zoom=5.0", ima_large.data, expected_large)
+
+
 if __name__ == "__main__":
     test_image_fliph()
     test_image_flipv()
@@ -367,3 +471,4 @@ if __name__ == "__main__":
     test_image_rotate()
     test_image_transpose()
     test_image_resampling()
+    test_image_resize()
