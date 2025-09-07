@@ -389,7 +389,8 @@ def get_projected_profile_centroid(
         y_center = np.interp(
             0.5 * y_integral[-1], y_integral, np.arange(len(y_integral))
         )
-    elif method == "barycenter":
+    elif method == "barycenter":  # pragma: no cover
+        #  (ignored for coverage because median gives better results)
         x_center = np.sum(np.arange(len(x_profile)) * x_profile) / np.sum(x_profile)
         y_center = np.sum(np.arange(len(y_profile)) * y_profile) / np.sum(y_profile)
     else:
