@@ -1233,7 +1233,7 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
                     norm_factor = np.sqrt(np.mean(y**2))
 
             if norm_factor != 0:
-                dst.dy /= np.abs(norm_factor)
+                dst.dy = src.dy / np.abs(norm_factor)
             else:
                 dst.dy[:] = np.nan
 
