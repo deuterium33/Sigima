@@ -1536,7 +1536,6 @@ class BaseHighLowBandParam(gds.DataSet):
         """Get the scipy filter function corresponding to the method."""
         filter_funcs = {
             FrequencyFilterMethod.BESSEL: sps.bessel,
-            FrequencyFilterMethod.BRICKWALL: sps.brickwall,
             FrequencyFilterMethod.BUTTERWORTH: sps.butter,
             FrequencyFilterMethod.CHEBYSHEV1: sps.cheby1,
             FrequencyFilterMethod.CHEBYSHEV2: sps.cheby2,
