@@ -91,7 +91,7 @@ def _validate_scipy_filter_output(
     if filter_type == "lowpass" and original_signal is not None:
         original_var = np.var(original_signal.y)
         filtered_var = np.var(result_signal.y)
-        if not (filtered_var <= original_var * 2):
+        if filtered_var > original_var * 2:
             print(
                 f"⚠ {method.value} {filter_type} filter: increased variance "
                 "too much, skipping"

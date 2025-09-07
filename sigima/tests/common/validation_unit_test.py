@@ -4,6 +4,8 @@
 Testing validation test introspection and CSV generation.
 """
 
+import os.path as osp
+
 import sigima.tests as tests_pkg
 from sigima.proc.decorator import find_computation_functions
 from sigima.proc.validation import (
@@ -60,12 +62,9 @@ def test_validation_decorator_only_on_computation_functions() -> None:
     for test_name, test_path, line_number in validation_tests:
         if test_name not in valid_test_names:
             # This validation test doesn't correspond to any computation function
-            import os.path as osp
-
             rel_path = osp.relpath(test_path, start=osp.dirname(tests_pkg.__file__))
             module_parts = rel_path.replace(osp.sep, ".").replace(".py", "")
             module_name = f"sigima.tests.{module_parts}"
-
             invalid_validation_tests.append((test_name, module_name, line_number))
 
     # Report any invalid validation tests

@@ -461,7 +461,7 @@ def test_signal_histogram() -> None:
     p_uniform.lower = 0.0
     p_uniform.upper = 1.0
     dst_uniform = sigima.proc.signal.histogram(simple_sig, p_uniform)
-    x_uniform, y_uniform = dst_uniform.xydata
+    _x_uniform, y_uniform = dst_uniform.xydata
 
     # For the uniform data (0 to 1), each bin should have exactly 10 values
     expected_count = 10
@@ -489,7 +489,7 @@ def test_signal_histogram() -> None:
     p_binary.lower = 0.0
     p_binary.upper = 1.0
     dst_binary = sigima.proc.signal.histogram(binary_sig, p_binary)
-    x_binary, y_binary = dst_binary.xydata
+    _x_binary, y_binary = dst_binary.xydata
 
     # Should have 10 counts in each bin for our binary data
     check_array_result("Histogram|binary_counts", y_binary, np.array([10.0, 10.0]))

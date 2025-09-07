@@ -1903,6 +1903,8 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
     elif p.location is PadLocation.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
+    else:
+        raise ValueError(f"Invalid padding location: {p.location}")
 
     dst = dst_1_to_1(src, "zero_padding", suffix)
     x, y = src.get_data()
