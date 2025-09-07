@@ -202,6 +202,34 @@ def test_image_clip() -> None:
 
 
 @pytest.mark.validation
+def test_image_histogram() -> None:
+    """Validation test for the image histogram computation function."""
+    src = get_test_image("flower.npy")
+    for bins in (128, 256, 512):
+        for lower, upper in ((None, None), (50.0, 200.0)):
+            p = sigima.params.HistogramParam.create(bins=bins, lower=lower, upper=upper)
+            dst = sigima.proc.image.histogram(src, p)
+
+            # Get the actual data used for histogram computation
+            data = src.get_masked_view().compressed()
+
+            # Determine the range for numpy.histogram
+            hist_range = (p.lower, p.upper)
+            if p.lower is None:
+                hist_range = (np.min(data), hist_range[1])
+            if p.upper is None:
+                hist_range = (hist_range[0], np.max(data))
+
+            # Compute expected histogram using numpy.histogram
+            exp_y, bin_edges = np.histogram(data, bins=p.bins, range=hist_range)
+            exp_x = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+            title = f"Histogram[bins={bins},lower={lower},upper={upper}]"
+            check_array_result(f"{title}|x", dst.x, exp_x)
+            check_array_result(f"{title}|y", dst.y, exp_y)
+
+
+@pytest.mark.validation
 def test_image_offset_correction() -> None:
     """Validation test for the image offset correction processing."""
     src = get_test_image("flower.npy")
@@ -225,4 +253,5 @@ if __name__ == "__main__":
     test_image_normalize()
     test_image_calibration()
     test_image_clip()
+    test_image_histogram()
     test_image_offset_correction()
