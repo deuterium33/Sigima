@@ -9,6 +9,8 @@ Blob detection tests
 
 from __future__ import annotations
 
+import importlib.util
+
 import numpy as np
 import pytest
 
@@ -16,6 +18,8 @@ import sigima.objects
 import sigima.params
 import sigima.proc.image
 from sigima.tests.env import execenv
+
+CV2_AVAILABLE = importlib.util.find_spec("cv2") is not None
 
 
 def create_simple_blob_test_image() -> np.ndarray:
@@ -195,6 +199,7 @@ def test_image_blob_log():
 
 
 @pytest.mark.validation
+@pytest.mark.skipif(not CV2_AVAILABLE, reason="OpenCV (cv2) is not available")
 def test_image_blob_opencv():
     """Blob detection using OpenCV method validation test"""
     execenv.print("Testing blob_opencv detection...")
