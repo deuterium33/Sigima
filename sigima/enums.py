@@ -26,6 +26,14 @@ class BinningOperation(Enum):
     MAX = "max"
 
 
+class ContourShape(Enum):
+    """Contour shapes for image processing."""
+
+    ELLIPSE = _("Ellipse")
+    CIRCLE = _("Circle")
+    POLYGON = _("Polygon")
+
+
 class BorderMode(Enum):
     """Border modes for filtering and image processing."""
 

@@ -27,6 +27,7 @@ from __future__ import annotations
 import guidata.dataset as gds
 import numpy as np
 
+import sigima.enums
 import sigima.tools.image
 from sigima.config import _
 from sigima.objects import GeometryResult, ImageObj, KindShape, create_image_roi
@@ -131,27 +132,23 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
 class ContourShapeParam(GenericDetectionParam):
     """Contour shape parameters"""
 
-    shapes = (
-        ("ellipse", _("Ellipse")),
-        ("circle", _("Circle")),
-        ("polygon", _("Polygon")),
-    )
-
     # Keep choices aligned with supported geometry kinds
-    assert {s[0] for s in shapes}.issubset(set(KindShape.values()))
-    shape = gds.ChoiceItem(_("Shape"), shapes, default="ellipse")
+    assert set(sigima.enums.ContourShape).issubset(set(KindShape))
+    shape = gds.ChoiceItem(_("Shape"), sigima.enums.ContourShape)
 
 
 @computation_function()
 def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | None:
     """Compute contour shape fit
     with :py:func:`sigima.tools.image.get_contour_shapes`"""
+    shape: sigima.enums.ContourShape = p.shape
+    kindshape = getattr(KindShape, shape.name)
     return compute_geometry_from_obj(
         "contour",
-        p.shape,
+        kindshape,
         image,
         sigima.tools.image.get_contour_shapes,
-        p.shape,
+        shape,
         p.threshold,
     )
 

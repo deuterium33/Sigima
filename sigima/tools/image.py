@@ -16,7 +16,7 @@ import scipy.spatial as spt
 from numpy import ma
 from skimage import exposure, feature, measure, transform
 
-from sigima.enums import BinningOperation, NormalizationMethod
+from sigima.enums import BinningOperation, ContourShape, NormalizationMethod
 from sigima.tools.checks import check_2d_array
 
 # MARK: Level adjustment ---------------------------------------------------------------
@@ -578,22 +578,20 @@ def get_2d_peaks_coords(
 @check_2d_array(non_constant=True)
 def get_contour_shapes(
     data: np.ndarray | ma.MaskedArray,
-    shape: Literal["circle", "ellipse", "polygon"] = "ellipse",
+    shape: ContourShape = ContourShape.ELLIPSE,
     level: float = 0.5,
 ) -> np.ndarray:
-    """Find iso-valued contours in a 2D array, above relative level (.5 means FWHM),
-    then fit contours with shape ('ellipse' or 'circle')
+    """Find iso-valued contours in a 2D array, above relative level (.5 means FWHM).
 
     Args:
         data: Input data
-        shape: Shape to fit. Default is 'ellipse'
+        shape: Shape to fit. Default is ELLIPSE
         level: Relative level (default: 0.5)
 
     Returns:
-        Coordinates of shapes
+        Coordinates of shapes fitted to contours
     """
     # pylint: disable=too-many-locals
-    assert shape in ("circle", "ellipse", "polygon")
     contours = measure.find_contours(data, level=get_absolute_level(data, level))
     coords = []
     for contour in contours:
@@ -603,27 +601,27 @@ def get_contour_shapes(
             data.mask[contour[:, 0].astype(int), contour[:, 1].astype(int)]
         ):
             continue
-        if shape == "circle":
+        if shape == ContourShape.CIRCLE:
             model = measure.CircleModel()
             if model.estimate(contour):
                 yc, xc, r = model.params
                 if r <= 1.0:
                     continue
                 coords.append([xc, yc, r])
-        elif shape == "ellipse":
+        elif shape == ContourShape.ELLIPSE:
             model = measure.EllipseModel()
             if model.estimate(contour):
                 yc, xc, b, a, theta = model.params
                 if a <= 1.0 or b <= 1.0:
                     continue
                 coords.append([xc, yc, a, b, theta])
-        elif shape == "polygon":
+        elif shape == ContourShape.POLYGON:
             # `contour` is a (N, 2) array (rows, cols): we need to convert it
             # to a list of x, y coordinates flattened in a single list
             coords.append(contour[:, ::-1].flatten())
         else:
             raise NotImplementedError(f"Invalid contour model {model}")
-    if shape == "polygon":
+    if shape == ContourShape.POLYGON:
         # `coords` is a list of arrays of shape (N, 2) where N is the number of points
         # that can vary from one array to another, so we need to padd with NaNs each
         # array to get a regular array:

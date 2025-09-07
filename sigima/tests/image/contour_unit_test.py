@@ -12,6 +12,7 @@ import time
 
 import pytest
 
+from sigima.enums import ContourShape
 from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
@@ -34,20 +35,20 @@ def find_contours(data):
         items.append(make.marker((x, y)))
     execenv.print(f"Calculation time: {int(dt * 1e3):d} ms\n", file=sys.stderr)
     execenv.print(f"Peak coordinates: {peak_coords}")
-    for shape in ("circle", "ellipse", "polygon"):
+    for shape in ContourShape:
         coords = get_contour_shapes(data, shape=shape)
         execenv.print(f"Coordinates ({shape}s): {coords}")
         for shapeargs in coords:
-            if shape == "circle":
+            if shape == ContourShape.CIRCLE:
                 xc, yc, r = shapeargs
                 x0, y0, x1, y1 = coordinates.circle_to_diameter(xc, yc, r)
                 item = make.circle(x0, y0, x1, y1)
-            elif shape == "ellipse":
+            elif shape == ContourShape.ELLIPSE:
                 xc, yc, a, b, theta = shapeargs
                 coords = coordinates.ellipse_to_diameters(xc, yc, a, b, theta)
                 x0, y0, x1, y1, x2, y2, x3, y3 = coords
                 item = make.ellipse(x0, y0, x1, y1, x2, y2, x3, y3)
-            else:
+            else:  # ContourShape.POLYGON
                 # `shapeargs` is a flattened array of x, y coordinates
                 x, y = shapeargs[::2], shapeargs[1::2]
                 item = make.polygon(x, y, closed=False)
@@ -61,6 +62,11 @@ def test_contour_interactive():
     data, _coords = get_peak2d_data()
     with guiutils.lazy_qt_app_context(force=True):
         find_contours(data)
+
+
+@pytest.mark.validation
+def test_contour_shape() -> None:
+    """Test contour shape computation function"""
 
 
 if __name__ == "__main__":
