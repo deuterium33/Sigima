@@ -140,8 +140,8 @@ class NormalDistributionParam(BaseRandomParam):
         return f"NormalRandom(μ={self.mu:g},σ={self.sigma:g},seed={self.seed})"
 
 
-class PoissonDistributionParam(BaseRandomParam):
-    """Poisson-distribution signal/image parameters."""
+class BasePoissonDistributionParam(BaseRandomParam):
+    """Base Poisson-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_LAMBDA = 0.1
 

@@ -1272,7 +1272,7 @@ register_image_parameters_class(
 )
 
 
-class PoissonDistribution2DParam(base.PoissonDistributionParam, NewImageParam):
+class PoissonDistribution2DParam(base.BasePoissonDistributionParam, NewImageParam):
     """Poisson-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:

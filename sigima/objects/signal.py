@@ -731,7 +731,7 @@ register_signal_parameters_class(
 )
 
 
-class PoissonDistribution1DParam(NewSignalParam, base.PoissonDistributionParam):
+class PoissonDistribution1DParam(NewSignalParam, base.BasePoissonDistributionParam):
     """Poisson-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:

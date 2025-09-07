@@ -98,7 +98,6 @@ Images
 
 __all__ = [
     "NormalDistributionParam",
-    "PoissonDistributionParam",
     "UniformDistributionParam",
     "TypeObj",
     "TypeROI",
@@ -168,7 +167,6 @@ __all__ = [
 
 from sigima.objects.base import (
     NormalDistributionParam,
-    PoissonDistributionParam,
     TypeObj,
     TypeROI,
     TypeROIParam,

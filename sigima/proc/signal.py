@@ -40,7 +40,7 @@ from sigima.objects import (
     GeometryResult,
     KindShape,
     NormalDistribution1DParam,
-    PoissonDistributionParam,
+    PoissonDistribution1DParam,
     ROI1DParam,
     SignalObj,
     TableResult,
@@ -1469,7 +1469,7 @@ def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalOb
 
 
 @computation_function()
-def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
+def add_poisson_noise(src: SignalObj, p: PoissonDistribution1DParam) -> SignalObj:
     """Add Poisson noise to the input signal.
 
     Args:
@@ -1479,7 +1479,7 @@ def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    param = PoissonDistributionParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution1DParam.create(seed=p.seed, lam=p.lam)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
