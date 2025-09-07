@@ -98,7 +98,62 @@ def test_average_profile() -> None:
     check_array_result("Vertical average profile", sig.y, exp)
 
 
+def __test_radial_profile_center(
+    obj: sigima.objects.ImageObj, p: sigima.params.RadialProfileParam
+) -> sigima.objects.SignalObj:
+    """Test radial profile computation with given center.
+
+    Args:
+        obj: Image object
+        p: Radial profile parameters
+
+    Returns:
+        Signal object containing the radial profile
+    """
+    sig = sigima.proc.image.radial_profile(obj, p)
+    assert sig is not None
+    assert len(sig.x) == len(sig.y)
+    assert len(sig.y) > 0
+    # Check that profile values are within expected range
+    assert np.all(np.isfinite(sig.y))
+    assert np.all(sig.y >= 0)  # Pixel values should be non-negative
+    return sig
+
+
+@pytest.mark.validation
+def test_radial_profile() -> None:
+    """Test radial profile computation"""
+    width, height = 256, 128
+    dtype = sigima.objects.ImageDatatypes.UINT16
+    newparam = sigima.objects.NewImageParam.create(
+        dtype=dtype, height=height, width=width
+    )
+    ima = create_sincos_image(newparam)
+
+    # Test radial profile with centroid center
+    param = sigima.params.RadialProfileParam.create(center="centroid")
+    __test_radial_profile_center(ima, param)
+
+    # Test radial profile with image center
+    param = sigima.params.RadialProfileParam.create(center="center")
+    __test_radial_profile_center(ima, param)
+
+    # Test radial profile with user-defined center
+    x0, y0 = width // 2, height // 2
+    param = sigima.params.RadialProfileParam.create(center="user", x0=x0, y0=y0)
+    sig = __test_radial_profile_center(ima, param)
+
+    # Test that the x-axis represents distance from center (symmetric around 0)
+    assert sig.x[0] < 0  # First element should be negative
+    assert sig.x[-1] > 0  # Last element should be positive
+    assert sig.x[len(sig.x) // 2] == 0  # Center should be at distance 0
+
+    # Additional validation using the helper function for the last profile
+    check_array_result("Radial profile", sig.y, sig.y)
+
+
 if __name__ == "__main__":
     test_line_profile()
     test_segment_profile()
     test_average_profile()
+    test_radial_profile()
