@@ -168,42 +168,37 @@ def test_tools_to_proc_interface():
 
     # Lowpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "lowpass", cut0=2.0)
-    proc_res = sigima.proc.signal.lowpass(
-        tst_sig,
-        sigima.proc.signal.LowPassFilterParam.create(
-            cut0=2.0, method="brickwall", zero_padding=False
-        ),
+    param = sigima.proc.signal.LowPassFilterParam.create(
+        cut0=2.0, method="brickwall", zero_padding=False
     )
+    # Just test the 'update_from_obj' method, not needed here (and no need to test it
+    # for each filter function because they all use the same base class).
+    param.update_from_obj(tst_sig)
+    proc_res = sigima.proc.signal.lowpass(tst_sig, param)
     check_array_result("Lowpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Highpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "highpass", cut0=2.0)
-    proc_res = sigima.proc.signal.highpass(
-        tst_sig,
-        sigima.proc.signal.HighPassFilterParam.create(
-            cut0=2.0, method="brickwall", zero_padding=False
-        ),
+    param = sigima.proc.signal.HighPassFilterParam.create(
+        cut0=2.0, method="brickwall", zero_padding=False
     )
+    proc_res = sigima.proc.signal.highpass(tst_sig, param)
     check_array_result("Highpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandpass", cut0=2.0, cut1=4.0)
-    proc_res = sigima.proc.signal.bandpass(
-        tst_sig,
-        sigima.proc.signal.BandPassFilterParam.create(
-            cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
-        ),
+    param = sigima.proc.signal.BandPassFilterParam.create(
+        cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
     )
+    proc_res = sigima.proc.signal.bandpass(tst_sig, param)
     check_array_result("Bandpass filter result", tools_res[1], proc_res.y, atol=1e-3)
 
     # Bandstop
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandstop", cut0=2.0, cut1=4.0)
-    proc_res = sigima.proc.signal.bandstop(
-        tst_sig,
-        sigima.proc.signal.BandStopFilterParam.create(
-            cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
-        ),
+    param = sigima.proc.signal.BandStopFilterParam.create(
+        cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
     )
+    proc_res = sigima.proc.signal.bandstop(tst_sig, param)
     check_array_result("Bandstop filter result", tools_res[1], proc_res.y, atol=1e-3)
 
 
