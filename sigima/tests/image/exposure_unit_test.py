@@ -94,6 +94,32 @@ def test_equalize_adapthist() -> None:
 
 
 @pytest.mark.validation
+def test_flatfield() -> None:
+    """Validation test for the image flat-field correction processing."""
+    # See [1] in sigima\tests\image\__init__.py for more details about the validation.
+    src1 = get_test_image("flower.npy")  # Raw data
+    src2 = get_test_image("flower.npy")  # Flat field data (using same image as base)
+
+    # Modify flat field data to create realistic flat field variation
+    src2.data = src2.data.astype(float)
+    src2.data = src2.data / np.max(src2.data) * 100 + 50  # Scale to reasonable range
+
+    for threshold in (0.0, 10.0, 30.0):
+        p = sigima.params.FlatFieldParam.create(threshold=threshold)
+        dst = sigima.proc.image.flatfield(src1, src2, p)
+
+        # Compute expected result using the same algorithm as in sigima.tools.image
+        dtemp = np.array(src1.data, dtype=float, copy=True) * np.nanmean(src2.data)
+        dunif = np.array(src2.data, dtype=float, copy=True)
+        dunif[dunif == 0] = 1.0
+        dcorr_all = np.array(dtemp / dunif, dtype=src1.data.dtype)
+        exp = np.array(src1.data, copy=True)
+        exp[src1.data > threshold] = dcorr_all[src1.data > threshold]
+
+        check_array_result(f"FlatField[threshold={threshold}]", dst.data, exp)
+
+
+@pytest.mark.validation
 def test_image_normalize() -> None:
     """Validation test for the image normalization processing."""
     src = get_test_image("flower.npy")
