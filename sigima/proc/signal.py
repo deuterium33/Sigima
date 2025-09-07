@@ -1324,16 +1324,17 @@ def calibration(src: SignalObj, p: XYCalibrateParam) -> SignalObj:
     dst = dst_1_to_1(src, "calibration", f"{p.axis}={p.a}*{p.axis}+{p.b}")
     x, y = src.get_data()
     if p.axis == "x":
-        dst.set_xydata(p.a * x + p.b, y)
+        dst.set_xydata(p.a * x + p.b, y, src.dx, src.dy)
         # For X-axis calibration: uncertainties in x are scaled, y unchanged
         if is_uncertainty_data_available(src):
             dst.dx = np.abs(p.a) * src.dx if src.dx is not None else None
             # Y uncertainties remain the same
     else:
-        dst.set_xydata(x, p.a * y + p.b)
+        dst.set_xydata(x, p.a * y + p.b, src.dx, src.dy)
         # For Y-axis calibration: σ(a*y + b) = |a| * σ(y)
         if is_uncertainty_data_available(src):
-            dst.dy *= np.abs(p.a)
+            if dst.dy is not None:
+                dst.dy *= np.abs(p.a)
     restore_data_outside_roi(dst, src)
     return dst
 

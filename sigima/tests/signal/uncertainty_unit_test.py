@@ -336,6 +336,57 @@ def test_integral_uncertainty_propagation() -> None:
     )
 
 
+def test_calibration_uncertainty_propagation() -> None:
+    """Test uncertainty propagation for calibration function."""
+    # Test with uncertainty
+    src = __create_signal_with_uncertainty()
+    # Add X uncertainty for testing X-axis calibration
+    src.dx = 0.05 * np.abs(src.x) + 0.001  # 5% relative + 0.001 absolute
+
+    # Test Y-axis calibration: y' = a*y + b
+    a, b = 2.5, 0.3
+    param = sigima.params.XYCalibrateParam.create(axis="y", a=a, b=b)
+    result = sigima.proc.signal.calibration(src, param)
+
+    # Check uncertainty propagation: σ(a*y + b) = |a| * σ(y)
+    expected_dy = np.abs(a) * src.dy
+    check_array_result(
+        "Y-axis calibration uncertainty propagation", result.dy, expected_dy
+    )
+
+    # Test X-axis calibration: x' = a*x + b
+    param = sigima.params.XYCalibrateParam.create(axis="x", a=a, b=b)
+    result = sigima.proc.signal.calibration(src, param)
+
+    # Check X uncertainty propagation: σ(a*x + b) = |a| * σ(x)
+    if src.dx is not None:
+        expected_dx = np.abs(a) * src.dx
+        check_array_result(
+            "X-axis calibration uncertainty propagation", result.dx, expected_dx
+        )
+
+    # Y uncertainties should remain the same for x-axis calibration
+    check_array_result("X-axis calibration dy unchanged", result.dy, src.dy)
+
+    # Test with negative scaling factor to check absolute value
+    a_neg = -1.5
+    param_neg = sigima.params.XYCalibrateParam.create(axis="y", a=a_neg, b=b)
+    result_neg = sigima.proc.signal.calibration(src, param_neg)
+    expected_dy_neg = np.abs(a_neg) * src.dy
+    check_array_result(
+        "Y-axis calibration negative scaling uncertainty",
+        result_neg.dy,
+        expected_dy_neg,
+    )
+
+    # Test without uncertainty
+    src_no_unc = __create_signal_without_uncertainty()
+    result_no_unc = sigima.proc.signal.calibration(src_no_unc, param)
+    assert result_no_unc.dy is None, (
+        "Uncertainty should be None when input has no uncertainty"
+    )
+
+
 def test_absolute_uncertainty_propagation() -> None:
     """Test uncertainty propagation for absolute value function."""
     __verify_uncertainty_propagation(sigima.proc.signal.absolute)
