@@ -144,3 +144,14 @@ class NormalizationMethod(Enum):
     AREA = _("Area")
     ENERGY = _("Energy")
     RMS = _("RMS")
+
+
+class FrequencyFilterMethod(Enum):
+    """Frequency filter methods for signal processing."""
+
+    BESSEL = "Bessel"
+    BRICKWALL = _("Brickwall")
+    BUTTERWORTH = "Butterworth"
+    CHEBYSHEV1 = "Chebyshev I"
+    CHEBYSHEV2 = "Chebyshev II"
+    ELLIPTIC = _("Elliptic")

@@ -12,6 +12,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+import sigima.enums
 import sigima.proc.signal
 from sigima.objects.signal import SignalObj, create_signal
 from sigima.tests import guiutils
@@ -20,7 +21,8 @@ from sigima.tools.signal.fourier import brickwall_filter
 
 # TODO: For each test, check all filter methods (brickwall, butterworth, etc.)
 #       by using something like:
-#       for method_name, _method_label in sigima.proc.signal.LowPassFilterParam.methods:
+#       for method in sigima.enums.FrequencyFilterMethod:
+#          ...
 
 
 def build_clean_noisy_signals(
@@ -60,7 +62,7 @@ def test_signal_lowpass() -> None:
     clean, noisy = build_clean_noisy_signals()
 
     param = sigima.proc.signal.LowPassFilterParam.create(
-        method="brickwall",
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         cut0=2.0,
         zero_padding=False,
     )
@@ -84,7 +86,7 @@ def test_signal_highpass() -> None:
     noise_level = 0.2  # Set noise level for the test
     clean, noisy = build_clean_noisy_signals(noise_level=noise_level)
     param = sigima.proc.signal.HighPassFilterParam.create(
-        method="brickwall",
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         cut0=2.0,
         zero_padding=False,
     )
@@ -110,7 +112,7 @@ def test_signal_bandstop() -> None:
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([1, 5]), noise_level=0)
 
     param = sigima.proc.signal.BandStopFilterParam.create(
-        method="brickwall",
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         cut0=2.0,
         cut1=4.0,
         zero_padding=False,
@@ -133,7 +135,7 @@ def test_signal_bandpass() -> None:
     tst_sig, _noisy = build_clean_noisy_signals(freq=np.array([1, 3, 5]), noise_level=0)
     exp_sig, _ = build_clean_noisy_signals(freq=np.array([3]), noise_level=0)
     param = sigima.proc.signal.BandPassFilterParam.create(
-        method="brickwall",
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
         cut0=2.0,
         cut1=4.0,
         zero_padding=False,
@@ -169,7 +171,9 @@ def test_tools_to_proc_interface():
     # Lowpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "lowpass", cut0=2.0)
     param = sigima.proc.signal.LowPassFilterParam.create(
-        cut0=2.0, method="brickwall", zero_padding=False
+        cut0=2.0,
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
+        zero_padding=False,
     )
     # Just test the 'update_from_obj' method, not needed here (and no need to test it
     # for each filter function because they all use the same base class).
@@ -180,7 +184,9 @@ def test_tools_to_proc_interface():
     # Highpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "highpass", cut0=2.0)
     param = sigima.proc.signal.HighPassFilterParam.create(
-        cut0=2.0, method="brickwall", zero_padding=False
+        cut0=2.0,
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
+        zero_padding=False,
     )
     proc_res = sigima.proc.signal.highpass(tst_sig, param)
     check_array_result("Highpass filter result", tools_res[1], proc_res.y, atol=1e-3)
@@ -188,7 +194,10 @@ def test_tools_to_proc_interface():
     # Bandpass
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandpass", cut0=2.0, cut1=4.0)
     param = sigima.proc.signal.BandPassFilterParam.create(
-        cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
+        cut0=2.0,
+        cut1=4.0,
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
+        zero_padding=False,
     )
     proc_res = sigima.proc.signal.bandpass(tst_sig, param)
     check_array_result("Bandpass filter result", tools_res[1], proc_res.y, atol=1e-3)
@@ -196,7 +205,10 @@ def test_tools_to_proc_interface():
     # Bandstop
     tools_res = brickwall_filter(tst_sig.x, tst_sig.y, "bandstop", cut0=2.0, cut1=4.0)
     param = sigima.proc.signal.BandStopFilterParam.create(
-        cut0=2.0, cut1=4.0, method="brickwall", zero_padding=False
+        cut0=2.0,
+        cut1=4.0,
+        method=sigima.enums.FrequencyFilterMethod.BRICKWALL,
+        zero_padding=False,
     )
     proc_res = sigima.proc.signal.bandstop(tst_sig, param)
     check_array_result("Bandstop filter result", tools_res[1], proc_res.y, atol=1e-3)
