@@ -31,6 +31,7 @@ import guidata.dataset as gds
 import numpy as np
 from skimage import exposure
 
+import sigima.enums
 import sigima.tools.image
 from sigima.config import _
 from sigima.objects.base import BaseProcParam
@@ -341,8 +342,9 @@ def normalize(src: ImageObj, p: NormalizeParam) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = dst_1_to_1(src, "normalize", suffix=f"ref={p.method}")
-    dst.data = sigima.tools.image.normalize(src.data, p.method)  # type: ignore
+    method: sigima.enums.NormalizationMethod = p.method
+    dst = dst_1_to_1(src, "normalize", suffix=f"ref={method.value}")
+    dst.data = sigima.tools.image.normalize(src.data, method)
     restore_data_outside_roi(dst, src)
     return dst
 

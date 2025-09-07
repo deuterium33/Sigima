@@ -134,3 +134,13 @@ class Interpolation2DMethod(Enum):
     NEAREST = _("Nearest")
     LINEAR = _("Linear")
     CUBIC = _("Cubic")
+
+
+class NormalizationMethod(Enum):
+    """Normalization methods for signal processing."""
+
+    MAXIMUM = _("Maximum")
+    AMPLITUDE = _("Amplitude")
+    AREA = _("Area")
+    ENERGY = _("Energy")
+    RMS = _("RMS")

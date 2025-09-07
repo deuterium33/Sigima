@@ -16,7 +16,7 @@ import scipy.spatial as spt
 from numpy import ma
 from skimage import exposure, feature, measure, transform
 
-from sigima.enums import BinningOperation
+from sigima.enums import BinningOperation, NormalizationMethod
 from sigima.tools.checks import check_2d_array
 
 # MARK: Level adjustment ---------------------------------------------------------------
@@ -49,27 +49,27 @@ def scale_data_to_min_max(
 @check_2d_array(non_constant=True)
 def normalize(
     data: np.ndarray,
-    parameter: Literal["maximum", "amplitude", "area", "energy", "rms"] = "maximum",
+    parameter: NormalizationMethod = NormalizationMethod.MAXIMUM,
 ) -> np.ndarray:
     """Normalize input array to a given parameter.
 
     Args:
         data: Input data
-        parameter: Normalization parameter (default: "maximum")
+        parameter: Normalization parameter (default: MAXIMUM)
 
     Returns:
         Normalized array
     """
-    if parameter == "maximum":
+    if parameter == NormalizationMethod.MAXIMUM:
         return scale_data_to_min_max(data, np.nanmin(data) / np.nanmax(data), 1.0)
-    if parameter == "amplitude":
+    if parameter == NormalizationMethod.AMPLITUDE:
         return scale_data_to_min_max(data, 0.0, 1.0)
     fdata = np.array(data, dtype=float)
-    if parameter == "area":
+    if parameter == NormalizationMethod.AREA:
         return fdata / np.nansum(fdata)
-    if parameter == "energy":
+    if parameter == NormalizationMethod.ENERGY:
         return fdata / np.sqrt(np.nansum(fdata * fdata.conjugate()))
-    if parameter == "rms":
+    if parameter == NormalizationMethod.RMS:
         return fdata / np.sqrt(np.nanmean(fdata * fdata.conjugate()))
     raise ValueError(f"Unsupported parameter {parameter}")
 

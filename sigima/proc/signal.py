@@ -30,6 +30,7 @@ from sigima.enums import (
     AngleUnit,
     Interpolation1DMethod,
     MathOperator,
+    NormalizationMethod,
     PadLocation,
     PowerUnit,
     WindowingMethod,
@@ -1209,9 +1210,10 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    dst = dst_1_to_1(src, "normalize", f"ref={p.method}")
+    method: NormalizationMethod = p.method
+    dst = dst_1_to_1(src, "normalize", f"ref={method.value}")
     x, y = src.get_data()
-    normalized_y = scaling.normalize(y, p.method)
+    normalized_y = scaling.normalize(y, method)
     dst.set_xydata(x, normalized_y)
 
     # Uncertainty propagation for normalization
@@ -1220,17 +1222,18 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             # Calculate normalization factor
-            if p.method == "maximum":
-                norm_factor = np.max(y)
-            elif p.method == "minimum":
-                norm_factor = np.min(y)
-            elif p.method == "amplitude":
-                norm_factor = np.max(y) - np.min(y)
-            else:  # mean, rms, etc.
-                if p.method == "mean":
-                    norm_factor = np.mean(y)
-                else:
-                    norm_factor = np.sqrt(np.mean(y**2))
+            if method == NormalizationMethod.MAXIMUM:
+                norm_factor = np.nanmax(y)
+            elif method == NormalizationMethod.AMPLITUDE:
+                norm_factor = np.nanmax(y) - np.nanmin(y)
+            elif method == NormalizationMethod.AREA:
+                norm_factor = np.nansum(y)
+            elif method == NormalizationMethod.ENERGY:
+                norm_factor = np.sqrt(np.nansum(np.abs(y) ** 2))
+            elif method == NormalizationMethod.RMS:
+                norm_factor = np.sqrt(np.nanmean(np.abs(y) ** 2))
+            else:
+                raise RuntimeError(f"Unsupported normalization method: {method}")
 
             if norm_factor != 0:
                 dst.dy = src.dy / np.abs(norm_factor)

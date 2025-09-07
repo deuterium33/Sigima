@@ -19,7 +19,7 @@ import numpy as np
 
 from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
-from sigima.enums import AngleUnit, FilterMode, MathOperator
+from sigima.enums import AngleUnit, FilterMode, MathOperator, NormalizationMethod
 
 # NOTE: This module is a shared utilities library that defines common parameter classes
 # used by multiple other modules (signal processing, image processing, etc.).
@@ -131,14 +131,7 @@ class ClipParam(gds.DataSet):
 class NormalizeParam(gds.DataSet):
     """Normalize parameters"""
 
-    methods = (
-        ("maximum", _("Maximum")),
-        ("amplitude", _("Amplitude")),
-        ("area", _("Area")),
-        ("energy", _("Energy")),
-        ("rms", _("RMS")),
-    )
-    method = gds.ChoiceItem(_("Normalize with respect to"), methods)
+    method = gds.ChoiceItem(_("Normalize with respect to"), NormalizationMethod)
 
 
 class HistogramParam(gds.DataSet):

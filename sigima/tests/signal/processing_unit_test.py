@@ -164,25 +164,25 @@ def test_signal_normalize() -> None:
     # Given the fact that the normalization methods implementations are
     # straightforward, we do not need to compare arrays with each other,
     # we simply need to check if some properties are satisfied.
-    for method_value, _method_name in p.methods:
-        p.method = method_value
+    for method in sigima.enums.NormalizationMethod:
+        p.method = method
         dst = sigima.proc.signal.normalize(src, p)
         title = f"Normalize[method='{p.method}']"
         exp_min, exp_max = None, None
-        if p.method == "maximum":
+        if p.method == sigima.enums.NormalizationMethod.MAXIMUM:
             exp_min, exp_max = np.nanmin(src.data) / np.nanmax(src.data), 1.0
-        elif p.method == "amplitude":
+        elif p.method == sigima.enums.NormalizationMethod.AMPLITUDE:
             exp_min, exp_max = 0.0, 1.0
-        elif p.method == "area":
+        elif p.method == sigima.enums.NormalizationMethod.AREA:
             area = np.nansum(src.data)
             exp_min, exp_max = np.nanmin(src.data) / area, np.nanmax(src.data) / area
-        elif p.method == "energy":
+        elif p.method == sigima.enums.NormalizationMethod.ENERGY:
             energy = np.sqrt(np.nansum(np.abs(src.data) ** 2))
             exp_min, exp_max = (
                 np.nanmin(src.data) / energy,
                 np.nanmax(src.data) / energy,
             )
-        elif p.method == "rms":
+        elif p.method == sigima.enums.NormalizationMethod.RMS:
             rms = np.sqrt(np.nanmean(np.abs(src.data) ** 2))
             exp_min, exp_max = np.nanmin(src.data) / rms, np.nanmax(src.data) / rms
         check_scalar_result(f"{title}|min", np.nanmin(dst.data), exp_min)
