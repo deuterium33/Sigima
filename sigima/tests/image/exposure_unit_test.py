@@ -226,7 +226,7 @@ def test_image_histogram() -> None:
 
             title = f"Histogram[bins={bins},lower={lower},upper={upper}]"
             check_array_result(f"{title}|x", dst.x, exp_x)
-            check_array_result(f"{title}|y", dst.y, exp_y)
+            check_array_result(f"{title}|y", dst.y, np.array(exp_y, dtype=float))
 
 
 @pytest.mark.validation
