@@ -28,6 +28,7 @@ import scipy.signal as sps
 from sigima.config import _
 from sigima.enums import (
     AngleUnit,
+    FrequencyFilterMethod,
     Interpolation1DMethod,
     MathOperator,
     NormalizationMethod,
@@ -40,7 +41,7 @@ from sigima.objects import (
     GeometryResult,
     KindShape,
     NormalDistribution1DParam,
-    PoissonDistributionParam,
+    PoissonDistribution1DParam,
     ROI1DParam,
     SignalObj,
     TableResult,
@@ -1469,7 +1470,7 @@ def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalOb
 
 
 @computation_function()
-def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
+def add_poisson_noise(src: SignalObj, p: PoissonDistribution1DParam) -> SignalObj:
     """Add Poisson noise to the input signal.
 
     Args:
@@ -1479,7 +1480,7 @@ def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     Returns:
         Result signal object.
     """
-    param = PoissonDistributionParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution1DParam.create(seed=p.seed, lam=p.lam)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
@@ -1522,24 +1523,25 @@ class FilterType(Enum):
 class BaseHighLowBandParam(gds.DataSet):
     """Base class for high-pass, low-pass, band-pass and band-stop filters"""
 
-    methods = (
-        ("bessel", _("Bessel")),
-        ("brickwall", _("Brick wall")),
-        ("butter", _("Butterworth")),
-        ("cheby1", _("Chebyshev type 1")),
-        ("cheby2", _("Chebyshev type 2")),
-        ("ellip", _("Elliptic")),
-        ("brickwall", _("Brickwall")),
-    )
-
     TYPE: FilterType = FilterType.LOWPASS
     _type_prop = gds.GetAttrProp("TYPE")
 
     # Must be overwriten by the child class
     _method_prop = gds.GetAttrProp("method")
-    method = gds.ChoiceItem(_("Filter method"), methods).set_prop(
+    method = gds.ChoiceItem(_("Filter method"), FrequencyFilterMethod).set_prop(
         "display", store=_method_prop
     )
+
+    def get_filter_func(self) -> Callable:
+        """Get the scipy filter function corresponding to the method."""
+        filter_funcs = {
+            FrequencyFilterMethod.BESSEL: sps.bessel,
+            FrequencyFilterMethod.BUTTERWORTH: sps.butter,
+            FrequencyFilterMethod.CHEBYSHEV1: sps.cheby1,
+            FrequencyFilterMethod.CHEBYSHEV2: sps.cheby2,
+            FrequencyFilterMethod.ELLIPTIC: sps.ellip,
+        }
+        return filter_funcs.get(self.method)
 
     order = gds.IntItem(_("Filter order"), default=3, min=1).set_prop(
         "display",
@@ -1629,20 +1631,19 @@ class BaseHighLowBandParam(gds.DataSet):
             tuple: filter parameters
         """
         f_nyquist = self.get_nyquist_frequency(obj)
-        func = getattr(sps, self.method)
         args: list[float | str | tuple[float, ...]] = [self.order]  # type: ignore
-        if self.method == "cheby1":
+        if self.method == FrequencyFilterMethod.CHEBYSHEV1:
             args += [self.rp]
-        elif self.method == "cheby2":
+        elif self.method == FrequencyFilterMethod.CHEBYSHEV2:
             args += [self.rs]
-        elif self.method == "ellip":
+        elif self.method == FrequencyFilterMethod.ELLIPTIC:
             args += [self.rp, self.rs]
         if self.TYPE in (FilterType.HIGHPASS, FilterType.LOWPASS):
             args += [self.cut0 / f_nyquist]
         else:
             args += [[self.cut0 / f_nyquist, self.cut1 / f_nyquist]]
         args += [self.TYPE.value]
-        return func(*args)
+        return self.get_filter_func()(*args)
 
 
 class LowPassFilterParam(BaseHighLowBandParam):
@@ -1694,14 +1695,16 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
         cross-platform compatibility while maintaining optimal filtering when possible.
     """
     name = f"{p.TYPE.value}"
-    suffix = "" if p.method == "brickwall" else f"order={p.order:d}, "
+    suffix = ""
+    if p.method != FrequencyFilterMethod.BRICKWALL:
+        suffix = f"order={p.order:d}, "
     if p.TYPE in (FilterType.LOWPASS, FilterType.HIGHPASS):
         suffix += f"cutoff={p.cut0:.2f}"
     else:
         suffix += f"cutoff={p.cut0:.2f}:{p.cut1:.2f}"
     dst = dst_1_to_1(src, name, suffix)
 
-    if p.method == "brickwall":
+    if p.method == FrequencyFilterMethod.BRICKWALL:
         src_padded = src.copy()
         if p.zero_padding and p.nfft is not None:
             size_padded = ZeroPadding1DParam.next_power_of_two(max(p.nfft, src.y.size))
@@ -1709,7 +1712,7 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
                 src_padded = zero_padding(
                     src_padded,
                     ZeroPadding1DParam.create(
-                        location="append",
+                        location=PadLocation.APPEND,
                         strategy="custom",
                         n=size_padded,
                     ),

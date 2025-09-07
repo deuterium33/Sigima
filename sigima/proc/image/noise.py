@@ -16,11 +16,7 @@ Noise addition computation module.
 
 from __future__ import annotations
 
-from sigima.objects.base import (
-    NormalDistributionParam,
-    PoissonDistributionParam,
-    UniformDistributionParam,
-)
+from sigima.objects.base import NormalDistributionParam, UniformDistributionParam
 from sigima.objects.image import (
     ImageObj,
     NormalDistribution2DParam,
@@ -57,7 +53,7 @@ def add_gaussian_noise(src: ImageObj, p: NormalDistributionParam) -> ImageObj:
 
 
 @computation_function()
-def add_poisson_noise(src: ImageObj, p: PoissonDistributionParam) -> ImageObj:
+def add_poisson_noise(src: ImageObj, p: PoissonDistribution2DParam) -> ImageObj:
     """Add Poisson noise to the input image.
 
     Args:
