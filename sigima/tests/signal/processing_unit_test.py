@@ -567,6 +567,84 @@ def test_signal_interpolate() -> None:
     check_array_result("Interpolate[LINEAR+fill_value]|x", dst.x, x2_extrap)
 
 
+@pytest.mark.validation
+def test_signal_apply_window() -> None:
+    """Validation test for the signal windowing processing."""
+    # Create a test signal with known data
+    x = np.linspace(0, 10, 100)
+    y = np.ones_like(x)  # Constant signal to make windowing effects visible
+    src = sigima.objects.create_signal("test_signal", x, y)
+
+    p = sigima.params.WindowingParam()
+
+    # Test HAMMING window (default)
+    p.method = sigima.enums.WindowingMethod.HAMMING
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_hamming = y * np.hamming(len(y))
+    check_array_result("ApplyWindow[HAMMING]", dst.y, expected_hamming)
+    check_array_result("ApplyWindow[HAMMING]|x", dst.x, x)
+
+    # Test BLACKMAN window
+    p.method = sigima.enums.WindowingMethod.BLACKMAN
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_blackman = y * np.blackman(len(y))
+    check_array_result("ApplyWindow[BLACKMAN]", dst.y, expected_blackman)
+    check_array_result("ApplyWindow[BLACKMAN]|x", dst.x, x)
+
+    # Test HANN window
+    p.method = sigima.enums.WindowingMethod.HANN
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_hann = y * np.hanning(len(y))
+    check_array_result("ApplyWindow[HANN]", dst.y, expected_hann)
+    check_array_result("ApplyWindow[HANN]|x", dst.x, x)
+
+    # Test GAUSSIAN window with custom sigma
+    p.method = sigima.enums.WindowingMethod.GAUSSIAN
+    p.sigma = 7.0
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_gaussian = y * scipy.signal.windows.gaussian(len(y), p.sigma)
+    check_array_result("ApplyWindow[GAUSSIAN]", dst.y, expected_gaussian)
+    check_array_result("ApplyWindow[GAUSSIAN]|x", dst.x, x)
+
+    # Test KAISER window with custom beta
+    p.method = sigima.enums.WindowingMethod.KAISER
+    p.beta = 14.0
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_kaiser = y * np.kaiser(len(y), p.beta)
+    check_array_result("ApplyWindow[KAISER]", dst.y, expected_kaiser)
+    check_array_result("ApplyWindow[KAISER]|x", dst.x, x)
+
+    # Test TUKEY window with custom alpha
+    p.method = sigima.enums.WindowingMethod.TUKEY
+    p.alpha = 0.5
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_tukey = y * scipy.signal.windows.tukey(len(y), p.alpha)
+    check_array_result("ApplyWindow[TUKEY]", dst.y, expected_tukey)
+    check_array_result("ApplyWindow[TUKEY]|x", dst.x, x)
+
+    # Test BARTLETT window
+    p.method = sigima.enums.WindowingMethod.BARTLETT
+    dst = sigima.proc.signal.apply_window(src, p)
+    expected_bartlett = y * np.bartlett(len(y))
+    check_array_result("ApplyWindow[BARTLETT]", dst.y, expected_bartlett)
+    check_array_result("ApplyWindow[BARTLETT]|x", dst.x, x)
+
+    # Verify windowing preserves edge values for certain windows
+    # Most windows should have zero or near-zero values at the edges
+    p.method = sigima.enums.WindowingMethod.HAMMING
+    dst = sigima.proc.signal.apply_window(src, p)
+    assert dst.y[0] < 0.1, "Hamming window should have small edge values"
+    assert dst.y[-1] < 0.1, "Hamming window should have small edge values"
+
+    # Verify windowing preserves the original x-axis
+    assert np.array_equal(dst.x, src.x), "X-axis should be preserved after windowing"
+
+    # Verify the signal object metadata is properly set
+    assert "apply_window" in dst.title, (
+        "Result title should indicate windowing operation"
+    )
+
+
 if __name__ == "__main__":
     test_signal_calibration()
     test_signal_transpose()
@@ -589,3 +667,4 @@ if __name__ == "__main__":
     test_signal_xy_mode()
     test_signal_histogram()
     test_signal_interpolate()
+    test_signal_apply_window()
