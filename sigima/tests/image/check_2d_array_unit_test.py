@@ -51,7 +51,7 @@ def test_non_constant_error() -> None:
 
 
 @check_2d_array(finite_only=True)
-def sum_pixels_along_axis(data: np.ndarray) -> float:
+def sum_image(data: np.ndarray) -> float:
     """Sum all finite values in a 2D array."""
     return np.sum(data)
 
@@ -60,4 +60,4 @@ def test_non_finite_values() -> None:
     """Test with non-finite values."""
     data = np.array([[1.0, np.inf], [3.0, np.nan]])
     with pytest.raises(ValueError, match="Input array contains non-finite values."):
-        sum_pixels_along_axis(data)
+        sum_image(data)
