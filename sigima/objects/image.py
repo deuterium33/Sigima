@@ -1222,7 +1222,7 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
+class UniformDistribution2DParam(NewImageParam, base.BaseUniformDistributionParam):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1247,7 +1247,7 @@ register_image_parameters_class(
 )
 
 
-class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
+class NormalDistribution2DParam(NewImageParam, base.BaseNormalDistributionParam):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:

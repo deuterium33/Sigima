@@ -9,7 +9,7 @@ import pytest
 
 import sigima.objects
 import sigima.proc.image
-from sigima.objects.base import NormalDistributionParam
+from sigima.objects import NormalDistribution2DParam
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result, check_scalar_result
 
@@ -23,7 +23,7 @@ def test_image_add_gaussian_noise() -> None:
     ima = sigima.objects.create_image_from_param(param)
     # Add Gaussian noise.
     # Run twice with same parameters to check reproducibility.
-    p = NormalDistributionParam.create(seed=42, mu=0.0, sigma=1.0)
+    p = NormalDistribution2DParam.create(seed=42, mu=0.0, sigma=1.0)
     res1 = sigima.proc.image.add_gaussian_noise(ima, p)
     res2 = sigima.proc.image.add_gaussian_noise(ima, p)
 

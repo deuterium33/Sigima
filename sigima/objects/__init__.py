@@ -97,8 +97,6 @@ Images
 """
 
 __all__ = [
-    "NormalDistributionParam",
-    "UniformDistributionParam",
     "TypeObj",
     "TypeROI",
     "TypeROIParam",
@@ -165,14 +163,7 @@ __all__ = [
     "create_signal_roi",
 ]
 
-from sigima.objects.base import (
-    NormalDistributionParam,
-    TypeObj,
-    TypeROI,
-    TypeROIParam,
-    TypeSingleROI,
-    UniformDistributionParam,
-)
+from sigima.objects.base import TypeObj, TypeROI, TypeROIParam, TypeSingleROI
 from sigima.objects.image import (
     CircularROI,
     Gauss2DParam,
