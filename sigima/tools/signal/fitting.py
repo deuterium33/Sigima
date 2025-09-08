@@ -358,7 +358,6 @@ def twohalfgaussian_fit(
 ) -> tuple[np.ndarray, TwoHalfGaussianParams]:
     """Compute two half-Gaussian fit for asymmetric peaks with separate baselines.
 
-    Enhanced with separate left and right baseline offsets, inspired by Matris.
     Now supports separate amplitudes for even better asymmetric peak fitting.
 
     Args:

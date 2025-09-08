@@ -198,7 +198,7 @@ class TwoHalfGaussianModel(FitModel):
     def func(
         cls, x, amp_left, amp_right, sigma_left, sigma_right, x0, y0_left, y0_right
     ):
-        """Return two half-Gaussian with separate left/right amplitudes (Matris-inspired enhancement)
+        """Return two half-Gaussian with separate left/right amplitudes
 
         Args:
             x: x values

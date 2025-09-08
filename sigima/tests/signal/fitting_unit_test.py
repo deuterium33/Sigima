@@ -307,14 +307,11 @@ def test_signal_doubleexponential_fit() -> None:
         fitting.doubleexponential_fit, sigima.proc.signal.doubleexponential_fit, x, y
     )
 
-    # Matris algorithm uses different parameterization:
-    # a_left*exp(-x*b_left) + a_right*exp(-x*b_right) + y0
     # Verify the fit quality is good (R² > 0.95)
     r2 = 1 - np.sum((y - fitted_y) ** 2) / np.sum((y - np.mean(y)) ** 2)
     assert r2 > 0.95, f"Fit quality R² = {r2:.3f} should be > 0.95"
 
     # Verify the overall model makes sense: check that fitted curve is reasonable
-    # The Matris algorithm may produce different parameter values but should fit well
     rms_error = np.sqrt(np.mean((y - fitted_y) ** 2))
     assert rms_error < 1.0, f"RMS error = {rms_error:.3f} should be < 1.0"
 
