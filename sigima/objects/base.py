@@ -94,7 +94,7 @@ class BaseRandomParam(BaseProcParam):
     seed = gds.IntItem(_("Seed"), default=1)
 
 
-class UniformDistributionParam(BaseRandomParam):
+class BaseUniformDistributionParam(BaseRandomParam):
     """Uniform-distribution signal/image parameters."""
 
     def apply_integer_range(self, vmin, vmax):
@@ -113,7 +113,7 @@ class UniformDistributionParam(BaseRandomParam):
         return f"UniformRandom(vmin={self.vmin:g},vmax={self.vmax:g},seed={self.seed})"
 
 
-class NormalDistributionParam(BaseRandomParam):
+class BaseNormalDistributionParam(BaseRandomParam):
     """Normal-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_MU = 0.1

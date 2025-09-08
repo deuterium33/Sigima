@@ -27,8 +27,8 @@ from sigima.objects import (
     ImageTypes,
     NewImageParam,
     NewSignalParam,
+    NormalDistribution1DParam,
     NormalDistribution2DParam,
-    NormalDistributionParam,
     SignalObj,
     SignalROI,
     SignalTypes,
@@ -134,7 +134,7 @@ def create_paracetamol_signal(
 
 
 def add_gaussian_noise_to_signal(
-    signal: SignalObj, p: NormalDistributionParam | None = None
+    signal: SignalObj, p: NormalDistribution1DParam | None = None
 ) -> None:
     """Add Gaussian (Normal-law) random noise to data
 
@@ -143,14 +143,14 @@ def add_gaussian_noise_to_signal(
         p: Gaussian noise parameters.
     """
     if p is None:
-        p = NormalDistributionParam()
+        p = NormalDistribution1DParam()
     rng = np.random.default_rng(p.seed)
     signal.data += rng.normal(p.mu, p.sigma, size=signal.data.shape)
     signal.title = f"GaussNoise({signal.title}, µ={p.mu}, σ={p.sigma})"
 
 
 def create_noisy_signal(
-    noiseparam: NormalDistributionParam | None = None,
+    noiseparam: NormalDistribution1DParam | None = None,
     param: NewSignalParam | None = None,
     title: str | None = None,
     noised: bool | None = None,
@@ -177,7 +177,7 @@ def create_noisy_signal(
         param.title = title
     param.title = "Test signal (noisy)" if param.title is None else param.title
     if noised is not None and noised and noiseparam is None:
-        noiseparam = NormalDistributionParam()
+        noiseparam = NormalDistribution1DParam()
         noiseparam.sigma = 5.0
     sig = create_signal_from_param(param)
     if noiseparam is not None:
