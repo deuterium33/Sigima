@@ -16,6 +16,37 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **New curve fitting algorithms**: Complete curve fitting framework with `sigima.tools.signal.fitting` module:
+  * **Core fitting functions**: Comprehensive set of curve fitting algorithms for scientific data analysis:
+    * `linear_fit`: Linear regression fitting
+    * `polynomial_fit`: Polynomial fitting with configurable degree
+    * `gaussian_fit`: Gaussian profile fitting for peak analysis
+    * `lorentzian_fit`: Lorentzian profile fitting for spectroscopy
+    * `voigt_fit`: Voigt profile fitting (convolution of Gaussian and Lorentzian profiles)
+    * `exponential_fit`: Single exponential fitting with overflow protection
+    * `doubleexponential_fit`: Double exponential fitting with advanced parameter estimation
+    * `planckian_fit`: Planckian (blackbody radiation) fitting with correct physics implementation
+    * `twohalfgaussian_fit`: Asymmetric peak fitting with separate left/right parameters
+    * `multilorentzian_fit`: Multi-peak Lorentzian fitting for complex spectra
+    * `sinusoidal_fit`: Sinusoidal fitting with FFT-based frequency estimation
+    * `cdf_fit`: Cumulative Distribution Function fitting using error function
+    * `sigmoid_fit`: Sigmoid (logistic) function fitting for S-shaped curves
+  * **Advanced double exponential fitting**: Enhanced algorithm with:
+    * Standard double exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`
+    * Multi-start optimization strategy for robust convergence to global minimum
+    * Support for both positive and negative exponential rates (growth and decay components)
+    * Comprehensive parameter bounds validation to prevent optimization errors
+  * **Enhanced asymmetric peak fitting**: Advanced `twohalfgaussian_fit` with:
+    * Separate baseline offsets for left and right sides (`y0_left`, `y0_right`)
+    * Independent amplitude parameters (`amp_left`, `amp_right`) for better asymmetric modeling
+    * Robust baseline estimation using percentile-based methods
+  * **Technical features**: All fitting functions include:
+    * Automatic initial parameter estimation from data characteristics
+    * Proper bounds enforcement ensuring optimization stability
+    * Comprehensive error handling and parameter validation
+    * Consistent dataclass-based parameter structures
+    * Full test coverage with synthetic and experimental data validation
+
 * New common signal/image feature:
   * Added `phase` (argument) feature to extract the phase information from complex signals or images.
   * Added operation to create complex-valued signal/image from real and imaginary parts.

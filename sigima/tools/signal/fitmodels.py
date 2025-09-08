@@ -186,7 +186,7 @@ class PlanckianModel(FitModel):
         return result
 
     @classmethod
-    def fwhm(cls, amp, sigma):
+    def fwhm(cls, amp, sigma):  # pylint: disable=unused-argument
         """Return function FWHM (approximate)"""
         return 2.9 * sigma  # Empirical approximation for Planckian FWHM
 
@@ -195,38 +195,39 @@ class TwoHalfGaussianModel(FitModel):
     """Two half-Gaussian fit model for asymmetric peaks"""
 
     @classmethod
-    def func(cls, x, amp, sigma_left, sigma_right, x0, y0):
-        """Return two half-Gaussian fitting function
+    def func(
+        cls, x, amp_left, amp_right, sigma_left, sigma_right, x0, y0_left, y0_right
+    ):
+        """Return two half-Gaussian with separate left/right amplitudes (Matris-inspired enhancement)
 
         Args:
             x: x values
-            amp: amplitude (peak height above baseline)
+            amp_left: amplitude for left side (x < x0)
+            amp_right: amplitude for right side (x >= x0)
             sigma_left: standard deviation for x < x0
             sigma_right: standard deviation for x > x0
             x0: center position
-            y0: baseline offset
+            y0_left: baseline offset for x < x0
+            y0_right: baseline offset for x >= x0
         """
-        result = np.zeros_like(x) + y0
+        result = np.zeros_like(x)
 
-        # Ensure continuity at x0 by using the same amplitude for both sides
-        # The amplitude represents the peak height above baseline
-
-        # Left side (x < x0): use sigma_left
+        # Left side (x < x0): use amp_left, sigma_left and y0_left
         left_mask = x < x0
         if np.any(left_mask):
             exp_left = np.exp(-0.5 * ((x[left_mask] - x0) / sigma_left) ** 2)
-            result[left_mask] += amp * exp_left
+            result[left_mask] = y0_left + amp_left * exp_left
 
-        # Right side (x >= x0): use sigma_right
+        # Right side (x >= x0): use amp_right, sigma_right and y0_right
         right_mask = x >= x0
         if np.any(right_mask):
             exp_right = np.exp(-0.5 * ((x[right_mask] - x0) / sigma_right) ** 2)
-            result[right_mask] += amp * exp_right
+            result[right_mask] = y0_right + amp_right * exp_right
 
         return result
 
     @classmethod
-    def fwhm(cls, amp, sigma):
+    def fwhm(cls, amp, sigma):  # pylint: disable=unused-argument
         """Return function FWHM (using average of left and right sigmas)"""
         # For two half-Gaussian, we'd need both sigmas,
         # but this is the base class interface
@@ -234,43 +235,29 @@ class TwoHalfGaussianModel(FitModel):
 
 
 class DoubleExponentialModel(FitModel):
-    """Double exponential decay fit model"""
+    """Double exponential fit model"""
 
     @classmethod
-    def func(cls, x, amp1, amp2, tau1, tau2, y0):
+    def func(cls, x, x_center, a_left, b_left, a_right, b_right, y0):
         """Return double exponential fitting function
 
         Args:
             x: time values
-            amp1: amplitude of first exponential
-            amp2: amplitude of second exponential
-            tau1: time constant of first exponential
-            tau2: time constant of second exponential
+            x_center: center position (boundary between left and right components)
+            a_left: left component amplitude coefficient
+            b_left: left component time constant coefficient
+            a_right: right component amplitude coefficient
+            b_right: right component time constant coefficient
             y0: baseline offset
         """
-        # Prevent numerical issues with very small time constants
-        tau1 = np.maximum(tau1, 1e-12)
-        tau2 = np.maximum(tau2, 1e-12)
-
-        # Auto-order time constants: ensure tau1 < tau2 (fast < slow)
-        # This provides consistent parameter interpretation
-        if tau1 > tau2:
-            tau1, tau2 = tau2, tau1
-            amp1, amp2 = amp2, amp1
-
-        # Ensure x is positive for physical interpretation
-        x = np.maximum(x, 0)
-
-        # Calculate exponentials with overflow protection
-        exp1 = np.exp(-np.minimum(x / tau1, 50))  # Prevent overflow
-        exp2 = np.exp(-np.minimum(x / tau2, 50))  # Prevent overflow
-
-        return amp1 * exp1 + amp2 * exp2 + y0
+        y = np.zeros_like(x)
+        y[x < x_center] = a_left * np.exp(b_left * x[x < x_center]) + y0
+        y[x >= x_center] = a_right * np.exp(b_right * x[x >= x_center]) + y0
+        return y
 
     @classmethod
-    def fwhm(cls, amp, sigma):
+    def fwhm(cls, amp, sigma):  # pylint: disable=unused-argument
         """Return function FWHM (not well-defined for double exponential)"""
-        # For double exponential, FWHM is not well-defined, return tau equivalent
-        return sigma * np.log(2)
-        # For double exponential, FWHM is not well-defined, return tau equivalent
-        return sigma * np.log(2)
+        raise NotImplementedError(
+            "FWHM is not well-defined for double exponential model"
+        )

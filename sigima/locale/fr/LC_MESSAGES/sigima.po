@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-06 18:19+0200\n"
+"POT-Creation-Date: 2025-09-08 20:41+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -43,6 +43,15 @@ msgstr ""
 "Pour ajouter un nouveau format de fichier, vous pouvez utiliser l'option ``imageio_formats`` pour spécifier\n"
 "des formats supplémentaires. Chaque entrée doit être un tuple de (extension de fichier, description).\n"
 
+msgid "Ellipse"
+msgstr "Ellipse"
+
+msgid "Circle"
+msgstr "Cercle"
+
+msgid "Polygon"
+msgstr "Polygone"
+
 msgid "Cosine"
 msgstr "Cosinus"
 
@@ -75,6 +84,27 @@ msgstr "PCHIP"
 
 msgid "Nearest"
 msgstr "Plus proche voisin"
+
+msgid "Maximum"
+msgstr "Maximum"
+
+msgid "Amplitude"
+msgstr "Amplitude"
+
+msgid "Area"
+msgstr "Aire"
+
+msgid "Energy"
+msgstr "Energie"
+
+msgid "RMS"
+msgstr "RMS"
+
+msgid "Brickwall"
+msgstr "Filtre idéal"
+
+msgid "Elliptic"
+msgstr "Elliptique"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -363,9 +393,6 @@ msgstr "Taille"
 msgid "Temperature"
 msgstr "Température"
 
-msgid "Amplitude"
-msgstr "Amplitude"
-
 msgid "Offset"
 msgstr "Décalage"
 
@@ -450,18 +477,6 @@ msgstr "Borne inférieure d'écrêtage"
 msgid "Upper clipping value"
 msgstr "Borne supérieure d'écrêtage"
 
-msgid "Maximum"
-msgstr "Maximum"
-
-msgid "Area"
-msgstr "Aire"
-
-msgid "Energy"
-msgstr "Energie"
-
-msgid "RMS"
-msgstr "RMS"
-
 msgid "Normalize with respect to"
 msgstr "Normaliser par rapport à"
 
@@ -530,15 +545,6 @@ msgstr "Taille de la fenêtre glissante utilisée dans l'algorithme de filtrage 
 
 msgid "Create regions of interest"
 msgstr "Créer des régions d'intérêt"
-
-msgid "Ellipse"
-msgstr "Ellipse"
-
-msgid "Circle"
-msgstr "Cercle"
-
-msgid "Polygon"
-msgstr "Polygone"
 
 msgid "Shape"
 msgstr "Forme"
@@ -1029,27 +1035,6 @@ msgstr "Distance minimale"
 msgid "Calibrate"
 msgstr "Étalonner"
 
-msgid "Bessel"
-msgstr "Bessel"
-
-msgid "Brick wall"
-msgstr "Filtre idéal"
-
-msgid "Butterworth"
-msgstr "Butterworth"
-
-msgid "Chebyshev type 1"
-msgstr "Chebyshev de type 1"
-
-msgid "Chebyshev type 2"
-msgstr "Chebyshev de type 2"
-
-msgid "Elliptic"
-msgstr "Elliptique"
-
-msgid "Brickwall"
-msgstr "Filtre idéal"
-
 msgid "Filter method"
 msgstr "Méthode de filtrage"
 
@@ -1092,9 +1077,6 @@ msgstr "Nombre de points à ajouter"
 msgid "Number of points"
 msgstr "Nombre de points"
 
-msgid "Degree"
-msgstr "Degré"
-
 msgid "Counts"
 msgstr "Coups"
 
@@ -1136,6 +1118,9 @@ msgstr "x"
 
 msgid "y"
 msgstr "y"
+
+msgid "Degree"
+msgstr "Degré"
 
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
@@ -1226,3 +1211,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

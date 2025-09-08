@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 from collections.abc import Callable
 from enum import Enum
@@ -72,6 +73,7 @@ from sigima.tools import coordinates
 from sigima.tools.signal import (
     dynamic,
     features,
+    fitting,
     fourier,
     interpolation,
     peakdetection,
@@ -2025,12 +2027,6 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
     return dst
 
 
-class PolynomialFitParam(gds.DataSet):
-    """Polynomial fitting parameters"""
-
-    degree = gds.IntItem(_("Degree"), 3, min=1, max=10, slider=True)
-
-
 @computation_function()
 def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
     """Compute histogram with :py:func:`numpy.histogram`
@@ -2534,6 +2530,198 @@ def time_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     tdev = stability.time_deviation(x, y, tau_values)
     dst.set_xydata(tau_values, tdev)
     return dst
+
+
+def __generic_fit(src: SignalObj, fitfunc: Callable) -> SignalObj:
+    """Generic fitting function.
+
+    Args:
+        src: source signal
+        fitfunc: fitting function
+
+    Returns:
+        Result signal object
+    """
+    dst = dst_1_to_1(src, fitfunc.__name__)
+
+    # Extract all ROIs data into one array:
+    x = src.x[~src.get_masked_view().mask]
+    y = src.get_masked_view().compressed()
+
+    # Perform the fit:
+    fitted_y, params = fitfunc(x, y)
+
+    # Store results:
+    dst.set_xydata(x, fitted_y)
+    fit_params = dataclasses.asdict(params)
+    fit_params["fit_type"] = params.__class__.__name__.replace("Params", "").lower()
+    dst.set_metadata_option("fit_params", fit_params)
+    return dst
+
+
+@computation_function()
+def linear_fit(src: SignalObj) -> SignalObj:
+    """Compute linear fit with :py:func:`numpy.polyfit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.linear_fit)
+
+
+class PolynomialFitParam(gds.DataSet):
+    """Polynomial fitting parameters"""
+
+    degree = gds.IntItem(_("Degree"), 3, min=1, max=10, slider=True)
+
+
+@computation_function()
+def polynomial_fit(src: SignalObj, p: PolynomialFitParam) -> SignalObj:
+    """Compute polynomial fit with :py:func:`numpy.polyfit`
+
+    Args:
+        src: source signal
+        p: polynomial fitting parameters
+
+    Returns:
+        Result signal object
+    """
+    if p.degree < 1:
+        raise ValueError("The polynomial degree must be at least 1.")
+    return __generic_fit(src, lambda x, y: fitting.polynomial_fit(x, y, p.degree))
+
+
+@computation_function()
+def gaussian_fit(src: SignalObj) -> SignalObj:
+    """Compute Gaussian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.gaussian_fit)
+
+
+@computation_function()
+def lorentzian_fit(src: SignalObj) -> SignalObj:
+    """Compute Lorentzian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.lorentzian_fit)
+
+
+@computation_function()
+def voigt_fit(src: SignalObj) -> SignalObj:
+    """Compute Voigt fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.voigt_fit)
+
+
+@computation_function()
+def exponential_fit(src: SignalObj) -> SignalObj:
+    """Compute exponential fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.exponential_fit)
+
+
+@computation_function()
+def cdf_fit(src: SignalObj) -> SignalObj:
+    """Compute CDF fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.cdf_fit)
+
+
+@computation_function()
+def planckian_fit(src: SignalObj) -> SignalObj:
+    """Compute Planckian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.planckian_fit)
+
+
+@computation_function()
+def twohalfgaussian_fit(src: SignalObj) -> SignalObj:
+    """Compute two-half-Gaussian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.twohalfgaussian_fit)
+
+
+@computation_function()
+def sigmoid_fit(src: SignalObj) -> SignalObj:
+    """Compute sigmoid fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.sigmoid_fit)
+
+
+@computation_function()
+def doubleexponential_fit(src: SignalObj) -> SignalObj:
+    """Compute double-exponential fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.doubleexponential_fit)
+
+
+@computation_function()
+def sinusoidal_fit(src: SignalObj) -> SignalObj:
+    """Compute sinusoidal fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.sinusoidal_fit)
 
 
 # MARK: compute_1_to_0 functions -------------------------------------------------------

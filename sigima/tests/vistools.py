@@ -6,6 +6,8 @@ Visualization tools for `sigima` interactive tests (based on PlotPy)
 
 from __future__ import annotations
 
+from typing import Generator
+
 import numpy as np
 import plotpy.tools
 from guidata.qthelpers import exec_dialog
@@ -105,6 +107,34 @@ def view_curve_items(
     exec_dialog(win)
 
 
+#: Curve colors
+COLORS = (
+    "#1f77b4",  # muted blue
+    "#ff7f0e",  # safety orange
+    "#2ca02c",  # cooked asparagus green
+    "#d62728",  # brick red
+    "#9467bd",  # muted purple
+    "#8c564b",  # chestnut brown
+    "#e377c2",  # raspberry yogurt pink
+    "#7f7f7f",  # gray
+    "#bcbd22",  # curry yellow-green
+    "#17becf",  # blue-teal
+)
+#: Curve line styles
+LINESTYLES = ("SolidLine", "DashLine", "DashDotLine", "DashDotDotLine")
+
+
+def style_generator() -> Generator[tuple[str, str], None, None]:
+    """Cycling through curve styles"""
+    while True:
+        for linestyle in LINESTYLES:
+            for color in COLORS:
+                yield (color, linestyle)
+
+
+STYLE = style_generator()
+
+
 def view_curves(
     data_or_objs: list[SignalObj | np.ndarray | tuple[np.ndarray, np.ndarray]]
     | SignalObj
@@ -125,6 +155,8 @@ def view_curves(
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
     """
+    global STYLE
+
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
     else:
@@ -146,15 +178,23 @@ def view_curves(
             data = data_or_obj
         else:
             raise TypeError(f"Unsupported data type: {type(data_or_obj)}")
+        color, linestyle = next(STYLE)
         if len(data) == 2:
             xdata, ydata = data
             item = make.mcurve(xdata, ydata)
         else:
             item = make.mcurve(data)
+        item.param.line.color = color
+        item.param.line.style = linestyle
+        item.param.symbol.marker = "NoSymbol"
+        item.param.update_item(item)
         if curve_title is not None:
             item.setTitle(curve_title)
         items.append(item)
     view_curve_items(items, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+
+    # Reset style generator for next call
+    STYLE = style_generator()
 
 
 def create_image_dialog(

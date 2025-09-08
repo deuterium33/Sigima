@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-06 18:57+0200\n"
+"POT-Creation-Date: 2025-09-08 20:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -51,6 +51,96 @@ msgstr "Cette refonte améliore considérablement la modularité, la testabilit�
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**New curve fitting algorithms**: Complete curve fitting framework with `sigima.tools.signal.fitting` module:"
+msgstr "**Nouveaux algorithmes de courbe d'ajustement**: Cadre complet d'ajustement de courbe avec le module `sigima.tools.signal.fitting` :"
+
+msgid "**Core fitting functions**: Comprehensive set of curve fitting algorithms for scientific data analysis:"
+msgstr "**Fonctions d'ajustement de base**: Ensemble complet d'algorithmes d'ajustement de courbe pour l'analyse de données scientifiques :"
+
+msgid "`linear_fit`: Linear regression fitting"
+msgstr "`linear_fit`: Ajustement de régression linéaire"
+
+msgid "`polynomial_fit`: Polynomial fitting with configurable degree"
+msgstr "`polynomial_fit`: Ajustement polynomial avec degré configurable"
+
+msgid "`gaussian_fit`: Gaussian profile fitting for peak analysis"
+msgstr "`gaussian_fit`: Ajustement de profil gaussien pour l'analyse de pics"
+
+msgid "`lorentzian_fit`: Lorentzian profile fitting for spectroscopy"
+msgstr "`lorentzian_fit`: Ajustement de profil lorentzien pour la spectroscopie"
+
+msgid "`voigt_fit`: Voigt profile fitting (convolution of Gaussian and Lorentzian profiles)"
+msgstr "`voigt_fit`: Ajustement de profil Voigt (convolution des profils gaussien et lorentzien)"
+
+msgid "`exponential_fit`: Single exponential fitting with overflow protection"
+msgstr "`exponential_fit`: Ajustement exponentiel simple avec protection contre les débordements"
+
+msgid "`doubleexponential_fit`: Double exponential fitting with advanced parameter estimation"
+msgstr "`doubleexponential_fit`: Ajustement exponentiel double avec estimation avancée des paramètres"
+
+msgid "`planckian_fit`: Planckian (blackbody radiation) fitting with correct physics implementation"
+msgstr "`planckian_fit`: Ajustement planckien (radiation du corps noir) avec mise en œuvre physique correcte"
+
+msgid "`twohalfgaussian_fit`: Asymmetric peak fitting with separate left/right parameters"
+msgstr "`twohalfgaussian_fit`: Ajustement de pic asymétrique avec des paramètres gauche/droite séparés"
+
+msgid "`multilorentzian_fit`: Multi-peak Lorentzian fitting for complex spectra"
+msgstr "`multilorentzian_fit`: Ajustement Lorentzien multi-pic pour des spectres complexes"
+
+msgid "`sinusoidal_fit`: Sinusoidal fitting with FFT-based frequency estimation"
+msgstr "`sinusoidal_fit`: Ajustement sinusoïdal avec estimation de fréquence basée sur FFT"
+
+msgid "`cdf_fit`: Cumulative Distribution Function fitting using error function"
+msgstr "`cdf_fit`: Ajustement de la fonction de distribution cumulative utilisant la fonction d'erreur"
+
+msgid "`sigmoid_fit`: Sigmoid (logistic) function fitting for S-shaped curves"
+msgstr "`sigmoid_fit`: Ajustement de la fonction sigmoïde (logistique) pour les courbes en S"
+
+msgid "**Advanced double exponential fitting**: Enhanced algorithm with:"
+msgstr "**Ajustement exponentiel double avancé**: Algorithme amélioré avec :"
+
+msgid "Standard double exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
+msgstr "Modèle standard d'exponentiel double : `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
+
+msgid "Multi-start optimization strategy for robust convergence to global minimum"
+msgstr "Stratégie d'optimisation multi-démarrage pour une convergence robuste vers le minimum global"
+
+msgid "Support for both positive and negative exponential rates (growth and decay components)"
+msgstr "Prise en charge des taux exponentiels positifs et négatifs (composantes de croissance et de décroissance)"
+
+msgid "Comprehensive parameter bounds validation to prevent optimization errors"
+msgstr "Validation complète des limites des paramètres pour éviter les erreurs d'optimisation"
+
+msgid "**Enhanced asymmetric peak fitting**: Advanced `twohalfgaussian_fit` with:"
+msgstr "**Ajustement de pic asymétrique amélioré**: `twohalfgaussian_fit` avancé avec :"
+
+msgid "Separate baseline offsets for left and right sides (`y0_left`, `y0_right`)"
+msgstr "Offsets de base séparés pour les côtés gauche et droit (`y0_left`, `y0_right`)"
+
+msgid "Independent amplitude parameters (`amp_left`, `amp_right`) for better asymmetric modeling"
+msgstr "Paramètres d'amplitude indépendants (`amp_left`, `amp_right`) pour un meilleur modélisation asymétrique"
+
+msgid "Robust baseline estimation using percentile-based methods"
+msgstr "Estimation robuste de la ligne de base utilisant des méthodes basées sur les percentiles"
+
+msgid "**Technical features**: All fitting functions include:"
+msgstr "**Fonctionnalités techniques**: Toutes les fonctions d'ajustement incluent :"
+
+msgid "Automatic initial parameter estimation from data characteristics"
+msgstr "Estimation automatique des paramètres initiaux à partir des caractéristiques des données"
+
+msgid "Proper bounds enforcement ensuring optimization stability"
+msgstr "Application correcte des limites garantissant la stabilité de l'optimisation"
+
+msgid "Comprehensive error handling and parameter validation"
+msgstr "Gestion complète des erreurs et validation des paramètres"
+
+msgid "Consistent dataclass-based parameter structures"
+msgstr "Structures de paramètres basées sur des classes de données cohérentes"
+
+msgid "Full test coverage with synthetic and experimental data validation"
+msgstr "Couverture de test complète avec validation des données synthétiques et expérimentales"
 
 msgid "New common signal/image feature:"
 msgstr "Nouvelles fonctionnalités communes signal/image :"
