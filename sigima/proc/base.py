@@ -350,10 +350,6 @@ def new_signal_result(
     dst = create_signal(title=title, units=units, labels=labels)
     if suffix is not None:
         dst.title += "|" + suffix
-    try:
-        source = src.get_metadata_option("source")
-        dst.set_metadata_option("source", source)  # Keep track of the source
-    except ValueError:
-        # No source to keep track of
-        pass
+    if (source := src.metadata.get("source")) is not None:
+        dst.metadata["source"] = source
     return dst
