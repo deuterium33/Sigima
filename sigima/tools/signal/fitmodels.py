@@ -252,10 +252,25 @@ class DoubleExponentialModel(FitModel):
         tau1 = np.maximum(tau1, 1e-12)
         tau2 = np.maximum(tau2, 1e-12)
 
-        return amp1 * np.exp(-x / tau1) + amp2 * np.exp(-x / tau2) + y0
+        # Auto-order time constants: ensure tau1 < tau2 (fast < slow)
+        # This provides consistent parameter interpretation
+        if tau1 > tau2:
+            tau1, tau2 = tau2, tau1
+            amp1, amp2 = amp2, amp1
+
+        # Ensure x is positive for physical interpretation
+        x = np.maximum(x, 0)
+
+        # Calculate exponentials with overflow protection
+        exp1 = np.exp(-np.minimum(x / tau1, 50))  # Prevent overflow
+        exp2 = np.exp(-np.minimum(x / tau2, 50))  # Prevent overflow
+
+        return amp1 * exp1 + amp2 * exp2 + y0
 
     @classmethod
     def fwhm(cls, amp, sigma):
         """Return function FWHM (not well-defined for double exponential)"""
+        # For double exponential, FWHM is not well-defined, return tau equivalent
+        return sigma * np.log(2)
         # For double exponential, FWHM is not well-defined, return tau equivalent
         return sigma * np.log(2)
