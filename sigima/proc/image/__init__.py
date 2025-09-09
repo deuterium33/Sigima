@@ -248,8 +248,8 @@ from sigima.proc.image.measurement import (
     centroid,
     enclosing_circle,
     stats,
-    sum_pixels_along_axis,
-    SumPixelsAlongAxisParam,
+    sum_columns,
+    sum_rows,
 )
 from sigima.proc.image.morphology import (
     MorphologyParam,
