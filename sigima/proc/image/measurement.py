@@ -38,8 +38,8 @@ from sigima.objects import (
     SignalObj,
     TableResult,
     TableResultBuilder,
-    create_signal,
 )
+from sigima.proc.base import new_signal_result
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import compute_geometry_from_obj
 
@@ -159,34 +159,21 @@ def horizontal_projection(image: ImageObj) -> SignalObj:
         Signal object containing the profile.
     """
     data = image.data
-    assert data is not None
-    length = data.shape[1]
-    x0 = image.x0
-    dx = image.dx
-    assert x0 is not None
-    assert dx is not None
-    x = np.linspace(x0 + 0.5 * dx, x0 + (length - 0.5) * dx, length)
-    xlabel = image.xlabel
-    xunit = image.xunit
-    assert xlabel is not None
-    assert xunit is not None
-    zlabel = image.zlabel
-    zunit = image.zunit
-    assert zlabel is not None
-    assert zunit is not None
-    source = image.metadata.get("source")
-    metadata = {"source": source} if source is not None else {}
-    title = "Horizontal projection"
+    width = data.shape[1]
+    x0, dx = image.x0, image.dx
+
+    x = np.linspace(x0 + 0.5 * dx, x0 + (width - 0.5) * dx, width)
     # Cast to np.float64 only if original image is of integer type
     dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
-    dst_signal = create_signal(
-        title=title,
-        x=x,
-        y=data.sum(axis=0, dtype=dtype),
-        metadata=metadata,
-        units=(xunit, zunit),
-        labels=(xlabel, zlabel),
+    y = data.sum(axis=0, dtype=dtype)
+
+    dst_signal = new_signal_result(
+        image,
+        "horizontal_projection",
+        units=(image.xunit, image.zunit),
+        labels=(image.xlabel, image.zlabel),
     )
+    dst_signal.set_xydata(x, y)
     return dst_signal
 
 
@@ -201,32 +188,19 @@ def vertical_projection(image: ImageObj) -> SignalObj:
         Signal object containing the profile.
     """
     data = image.data
-    assert data is not None
-    length = data.shape[0]
-    y0 = image.y0
-    dy = image.dy
-    assert y0 is not None
-    assert dy is not None
-    x = np.linspace(y0 + 0.5 * dy, y0 + (length - 0.5) * dy, length)
-    xlabel = image.ylabel
-    xunit = image.yunit
-    assert xlabel is not None
-    assert xunit is not None
-    zlabel = image.zlabel
-    zunit = image.zunit
-    assert zlabel is not None
-    assert zunit is not None
-    source = image.metadata.get("source")
-    metadata = {"source": source} if source is not None else {}
-    title = "Vertical projection"
+    height = data.shape[0]
+    y0, dy = image.y0, image.dy
+
+    x = np.linspace(y0 + 0.5 * dy, y0 + (height - 0.5) * dy, height)
     # Cast to np.float64 only if original image is of integer type
     dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
-    dst_signal = create_signal(
-        title=title,
-        x=x,
-        y=data.sum(axis=1, dtype=dtype),
-        metadata=metadata,
-        units=(xunit, zunit),
-        labels=(xlabel, zlabel),
+    y = data.sum(axis=1, dtype=dtype)
+
+    dst_signal = new_signal_result(
+        image,
+        "vertical_projection",
+        units=(image.yunit, image.zunit),
+        labels=(image.ylabel, image.zlabel),
     )
+    dst_signal.set_xydata(x, y)
     return dst_signal
