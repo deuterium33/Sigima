@@ -1,6 +1,6 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
-"""Unit tests for image measurement computations."""
+"""Unit tests for image projection functions."""
 
 from __future__ import annotations
 
