@@ -30,7 +30,9 @@ import warnings
 
 import guidata.dataset as gds
 import numpy as np
+import scipy.signal as sps
 
+import sigima.tools.image
 from sigima.config import _
 from sigima.enums import AngleUnit
 from sigima.objects.image import ImageObj
@@ -193,6 +195,38 @@ def complex_from_real_imag(src1: ImageObj, src2: ImageObj) -> ImageObj:
     assert src1.data is not None
     assert src2.data is not None
     dst.data = src1.data + 1j * src2.data
+    return dst
+
+
+@computation_function()
+def convolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
+    """Convolve an image with a kernel.
+
+    Args:
+        src: Input image object.
+        kernel: Kernel image object.
+
+    Returns:
+        Output image object.
+    """
+    dst = dst_2_to_1(src, kernel, "convolution")
+    dst.data = sps.convolve(src.data, kernel.data, mode="same", method="auto")
+    return dst
+
+
+@computation_function()
+def deconvolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
+    """Deconvolve a kernel from an image using Fast Fourier Transform (FFT).
+
+    Args:
+        src: Input image object.
+        kernel: Kernel image object.
+
+    Returns:
+        Output image object.
+    """
+    dst = dst_2_to_1(src, kernel, "deconvolution")
+    dst.data = sigima.tools.image.deconvolve(src.data, kernel.data)
     return dst
 
 

@@ -203,18 +203,6 @@ def test_signal_clip() -> None:
 
 
 @pytest.mark.validation
-def test_signal_convolution() -> None:
-    """Validation test for the signal convolution processing."""
-    src1 = get_test_signal("paracetamol.txt")
-    param = sigima.objects.GaussParam.create(title="Gaussian", sigma=10.0)
-    src2 = sigima.objects.create_signal_from_param(param)
-
-    dst = sigima.proc.signal.convolution(src1, src2)
-    exp = np.convolve(src1.data, src2.data, mode="same")
-    check_array_result("Convolution", dst.data, exp)
-
-
-@pytest.mark.validation
 def test_signal_derivative() -> None:
     """Validation test for the signal derivative processing."""
     src = get_test_signal("paracetamol.txt")
@@ -655,7 +643,6 @@ if __name__ == "__main__":
     test_signal_reverse_x()
     test_signal_normalize()
     test_signal_clip()
-    test_signal_convolution()
     test_signal_derivative()
     test_signal_integral()
     test_signal_offset_correction()

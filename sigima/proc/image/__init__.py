@@ -236,6 +236,8 @@ from sigima.proc.image.mathops import (
     astype,
     complex_from_magnitude_phase,
     complex_from_real_imag,
+    convolution,
+    deconvolution,
     exp,
     imag,
     phase,

@@ -171,6 +171,68 @@ def psd(
 
 
 @check_1d_arrays(x_evenly_spaced=True)
+def deconvolve(
+    x: np.ndarray,
+    y: np.ndarray,
+    filter_x: np.ndarray,
+    filter_y: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Perform deconvolution in the frequency-domain.
+
+    Args:
+        x: X data of the input signal.
+        y: Y data of the input signal.
+        filter_x: X data of the filter (signal to deconvolve with).
+        filter_y: Y data of the filter (signal to deconvolve with).
+
+    Returns:
+        Deconvolved signal (x, yout) where yout is the deconvolved signal.
+
+    Raises:
+        ValueError: If filter is empty.
+        ValueError: If filter X and Y do not have the same size.
+        ValueError: If filter is all zeros.
+    """
+    if filter_y.size == 0:
+        raise ValueError("Filter is empty, cannot be used to deconvolve.")
+    if filter_x.size != filter_y.size:
+        raise ValueError("X data and Y data of the filter must have the same size.")
+    if np.allclose(filter_y, 0.0):
+        raise ValueError("Filter is all zeros, cannot be used to deconvolve.")
+
+    # Zero-pad both signals to the same length.
+    n_fft = x.size + filter_x.size - 1
+    x_padded, y_padded = zero_padding(x, y, n_append=n_fft - x.size)
+    if filter_x.size > 1:
+        xkernel_padded, ykernel_padded = zero_padding(
+            filter_x, filter_y, n_append=n_fft - filter_x.size
+        )
+    else:
+        #!
+        # If xkernel is a single point, zero_padding does not support it.
+        ykernel_padded = np.pad(filter_y, (0, n_fft - 1), mode="constant")
+        # xkernel at the end is not important.
+        xkernel_padded = x_padded
+
+    # Fast Fourier Transforms.
+    x_fft, y_fft = fft1d(x_padded, y_padded, shift=False)
+    _, ykernel_fft = fft1d(xkernel_padded, ykernel_padded, shift=True)
+
+    #!
+    # Avoid division by zero.
+    ykernel_fft[np.abs(ykernel_fft) < 1e-12] = 1e-12
+
+    # Deconvolve.
+    yout_fft = y_fft / ykernel_fft
+
+    # Inverse Fast Fourier Transform.
+    _, yout = ifft1d(x_fft, yout_fft)
+
+    # Crop output to match input signal size.
+    return x, yout[: x.size]
+
+
+@check_1d_arrays(x_evenly_spaced=True)
 def brickwall_filter(
     x: np.ndarray,
     y: np.ndarray,

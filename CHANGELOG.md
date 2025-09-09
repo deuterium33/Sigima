@@ -5,6 +5,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 1.0.0 ##
 
+* New image operation:
+  * Convolution.
+
 ✨ Core architecture update: scalar result types
 
 * Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
@@ -61,6 +64,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Add noise to the selected signals or images.
     * Gaussian, Poisson or uniform noise can be added.
   * New utility functions to generate file basenames.
+  * Deconvolution in the frequency domain.
 
 * New ROI features:
   * Improved single ROI title handling, using default title based on the index of the ROI when no title is provided.

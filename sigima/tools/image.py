@@ -234,6 +234,49 @@ def gaussian_freq_filter(
     return zout.real
 
 
+def deconvolve(z: np.ndarray, zkernel: np.ndarray) -> np.ndarray:
+    """Perform deconvolution in the frequency-domain.
+
+    Args:
+        z: Z data of the input image.
+        zkernel: Z data of the kernel.
+
+    Returns:
+        Deconvolved image data.
+
+    Raises:
+        ValueError: If the deconvolution kernel is null.
+    """
+    if np.all(zkernel == 0):
+        raise ValueError("Deconvolution kernel cannot be null.")
+
+    # Zero-pad data and kernel to the same shape.
+    nrows = z.shape[0] + zkernel.shape[0] - 1
+    ncols = z.shape[1] + zkernel.shape[1] - 1
+    z_padded = zero_padding(z, nrows - z.shape[0], ncols - z.shape[1])
+    zkernel_padded = zero_padding(
+        zkernel, nrows - zkernel.shape[0], ncols - zkernel.shape[1]
+    )
+    # Fast Fourier Transforms.
+    z_fft = fft2d(z_padded, shift=False)
+    zkernel_fft = fft2d(zkernel_padded, shift=True)
+
+    # !
+    # Avoid division by zero.
+    zkernel_fft[np.abs(zkernel_fft) < 1e-12] = 1e-12
+
+    # Deconvolve.
+    zout_fft = z_fft / zkernel_fft
+
+    # Inverse Fast Fourier Transform.
+    zout = ifft2d(zout_fft, shift=False).real
+
+    # Crop to inital size.
+    zout = zout[: z.shape[0], : z.shape[1]]
+
+    return zout
+
+
 # MARK: Binning ------------------------------------------------------------------------
 
 

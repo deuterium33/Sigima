@@ -2028,6 +2028,29 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
 
 
 @computation_function()
+def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
+    """Compute deconvolution.
+
+    The function computes the deconvolution of a signal using
+    :py:func:`sigima_.algorithms.signal.fourier.deconvolve`.
+
+    Args:
+        src1: Source signal.
+        src2: Filter signal.
+
+    Returns:
+        Result signal.
+    """
+    dst = dst_2_to_1(src1, src2, "deconvolution", f"filter={src2.title}")
+    src_x, src_y = src1.get_data()
+    filter_x, filter_y = src2.get_data()
+    result_x, result_y = fourier.deconvolve(src_x, src_y, filter_x, filter_y)
+    dst.set_xydata(result_x, result_y, None, None)
+    restore_data_outside_roi(dst, src1)
+    return dst
+
+
+@computation_function()
 def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
     """Compute histogram with :py:func:`numpy.histogram`
 
@@ -2227,21 +2250,20 @@ def xy_mode(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
 @computation_function()
 def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
-    """Compute convolution of two signals
-    with :py:func:`scipy.signal.convolve`
+    """Compute convolution of two signals with :py:func:`scipy.signal.convolve`.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
+        src1: Source signal 1.
+        src2: Source signal 2.
 
     Returns:
-        Result signal object
+        Result signal.
     """
     dst = dst_2_to_1(src1, src2, "⊛")
     x1, y1 = src1.get_data()
-    _x2, y2 = src2.get_data()
-    ynew = np.real(sps.convolve(y1, y2, mode="same"))
-    dst.set_xydata(x1, ynew)
+    _, y2 = src2.get_data()
+    ynew = sps.convolve(y1, y2, mode="same", method="auto")
+    dst.set_xydata(x1, ynew, None, None)
     restore_data_outside_roi(dst, src1)
     return dst
 
