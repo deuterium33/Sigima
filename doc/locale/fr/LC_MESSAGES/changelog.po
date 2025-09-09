@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 20:41+0200\n"
+"POT-Creation-Date: 2025-09-09 12:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -51,6 +51,18 @@ msgstr "Cette refonte améliore considérablement la modularité, la testabilit�
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "New image analysis features:"
+msgstr "Nouvelles fonctionnalités d'analyse de l'image :"
+
+msgid "Sum columns or rows:"
+msgstr "Somme des colonnes ou des lignes :"
+
+msgid "Compute the horizontal projection profile by summing values along the y-axis (`sigima.proc.image.measurement.sum_columns`)."
+msgstr "Calcule le profil de projection horizontale en sommant les valeurs le long de l'axe y (`sigima.proc.image.measurement.sum_columns`)."
+
+msgid "Compute the vertical projection profile by summing values along the x-axis (`sigima.proc.image.measurement.sum_rows`)."
+msgstr "Calcule le profil de projection verticale en sommant les valeurs le long de l'axe x (`sigima.proc.image.measurement.sum_rows`)."
 
 msgid "**New curve fitting algorithms**: Complete curve fitting framework with `sigima.tools.signal.fitting` module:"
 msgstr "**Nouveaux algorithmes de courbe d'ajustement**: Cadre complet d'ajustement de courbe avec le module `sigima.tools.signal.fitting` :"

@@ -16,6 +16,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* New image analysis features:
+  * Sum columns or rows:
+    * Compute the horizontal projection profile by summing values along the y-axis (`sigima.proc.image.measurement.sum_columns`).
+    * Compute the vertical projection profile by summing values along the x-axis (`sigima.proc.image.measurement.sum_rows`).
+
 * **New curve fitting algorithms**: Complete curve fitting framework with `sigima.tools.signal.fitting` module:
   * **Core fitting functions**: Comprehensive set of curve fitting algorithms for scientific data analysis:
     * `linear_fit`: Linear regression fitting
