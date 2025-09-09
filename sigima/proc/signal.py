@@ -1567,7 +1567,7 @@ class BaseHighLowBandParam(gds.DataSet):
         active=gds.FuncProp(_method_prop, lambda x: x in ("cheby1", "ellip")),
     )
     rs = gds.FloatItem(
-        _("Stopband attenuation"), min=0.0, default=1.0, nonzero=True, unit="dB"
+        _("Stopband attenuation"), min=0.0, default=60.0, nonzero=True, unit="dB"
     ).set_prop(
         "display",
         active=gds.FuncProp(_method_prop, lambda x: x in ("cheby2", "ellip")),

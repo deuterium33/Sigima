@@ -546,22 +546,13 @@ def test_multilorentzian_single_peak() -> None:
         peak_idx = np.argmax(y)
         peaks = np.array([peak_idx])
 
-    try:
-        _y, params = fitting.multilorentzian_fit(x, y, peak_indices=peaks.tolist())
+    _y, params = fitting.multilorentzian_fit(x, y, peak_indices=peaks.tolist())
 
-        # Check results - expect at least one peak
-        assert len(peaks) >= 1, "Should detect at least one peak"
-        assert hasattr(params, "peaks"), "Should have peaks attribute"
-        assert len(params.peaks) >= 1, "Should have at least one peak parameter"
-        assert hasattr(params, "y0"), "Should have y0 baseline parameter"
-    except ValueError as e:
-        if "infeasible" in str(e):
-            execenv.print(
-                "Multi-Lorentzian fit failed due to optimization bounds "
-                "(expected for complex fitting)"
-            )
-        else:
-            raise
+    # Check results - expect at least one peak
+    assert len(peaks) >= 1, "Should detect at least one peak"
+    assert hasattr(params, "peaks"), "Should have peaks attribute"
+    assert len(params.peaks) >= 1, "Should have at least one peak parameter"
+    assert hasattr(params, "y0"), "Should have y0 baseline parameter"
 
 
 # This is not a validation test as there is no computation function for multi
