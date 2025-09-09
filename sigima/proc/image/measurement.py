@@ -159,10 +159,8 @@ def horizontal_projection(image: ImageObj) -> SignalObj:
         Signal object containing the profile.
     """
     data = image.data
-    width = data.shape[1]
-    x0, dx = image.x0, image.dx
 
-    x = np.linspace(x0 + 0.5 * dx, x0 + (width - 0.5) * dx, width)
+    x = np.linspace(image.x0, image.x0 + image.width - image.dx, image.data.shape[1])
     # Cast to np.float64 only if original image is of integer type
     dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
     y = data.sum(axis=0, dtype=dtype)
@@ -188,10 +186,8 @@ def vertical_projection(image: ImageObj) -> SignalObj:
         Signal object containing the profile.
     """
     data = image.data
-    height = data.shape[0]
-    y0, dy = image.y0, image.dy
 
-    x = np.linspace(y0 + 0.5 * dy, y0 + (height - 0.5) * dy, height)
+    x = np.linspace(image.y0, image.y0 + image.height - image.dy, image.data.shape[0])
     # Cast to np.float64 only if original image is of integer type
     dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
     y = data.sum(axis=1, dtype=dtype)
