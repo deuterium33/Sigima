@@ -610,7 +610,7 @@ def multilorentzian_fit(
         # Bounds for this peak
         bounds.extend(
             [
-                (0.0, local_dy * 2),  # amp
+                (0.0, amp_guess * 2),  # amp
                 (local_dx * 0.01, local_dx),  # sigma
                 (x[istart], x[iend]),  # x0
             ]
