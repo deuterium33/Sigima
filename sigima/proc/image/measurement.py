@@ -158,19 +158,14 @@ def horizontal_projection(image: ImageObj) -> SignalObj:
     Returns:
         Signal object containing the profile.
     """
-    data = image.data
-
-    x = np.linspace(image.x0, image.x0 + image.width - image.dx, image.data.shape[1])
-    # Cast to np.float64 only if original image is of integer type
-    dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
-    y = data.sum(axis=0, dtype=dtype)
-
     dst_signal = new_signal_result(
         image,
         "horizontal_projection",
         units=(image.xunit, image.zunit),
         labels=(image.xlabel, image.zlabel),
     )
+    x = np.linspace(image.x0, image.x0 + image.width - image.dx, image.data.shape[1])
+    y = image.data.sum(axis=0, dtype=float)
     dst_signal.set_xydata(x, y)
     return dst_signal
 
@@ -185,18 +180,13 @@ def vertical_projection(image: ImageObj) -> SignalObj:
     Returns:
         Signal object containing the profile.
     """
-    data = image.data
-
-    x = np.linspace(image.y0, image.y0 + image.height - image.dy, image.data.shape[0])
-    # Cast to np.float64 only if original image is of integer type
-    dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
-    y = data.sum(axis=1, dtype=dtype)
-
     dst_signal = new_signal_result(
         image,
         "vertical_projection",
         units=(image.yunit, image.zunit),
         labels=(image.ylabel, image.zlabel),
     )
+    x = np.linspace(image.y0, image.y0 + image.height - image.dy, image.data.shape[0])
+    y = image.data.sum(axis=1, dtype=float)
     dst_signal.set_xydata(x, y)
     return dst_signal
