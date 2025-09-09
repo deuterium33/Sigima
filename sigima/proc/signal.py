@@ -2550,12 +2550,14 @@ def __generic_fit(src: SignalObj, fitfunc: Callable) -> SignalObj:
 
     # Perform the fit:
     fitted_y, params = fitfunc(x, y)
+    residual = y - fitted_y
 
     # Store results:
     dst.set_xydata(x, fitted_y)
     fit_params = dataclasses.asdict(params)
     fit_params["fit_type"] = params.__class__.__name__.replace("Params", "").lower()
-    dst.set_metadata_option("fit_params", fit_params)
+    fit_params["residual_rms"] = float(np.sqrt(np.mean(residual**2)))
+    dst.metadata["fit_params"] = fit_params
     return dst
 
 
