@@ -54,6 +54,8 @@ def create_curve_dialog(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
     size: tuple[int, int] | None = None,
 ) -> PlotDialog:
     """Create Curve Dialog
@@ -63,6 +65,8 @@ def create_curve_dialog(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
         size: Size of the dialog as a tuple (width, height), or None for default size
 
     Returns:
@@ -73,7 +77,9 @@ def create_curve_dialog(
         edit=False,
         toolbar=True,
         title=title,
-        options=PlotOptions(type="curve", xlabel=xlabel, ylabel=ylabel),
+        options=PlotOptions(
+            type="curve", xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
+        ),
         size=(800, 600) if size is None else size,
     )
     win.setObjectName(name)
@@ -86,6 +92,8 @@ def view_curve_items(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
     add_legend: bool = True,
 ) -> None:
     """Create a curve dialog and plot items
@@ -96,9 +104,13 @@ def view_curve_items(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
         add_legend: Whether to add a legend to the plot, default is True
     """
-    win = create_curve_dialog(name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+    win = create_curve_dialog(
+        name=name, title=title, xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
+    )
     plot = win.get_plot()
     for item in items:
         plot.add_item(item)
@@ -144,6 +156,8 @@ def view_curves(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
 ) -> None:
     """Create a curve dialog and plot curves
 
@@ -154,6 +168,8 @@ def view_curves(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
     """
     global STYLE
 
@@ -172,6 +188,10 @@ def view_curves(
                 xlabel = data_or_obj.xlabel
             if data_or_obj.ylabel and ylabel is None:
                 ylabel = data_or_obj.ylabel
+            if data_or_obj.xunit and xunit is None:
+                xunit = data_or_obj.xunit
+            if data_or_obj.yunit and yunit is None:
+                yunit = data_or_obj.yunit
         elif isinstance(data_or_obj, np.ndarray):
             data = data_or_obj
         elif isinstance(data_or_obj, (tuple, list)) and len(data_or_obj) == 2:
@@ -191,7 +211,15 @@ def view_curves(
         if curve_title is not None:
             item.setTitle(curve_title)
         items.append(item)
-    view_curve_items(items, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+    view_curve_items(
+        items,
+        name=name,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        xunit=xunit,
+        yunit=yunit,
+    )
 
     # Reset style generator for next call
     STYLE = style_generator()
@@ -202,6 +230,10 @@ def create_image_dialog(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
     size: tuple[int, int] | None = None,
 ) -> PlotDialog:
     """Create Image Dialog
@@ -211,6 +243,10 @@ def create_image_dialog(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        zlabel: Label for the z-axis (color scale), or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
+        zunit: Unit for the z-axis (color scale), or None for no unit
         size: Size of the dialog as a tuple (width, height), or None for default size
 
     Returns:
@@ -221,7 +257,15 @@ def create_image_dialog(
         edit=False,
         toolbar=True,
         title=title,
-        options=PlotOptions(type="image", xlabel=xlabel, ylabel=ylabel),
+        options=PlotOptions(
+            type="image",
+            xlabel=xlabel,
+            ylabel=ylabel,
+            zlabel=zlabel,
+            xunit=xunit,
+            yunit=yunit,
+            zunit=zunit,
+        ),
         size=(800, 600) if size is None else size,
     )
     win.setObjectName(name)
@@ -246,6 +290,10 @@ def view_image_items(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
     show_itemlist: bool = False,
 ) -> None:
     """Create an image dialog and show items
@@ -256,10 +304,23 @@ def view_image_items(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        zlabel: Label for the z-axis (color scale), or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
+        zunit: Unit for the z-axis (color scale), or None for no unit
         show_itemlist: Whether to show the item list panel in the dialog,
          default is False
     """
-    win = create_image_dialog(name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+    win = create_image_dialog(
+        name=name,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        zlabel=zlabel,
+        xunit=xunit,
+        yunit=yunit,
+        zunit=zunit,
+    )
     if show_itemlist:
         win.manager.get_itemlist_panel().show()
     plot = win.get_plot()
@@ -274,6 +335,10 @@ def view_images(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
 ) -> None:
     """Create an image dialog and show images
 
@@ -283,6 +348,10 @@ def view_images(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        zlabel: Label for the z-axis (color scale), or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
+        zunit: Unit for the z-axis (color scale), or None for no unit
     """
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
@@ -299,6 +368,14 @@ def view_images(
                 xlabel = data_or_obj.xlabel
             if data_or_obj.ylabel and ylabel is None:
                 ylabel = data_or_obj.ylabel
+            if data_or_obj.zlabel and zlabel is None:
+                zlabel = data_or_obj.zlabel
+            if data_or_obj.xunit and xunit is None:
+                xunit = data_or_obj.xunit
+            if data_or_obj.yunit and yunit is None:
+                yunit = data_or_obj.yunit
+            if data_or_obj.zunit and zunit is None:
+                zunit = data_or_obj.zunit
         elif isinstance(data_or_obj, np.ndarray):
             data = data_or_obj
         else:
@@ -313,7 +390,17 @@ def view_images(
             items.append(make.image(data.imag, title=im_title, **kwargs))
         else:
             items.append(make.image(data, title=image_title, **kwargs))
-    view_image_items(items, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+    view_image_items(
+        items,
+        name=name,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        zlabel=zlabel,
+        xunit=xunit,
+        yunit=yunit,
+        zunit=zunit,
+    )
 
 
 def view_curves_and_images(
@@ -322,6 +409,10 @@ def view_curves_and_images(
     title: str | None = None,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
 ) -> None:
     """View signals, then images in two successive dialogs
 
@@ -331,6 +422,10 @@ def view_curves_and_images(
         title: Title of the dialog, or None to use a default title
         xlabel: Label for the x-axis, or None for no label
         ylabel: Label for the y-axis, or None for no label
+        zlabel: Label for the z-axis (color scale), or None for no label
+        xunit: Unit for the x-axis, or None for no unit
+        yunit: Unit for the y-axis, or None for no unit
+        zunit: Unit for the z-axis (color scale), or None for no unit
     """
     if isinstance(data_or_objs, (tuple, list)):
         objs = data_or_objs
@@ -338,10 +433,28 @@ def view_curves_and_images(
         objs = [data_or_objs]
     sig_objs = [obj for obj in objs if isinstance(obj, (SignalObj, np.ndarray))]
     if sig_objs:
-        view_curves(sig_objs, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+        view_curves(
+            sig_objs,
+            name=name,
+            title=title,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            xunit=xunit,
+            yunit=yunit,
+        )
     ima_objs = [obj for obj in objs if isinstance(obj, (ImageObj, np.ndarray))]
     if ima_objs:
-        view_images(ima_objs, name=name, title=title, xlabel=xlabel, ylabel=ylabel)
+        view_images(
+            ima_objs,
+            name=name,
+            title=title,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            zlabel=zlabel,
+            xunit=xunit,
+            yunit=yunit,
+            zunit=zunit,
+        )
 
 
 def __compute_grid(
