@@ -9,8 +9,6 @@ Frequency filters unit tests.
 
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 import pytest
 
@@ -126,24 +124,8 @@ def _test_filter_method(
         original_signal: Original signal for variance checks
         **filter_params: Additional parameters for the filter
     """
-    try:
-        param = param_class.create(method=method, zero_padding=False, **filter_params)
-        # Suppress expected warnings from scipy filter design
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", category=RuntimeWarning, message=".*divide by zero.*"
-            )
-            warnings.filterwarnings(
-                "ignore", category=RuntimeWarning, message=".*invalid value.*"
-            )
-            result_signal = filter_func(test_signal, param)
-    except (ValueError, np.linalg.LinAlgError, RuntimeError) as e:
-        print(
-            f"⚠ {method.value} {filter_type} filter: skipped due to "
-            f"{type(e).__name__}: {e}"
-        )
-        return
-
+    param = param_class.create(method=method, zero_padding=False, **filter_params)
+    result_signal = filter_func(test_signal, param)
     guiutils.view_curves_if_gui([expected_signal or test_signal, result_signal])
 
     # Validate based on whether we have expected results
