@@ -150,7 +150,7 @@ def stats(obj: ImageObj) -> TableResult:
 
 @computation_function()
 def horizontal_projection(image: ImageObj) -> SignalObj:
-    """Compute the horizontal projection profile by summing values along the y-axis.
+    """Compute the sum of pixel intensities along each col. (projection on the x-axis).
 
     Args:
         image: Input image object.
@@ -192,7 +192,7 @@ def horizontal_projection(image: ImageObj) -> SignalObj:
 
 @computation_function()
 def vertical_projection(image: ImageObj) -> SignalObj:
-    """Compute the vertical projection profile by summing values along the x-axis.
+    """Compute the sum of pixel intensities along each row (projection on the y-axis).
 
     Args:
         image: Input image object.
