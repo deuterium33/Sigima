@@ -27,7 +27,6 @@ These functions are useful for image quantification and morphometric analysis.
 
 from __future__ import annotations
 
-import guidata.dataset as gds
 import numpy as np
 from numpy import ma
 
@@ -149,98 +148,85 @@ def stats(obj: ImageObj) -> TableResult:
     return table.compute(obj)
 
 
-class SumPixelsAlongAxisParam(gds.DataSet):
-    """Parameters for summing an image along one axis.
-
-    Attributes:
-        axis: Axis to sum along, "X" sums across columns (result indexed by Y),
-            "Y" sums across rows (result indexed by X).
-    """
-
-    AXES = (("X", "X"), ("Y", "Y"))
-    axis = gds.ChoiceItem(_("Axis"), AXES, default="X")
-
-
 @computation_function()
-def sum_pixels_along_axis(image: ImageObj, p: SumPixelsAlongAxisParam) -> SignalObj:
-    """Compute the sum of image values along the chosen axis and return a 1-D signal.
-
-    The function sums the image along the X or Y axis (as selected in the
-    parameters) and returns a signal object containing the summed values.
-    The output X coordinates are built from the image spatial sampling (dx, dy)
-    and are centered on the image physical center.
+def horizontal_projection(image: ImageObj) -> SignalObj:
+    """Compute the horizontal projection profile by summing values along the y-axis.
 
     Args:
         image: Input image object.
-        p: Parameters selecting the axis to sum over.
 
     Returns:
-        Signal object containing the summed profile.
-
-    Raises:
-        ValueError: if the axis parameter is invalid.
+        Signal object containing the profile.
     """
-    axis_map = {"X": 1, "Y": 0}
-    try:
-        axis = axis_map[p.axis]
-    except KeyError as exc:
-        raise ValueError(f"Invalid axis: {p.axis!s}") from exc
-
-    # Use masked-aware sum to preserve mask semantics
-    summed = ma.sum(image.data, axis=axis)
-
-    # Convert masked result to plain ndarray (masked entries -> NaN)
-    if ma.isMaskedArray(summed):
-        if not (
-            np.issubdtype(np.asarray(summed).dtype, np.floating)
-            or np.issubdtype(np.asarray(summed).dtype, np.complexfloating)
-        ):
-            # Convert integer masked array to float to allow NaN
-            summed = summed.astype(float)
-        y = np.asarray(ma.filled(summed, np.nan))
-    else:
-        y = np.asarray(summed)
-    # Image spatial info (fall back to sensible defaults)
-    shape = image.data.shape
+    data = image.data
+    assert data is not None
+    length = data.shape[1]
     x0 = image.x0
-    y0 = image.y0
     dx = image.dx
-    dy = image.dy
-
-    # Build X coordinates: when summing along "X" (axis=1) the result is indexed by Y,
-    # when summing along "Y" (axis=0) the result is indexed by X.
-    if p.axis == "X":
-        length = shape[0]
-        # pixel centers, then shift so coordinates are centered on image physical center
-        center = y0 + dy * length / 2.0
-        x = y0 + (np.arange(length) + 0.5) * dy - center
-        xunit = image.yunit
-        xlabel = image.ylabel
-    else:
-        length = shape[1]
-        center = x0 + dx * length / 2.0
-        x = x0 + (np.arange(length) + 0.5) * dx - center
-        xunit = image.xunit
-        xlabel = image.xlabel
-
-    # Data unit: prefer zunit (pixel value unit) then fallback to generic unit/meta
+    assert x0 is not None
+    assert dx is not None
+    x = np.linspace(x0 + 0.5 * dx, x0 + (length - 0.5) * dx, length)
+    xlabel = image.xlabel
+    xunit = image.xunit
+    assert xlabel is not None
+    assert xunit is not None
+    zlabel = image.zlabel
     zunit = image.zunit
-    ylabel = image.zlabel
-
-    # Create the signal providing both x and y and pass units/labels
+    assert zlabel is not None
+    assert zunit is not None
+    source = image.metadata.get("source")
+    metadata = {"source": source} if source is not None else {}
+    title = "Horizontal projection"
+    # Cast to np.float64 only if original image is of integer type
+    dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
     dst_signal = create_signal(
-        title=f"{image.title} - Sum along {p.axis}",
-        x=x.astype(float),
-        y=y,
+        title=title,
+        x=x,
+        y=data.sum(axis=0, dtype=dtype),
+        metadata=metadata,
         units=(xunit, zunit),
-        labels=(xlabel, ylabel),
+        labels=(xlabel, zlabel),
     )
+    return dst_signal
 
-    # Keep source metadata if present
-    try:
-        source = image.get_metadata_option("source")
-        dst_signal.set_metadata_option("source", source)
-    except ValueError:
-        pass
 
+@computation_function()
+def vertical_projection(image: ImageObj) -> SignalObj:
+    """Compute the vertical projection profile by summing values along the x-axis.
+
+    Args:
+        image: Input image object.
+
+    Returns:
+        Signal object containing the profile.
+    """
+    data = image.data
+    assert data is not None
+    length = data.shape[0]
+    y0 = image.y0
+    dy = image.dy
+    assert y0 is not None
+    assert dy is not None
+    x = np.linspace(y0 + 0.5 * dy, y0 + (length - 0.5) * dy, length)
+    xlabel = image.ylabel
+    xunit = image.yunit
+    assert xlabel is not None
+    assert xunit is not None
+    zlabel = image.zlabel
+    zunit = image.zunit
+    assert zlabel is not None
+    assert zunit is not None
+    source = image.metadata.get("source")
+    metadata = {"source": source} if source is not None else {}
+    title = "Vertical projection"
+    # Cast to np.float64 only if original image is of integer type
+    dtype = np.float64 if np.issubdtype(data.dtype, np.integer) else data.dtype
+    dst_signal = create_signal(
+        title=title,
+        x=x,
+        y=data.sum(axis=1, dtype=dtype),
+        metadata=metadata,
+        units=(xunit, zunit),
+        labels=(xlabel, zlabel),
+    )
     return dst_signal

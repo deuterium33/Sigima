@@ -246,10 +246,10 @@ from sigima.proc.image.mathops import (
 )
 from sigima.proc.image.measurement import (
     centroid,
+    horizontal_projection,
     enclosing_circle,
     stats,
-    sum_pixels_along_axis,
-    SumPixelsAlongAxisParam,
+    vertical_projection,
 )
 from sigima.proc.image.morphology import (
     MorphologyParam,
