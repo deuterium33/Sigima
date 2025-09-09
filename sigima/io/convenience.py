@@ -10,7 +10,7 @@ I/O system, making common tasks easier to perform.
 from __future__ import annotations
 
 import os.path as osp
-from typing import Generator
+from typing import Generator, Sequence
 
 import guidata.dataset as gds
 
@@ -67,7 +67,7 @@ Standard Python formatting fields may be used, including:
     )
 
 
-def read_signals(filename: str) -> list[SignalObj]:
+def read_signals(filename: str) -> Sequence[SignalObj]:
     """Read a list of signals from a file.
 
     Args:
@@ -112,7 +112,7 @@ def write_signals(p: SaveToDirectoryParam, signals: list[SignalObj]) -> None:
         SignalIORegistry.write(filepath, signal)
 
 
-def read_images(filename: str) -> list[ImageObj]:
+def read_images(filename: str) -> Sequence[ImageObj]:
     """Read a list of images from a file.
 
     Args:

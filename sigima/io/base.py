@@ -13,9 +13,10 @@ import enum
 import os
 import os.path as osp
 import re
+from typing import Generic, Sequence
 
 from sigima.config import _
-from sigima.objects.base import BaseObj
+from sigima.objects.base import BaseObj, TypeObj
 from sigima.worker import CallbackWorkerProtocol
 
 
@@ -54,7 +55,7 @@ class FormatInfo:
       - {", ".join(self.requires) if self.requires else "-"}"""
 
 
-class FormatBase:
+class FormatBase(Generic[TypeObj]):
     """Object representing a data file io"""
 
     FORMAT_INFO: FormatInfo = None
@@ -99,7 +100,7 @@ class FormatBase:
 
     def read(
         self, filename: str, worker: CallbackWorkerProtocol | None = None
-    ) -> list[BaseObj]:
+    ) -> Sequence[TypeObj]:
         """Read list of native objects (signal or image) from file.
         For single object, return a list with one object.
 
@@ -129,7 +130,7 @@ class FormatBase:
 
 
 #  pylint: disable=bad-mcs-classmethod-argument
-class BaseIORegistry(type):
+class BaseIORegistry(Generic[TypeObj], type):
     """Metaclass for registering I/O handler classes"""
 
     REGISTRY_INFO: str = ""  # Registry info, override in subclasses
@@ -264,7 +265,7 @@ class BaseIORegistry(type):
     @classmethod
     def read(
         cls, filename: str, worker: CallbackWorkerProtocol | None = None
-    ) -> list[BaseObj]:
+    ) -> Sequence[TypeObj]:
         """Read data from file, return native object (signal or image) list.
         For single object, return a list with one object.
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import abc
 import os.path as osp
+from typing import Sequence
 
 import numpy as np
 
@@ -103,7 +104,7 @@ class SignalFormatBase(abc.ABC, FormatBase, metaclass=SignalFormatBaseMeta):
 
     def read(
         self, filename: str, worker: CallbackWorkerProtocol | None = None
-    ) -> list[SignalObj]:
+    ) -> Sequence[SignalObj]:
         """Read list of signal objects from file
 
         Args:
