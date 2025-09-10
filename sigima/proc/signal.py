@@ -2869,7 +2869,7 @@ class ParametersParam(gds.DataSet):
             (pulse.SignalShape.STEP, _("Step")),
             (pulse.SignalShape.SQUARE, _("Square")),
         ],
-        default="auto",
+        default=None,
         help=_("Signal type: auto-detect, step, or square."),
     )
     start_basement_range_min = gds.FloatItem(
@@ -2916,7 +2916,7 @@ class ParametersParam(gds.DataSet):
 
 
 @computation_function()
-def get_parameters(obj: SignalObj, p: ParametersParam) -> ResultProperties:
+def get_parameters(obj: SignalObj, p: ParametersParam) -> TableResult:
     """Get parameters from a signal object.
 
     This function retrieves the parameters of a signal object and returns them as a
@@ -2929,7 +2929,6 @@ def get_parameters(obj: SignalObj, p: ParametersParam) -> ResultProperties:
     Returns:
         A ResultProperties object containing the parameters of the signal object.
     """
-
     x, y = obj.get_data()
 
     param = pulse.get_parameters(
@@ -2941,12 +2940,14 @@ def get_parameters(obj: SignalObj, p: ParametersParam) -> ResultProperties:
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )
-
-    return calc_resultproperties(
-        f"parameters | {obj.title}",
-        obj,
-        {k + " = %s": lambda x, v=v: v for k, v in param.items()},
-    )
+    builder = TableResultBuilder(f"parameters | {obj.title}")
+    for key, value in param.items():
+        if isinstance(value, (int, float, np.floating, np.integer)):
+            fmt = f"{key} = %g"
+        else:
+            continue
+        builder.add(lambda xy, v=value: v, key, fmt)
+    return builder.compute(obj)
 
 
 class FWHMParam(gds.DataSet):

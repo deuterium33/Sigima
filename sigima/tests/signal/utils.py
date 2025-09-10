@@ -5,6 +5,8 @@ noise.
 
 """
 
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -108,7 +110,6 @@ def generate_square_signal(
     x: Time vector.
     y_noisy: Noisy step signal.
     """
-
     # time vector
     x = np.arange(t_start, t_end + dt, dt)
 

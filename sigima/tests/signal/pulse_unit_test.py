@@ -21,9 +21,7 @@ from sigima.tools.signal import pulse
 from sigima.tools.signal.pulse import SignalShape
 
 
-def test_heuristically_recognize_shape(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_heuristically_recognize_shape() -> None:
     """Unit test for the `pulse.heuristically_recognize_shape` function.
 
     This test verifies that the function correctly identifies the shape of various
@@ -40,24 +38,12 @@ def test_heuristically_recognize_shape(
     The test uses `check_string_result` to assert that the recognized shape matches the
     expected result.
     """
-    guiutils.set_current_request(request)
-
     x, y_noisy = generate_step_signal(seed=0)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (4, 8))
     check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
 
-    if guiutils.is_gui_enabled():
-        # If GUI is available, we can visualize the signal
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import (
-            view_curves,  # pylint: disable=import-outside-toplevel
-        )
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, f"Detected shape = {shape}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     shape = pulse.heuristically_recognize_shape(x, y_noisy)
     check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
@@ -68,33 +54,25 @@ def test_heuristically_recognize_shape(
         "square, heuristically recognize shape", shape, SignalShape.SQUARE
     )
 
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected shape = {shape}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (4, 8))
     check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected shape = {shape}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     x, y_noisy = generate_square_signal(seed=0, y_initial=5, y_high=2)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (12, 14))
     check_string_result(
         "square, heuristically recognize shape", shape, SignalShape.SQUARE
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected shape = {shape}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected shape = {shape}")
 
 
-def test_detect_polarity(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_detect_polarity() -> None:
     """
     Unit test for the `pulse.detect_polarity` function.
 
@@ -107,57 +85,37 @@ def test_detect_polarity(
     - Negative polarity detection for step and square signals with inverted amplitude.
     - Detection with and without explicit interval arguments.
     """
-    guiutils.set_current_request(request)
-
     x, y_noisy = generate_step_signal(seed=0)
     polarity = pulse.detect_polarity(x, y_noisy, (0, 2), (4, 8))
     check_scalar_result("step, detection positive polarity", polarity, 1)
-    if guiutils.is_gui_enabled():
-        # If GUI is available, we can visualize the signal
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected polarity = {polarity}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected polarity = {polarity}")
 
     polarity = pulse.detect_polarity(x, y_noisy)
     check_scalar_result("step, detection positive polarity", polarity, 1)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected polarity = {polarity}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected polarity = {polarity}")
 
     x, y_noisy = generate_square_signal(seed=0)
     polarity = pulse.detect_polarity(x, y_noisy, (0, 2), (12, 14))
     check_scalar_result("step, detection positive polarity", polarity, 1)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected polarity = {polarity}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected polarity = {polarity}")
 
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
     polarity = pulse.detect_polarity(x, y_noisy, (0, 2), (4, 8))
     check_scalar_result("step, detection negative polarity", polarity, -1)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected polarity = {polarity}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected polarity = {polarity}")
 
     x, y_noisy = generate_square_signal(seed=0, y_initial=5, y_high=2)
     polarity = pulse.detect_polarity(x, y_noisy, (0, 2), (12, 14))
     check_scalar_result("step, detection negative polarity", polarity, -1)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Detected polarity = {polarity}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Detected polarity = {polarity}")
 
 
-def test_get_amplitude(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_amplitude() -> None:
     """Unit test for the `pulse.get_amplitude` function.
 
     This test verifies the correct calculation of the amplitude of step and square
@@ -173,32 +131,23 @@ def test_get_amplitude(
         - Step signal with custom initial and final values.
         - Square signal with custom initial and high values.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity - step
     x, y_noisy = generate_step_signal(seed=0)
     amplitude = pulse.get_amplitude(x, y_noisy, (0, 2), (6, 8))
     check_scalar_result(
         "step, get step amplitude, positive polarity", amplitude, 5, atol=0.03
     )
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Step amplitude = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Step amplitude = {amplitude:.3f}")
 
     amplitude = pulse.get_amplitude(x, y_noisy)
     check_scalar_result(
         "step, get step amplitude, positive polarity", amplitude, 6.17, atol=0.03
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Step amplitude (auto) = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(
+        signal, title=f"Step amplitude (auto) = {amplitude:.3f}"
+    )
 
     # negative polarity - step
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
@@ -206,10 +155,8 @@ def test_get_amplitude(
     check_scalar_result(
         "step, get step amplitude, negative polarity", amplitude, 3, atol=0.03
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Step amplitude (neg) = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Step amplitude (neg) = {amplitude:.3f}")
 
     # positive polarity - square
     x, y_noisy = generate_square_signal(seed=0)
@@ -219,10 +166,8 @@ def test_get_amplitude(
     check_scalar_result(
         "square, get square amplitude, positive polarity", amplitude, 5, atol=0.03
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Square amplitude = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Square amplitude = {amplitude:.3f}")
 
     # negative polarity - square
     x, y_noisy = generate_square_signal(seed=0, y_initial=5, y_high=2)
@@ -232,10 +177,10 @@ def test_get_amplitude(
     check_scalar_result(
         "square, get square amplitude, negative polarity", amplitude, 3, atol=0.03
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Square amplitude (neg) = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(
+        signal, title=f"Square amplitude (neg) = {amplitude:.3f}"
+    )
 
     # positive polarity - square
     x, y_noisy = generate_square_signal(seed=0)
@@ -243,10 +188,8 @@ def test_get_amplitude(
     check_scalar_result(
         "square, get square amplitude, positive polarity", amplitude, 5, atol=0.6
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Square amplitude = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Square amplitude = {amplitude:.3f}")
 
     # negative polarity - square
     x, y_noisy = generate_square_signal(seed=0, y_initial=5, y_high=2)
@@ -254,15 +197,13 @@ def test_get_amplitude(
     check_scalar_result(
         "square, get square amplitude, negative polarity", amplitude, 3, atol=0.6
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Square amplitude (neg) = {amplitude:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(
+        signal, title=f"Square amplitude (neg) = {amplitude:.3f}"
+    )
 
 
-def test_get_crossing_ratio_time(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_crossing_ratio_time() -> None:
     """
     Unit test for the `pulse.get_crossing_ratio_time` function.
 
@@ -270,8 +211,6 @@ def test_get_crossing_ratio_time(
     for both positive and negative polarity step signals, with and without specified
     baseline regions.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
@@ -279,24 +218,17 @@ def test_get_crossing_ratio_time(
     check_scalar_result(
         "step, get crossing time, positive polarity", crossing_time, 3.44
     )
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Crossing time = {crossing_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Crossing time = {crossing_time:.3f}")
 
     crossing_time = pulse.get_crossing_ratio_time(x, y_noisy, None, None, 0.2)
     check_scalar_result(
         "step, get crossing time, positive polarity", crossing_time, 2.75
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Crossing time (auto) = {crossing_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(
+        signal, title=f"Crossing time (auto) = {crossing_time:.3f}"
+    )
 
     # negative polarity
     x, y_noisy = generate_step_signal(
@@ -307,19 +239,17 @@ def test_get_crossing_ratio_time(
     check_scalar_result(
         "step, get crossing time, negative polarity", crossing_time, 3.41
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Crossing time (neg) = {crossing_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(
+        signal, title=f"Crossing time (neg) = {crossing_time:.3f}"
+    )
 
     x, y_noisy = generate_step_signal(
         seed=0, y_initial=5, y_final=2, noise_amplitude=0.2
     )
 
 
-def test_get_step_rise_time(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_step_rise_time() -> None:
     """
     Unit test for the `pulse.get_step_rise_time` function.
 
@@ -327,69 +257,37 @@ def test_get_step_rise_time(
     both positive and negative polarity, using various noise amplitudes and different
     ways of specifying rise ratios and baseline regions.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
     check_scalar_result("step, get rise time, positive polarity", rise_time, 1.235)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Rise time = {rise_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
     x, y_noisy = generate_step_signal(seed=0, noise_amplitude=0)
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
     check_scalar_result("step, get rise time, positive polarity", rise_time, 1.19)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Rise time = {rise_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
     rise_time = pulse.get_step_rise_time(
         x, y_noisy, start_rise_ratio=0.2, stop_rise_ratio=0.2
     )
     check_scalar_result("step, get rise time, positive polarity", rise_time, 1.19)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Rise time = {rise_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
     check_scalar_result("step, get rise time, negative polarity", rise_time, 1.685)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Rise time (neg) = {rise_time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Rise time (neg) = {rise_time:.3f}")
 
 
-def test_get_step_time_at_half_maximum(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_step_time_at_half_maximum() -> None:
     """
     Unit test for the `pulse.get_step_time_at_half_maximum` function.
 
@@ -397,8 +295,6 @@ def test_get_step_time_at_half_maximum(
     reaches half of its maximum amplitude, for both positive and negative polarity
     signals, using specified baseline regions.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
@@ -406,15 +302,8 @@ def test_get_step_time_at_half_maximum(
     check_scalar_result(
         "step, get time at half maximum, positive polarity", time, 4.045
     )
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Time at half max = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Time at half max = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
@@ -423,15 +312,11 @@ def test_get_step_time_at_half_maximum(
     check_scalar_result(
         "step, get time at half maximum, negative polarity", time, 4.025
     )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Time at half max (neg) = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Time at half max (neg) = {time:.3f}")
 
 
-def test_get_step_starttime(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_step_starttime() -> None:
     """
     Unit test for the `pulse.get_step_start_time` function.
 
@@ -439,37 +324,24 @@ def test_get_step_starttime(
     with both positive and negative polarity, using specified baseline regions and
     rise ratios.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
     time = pulse.get_step_start_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result("step, get start time", time, 3.44)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Start time = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Start time = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
     time = pulse.get_step_start_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result("step, get start time", time, 2.995)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"Start time (neg) = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"Start time (neg) = {time:.3f}")
 
 
-def test_get_step_end_time(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_step_end_time() -> None:
     """
     Unit test for the `pulse.get_step_end_time` function.
 
@@ -477,35 +349,22 @@ def test_get_step_end_time(
     with both positive and negative polarity, using specified baseline regions and
     rise ratios.
     """
-    guiutils.set_current_request(request)
-
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
     time = pulse.get_step_end_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result("step, get end time", time, 4.675)
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"End time = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"End time = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
     time = pulse.get_step_end_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result("step, get end time", time, 4.68)
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y_noisy)
-            view_curves(signal, title=f"End time (neg) = {time:.3f}")
+    signal = create_signal("", x, y_noisy)
+    guiutils.view_curves_if_gui(signal, title=f"End time (neg) = {time:.3f}")
 
 
-def test_heuristically_find_foot_end_time(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_heuristically_find_foot_end_time() -> None:
     """
     Unit test for the `pulse.heuristically_find_foot_end_time` function.
 
@@ -513,8 +372,6 @@ def test_heuristically_find_foot_end_time(
     (baseline) region in a step signal with a sharp rise, ensuring accurate detection
     even in the presence of noise.
     """
-    guiutils.set_current_request(request)
-
     # Generate a signal with a step at t = 3 and a sharp rise at t = 5
     x, y = generate_step_signal(
         t_start=0,
@@ -536,20 +393,11 @@ def test_heuristically_find_foot_end_time(
         5.0,
         atol=0.02,  # small tolerance due to possible slight variation
     )
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(signal, title=f"Foot end time = {time:.3f}")
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(signal, title=f"Foot end time = {time:.3f}")
 
 
-def test_get_foot_info(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_foot_info() -> None:
     """
     Unit test for the `pulse.get_foot_info` function.
 
@@ -557,8 +405,6 @@ def test_get_foot_info(
     information for a generated step signal, including the end index, threshold, foot
     duration, and x_end value.
     """
-    guiutils.set_current_request(request)
-
     # Generate a step signal with a sharp rise at t=5
     x, y = generate_step_signal(seed=0, noise_amplitude=0.2)
     # Use start_basement_range before the step, end_basement_range after
@@ -601,27 +447,16 @@ def test_get_foot_info(
     # The index should correspond to the first x >= x_end
     assert np.isclose(x[idx], foot_info["x_end"], atol=0.01)
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(
-                signal,
-                title=f"Foot info: x_end={foot_info['x_end']:.3f},"
-                f"threshold={foot_info['threshold']:.3f}",
-            )
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(
+        signal,
+        title=f"Foot info: x_end={foot_info['x_end']:.3f},"
+        f"threshold={foot_info['threshold']:.3f}",
+    )
 
 
-def test_get_parameters(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_get_parameters() -> None:
     """Test the extraction of step parameters from generated step and square signals."""
-    guiutils.set_current_request(request)
-
     # Test the extraction of step parameters from a generated step signal
     x, y = generate_step_signal(
         t_start=0,
@@ -692,28 +527,21 @@ def test_get_parameters(
         f"Expected signal_shape to be 'step', but got {params['signal_shape']}"
     )
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(
-                signal,
-                title=(
-                    "Step parameters: "
-                    f"polarity={params['polarity']}, "
-                    f"offset={params['offset']}, "
-                    f"fwhm={params['fwhm']}, "
-                    f"rise_time={params['rise_time']}, "
-                    f"fall_time={params['fall_time']}, "
-                    f"t50={params['t50']}, "
-                    f"tmax={params['tmax']}, "
-                    f"foot_duration={params['foot_duration']}"
-                ),
-            )
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(
+        signal,
+        title=(
+            "Step parameters: "
+            f"polarity={params['polarity']}, "
+            f"offset={params['offset']}, "
+            f"fwhm={params['fwhm']}, "
+            f"rise_time={params['rise_time']}, "
+            f"fall_time={params['fall_time']}, "
+            f"t50={params['t50']}, "
+            f"tmax={params['tmax']}, "
+            f"foot_duration={params['foot_duration']}"
+        ),
+    )
 
     # Test the extraction of square parameters from a generated square signal.
     # Generate a square signal with a sharp rise at t=4 and fall at t=7
@@ -787,30 +615,24 @@ def test_get_parameters(
         f"Expected signal_shape to be 'square', but got {params['signal_shape']}"
     )
 
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(
-                signal,
-                title="Step parameters: "
-                f"polarity={params['polarity']}, "
-                f"offset={params['offset']}, "
-                f"fwhm={params['fwhm']}, "
-                f"rise_time={params['rise_time']}, "
-                f"fall_time={params['fall_time']}, "
-                f"t50={params['t50']}, "
-                f"tmax={params['tmax']}, "
-                f"foot_duration={params['foot_duration']}",
-            )
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(
+        signal,
+        title="Step parameters: "
+        f"polarity={params['polarity']}, "
+        f"offset={params['offset']}, "
+        f"fwhm={params['fwhm']}, "
+        f"rise_time={params['rise_time']}, "
+        f"fall_time={params['fall_time']}, "
+        f"t50={params['t50']}, "
+        f"tmax={params['tmax']}, "
+        f"foot_duration={params['foot_duration']}",
+    )
 
 
 @pytest.mark.validation
-def test_signal_get_parameters(
-    request: pytest.FixtureRequest | None = None,
-) -> None:
+def test_signal_get_parameters() -> None:
     """Validation test for get_parameters computation function."""
-    guiutils.set_current_request(request)
-
     # Generate a step signal
     x, y = generate_step_signal(
         t_start=0,
@@ -836,21 +658,21 @@ def test_signal_get_parameters(
 
     result = get_parameters(sig, p)
 
-    param_dict = dict(zip(result.headers, result.shown_array[0]))
+    param_dict = dict(zip(result.names, result.data[0, :]))
     exptected_result = [
         "step",
         1,
         np.float64(5.0),
         np.float64(0.79),
-        None,
-        None,
+        # None,
+        # None,
         np.float64(1.0),
         np.float64(4.5),
         np.float64(5.0),
         np.float64(4.1),
     ]
     # Check if the result matches the expected values
-    for key, expected in zip(result.headers, exptected_result):
+    for key, expected in zip(result.names, exptected_result[1:]):
         if isinstance(expected, numbers.Number):
             check_scalar_result(key, param_dict[key], expected, atol=0.02)
         else:
@@ -858,26 +680,19 @@ def test_signal_get_parameters(
                 f"{key}: {param_dict[key]} != {expected}"
             )
 
-    if guiutils.is_gui_enabled():
-        # pylint: disable=import-outside-toplevel
-        from guidata.qthelpers import qt_app_context
-
-        from sigima.tests.vistools import view_curves
-
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(
-                signal,
-                title="Step parameters: "
-                f"polarity={param_dict['polarity']}, "
-                f"offset={param_dict['offset']}, "
-                f"fwhm={param_dict['fwhm']}, "
-                f"rise_time={param_dict['rise_time']}, "
-                f"fall_time={param_dict['fall_time']}, "
-                f"t50={param_dict['t50']}, "
-                f"tmax={param_dict['tmax']}, "
-                f"foot_duration={param_dict['foot_duration']}",
-            )
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(
+        signal,
+        title="Step parameters: "
+        f"polarity={param_dict['polarity']}, "
+        f"offset={param_dict['offset']}, "
+        #        f"fwhm={param_dict['fwhm']}, "
+        f"rise_time={param_dict['rise_time']}, "
+        # f"fall_time={param_dict['fall_time']}, "
+        f"t50={param_dict['t50']}, "
+        f"tmax={param_dict['tmax']}, "
+        f"foot_duration={param_dict['foot_duration']}",
+    )
 
     # Validation test for get_parameters with a SQUARE signal
     x, y = generate_square_signal(
@@ -905,7 +720,7 @@ def test_signal_get_parameters(
 
     result = get_parameters(sig, p)
 
-    param_dict = dict(zip(result.headers, result.shown_array[0]))
+    param_dict = dict(zip(result.names, result.data[0, :]))
     expected_result = [
         "square",
         1,
@@ -918,41 +733,39 @@ def test_signal_get_parameters(
         np.float64(5.0),
         np.float64(4.1),
     ]
-    for key, expected in zip(result.headers, expected_result):
+    for key, expected in zip(result.names, expected_result[1:]):
         if isinstance(expected, numbers.Number):
             check_scalar_result(key, float(param_dict[key]), float(expected), atol=0.02)
         else:
             assert np.all(param_dict[key] == expected), (
                 f"{key}: {param_dict[key]} != {expected}"
             )
-    if guiutils.is_gui_enabled():
-        with qt_app_context():
-            signal = create_signal("", x, y)
-            view_curves(
-                signal,
-                title="Step parameters: "
-                f"polarity={param_dict['polarity']}, "
-                f"offset={param_dict['offset']}, "
-                f"fwhm={param_dict['fwhm']}, "
-                f"rise_time={param_dict['rise_time']}, "
-                f"fall_time={param_dict['fall_time']}, "
-                f"t50={param_dict['t50']}, "
-                f"tmax={param_dict['tmax']}, "
-                f"foot_duration={param_dict['foot_duration']}",
-            )
+    signal = create_signal("", x, y)
+    guiutils.view_curves_if_gui(
+        signal,
+        title="Step parameters: "
+        f"polarity={param_dict['polarity']}, "
+        f"offset={param_dict['offset']}, "
+        f"fwhm={param_dict['fwhm']}, "
+        f"rise_time={param_dict['rise_time']}, "
+        f"fall_time={param_dict['fall_time']}, "
+        f"t50={param_dict['t50']}, "
+        f"tmax={param_dict['tmax']}, "
+        f"foot_duration={param_dict['foot_duration']}",
+    )
 
 
 if __name__ == "__main__":
-    dummy_request = guiutils.DummyRequest(gui=True)
-    test_heuristically_recognize_shape(dummy_request)
-    test_detect_polarity(dummy_request)
-    test_get_amplitude(dummy_request)
-    test_get_crossing_ratio_time(dummy_request)
-    test_get_step_rise_time(dummy_request)
-    test_get_step_time_at_half_maximum(dummy_request)
-    test_get_step_starttime(dummy_request)
-    test_get_step_end_time(dummy_request)
-    test_heuristically_find_foot_end_time(dummy_request)
-    test_get_foot_info(dummy_request)
-    test_get_parameters(dummy_request)
-    test_signal_get_parameters(dummy_request)
+    guiutils.enable_gui()
+    test_heuristically_recognize_shape()
+    test_detect_polarity()
+    test_get_amplitude()
+    test_get_crossing_ratio_time()
+    test_get_step_rise_time()
+    test_get_step_time_at_half_maximum()
+    test_get_step_starttime()
+    test_get_step_end_time()
+    test_heuristically_find_foot_end_time()
+    test_get_foot_info()
+    test_get_parameters()
+    test_signal_get_parameters()

@@ -328,7 +328,6 @@ def get_amplitude(
     Returns:
         amplitude of the step
     """
-
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(
             x, y, start_basement_range, end_basement_range
@@ -426,7 +425,6 @@ def get_crossing_ratio_time(
         The x-value where the normalized signal crosses the specified fractional
         amplitude.
     """
-
     polarity = detect_polarity(
         x, y, start_basement_range, end_basement_range, signal_shape=SignalShape.STEP
     )
@@ -710,7 +708,6 @@ def full_width_at_y(
     Returns:
         Full width segment coordinates
     """
-
     tmax_idx = np.argmax(y)
 
     t1 = features.get_crossing_time(
@@ -764,7 +761,6 @@ def full_width_at_ratio(
         - The crossing times are computed using the `features.get_crossing_time`
           function.
     """
-
     amplitude = get_amplitude(x, y, start_basement_range, end_basement_range)
     polarity = detect_polarity(x, y, start_basement_range, end_basement_range)
 
@@ -831,7 +827,6 @@ def fwhm(
     Returns:
         FWHM segment coordinates
     """
-
     dx, dy, base = np.max(x) - np.min(x), np.max(y) - np.min(y), np.min(y)
     sigma, mu = dx * 0.1, peakdetection.xpeak(x, y)
     if isinstance(xmin, float):
@@ -879,7 +874,6 @@ def fw1e2(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float, float]:
     Returns:
         FW at 1/e² segment coordinates
     """
-
     dx, dy, base = np.max(x) - np.min(x), np.max(y) - np.min(y), np.min(y)
     sigma, mu = dx * 0.1, peakdetection.xpeak(x, y)
     amp = GaussianModel.get_amp_from_amplitude(dy, sigma)
