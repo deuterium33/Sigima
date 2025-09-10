@@ -136,16 +136,16 @@ def stats(obj: ImageObj) -> TableResult:
     Returns:
         Result properties
     """
-    table = TableResultBuilder(_("Image statistics"))
-    table.add(ma.min, "min", "min(z) = %g {.zunit}")
-    table.add(ma.max, "max", "max(z) = %g {.zunit}")
-    table.add(ma.mean, "mean", "<z> = %g {.zunit}")
-    table.add(ma.median, "median", "median(z) = %g {.zunit}")
-    table.add(ma.std, "std", "σ(z) = %g {.zunit}")
-    table.add(__calc_snr_without_warning, "snr", "<z>/σ(z) = %g")
-    table.add(ma.ptp, "ptp", "peak-to-peak(z) = %g {.zunit}")
-    table.add(ma.sum, "sum", "Σ(z) = %g {.zunit}")
-    return table.compute(obj)
+    builder = TableResultBuilder(_("Image statistics"))
+    builder.add(ma.min, "min", "min(z) = %g {.zunit}")
+    builder.add(ma.max, "max", "max(z) = %g {.zunit}")
+    builder.add(ma.mean, "mean", "<z> = %g {.zunit}")
+    builder.add(ma.median, "median", "median(z) = %g {.zunit}")
+    builder.add(ma.std, "std", "σ(z) = %g {.zunit}")
+    builder.add(__calc_snr_without_warning, "snr", "<z>/σ(z) = %g")
+    builder.add(ma.ptp, "ptp", "peak-to-peak(z) = %g {.zunit}")
+    builder.add(ma.sum, "sum", "Σ(z) = %g {.zunit}")
+    return builder.compute(obj)
 
 
 @computation_function()
