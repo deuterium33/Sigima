@@ -13,56 +13,862 @@ providing the core fitting algorithms without PlotPy GUI components.
 
 from __future__ import annotations
 
-import dataclasses
 import warnings
+from typing import Type
 
 import numpy as np
 import scipy.optimize
 import scipy.special
 
-from sigima.tools.signal import fitmodels, peakdetection
+from sigima.tools.signal import peakdetection, pulse
 
 
-def _fit_with_scipy(x, y, model_func, initial_params, bounds=None):
-    """Generic fitting function using scipy.optimize.curve_fit
+class FitComputer:
+    """Base class for fit computers"""
 
-    Args:
-        x: x data
-        y: y data
-        model_func: fitting function
-        initial_params: initial parameter guess
-        bounds: parameter bounds (min, max) tuples
+    PARAMS_NAMES: tuple[str] = ()  # To be defined by subclasses
 
-    Returns:
-        tuple: (fitted_y_values, fitted_parameters)
-    """
-    if bounds is not None:
-        # Convert bounds to scipy format
-        lower_bounds = [b[0] for b in bounds]
-        upper_bounds = [b[1] for b in bounds]
-        bounds_scipy = (lower_bounds, upper_bounds)
-    else:
-        bounds_scipy = (-np.inf, np.inf)
+    def __init__(self, x: np.ndarray, y: np.ndarray) -> None:
+        self.x = x
+        self.y = y
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=scipy.optimize.OptimizeWarning)
-        popt, _ = scipy.optimize.curve_fit(
-            model_func, x, y, p0=initial_params, bounds=bounds_scipy, maxfev=5000
+    def get_params_names(self) -> tuple[str]:
+        """Return the names of the parameters used in this fit."""
+        return self.PARAMS_NAMES
+
+    def check_params(self, **params) -> None:
+        """Check that all required parameters are provided."""
+        missing = [p for p in self.get_params_names() if p not in params]
+        if missing:
+            raise ValueError(f"Missing required parameters: {missing}")
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+        """Evaluate the fit function at given x values."""
+        raise NotImplementedError("Subclasses must implement evaluate method")
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for fitting. To be implemented by subclasses."""
+        raise NotImplementedError(
+            "Subclasses must implement compute_initial_params method"
         )
 
-    fitted_y = model_func(x, *popt)
-    return fitted_y, popt
+    # pylint: disable=unused-argument
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for fitting."""
+        return None
+
+    def create_params(self, y_fitted: np.ndarray, **params) -> dict[str, float]:
+        """Create a fit parameters dictionary from given parameters."""
+        self.check_params(**params)
+        params["fit_type"] = self.__class__.__name__.replace("FitComputer", "").lower()
+        params["residual_rms"] = np.sqrt(np.mean((self.y - y_fitted) ** 2))
+        return params
+
+    def fit(self) -> tuple[np.ndarray, dict[str, float]]:
+        """Fit the model to the data."""
+        # Default implementation uses scipy curve_fit
+        return self.optimize_fit_with_scipy()
+
+    def optimize_fit_with_scipy(self) -> tuple[np.ndarray, np.ndarray]:
+        """Generic fitting function using `scipy.optimize.curve_fit`
+
+        Returns:
+            tuple: (fitted_y_values, fitted_parameters)
+        """
+        initial_params = self.compute_initial_params()
+        bounds = self.compute_bounds(**initial_params)
+        if bounds is not None:
+            # Convert bounds to scipy format
+            lower_bounds = [b[0] for b in bounds]
+            upper_bounds = [b[1] for b in bounds]
+            bounds_scipy = (lower_bounds, upper_bounds)
+        else:
+            bounds_scipy = (-np.inf, np.inf)
+
+        # Create a wrapper function that unpacks parameters correctly
+        def objective_func(x, *params):
+            """Wrapper function for scipy curve_fit."""
+            param_dict = dict(zip(self.get_params_names(), params))
+            try:
+                # Try as classmethod first
+                return self.__class__.evaluate(x, **param_dict)
+            except TypeError:
+                # Fall back to instance method
+                return self.evaluate(x, **param_dict)
+
+        try:
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore", category=scipy.optimize.OptimizeWarning
+                )
+                popt, _ = scipy.optimize.curve_fit(
+                    objective_func,
+                    self.x,
+                    self.y,
+                    p0=list(initial_params.values()),
+                    bounds=bounds_scipy,
+                    maxfev=5000,
+                )
+        except (RuntimeError, ValueError, TypeError) as err:
+            # Fallback to initial parameters if optimization fails
+            warnings.warn(f"Optimization failed: {err}. Using initial parameters.")
+            try:
+                # Try as classmethod first
+                fitted_y = self.__class__.evaluate(self.x, **initial_params)
+            except TypeError:
+                # Fall back to instance method
+                fitted_y = self.evaluate(self.x, **initial_params)
+            result_params = self.create_params(fitted_y, **initial_params)
+            return fitted_y, result_params
+
+        names = self.get_params_names()
+        assert len(popt) == len(names), "Unexpected number of parameters"
+        param_dict = dict(zip(names, popt))
+        try:
+            # Try as classmethod first
+            fitted_y = self.__class__.evaluate(self.x, **param_dict)
+        except TypeError:
+            # Fall back to instance method
+            fitted_y = self.evaluate(self.x, **param_dict)
+        params = self.create_params(fitted_y, **param_dict)
+        return fitted_y, params
 
 
-@dataclasses.dataclass
-class LinearParams:
-    """Linear fit parameters: y = a*x + b"""
+class LinearFitComputer(FitComputer):
+    """Linear fit computer"""
 
-    a: float  # slope
-    b: float  # intercept
+    PARAMS_NAMES = ("a", "b")  # slope and intercept
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, a: float, b: float) -> np.ndarray:
+        """Evaluate linear function at given x values."""
+        return a * x + b
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for linear fitting using numpy polyfit."""
+        coeffs = np.polyfit(self.x, self.y, 1)
+        a, b = coeffs
+        return {"a": a, "b": b}
 
 
-def linear_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, LinearParams]:
+class PolynomialFitComputer(FitComputer):
+    """Polynomial fit computer of given degree"""
+
+    def __init__(self, x: np.ndarray, y: np.ndarray, degree: int = 2) -> None:
+        super().__init__(x, y)
+        if degree < 1:
+            raise ValueError("Degree must be at least 1")
+        self.degree = degree
+
+    def get_params_names(self) -> tuple[str]:
+        """Return the names of the parameters used in this fit."""
+        return tuple(f"a{i}" for i in range(self.degree, -1, -1))
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, *coeffs: float) -> np.ndarray:
+        """Evaluate polynomial function at given x values."""
+        return np.polyval(coeffs, x)
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for polynomial fitting using numpy polyfit."""
+        coeffs = np.polyfit(self.x, self.y, self.degree)
+        return {f"a{i}": coeff for i, coeff in enumerate(reversed(coeffs))}
+
+
+class GaussianFitComputer(FitComputer):
+    """Gaussian fit computer"""
+
+    PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
+    ) -> np.ndarray:
+        """Evaluate Gaussian function at given x values."""
+        return pulse.GaussianModel.func(x, amp, sigma, x0, y0)
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Gaussian fitting."""
+        dx = np.max(self.x) - np.min(self.x)
+        dy = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        sigma = dx * 0.1
+        amp = pulse.GaussianModel.get_amp_from_amplitude(dy, sigma)
+        x0 = peakdetection.xpeak(self.x, self.y)
+        y0 = y_min
+
+        return {"amp": amp, "sigma": sigma, "x0": x0, "y0": y0}
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Gaussian fitting."""
+        dy = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        return [
+            (0.0, initial_params["amp"] * 2),  # amp
+            (initial_params["sigma"] * 0.1, initial_params["sigma"] * 10),  # sigma
+            (np.min(self.x), np.max(self.x)),  # x0
+            (y_min - 0.2 * dy, y_min + 0.2 * dy),  # y0
+        ]
+
+
+class LorentzianFitComputer(FitComputer):
+    """Lorentzian fit computer"""
+
+    PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
+    ) -> np.ndarray:
+        """Evaluate Lorentzian function at given x values."""
+        return pulse.LorentzianModel.func(x, amp, sigma, x0, y0)
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Lorentzian fitting."""
+        dx = np.max(self.x) - np.min(self.x)
+        dy = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        sigma = dx * 0.1
+        amp = pulse.LorentzianModel.get_amp_from_amplitude(dy, sigma)
+        x0 = peakdetection.xpeak(self.x, self.y)
+        y0 = y_min
+
+        return {"amp": amp, "sigma": sigma, "x0": x0, "y0": y0}
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Lorentzian fitting."""
+        dy = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        return [
+            (0.0, initial_params["amp"] * 2),  # amp
+            (initial_params["sigma"] * 0.1, initial_params["sigma"] * 10),  # sigma
+            (np.min(self.x), np.max(self.x)),  # x0
+            (y_min - 0.2 * dy, y_min + 0.2 * dy),  # y0
+        ]
+
+
+class VoigtFitComputer(FitComputer):
+    """Voigt fit computer"""
+
+    PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
+    ) -> np.ndarray:
+        """Evaluate Voigt function at given x values."""
+        return pulse.VoigtModel.func(x, amp, sigma, x0, y0)
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Voigt fitting."""
+        dx = np.max(self.x) - np.min(self.x)
+        dy = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        sigma = dx * 0.1
+        amp = pulse.VoigtModel.get_amp_from_amplitude(dy, sigma)
+        x0 = peakdetection.xpeak(self.x, self.y)
+        y0 = y_min
+
+        return {"amp": amp, "sigma": sigma, "x0": x0, "y0": y0}
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Voigt fitting."""
+        sigma = initial_params["sigma"]
+        amp = initial_params["amp"]
+        return [
+            (0.0, 10 * amp),  # amp
+            (sigma * 0.01, sigma * 10),  # sigma
+            (np.min(self.x), np.max(self.x)),  # x0
+            (initial_params["y0"] - amp, initial_params["y0"] + amp),  # y0
+        ]
+
+
+class ExponentialFitComputer(FitComputer):
+    """Exponential fit computer: y = a * exp(b * x) + y0"""
+
+    PARAMS_NAMES = ("a", "b", "y0")
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, a: float, b: float, y0: float) -> np.ndarray:
+        """Evaluate exponential function at given x values."""
+        # Clip b to prevent overflow
+        b_clipped = np.clip(b, -50, 50)
+        return a * np.exp(b_clipped * x) + y0
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for exponential fitting."""
+        y_range = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        # Estimate from data
+        if len(self.y) > 1:
+            # Try to determine if it's growth or decay
+            if self.y[0] > self.y[-1]:
+                # Decay
+                a = y_range
+                b = -1.0 / (np.max(self.x) - np.min(self.x))
+            else:
+                # Growth
+                a = y_range * 0.1
+                b = 1.0 / (np.max(self.x) - np.min(self.x))
+        else:
+            a = y_range
+            b = -1.0
+
+        y0 = y_min
+
+        return {"a": a, "b": b, "y0": y0}
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for exponential fitting."""
+        y_range = np.max(self.y) - np.min(self.y)
+        y_min = np.min(self.y)
+
+        return [
+            (-y_range * 1000, y_range * 1000),  # a
+            (-10, 10),  # b (reasonable range to prevent overflow)
+            (y_min - 0.5 * y_range, y_min + 0.5 * y_range),  # y0
+        ]
+
+
+class PlanckianFitComputer(FitComputer):
+    """Planckian fit computer"""
+
+    PARAMS_NAMES = ("amp", "x0", "sigma", "y0")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amp: float, x0: float, sigma: float, y0: float
+    ) -> np.ndarray:
+        """Return Planckian fitting function
+
+        Args:
+            x: wavelength values (in nm or other units)
+            amp: amplitude scaling factor
+            x0: peak wavelength (Wien's displacement law)
+            sigma: width parameter (larger sigma = wider peak)
+            y0: baseline offset
+        """
+        # Planck-like function with Wien's displacement law behavior
+        # The function peaks at approximately x0 when properly parameterized
+
+        x = np.asarray(x, dtype=float)
+        y = np.full_like(x, y0, dtype=float)
+
+        # Only compute for positive wavelengths
+        valid_mask = x > 0
+        if not np.any(valid_mask):
+            return y
+
+        x_valid = x[valid_mask]
+
+        try:
+            # Wien's displacement law: λ_max * T = constant
+            # For a proper Planckian curve, we need:
+            # d/dx [x^(-5) / (exp(c/x) - 1)] = 0 at x = x0
+            # This gives us c = 5*x0 for the peak condition
+
+            # The exponential argument that produces peak at x0
+            wien_constant = 5.0
+
+            # Use sigma to control the effective temperature/width
+            # sigma=1.0 gives the canonical Planck curve
+            # sigma>1.0 gives broader curves (cooler)
+            # sigma<1.0 gives sharper curves (hotter)
+            temperature_factor = sigma
+
+            exp_argument = wien_constant * x0 / (x_valid * temperature_factor)
+
+            # Clip to prevent overflow
+            exp_argument = np.clip(exp_argument, 0, 50)
+
+            # Planck function components:
+            # 1. The wavelength dependence: x^(-5)
+            wavelength_factor = (x_valid / x0) ** (-5)
+
+            # 2. The exponential term: 1/(exp(arg) - 1)
+            exp_denominator = np.expm1(exp_argument)  # exp(x) - 1
+
+            # Avoid division by very small numbers
+            exp_denominator = np.where(
+                np.abs(exp_denominator) < 1e-12, 1e-12, exp_denominator
+            )
+
+            # Combine the Planckian terms
+            planck_curve = wavelength_factor / exp_denominator
+
+            # Apply amplitude and add to baseline
+            y[valid_mask] += amp * planck_curve
+
+        except (OverflowError, ZeroDivisionError, RuntimeWarning):
+            # If computation fails, return baseline only
+            pass
+
+        return y
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Planckian fitting."""
+        dy = np.max(self.y) - np.min(self.y)
+        x_peak = self.x[np.argmax(self.y)]
+        y_min = np.min(self.y)
+        return {"amp": dy, "x0": x_peak, "sigma": 1.0, "y0": y_min}
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Planckian fitting."""
+        return [
+            (initial_params["amp"] * 0.01, initial_params["amp"] * 100),  # amp
+            (np.min(self.x), np.max(self.x)),  # x0
+            (0.1, 5.0),  # sigma
+            (
+                initial_params["y0"] - 0.2 * initial_params["amp"],
+                initial_params["y0"] + 0.2 * initial_params["amp"],
+            ),  # y0
+        ]
+
+
+class TwoHalfGaussianFitComputer(FitComputer):
+    """Two Half-Gaussian fit computer"""
+
+    PARAMS_NAMES = (
+        "amp_left",
+        "amp_right",
+        "sigma_left",
+        "sigma_right",
+        "x0",
+        "y0_left",
+        "y0_right",
+    )
+
+    @classmethod
+    def evaluate(
+        cls,
+        x: np.ndarray,
+        amp_left: float,
+        amp_right: float,
+        sigma_left: float,
+        sigma_right: float,
+        x0: float,
+        y0_left: float,
+        y0_right: float,
+    ) -> np.ndarray:
+        """Return two half-Gaussian with separate left/right amplitudes
+
+        Args:
+            x: x values
+            amp_left: amplitude for left side (x < x0)
+            amp_right: amplitude for right side (x >= x0)
+            sigma_left: standard deviation for x < x0
+            sigma_right: standard deviation for x > x0
+            x0: center position
+            y0_left: baseline offset for x < x0
+            y0_right: baseline offset for x >= x0
+        """
+        y = np.zeros_like(x)
+
+        # Left side (x < x0): use amp_left, sigma_left and y0_left
+        left_mask = x < x0
+        if np.any(left_mask):
+            exp_left = np.exp(-0.5 * ((x[left_mask] - x0) / sigma_left) ** 2)
+            y[left_mask] = y0_left + amp_left * exp_left
+
+        # Right side (x >= x0): use amp_right, sigma_right and y0_right
+        right_mask = x >= x0
+        if np.any(right_mask):
+            exp_right = np.exp(-0.5 * ((x[right_mask] - x0) / sigma_right) ** 2)
+            y[right_mask] = y0_right + amp_right * exp_right
+
+        return y
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Two Half-Gaussian fitting."""
+        # Parameter estimation with separate baseline analysis
+        dx = np.max(self.x) - np.min(self.x)
+        dy = np.max(self.y) - np.min(self.y)
+        x_peak = self.x[np.argmax(self.y)]
+
+        # Estimate separate baselines for left and right sides
+        left_mask = self.x < x_peak
+        right_mask = self.x >= x_peak
+
+        # Use the lower quartile of each side for robust baseline estimation
+        if np.any(left_mask):
+            y0_left = np.percentile(self.y[left_mask], 25)
+        else:
+            y0_left = np.min(self.y)
+        if np.any(right_mask):
+            y0_right = np.percentile(self.y[right_mask], 25)
+        else:
+            y0_right = np.min(self.y)
+
+        # Peak amplitude estimation (above average baseline)
+        avg_baseline = (y0_left + y0_right) / 2
+        amp_guess = np.max(self.y) - avg_baseline
+        half_max = avg_baseline + amp_guess * 0.5
+
+        # Find points at half maximum
+        left_points = np.where((self.x < x_peak) & (self.y >= half_max))[0]
+        right_points = np.where((self.x > x_peak) & (self.y >= half_max))[0]
+
+        # Estimate sigma values from half-width measurements
+        if len(left_points) > 0:
+            left_hw = x_peak - self.x[left_points[0]]
+            sigma_left = left_hw / np.sqrt(2 * np.log(2))
+        else:
+            sigma_left = dx * 0.05
+
+        if len(right_points) > 0:
+            right_hw = self.x[right_points[-1]] - x_peak
+            sigma_right = right_hw / np.sqrt(2 * np.log(2))
+        else:
+            sigma_right = dx * 0.05
+
+        x0 = x_peak
+
+        if np.any(left_mask):
+            left_peak_val = np.max(self.y[left_mask])
+            amp_left = left_peak_val - y0_left
+        else:
+            amp_left = dy * 0.5
+
+        if np.any(right_mask):
+            right_peak_val = np.max(self.y[right_mask])
+            amp_right = right_peak_val - y0_right
+        else:
+            amp_right = dy * 0.5
+
+        return {
+            "amp_left": amp_left,
+            "amp_right": amp_right,
+            "sigma_left": sigma_left,
+            "sigma_right": sigma_right,
+            "x0": x0,
+            "y0_left": y0_left,
+            "y0_right": y0_right,
+        }
+
+
+class DoubleExponentialFitComputer(FitComputer):
+    """Double Exponential fit computer."""
+
+    PARAMS_NAMES = ("x_center", "a_left", "b_left", "a_right", "b_right", "y0")
+
+    @classmethod
+    def evaluate(
+        cls,
+        x: np.ndarray,
+        x_center: float,
+        a_left: float,
+        b_left: float,
+        a_right: float,
+        b_right: float,
+        y0: float,
+    ) -> np.ndarray:
+        """Return double exponential fitting function
+
+        Args:
+            x: time values
+            x_center: center position (boundary between left and right components)
+            a_left: left component amplitude coefficient
+            b_left: left component time constant coefficient
+            a_right: right component amplitude coefficient
+            b_right: right component time constant coefficient
+            y0: baseline offset
+        """
+        y = np.zeros_like(x)
+        y[x < x_center] = a_left * np.exp(b_left * x[x < x_center]) + y0
+        y[x >= x_center] = a_right * np.exp(b_right * x[x >= x_center]) + y0
+        return y
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Double Exponential fitting."""
+        y_range = np.max(self.y) - np.min(self.y)
+        x_range = np.max(self.x) - np.min(self.x)
+        y_max = np.max(self.y)
+
+        # Baseline is rarely different from zero:
+        y0 = 0.0
+
+        # Analyze signal characteristics for better initial guesses
+        peak_idx = np.argmax(self.y)
+
+        # Estimate x_center as the peak position
+        x_center = self.x[peak_idx]
+
+        # Estimate parameters (a_left, b_left, a_right, b_right) by decomposing
+        # the signal into growth and decay components based on peak position, and
+        # fitting each curve with exponential functions using exponential_fit().
+        # X center estimation is very rough here, so we need to remove say 10% of
+        # the x range on each side to avoid fitting artifacts.
+        x_range = np.max(self.x) - np.min(self.x)
+        x_left_mask = self.x < (x_center - 0.1 * x_range)
+        x_right_mask = self.x >= (x_center + 0.1 * x_range)
+
+        x_left, y_left = self.x[x_left_mask], self.y[x_left_mask]
+        x_right, y_right = self.x[x_right_mask], self.y[x_right_mask]
+
+        left_params = dict(a=0.0, b=0.1, y0=0.0)
+        right_params = dict(a=0.0, b=0.1, y0=0.0)
+        if np.any(x_left_mask):
+            _y_fitted, left_params = ExponentialFitComputer(x_left, y_left).fit()
+        if np.any(x_right_mask):
+            _y_fitted, right_params = ExponentialFitComputer(x_right, y_right).fit()
+
+        a_left = left_params["a"]
+        b_left = left_params["b"]
+        a_right = right_params["a"]
+        b_right = right_params["b"]
+        y0 = (left_params["y0"] + right_params["y0"]) / 2
+
+        # Set bounds for parameters - b can be positive or negative
+        amp_bound = max(abs(y_max - y0), y_range) * 2
+        rate_bound = 5.0 / max(x_range, 1e-6)  # Avoid division by zero
+
+        # Ensure initial parameters are within bounds
+        b_left = np.clip(b_left, -rate_bound, rate_bound)
+        b_right = np.clip(b_right, -rate_bound, rate_bound)
+        a_left = np.clip(a_left, -amp_bound, amp_bound)
+        a_right = np.clip(a_right, -amp_bound, amp_bound)
+
+        return {
+            "x_center": x_center,
+            "a_left": a_left,
+            "b_left": b_left,
+            "a_right": a_right,
+            "b_right": b_right,
+            "y0": y0,
+        }
+
+
+class MultiLorentzianFitComputer(FitComputer):
+    """Multi Lorentzian fit computer"""
+
+    def __init__(
+        self, x: np.ndarray, y: np.ndarray, peak_indices: list[int] | None = None
+    ) -> None:
+        super().__init__(x, y)
+        self.peak_indices = peak_indices
+
+    def get_params_names(self) -> tuple[str]:
+        """Return the names of the parameters used in this fit."""
+        n_peaks = len(self.peak_indices)
+        names = []
+        for i in range(n_peaks):
+            names.extend([f"amp_{i + 1}", f"sigma_{i + 1}", f"x0_{i + 1}"])
+        names.append("y0")
+        return tuple(names)
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+        """Evaluate the fit function at given x values."""
+        # Determine number of peaks from parameter count
+        n_peaks = (len(params) - 1) // 3  # -1 for y0, then divide by 3 params per peak
+        y_result = np.zeros_like(x) + params["y0"]
+        for i in range(n_peaks):
+            amp = params[f"amp_{i + 1}"]
+            sigma = params[f"sigma_{i + 1}"]
+            x0 = params[f"x0_{i + 1}"]
+            y_result += pulse.LorentzianModel.func(x, amp, sigma, x0, 0.0)
+        return y_result
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Multi Lorentzian fitting."""
+        params = {}
+        for i, peak_idx in enumerate(self.peak_indices):
+            if i > 0:
+                istart = (self.peak_indices[i - 1] + peak_idx) // 2
+            else:
+                istart = 0
+            if i < len(self.peak_indices) - 1:
+                iend = (self.peak_indices[i + 1] + peak_idx) // 2
+            else:
+                iend = len(self.x) - 1
+            local_dx = 0.5 * (self.x[iend] - self.x[istart])
+            local_dy = np.max(self.y[istart:iend]) - np.min(self.y[istart:iend])
+            amp = pulse.LorentzianModel.get_amp_from_amplitude(local_dy, local_dx * 0.1)
+            sigma = local_dx * 0.1
+            x0 = self.x[peak_idx]
+
+            params[f"amp_{i + 1}"] = amp
+            params[f"sigma_{i + 1}"] = sigma
+            params[f"x0_{i + 1}"] = x0
+
+        params["y0"] = np.min(self.y)
+        return params
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Multi Lorentzian fitting."""
+        bounds = []
+        for i, peak_idx in enumerate(self.peak_indices):
+            if i > 0:
+                istart = (self.peak_indices[i - 1] + peak_idx) // 2
+            else:
+                istart = 0
+            if i < len(self.peak_indices) - 1:
+                iend = (self.peak_indices[i + 1] + peak_idx) // 2
+            else:
+                iend = len(self.x) - 1
+            local_dx = 0.5 * (self.x[iend] - self.x[istart])
+            bounds.extend(
+                [
+                    (0.0, initial_params[f"amp_{i + 1}"] * 2),  # amp
+                    (local_dx * 0.01, local_dx),  # sigma
+                    (self.x[istart], self.x[iend]),  # x0
+                ]
+            )
+        y0 = initial_params["y0"]
+        dy = np.max(self.y) - np.min(self.y)
+        bounds.append((y0 - 0.1 * dy, y0 + 0.1 * dy))
+        return bounds
+
+    def create_params(self, y_fitted: np.ndarray, **params) -> dict[str, float]:
+        """Create a flat fit parameters dictionary."""
+        self.check_params(**params)
+        params["fit_type"] = self.__class__.__name__.replace("FitComputer", "").lower()
+        params["residual_rms"] = np.sqrt(np.mean((self.y - y_fitted) ** 2))
+        return params
+
+
+class SinusoidalFitComputer(FitComputer):
+    """Sinusoidal fit computer."""
+
+    PARAMS_NAMES = ("amplitude", "frequency", "phase", "offset")
+
+    @classmethod
+    def evaluate(
+        cls,
+        x: np.ndarray,
+        amplitude: float,
+        frequency: float,
+        phase: float,
+        offset: float,
+    ) -> np.ndarray:
+        """Evaluate sinusoidal function at given x values."""
+        return amplitude * np.sin(2 * np.pi * frequency * x + phase) + offset
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for sinusoidal fitting."""
+        # Parameter estimation using FFT for frequency
+        dy = np.max(self.y) - np.min(self.y)
+        amplitude = dy / 2
+        offset = np.mean(self.y)
+        phase = 0.0
+
+        # Estimate frequency using FFT
+        if len(self.x) > 2:
+            dt = self.x[1] - self.x[0]  # Assuming evenly spaced
+            fft_y = np.fft.fft(self.y - offset)
+            freqs = np.fft.fftfreq(len(self.y), dt)
+            # Find dominant frequency (excluding DC component)
+            dominant_idx = np.argmax(np.abs(fft_y[1 : len(fft_y) // 2])) + 1
+            frequency = np.abs(freqs[dominant_idx])
+        else:
+            frequency = 1.0 / (np.max(self.x) - np.min(self.x))
+
+        return {
+            "amplitude": amplitude,
+            "frequency": frequency,
+            "phase": phase,
+            "offset": offset,
+        }
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for sinusoidal fitting."""
+        dy = initial_params["amplitude"] * 2
+        y0 = initial_params["offset"]
+        return [
+            (0.0, dy),  # amplitude
+            (0.0, 2.0 * initial_params["frequency"]),  # frequency
+            (-2 * np.pi, 2 * np.pi),  # phase
+            (y0 - dy, y0 + dy),  # offset
+        ]
+
+
+class CDFFitComputer(FitComputer):
+    """Cumulative Distribution Function (CDF) fit computer"""
+
+    PARAMS_NAMES = ("amplitude", "mu", "sigma", "baseline")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amplitude: float, mu: float, sigma: float, baseline: float
+    ) -> np.ndarray:
+        """Evaluate CDF function at given x values."""
+        return amplitude * scipy.special.erf((x - mu) / (sigma * np.sqrt(2))) + baseline
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for CDF fitting."""
+        # Parameter estimation
+        y_min, y_max = np.min(self.y), np.max(self.y)
+        dy = y_max - y_min
+        x_min, x_max = np.min(self.x), np.max(self.x)
+        dx = x_max - x_min
+        return {
+            "amplitude": dy,
+            "mu": (x_max + np.abs(x_min)) / 2,
+            "sigma": dx / 10,
+            "baseline": dy / 2,
+        }
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for CDF fitting."""
+        y_min, y_max = np.min(self.y), np.max(self.y)
+        dy = initial_params["amplitude"]
+        x_min, x_max = np.min(self.x), np.max(self.x)
+        dx = x_max - x_min
+        return [
+            (0.0, dy * 2),  # amplitude
+            (x_min, x_max),  # mu
+            (dx * 0.001, dx),  # sigma
+            (y_min - dy, y_max + dy),  # baseline
+        ]
+
+
+class SigmoidFitComputer(FitComputer):
+    """Sigmoid fit computer."""
+
+    PARAMS_NAMES = ("amplitude", "k", "x0", "offset")
+
+    @classmethod
+    def evaluate(
+        cls, x: np.ndarray, amplitude: float, k: float, x0: float, offset: float
+    ) -> np.ndarray:
+        """Evaluate Sigmoid function at given x values."""
+        return amplitude / (1 + np.exp(-k * (x - x0))) + offset
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Sigmoid fitting."""
+        y_min, y_max = np.min(self.y), np.max(self.y)
+        dy = y_max - y_min
+        x_min, x_max = np.min(self.x), np.max(self.x)
+        dx = x_max - x_min
+        return {
+            "amplitude": dy,
+            "k": 4.0 / dx,
+            "x0": (x_max + np.abs(x_min)) / 2,
+            "offset": y_min,
+        }
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Sigmoid fitting."""
+        y_min, y_max = np.min(self.y), np.max(self.y)
+        dy = initial_params["amplitude"]
+        x_min, x_max = np.min(self.x), np.max(self.x)
+        dx = x_max - x_min
+        return [
+            (0.0, 10 * dy),  # amplitude
+            (0.1 / dx, 100.0 / dx),  # k
+            (x_min, x_max),  # x0
+            (y_min - dy, y_max + dy),  # offset
+        ]
+
+
+def linear_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute linear fit: y = a*x + b.
 
     Args:
@@ -70,29 +876,14 @@ def linear_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, LinearParams]:
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, LinearParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Use numpy polyfit for linear regression (more robust)
-    coeffs = np.polyfit(x, y, 1)
-    a, b = coeffs
-
-    fitted_y = a * x + b
-    params = LinearParams(a=a, b=b)
-
-    return fitted_y, params
-
-
-@dataclasses.dataclass
-class PolynomialParams:
-    """Polynomial fit parameters"""
-
-    coeffs: list[float]  # polynomial coefficients
-    degree: int  # polynomial degree
+    return LinearFitComputer(x, y).fit()
 
 
 def polynomial_fit(
     x: np.ndarray, y: np.ndarray, degree: int = 2
-) -> tuple[np.ndarray, PolynomialParams]:
+) -> tuple[np.ndarray, dict[str, float]]:
     """Compute polynomial fit.
 
     Args:
@@ -101,26 +892,12 @@ def polynomial_fit(
         degree: polynomial degree
 
     Returns:
-        tuple: (fitted_y_values, PolynomialParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    coeffs = np.polyfit(x, y, degree)
-    fitted_y = np.polyval(coeffs, x)
-    params = PolynomialParams(coeffs=coeffs.tolist(), degree=degree)
-
-    return fitted_y, params
+    return PolynomialFitComputer(x, y, degree).fit()
 
 
-@dataclasses.dataclass
-class GaussianParams:
-    """Gaussian fit parameters"""
-
-    amp: float  # amplitude parameter (area under curve)
-    sigma: float  # standard deviation
-    x0: float  # center position
-    y0: float  # baseline offset
-
-
-def gaussian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, GaussianParams]:
+def gaussian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute Gaussian fit.
 
     Args:
@@ -128,53 +905,12 @@ def gaussian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, GaussianPara
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, GaussianParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    dx = np.max(x) - np.min(x)
-    dy = np.max(y) - np.min(y)
-    y_min = np.min(y)
-
-    sigma_guess = dx * 0.1
-    amp_guess = fitmodels.GaussianModel.get_amp_from_amplitude(dy, sigma_guess)
-    x0_guess = peakdetection.xpeak(x, y)
-    y0_guess = y_min
-
-    initial_params = [amp_guess, sigma_guess, x0_guess, y0_guess]
-
-    # Parameter bounds
-    bounds = [
-        (0.0, amp_guess * 2),  # amp
-        (sigma_guess * 0.1, sigma_guess * 10),  # sigma
-        (np.min(x), np.max(x)),  # x0
-        (y_min - 0.2 * dy, y_min + 0.2 * dy),  # y0
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, fitmodels.GaussianModel.func, initial_params, bounds
-    )
-
-    params = GaussianParams(
-        amp=params_array[0],
-        sigma=params_array[1],
-        x0=params_array[2],
-        y0=params_array[3],
-    )
-
-    return fitted_y, params
+    return GaussianFitComputer(x, y).fit()
 
 
-@dataclasses.dataclass
-class LorentzianParams:
-    """Lorentzian fit parameters"""
-
-    amp: float  # amplitude parameter (area under curve)
-    sigma: float  # width parameter
-    x0: float  # center position
-    y0: float  # baseline offset
-
-
-def lorentzian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, LorentzianParams]:
+def lorentzian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict]:
     """Compute Lorentzian fit.
 
     Args:
@@ -182,54 +918,14 @@ def lorentzian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, Lorentzian
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, LorentzianParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    dx = np.max(x) - np.min(x)
-    dy = np.max(y) - np.min(y)
-    y_min = np.min(y)
-
-    sigma_guess = dx * 0.1
-    amp_guess = fitmodels.LorentzianModel.get_amp_from_amplitude(dy, sigma_guess)
-    x0_guess = peakdetection.xpeak(x, y)
-    y0_guess = y_min
-
-    initial_params = [amp_guess, sigma_guess, x0_guess, y0_guess]
-
-    # Parameter bounds
-    bounds = [
-        (0.0, amp_guess * 2),  # amp
-        (sigma_guess * 0.1, sigma_guess * 10),  # sigma
-        (np.min(x), np.max(x)),  # x0
-        (y_min - 0.2 * dy, y_min + 0.2 * dy),  # y0
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, fitmodels.LorentzianModel.func, initial_params, bounds
-    )
-
-    params = LorentzianParams(
-        amp=params_array[0],
-        sigma=params_array[1],
-        x0=params_array[2],
-        y0=params_array[3],
-    )
-
-    return fitted_y, params
-
-
-@dataclasses.dataclass
-class ExponentialParams:
-    """Exponential fit parameters: y = a * exp(b * x) + y0"""
-
-    a: float  # amplitude
-    b: float  # exponential coefficient
-    y0: float  # baseline offset
+    return LorentzianFitComputer(x, y).fit()
 
 
 def exponential_fit(
     x: np.ndarray, y: np.ndarray
-) -> tuple[np.ndarray, ExponentialParams]:
+) -> tuple[np.ndarray, dict[str, float]]:
     """Compute exponential fit: y = a * exp(b * x) + y0.
 
     Args:
@@ -237,125 +933,27 @@ def exponential_fit(
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, ExponentialParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    y_range = np.max(y) - np.min(y)
-    y_min = np.min(y)
-
-    # Estimate from data
-    if len(y) > 1:
-        # Try to determine if it's growth or decay
-        if y[0] > y[-1]:
-            # Decay
-            a_guess = y_range
-            b_guess = -1.0 / (np.max(x) - np.min(x))
-        else:
-            # Growth
-            a_guess = y_range * 0.1
-            b_guess = 1.0 / (np.max(x) - np.min(x))
-    else:
-        a_guess = y_range
-        b_guess = -1.0
-
-    y0_guess = y_min
-
-    def exp_func(x, a, b, y0):
-        # Clip b to prevent overflow
-        b_clipped = np.clip(b, -50, 50)
-        return a * np.exp(b_clipped * x) + y0
-
-    initial_params = [a_guess, b_guess, y0_guess]
-
-    # Parameter bounds
-    bounds = [
-        (-y_range * 1000, y_range * 1000),  # a
-        (-10, 10),  # b (reasonable range to prevent overflow)
-        (y_min - 0.5 * y_range, y_min + 0.5 * y_range),  # y0
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(x, y, exp_func, initial_params, bounds)
-
-    params = ExponentialParams(
-        a=params_array[0],
-        b=params_array[1],
-        y0=params_array[2],
-    )
-
-    return fitted_y, params
+    return ExponentialFitComputer(x, y).fit()
 
 
-@dataclasses.dataclass
-class PlanckianParams:
-    """Planckian (blackbody radiation) fit parameters"""
-
-    amp: float  # amplitude
-    x0: float  # peak position
-    sigma: float  # width parameter
-    y0: float  # baseline offset
-
-
-def planckian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, PlanckianParams]:
-    """
-    Compute Planckian (blackbody radiation) fit.
+def planckian_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
+    """Compute Planckian (blackbody radiation) fit.
 
     Args:
         x: wavelength data array
         y: intensity data array
 
     Returns:
-        tuple: (fitted_y_values, PlanckianParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    dy = np.max(y) - np.min(y)
-    x_peak = x[np.argmax(y)]
-    y_min = np.min(y)
-
-    amp_guess = dy
-    x0_guess = x_peak
-    sigma_guess = 1.0  # Width parameter
-    y0_guess = y_min
-
-    initial_params = [amp_guess, x0_guess, sigma_guess, y0_guess]
-
-    # Parameter bounds
-    bounds = [
-        (dy * 0.01, dy * 100),  # amp
-        (np.min(x), np.max(x)),  # x0
-        (0.1, 5.0),  # sigma
-        (y0_guess - 0.2 * dy, y0_guess + 0.2 * dy),  # y0
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, fitmodels.PlanckianModel.func, initial_params, bounds
-    )
-
-    params = PlanckianParams(
-        amp=params_array[0],
-        x0=params_array[1],
-        sigma=params_array[2],
-        y0=params_array[3],
-    )
-
-    return fitted_y, params
-
-
-@dataclasses.dataclass
-class TwoHalfGaussianParams:
-    """Two half-Gaussian fit parameters."""
-
-    amp_left: float  # left amplitude
-    amp_right: float  # right amplitude
-    sigma_left: float  # left sigma
-    sigma_right: float  # right sigma
-    x0: float  # center position
-    y0_left: float  # left baseline offset
-    y0_right: float  # right baseline offset
+    return PlanckianFitComputer(x, y).fit()
 
 
 def twohalfgaussian_fit(
     x: np.ndarray, y: np.ndarray
-) -> tuple[np.ndarray, TwoHalfGaussianParams]:
+) -> tuple[np.ndarray, dict[str, float]]:
     """Compute two half-Gaussian fit for asymmetric peaks with separate baselines.
 
     Now supports separate amplitudes for even better asymmetric peak fitting.
@@ -365,112 +963,14 @@ def twohalfgaussian_fit(
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, TwoHalfGaussianParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation with separate baseline analysis
-    dx = np.max(x) - np.min(x)
-    dy = np.max(y) - np.min(y)
-    x_peak = x[np.argmax(y)]
-
-    # Estimate separate baselines for left and right sides
-    left_mask = x < x_peak
-    right_mask = x >= x_peak
-
-    # Use the lower quartile of each side for robust baseline estimation
-    if np.any(left_mask):
-        y0_left_guess = np.percentile(y[left_mask], 25)
-    else:
-        y0_left_guess = np.min(y)
-
-    if np.any(right_mask):
-        y0_right_guess = np.percentile(y[right_mask], 25)
-    else:
-        y0_right_guess = np.min(y)
-
-    # Peak amplitude estimation (above average baseline)
-    avg_baseline = (y0_left_guess + y0_right_guess) / 2
-    amp_guess = np.max(y) - avg_baseline
-    half_max = avg_baseline + amp_guess * 0.5
-
-    # Find points at half maximum
-    left_points = np.where((x < x_peak) & (y >= half_max))[0]
-    right_points = np.where((x > x_peak) & (y >= half_max))[0]
-
-    # Estimate sigma values from half-width measurements
-    if len(left_points) > 0:
-        left_hw = x_peak - x[left_points[0]]
-        sigma_left_guess = left_hw / np.sqrt(2 * np.log(2))
-    else:
-        sigma_left_guess = dx * 0.05
-
-    if len(right_points) > 0:
-        right_hw = x[right_points[-1]] - x_peak
-        sigma_right_guess = right_hw / np.sqrt(2 * np.log(2))
-    else:
-        sigma_right_guess = dx * 0.05
-
-    x0_guess = x_peak
-
-    if np.any(left_mask):
-        left_peak_val = np.max(y[left_mask])
-        amp_left_guess = left_peak_val - y0_left_guess
-    else:
-        amp_left_guess = dy * 0.5
-
-    if np.any(right_mask):
-        right_peak_val = np.max(y[right_mask])
-        amp_right_guess = right_peak_val - y0_right_guess
-    else:
-        amp_right_guess = dy * 0.5
-
-    initial_params = [
-        amp_left_guess,
-        amp_right_guess,
-        sigma_left_guess,
-        sigma_right_guess,
-        x0_guess,
-        y0_left_guess,
-        y0_right_guess,
-    ]
-    bounds = [
-        (dy * 0.1, dy * 3),  # amp_left
-        (dy * 0.1, dy * 3),  # amp_right
-        (dx * 0.001, dx * 0.5),  # sigma_left
-        (dx * 0.001, dx * 0.5),  # sigma_right
-        (np.min(x), np.max(x)),  # x0
-        (y0_left_guess - 0.3 * dy, y0_left_guess + 0.3 * dy),  # y0_left
-        (y0_right_guess - 0.3 * dy, y0_right_guess + 0.3 * dy),  # y0_right
-    ]
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, fitmodels.TwoHalfGaussianModel.func, initial_params, bounds
-    )
-    params = TwoHalfGaussianParams(
-        amp_left=params_array[0],
-        amp_right=params_array[1],
-        sigma_left=params_array[2],
-        sigma_right=params_array[3],
-        x0=params_array[4],
-        y0_left=params_array[5],
-        y0_right=params_array[6],
-    )
-    return fitted_y, params
-
-
-@dataclasses.dataclass
-class DoubleExponentialParams:
-    """Double exponential fit parameters"""
-
-    x_center: float  # center position (boundary between left and right components)
-    a_left: float  # left component amplitude coefficient
-    b_left: float  # left component time constant coefficient
-    a_right: float  # right component amplitude coefficient
-    b_right: float  # right component time constant coefficient
-    y0: float  # baseline offset
+    return TwoHalfGaussianFitComputer(x, y).fit()
 
 
 def doubleexponential_fit(
     x: np.ndarray, y: np.ndarray
-) -> tuple[np.ndarray, DoubleExponentialParams]:
+) -> tuple[np.ndarray, dict[str, float]]:
     """Compute double exponential fit.
 
     Args:
@@ -478,91 +978,14 @@ def doubleexponential_fit(
         y: intensity data array
 
     Returns:
-        tuple: (fitted_y_values, DoubleExponentialParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    y_range = np.max(y) - np.min(y)
-    x_range = np.max(x) - np.min(x)
-    y_max = np.max(y)
-
-    # Baseline is rarely different from zero:
-    y0_guess = 0.0
-
-    # Analyze signal characteristics for better initial guesses
-    peak_idx = np.argmax(y)
-
-    # Estimate x_center as the peak position
-    x_center_guess = x[peak_idx]
-
-    # Estimate parameters (a_left, b_left, a_right, b_right) by decomposing
-    # the signal into growth and decay components based on peak position, and
-    # fitting each curve with exponential functions using exponential_fit().
-    # X center estimation is very rough here, so we need to remove say 10% of
-    # the x range on each side to avoid fitting artifacts.
-    x_range = np.max(x) - np.min(x)
-    x_left_mask = x < (x_center_guess - 0.1 * x_range)
-    x_right_mask = x >= (x_center_guess + 0.1 * x_range)
-
-    x_left, y_left = x[x_left_mask], y[x_left_mask]
-    x_right, y_right = x[x_right_mask], y[x_right_mask]
-
-    if np.any(x_left_mask):
-        y_left_fitted, left_params = exponential_fit(x_left, y_left)
-    else:
-        left_params = ExponentialParams(a=0.0, b=0.1, y0=0.0)
-    if np.any(x_right_mask):
-        y_right_fitted, right_params = exponential_fit(x_right, y_right)
-    else:
-        right_params = ExponentialParams(a=0.0, b=0.1, y0=0.0)
-
-    a_left_guess = left_params.a
-    b_left_guess = left_params.b
-    a_right_guess = right_params.a
-    b_right_guess = right_params.b
-    y0_guess = (left_params.y0 + right_params.y0) / 2
-
-    # Set bounds for parameters - b can be positive or negative
-    amp_bound = max(abs(y_max - y0_guess), y_range) * 2
-    rate_bound = 5.0 / max(x_range, 1e-6)  # Avoid division by zero
-
-    # Ensure initial parameters are within bounds
-    b_left_guess = np.clip(b_left_guess, -rate_bound, rate_bound)
-    b_right_guess = np.clip(b_right_guess, -rate_bound, rate_bound)
-    a_left_guess = np.clip(a_left_guess, -amp_bound, amp_bound)
-    a_right_guess = np.clip(a_right_guess, -amp_bound, amp_bound)
-
-    initial_params = [
-        x_center_guess,
-        a_left_guess,
-        b_left_guess,
-        a_right_guess,
-        b_right_guess,
-        y0_guess,
-    ]
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, fitmodels.DoubleExponentialModel.func, initial_params, None
-    )
-    params = DoubleExponentialParams(
-        x_center=params_array[0],
-        a_left=params_array[1],
-        b_left=params_array[2],
-        a_right=params_array[3],
-        b_right=params_array[4],
-        y0=params_array[5],
-    )
-    return fitted_y, params
-
-
-@dataclasses.dataclass
-class MultiLorentzianParams:
-    """Multi-Lorentzian fit parameters"""
-
-    peaks: list[dict]  # List of peak parameters (amp, sigma, x0)
-    y0: float  # baseline offset
+    return DoubleExponentialFitComputer(x, y).fit()
 
 
 def multilorentzian_fit(
     x: np.ndarray, y: np.ndarray, peak_indices: list[int]
-) -> tuple[np.ndarray, MultiLorentzianParams]:
+) -> tuple[np.ndarray, dict[str, float]]:
     """Compute multi-Lorentzian fit for multiple peaks.
 
     Args:
@@ -571,103 +994,12 @@ def multilorentzian_fit(
         peak_indices: list of peak indices
 
     Returns:
-        tuple: (fitted_y_values, MultiLorentzianParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    if not peak_indices:
-        raise ValueError("At least one peak index must be provided")
-
-    # Parameter estimation for each peak
-    dy = np.max(y) - np.min(y)
-    y_min = np.min(y)
-
-    initial_params = []
-    bounds = []
-
-    for i, peak_idx in enumerate(peak_indices):
-        # Estimate parameters for each Lorentzian
-        if i > 0:
-            istart = (peak_indices[i - 1] + peak_idx) // 2
-        else:
-            istart = 0
-
-        if i < len(peak_indices) - 1:
-            iend = (peak_indices[i + 1] + peak_idx) // 2
-        else:
-            iend = len(x) - 1
-
-        local_dx = 0.5 * (x[iend] - x[istart])
-        local_dy = np.max(y[istart:iend]) - np.min(y[istart:iend])
-
-        # Lorentzian parameters: amp, sigma, x0
-        amp_guess = fitmodels.LorentzianModel.get_amp_from_amplitude(
-            local_dy, local_dx * 0.1
-        )
-        sigma_guess = local_dx * 0.1
-        x0_guess = x[peak_idx]
-
-        initial_params.extend([amp_guess, sigma_guess, x0_guess])
-
-        # Bounds for this peak
-        bounds.extend(
-            [
-                (0.0, amp_guess * 2),  # amp
-                (local_dx * 0.01, local_dx),  # sigma
-                (x[istart], x[iend]),  # x0
-            ]
-        )
-
-    # Add baseline parameter
-    initial_params.append(y_min)
-    bounds.append((y_min - 0.1 * dy, y_min + 0.1 * dy))
-
-    def multi_lorentzian_func(x_vals, *params):
-        """Multi-Lorentzian function"""
-        n_peaks = len(peak_indices)
-        y_result = np.zeros_like(x_vals) + params[-1]  # baseline
-
-        for i in range(n_peaks):
-            amp = params[i * 3]
-            sigma = params[i * 3 + 1]
-            x0 = params[i * 3 + 2]
-            y_result += fitmodels.LorentzianModel.func(x_vals, amp, sigma, x0, 0)
-
-        return y_result
-
-    fitted_y, params_array = _fit_with_scipy(
-        x, y, multi_lorentzian_func, initial_params, bounds
-    )
-
-    # Parse parameters into dataclass
-    n_peaks = len(peak_indices)
-    peak_params = []
-    for i in range(n_peaks):
-        peak_params.append(
-            {
-                "amp": params_array[i * 3],
-                "sigma": params_array[i * 3 + 1],
-                "x0": params_array[i * 3 + 2],
-            }
-        )
-
-    params = MultiLorentzianParams(
-        peaks=peak_params,
-        y0=params_array[-1],
-    )
-
-    return fitted_y, params
+    return MultiLorentzianFitComputer(x, y, peak_indices).fit()
 
 
-@dataclasses.dataclass
-class SinusoidalParams:
-    """Sinusoidal fit parameters."""
-
-    amplitude: float  # amplitude
-    frequency: float  # frequency
-    phase: float  # phase
-    offset: float  # baseline offset
-
-
-def sinusoidal_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, SinusoidalParams]:
+def sinusoidal_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute sinusoidal fit.
 
     Args:
@@ -675,62 +1007,12 @@ def sinusoidal_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, Sinusoidal
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, SinusoidalParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation using FFT for frequency
-    dy = np.max(y) - np.min(y)
-
-    amplitude_guess = dy / 2
-    offset_guess = np.mean(y)
-    phase_guess = 0.0
-
-    # Estimate frequency using FFT
-    if len(x) > 2:
-        dt = x[1] - x[0]  # Assuming evenly spaced
-        fft_y = np.fft.fft(y - offset_guess)
-        freqs = np.fft.fftfreq(len(y), dt)
-        # Find dominant frequency (excluding DC component)
-        dominant_idx = np.argmax(np.abs(fft_y[1 : len(fft_y) // 2])) + 1
-        frequency_guess = np.abs(freqs[dominant_idx])
-    else:
-        frequency_guess = 1.0 / (np.max(x) - np.min(x))
-
-    def sin_func(x_vals, amplitude, frequency, phase, offset):
-        return amplitude * np.sin(2 * np.pi * frequency * x_vals + phase) + offset
-
-    initial_params = [amplitude_guess, frequency_guess, phase_guess, offset_guess]
-
-    # Parameter bounds
-    bounds = [
-        (0, dy),  # amplitude
-        (0, 2 * frequency_guess),  # frequency
-        (-2 * np.pi, 2 * np.pi),  # phase
-        (offset_guess - dy, offset_guess + dy),  # offset
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(x, y, sin_func, initial_params, bounds)
-
-    params = SinusoidalParams(
-        amplitude=params_array[0],
-        frequency=params_array[1],
-        phase=params_array[2],
-        offset=params_array[3],
-    )
-
-    return fitted_y, params
+    return SinusoidalFitComputer(x, y).fit()
 
 
-@dataclasses.dataclass
-class VoigtParams:
-    """Voigt fit parameters."""
-
-    amplitude: float  # amplitude
-    sigma: float  # Gaussian width parameter
-    x0: float  # center position
-    y0: float  # baseline offset
-
-
-def voigt_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, VoigtParams]:
+def voigt_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute Voigt fit.
 
     Args:
@@ -738,56 +1020,12 @@ def voigt_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, VoigtParams]:
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, VoigtParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    y_min, y_max = np.min(y), np.max(y)
-    dy = y_max - y_min
-    x_min, x_max = np.min(x), np.max(x)
-    dx = x_max - x_min
-
-    # Initial estimates
-    x0_guess = x[np.argmax(y)]  # Center at peak
-    y0_guess = y_min  # Baseline
-    amplitude_guess = dy  # Amplitude
-    sigma_guess = dx / 10  # Width parameter
-
-    def voigt_func(x_vals, amplitude, sigma, x0, y0):
-        return fitmodels.VoigtModel.func(x_vals, amplitude, sigma, x0, y0)
-
-    initial_params = [amplitude_guess, sigma_guess, x0_guess, y0_guess]
-
-    # Parameter bounds
-    bounds = [
-        (0, 10 * dy),  # amplitude
-        (dx / 1000, dx),  # sigma
-        (x_min, x_max),  # x0
-        (y_min - dy, y_max + dy),  # y0
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(x, y, voigt_func, initial_params, bounds)
-
-    params = VoigtParams(
-        amplitude=params_array[0],
-        sigma=params_array[1],
-        x0=params_array[2],
-        y0=params_array[3],
-    )
-
-    return fitted_y, params
+    return VoigtFitComputer(x, y).fit()
 
 
-@dataclasses.dataclass
-class CdfParams:
-    """CDF (Cumulative Distribution Function) fit parameters."""
-
-    amplitude: float  # amplitude
-    mu: float  # mean
-    sigma: float  # standard deviation
-    baseline: float  # baseline offset
-
-
-def cdf_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, CdfParams]:
+def cdf_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute Cumulative Distribution Function (CDF) fit.
 
     Args:
@@ -795,59 +1033,12 @@ def cdf_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, CdfParams]:
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, CdfParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    y_min, y_max = np.min(y), np.max(y)
-    dy = y_max - y_min
-    x_min, x_max = np.min(x), np.max(x)
-    dx = x_max - x_min
-
-    # Initial estimates
-    amplitude_guess = dy
-    baseline_guess = dy / 2
-    sigma_guess = dx / 10
-    mu_guess = (x_max + np.abs(x_min)) / 2
-
-    def cdf_func(x_vals, amplitude, mu, sigma, baseline):
-        return (
-            amplitude * scipy.special.erf((x_vals - mu) / (sigma * np.sqrt(2)))
-            + baseline
-        )
-
-    initial_params = [amplitude_guess, mu_guess, sigma_guess, baseline_guess]
-
-    # Parameter bounds
-    bounds = [
-        (0, 2 * dy),  # amplitude
-        (x_min, x_max),  # mu
-        (dx / 1000, dx),  # sigma
-        (y_min - dy, y_max + dy),  # baseline
-    ]
-
-    fitted_y, params_array = _fit_with_scipy(x, y, cdf_func, initial_params, bounds)
-
-    params = CdfParams(
-        amplitude=params_array[0],
-        mu=params_array[1],
-        sigma=params_array[2],
-        baseline=params_array[3],
-    )
-
-    return fitted_y, params
+    return CDFFitComputer(x, y).fit()
 
 
-@dataclasses.dataclass
-class SigmoidParams:
-    """Sigmoid (Logistic) fit parameters."""
-
-    amplitude: float  # amplitude
-    k: float  # growth rate
-    x0: float  # horizontal offset (inflection point)
-    offset: float  # vertical offset
-
-
-def sigmoid_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, SigmoidParams]:
+def sigmoid_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute Sigmoid (Logistic) fit.
 
     Args:
@@ -855,40 +1046,41 @@ def sigmoid_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, SigmoidParams
         y: y data array
 
     Returns:
-        tuple: (fitted_y_values, SigmoidParams)
+        A tuple containing the fitted y values and a dictionary of fit parameters.
     """
-    # Parameter estimation
-    y_min, y_max = np.min(y), np.max(y)
-    dy = y_max - y_min
-    x_min, x_max = np.min(x), np.max(x)
-    dx = x_max - x_min
+    return SigmoidFitComputer(x, y).fit()
 
-    # Initial estimates
-    amplitude_guess = dy
-    offset_guess = y_min
-    x0_guess = (x_min + x_max) / 2  # Inflection point at center
-    k_guess = 4 / dx  # Growth rate (4/dx gives reasonable sigmoid shape)
 
-    def sigmoid_func(x_vals, amplitude, k, x0, offset):
-        return offset + amplitude / (1.0 + np.exp(-k * (x_vals - x0)))
+FIT_TYPE_MAPPING = {
+    "linear": LinearFitComputer,
+    "polynomial": PolynomialFitComputer,
+    "gaussian": GaussianFitComputer,
+    "lorentzian": LorentzianFitComputer,
+    "exponential": ExponentialFitComputer,
+    "planckian": PlanckianFitComputer,
+    "twohalfgaussian": TwoHalfGaussianFitComputer,
+    "doubleexponential": DoubleExponentialFitComputer,
+    "multilorentzian": MultiLorentzianFitComputer,
+    "sinusoidal": SinusoidalFitComputer,
+    "voigt": VoigtFitComputer,
+    "cdf": CDFFitComputer,
+    "sigmoid": SigmoidFitComputer,
+}
 
-    initial_params = [amplitude_guess, k_guess, x0_guess, offset_guess]
 
-    # Parameter bounds
-    bounds = [
-        (0, 10 * dy),  # amplitude
-        (1 / dx, 100 / dx),  # k (growth rate)
-        (x_min, x_max),  # x0
-        (y_min - dy, y_max + dy),  # offset
-    ]
+def evaluate_fit(x: np.ndarray, **fit_params) -> np.ndarray:
+    """Evaluate fit function with given parameters at x values.
 
-    fitted_y, params_array = _fit_with_scipy(x, y, sigmoid_func, initial_params, bounds)
+    Args:
+        x: X values to evaluate at
+        **fit_params: Fit parameters (any of the *Params dataclasses)
 
-    params = SigmoidParams(
-        amplitude=params_array[0],
-        k=params_array[1],
-        x0=params_array[2],
-        offset=params_array[3],
-    )
-
-    return fitted_y, params
+    Returns:
+        Y values computed from the fit function
+    """
+    params = fit_params.copy()
+    params.pop("residual_rms", None)
+    fcclass: Type[FitComputer] = FIT_TYPE_MAPPING.get(params.pop("fit_type", None))
+    if fcclass is None:
+        raise ValueError(f"Unsupported fit type: {fit_params.get('fit_type')}")
+    return fcclass.evaluate(x, **params)

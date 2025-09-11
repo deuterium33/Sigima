@@ -25,7 +25,7 @@ from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result, check_scalar_result
-from sigima.tools.signal import fitmodels, fitting, peakdetection
+from sigima.tools.signal import fitting, peakdetection, pulse
 
 EXPECTED_FIT_PARAMS = {
     "gaussian_fit": {
@@ -85,7 +85,7 @@ def __check_tools_proc_interface(
         guiutils.view_curves_if_gui(
             [experiment_signal, fitted_signal], title=f"Test {toolsfunc.__name__}"
         )
-        fit_params = fitted_signal.get_metadata_option("fit_params")
+        fit_params = fitted_signal.metadata["fit_params"]
         exp_params = EXPECTED_FIT_PARAMS.get(toolsfunc.__name__)
         if exp_params is None:
             for key, value in fit_params.items():
@@ -118,8 +118,8 @@ def test_signal_linear_fit() -> None:
     y = a_true * x + b_true
 
     fitted_y, params = fitting.linear_fit(x, y)
-    check_scalar_result("Linear fit slope", params.a, a_true, rtol=1e-10)
-    check_scalar_result("Linear fit intercept", params.b, b_true, rtol=1e-10)
+    check_scalar_result("Linear fit slope", params["a"], a_true, rtol=1e-10)
+    check_scalar_result("Linear fit intercept", params["b"], b_true, rtol=1e-10)
     check_array_result("Linear fit y-values", fitted_y, y, rtol=1e-10)
 
     execenv.print("Testing linear fitting with noisy synthetic data...")
@@ -137,8 +137,8 @@ def test_signal_linear_fit() -> None:
         fitting.linear_fit, sigima.proc.signal.linear_fit, x, y
     )
     # With noise, we expect reasonable accuracy
-    assert np.abs(params.a - a_true) < 0.05, "Slope should be accurate within 5%"
-    assert np.abs(params.b - b_true) < 0.1, "Intercept should be accurate within 0.1"
+    assert np.abs(params["a"] - a_true) < 0.05, "Slope should be accurate within 5%"
+    assert np.abs(params["b"] - b_true) < 0.1, "Intercept should be accurate within 0.1"
 
 
 @pytest.mark.validation
@@ -154,13 +154,15 @@ def test_signal_gaussian_fit() -> None:
     fitted_y, params = fitting.gaussian_fit(x, y)
 
     # Convert fitted amp to peak amplitude for comparison
-    fitted_peak_amplitude = fitmodels.GaussianModel.amplitude(params.amp, params.sigma)
+    fitted_peak_amplitude = pulse.GaussianModel.amplitude(
+        params["amp"], params["sigma"]
+    )
     check_scalar_result(
         "Gaussian peak amplitude", fitted_peak_amplitude, peak_amplitude_true, rtol=1e-3
     )
-    check_scalar_result("Gaussian sigma", params.sigma, sigma_true, rtol=1e-3)
-    check_scalar_result("Gaussian center", params.x0, x0_true, rtol=1e-3)
-    check_scalar_result("Gaussian offset", params.y0, y0_true, rtol=1e-3)
+    check_scalar_result("Gaussian sigma", params["sigma"], sigma_true, rtol=1e-3)
+    check_scalar_result("Gaussian center", params["x0"], x0_true, rtol=1e-3)
+    check_scalar_result("Gaussian offset", params["y0"], y0_true, rtol=1e-3)
 
     execenv.print("Testing Gaussian fitting with noisy synthetic data...")
 
@@ -177,8 +179,8 @@ def test_signal_gaussian_fit() -> None:
         fitting.gaussian_fit, sigima.proc.signal.gaussian_fit, x, y
     )
     # With noise, expect reasonable accuracy
-    assert np.abs(params.x0 - x0_true) < 0.2, "Gaussian center should be accurate"
-    assert np.abs(params.y0 - y0_true) < 0.2, "Gaussian offset should be accurate"
+    assert np.abs(params["x0"] - x0_true) < 0.2, "Gaussian center should be accurate"
+    assert np.abs(params["y0"] - y0_true) < 0.2, "Gaussian offset should be accurate"
 
 
 @pytest.mark.validation
@@ -198,8 +200,8 @@ def test_signal_lorentzian_fit() -> None:
     )
 
     # Convert fitted amp to peak amplitude for comparison
-    fitted_peak_amplitude = fitmodels.LorentzianModel.amplitude(
-        params.amp, params.sigma
+    fitted_peak_amplitude = pulse.LorentzianModel.amplitude(
+        params["amp"], params["sigma"]
     )
     check_scalar_result(
         "Lorentzian peak amplitude",
@@ -207,11 +209,11 @@ def test_signal_lorentzian_fit() -> None:
         peak_amplitude_true,
         rtol=1e-2,
     )
-    assert np.abs(params.sigma - sigma_true) / sigma_true < 0.1, (
+    assert np.abs(params["sigma"] - sigma_true) / sigma_true < 0.1, (
         "Sigma should be accurate"
     )
-    assert np.abs(params.x0 - x0_true) < 0.1, "Center should be accurate"
-    assert np.abs(params.y0 - y0_true) < 0.1, "Offset should be accurate"
+    assert np.abs(params["x0"] - x0_true) < 0.1, "Center should be accurate"
+    assert np.abs(params["y0"] - y0_true) < 0.1, "Offset should be accurate"
 
 
 @pytest.mark.validation
@@ -239,15 +241,15 @@ def test_signal_voigt_fit() -> None:
     assert fitted_y.shape == y.shape, "Fitted y should have same shape as input"
 
     # Check parameter structure
-    assert hasattr(params, "amplitude"), "Should have amplitude parameter"
-    assert hasattr(params, "sigma"), "Should have sigma parameter"
-    assert hasattr(params, "x0"), "Should have x0 parameter"
-    assert hasattr(params, "y0"), "Should have y0 parameter"
+    assert "amp" in params, "Should have amplitude parameter"
+    assert "sigma" in params, "Should have sigma parameter"
+    assert "x0" in params, "Should have x0 parameter"
+    assert "y0" in params, "Should have y0 parameter"
 
     # Parameters should be reasonable (within factor of 5 of true values)
-    assert 0.1 * amplitude_true < params.amplitude < 5 * amplitude_true
-    assert 0.1 * sigma_true < params.sigma < 5 * sigma_true
-    assert x0_true - 2 * sigma_true < params.x0 < x0_true + 2 * sigma_true
+    assert 0.1 * amplitude_true < params["amp"] < 5 * amplitude_true
+    assert 0.1 * sigma_true < params["sigma"] < 5 * sigma_true
+    assert x0_true - 2 * sigma_true < params["x0"] < x0_true + 2 * sigma_true
 
 
 @pytest.mark.validation
@@ -264,11 +266,11 @@ def test_signal_exponential_fit() -> None:
         fitting.exponential_fit, sigima.proc.signal.exponential_fit, x, y
     )
     # Check parameter accuracy
-    assert np.abs(params.a - a_true) / a_true < 0.1, "Amplitude should be accurate"
-    assert np.abs(params.b - b_true) / abs(b_true) < 0.1, (
+    assert np.abs(params["a"] - a_true) / a_true < 0.1, "Amplitude should be accurate"
+    assert np.abs(params["b"] - b_true) / abs(b_true) < 0.1, (
         "Decay rate should be accurate"
     )
-    assert np.abs(params.y0 - y0_true) < 0.2, "Offset should be accurate"
+    assert np.abs(params["y0"] - y0_true) < 0.2, "Offset should be accurate"
 
     execenv.print("Testing exponential growth fitting...")
 
@@ -278,7 +280,7 @@ def test_signal_exponential_fit() -> None:
 
     fitted_y, params = fitting.exponential_fit(x, y)
     # Growth fitting is more challenging due to rapid increase
-    assert np.abs(params.b - b_true) / b_true < 0.2, (
+    assert np.abs(params["b"] - b_true) / b_true < 0.2, (
         "Growth rate should be reasonably accurate"
     )
 
@@ -336,7 +338,7 @@ def test_signal_planckian_fit() -> None:
     y0_true = 0.5  # Baseline offset
 
     # Generate true Planckian data using the actual model
-    y = fitmodels.PlanckianModel.func(x, amp_true, x0_true, sigma_true, y0_true)
+    y = fitting.PlanckianFitComputer.evaluate(x, amp_true, x0_true, sigma_true, y0_true)
 
     # Add realistic noise (proportional to signal strength)
     noise_level = 0.02 * (np.max(y) - np.min(y))
@@ -351,10 +353,10 @@ def test_signal_planckian_fit() -> None:
     assert fitted_y.shape == y.shape, "Fitted y should have same shape as input"
 
     # Check parameter structure
-    assert hasattr(params, "amp"), "Should have amp parameter"
-    assert hasattr(params, "x0"), "Should have x0 parameter"
-    assert hasattr(params, "sigma"), "Should have sigma parameter"
-    assert hasattr(params, "y0"), "Should have y0 parameter"
+    assert "amp" in params, "Should have amp parameter"
+    assert "x0" in params, "Should have x0 parameter"
+    assert "sigma" in params, "Should have sigma parameter"
+    assert "y0" in params, "Should have y0 parameter"
 
     # Check that the fit produces a realistic peak location
     # The peak should be close to the Wien displacement law prediction
@@ -364,8 +366,8 @@ def test_signal_planckian_fit() -> None:
     execenv.print(f"True peak at: {peak_x_true:.3f} μm")
     execenv.print(f"Fitted peak at: {peak_x_fitted:.3f} μm")
     execenv.print(
-        f"Fitted parameters: amp={params.amp:.2f}, "
-        f"x0={params.x0:.2f}, σ={params.sigma:.2f}"
+        f"Fitted parameters: amp={params['amp']:.2f}, "
+        f"x0={params['x0']:.2f}, σ={params['sigma']:.2f}"
     )
     # Peak location should be reasonably accurate (within 20% of wavelength range)
     # Planckian fitting can be challenging due to the complex function form
@@ -389,9 +391,9 @@ def test_signal_planckian_fit() -> None:
     assert peak_value > max_edge, "Peak should be higher than edge values"
 
     # Parameters should be in reasonable ranges for physical systems
-    assert params.amp > 0, "Amplitude should be positive"
-    assert params.x0 > 0, "Peak wavelength should be positive"
-    assert params.sigma > 0, "Sigma should be positive"
+    assert params["amp"] > 0, "Amplitude should be positive"
+    assert params["x0"] > 0, "Peak wavelength should be positive"
+    assert params["sigma"] > 0, "Sigma should be positive"
 
 
 @pytest.mark.validation
@@ -422,15 +424,15 @@ def test_signal_cdf_fit() -> None:
     assert fitted_y.shape == y.shape, "Fitted y should have same shape as input"
 
     # Check parameter structure
-    assert hasattr(params, "amplitude"), "Should have amplitude parameter"
-    assert hasattr(params, "mu"), "Should have mu parameter"
-    assert hasattr(params, "sigma"), "Should have sigma parameter"
-    assert hasattr(params, "baseline"), "Should have baseline parameter"
+    assert "amplitude" in params, "Should have amplitude parameter"
+    assert "mu" in params, "Should have mu parameter"
+    assert "sigma" in params, "Should have sigma parameter"
+    assert "baseline" in params, "Should have baseline parameter"
 
     # Parameters should be reasonable (within factor of 3 of true values)
-    assert 0.3 * amplitude_true < params.amplitude < 3 * amplitude_true
-    assert 0.3 * sigma_true < params.sigma < 3 * sigma_true
-    assert mu_true - 2 * sigma_true < params.mu < mu_true + 2 * sigma_true
+    assert 0.3 * amplitude_true < params["amplitude"] < 3 * amplitude_true
+    assert 0.3 * sigma_true < params["sigma"] < 3 * sigma_true
+    assert mu_true - 2 * sigma_true < params["mu"] < mu_true + 2 * sigma_true
 
 
 @pytest.mark.validation
@@ -458,15 +460,15 @@ def test_signal_sigmoid_fit() -> None:
     assert fitted_y.shape == y.shape, "Fitted y should have same shape as input"
 
     # Check parameter structure
-    assert hasattr(params, "amplitude"), "Should have amplitude parameter"
-    assert hasattr(params, "k"), "Should have k parameter"
-    assert hasattr(params, "x0"), "Should have x0 parameter"
-    assert hasattr(params, "offset"), "Should have offset parameter"
+    assert "amplitude" in params, "Should have amplitude parameter"
+    assert "k" in params, "Should have k parameter"
+    assert "x0" in params, "Should have x0 parameter"
+    assert "offset" in params, "Should have offset parameter"
 
     # Parameters should be reasonable (within factor of 3 of true values)
-    assert 0.3 * amplitude_true < params.amplitude < 3 * amplitude_true
-    assert 0.3 * k_true < params.k < 3 * k_true
-    assert x0_true - 2 < params.x0 < x0_true + 2
+    assert 0.3 * amplitude_true < params["amplitude"] < 3 * amplitude_true
+    assert 0.3 * k_true < params["k"] < 3 * k_true
+    assert x0_true - 2 < params["x0"] < x0_true + 2
 
 
 @pytest.mark.validation
@@ -505,23 +507,23 @@ def test_signal_twohalfgaussian_fit() -> None:
     )
 
     # Check that center position is reasonable
-    assert np.abs(params.x0 - x0_true) < 0.5, "Center should be accurate"
+    assert np.abs(params["x0"] - x0_true) < 0.5, "Center should be accurate"
 
     # Check that baseline offsets are reasonable
-    assert np.abs(params.y0_left - y0_left_true) < 0.3, (
+    assert np.abs(params["y0_left"] - y0_left_true) < 0.3, (
         "Left baseline should be accurate"
     )
-    assert np.abs(params.y0_right - y0_right_true) < 0.3, (
+    assert np.abs(params["y0_right"] - y0_right_true) < 0.3, (
         "Right baseline should be accurate"
     )
 
     # Check that the fitted parameters make sense
-    assert params.sigma_left > 0, "Left sigma should be positive"
-    assert params.sigma_right > 0, "Right sigma should be positive"
-    assert hasattr(params, "amp_left"), "Should have amp_left parameter"
-    assert hasattr(params, "amp_right"), "Should have amp_right parameter"
-    assert params.amp_left > 0, "Left amplitude should be positive"
-    assert params.amp_right > 0, "Right amplitude should be positive"
+    assert params["sigma_left"] > 0, "Left sigma should be positive"
+    assert params["sigma_right"] > 0, "Right sigma should be positive"
+    assert "amp_left" in params, "Should have amp_left parameter"
+    assert "amp_right" in params, "Should have amp_right parameter"
+    assert params["amp_left"] > 0, "Left amplitude should be positive"
+    assert params["amp_right"] > 0, "Right amplitude should be positive"
 
 
 # This is not a validation test as there is no computation function for multi
@@ -550,9 +552,10 @@ def test_multilorentzian_single_peak() -> None:
 
     # Check results - expect at least one peak
     assert len(peaks) >= 1, "Should detect at least one peak"
-    assert hasattr(params, "peaks"), "Should have peaks attribute"
-    assert len(params.peaks) >= 1, "Should have at least one peak parameter"
-    assert hasattr(params, "y0"), "Should have y0 baseline parameter"
+    assert "amp_1" in params, "Should have amplitude for first peak"
+    assert "sigma_1" in params, "Should have sigma for first peak"
+    assert "x0_1" in params, "Should have x0 for first peak"
+    assert "y0" in params, "Should have y0 baseline parameter"
 
 
 # This is not a validation test as there is no computation function for multi
@@ -585,9 +588,13 @@ def test_multilorentzian_double_peak() -> None:
 
         # Check that we detected two peaks and got results
         assert len(peaks) >= 2, "Should detect at least two peaks"
-        assert hasattr(params, "peaks"), "Should have peaks attribute"
-        assert len(params.peaks) >= 2, "Should have at least two peak parameters"
-        assert hasattr(params, "y0"), "Should have y0 baseline parameter"
+        assert "amp_1" in params, "Should have amplitude for first peak"
+        assert "amp_2" in params, "Should have amplitude for second peak"
+        assert "sigma_1" in params, "Should have sigma for first peak"
+        assert "sigma_2" in params, "Should have sigma for second peak"
+        assert "x0_1" in params, "Should have x0 for first peak"
+        assert "x0_2" in params, "Should have x0 for second peak"
+        assert "y0" in params, "Should have y0 baseline parameter"
     except ValueError as e:
         if "infeasible" in str(e):
             execenv.print(
@@ -609,9 +616,7 @@ def test_fitting_error_handling() -> None:
     fitted_y, params = fitting.linear_fit(x_short, y_short)
     # Should either succeed (linear fit needs only 2 points) or fail gracefully
     assert isinstance(fitted_y, np.ndarray), "Result should be a numpy array"
-    assert hasattr(params, "a") and hasattr(params, "b"), (
-        "Params should have a and b attributes"
-    )
+    assert "a" in params and "b" in params, "Params should have a and b attributes"
 
     # Test with mismatched array sizes - this should raise an exception
     x_mismatch = np.array([1, 2, 3])
@@ -654,6 +659,32 @@ def test_fitting_functions_available() -> None:
         assert callable(func), f"Function {func_name} should be callable"
 
 
+def test_fitting_user_experience() -> None:
+    """Test user experience aspects of fitting functions."""
+    execenv.print("Testing user experience of fitting functions...")
+
+    # Test that fitting functions return results in expected formats
+    x = np.linspace(0, 10, 100)
+    y = 3.0 * x + 1.0 + np.random.normal(0, 0.5, len(x))
+
+    fitted_y, params = fitting.linear_fit(x, y)
+    assert isinstance(fitted_y, np.ndarray), "Fitted y should be a numpy array"
+    assert "a" in params and "b" in params, "Params should have a and b attributes"
+    fitted_y2 = fitting.evaluate_fit(x, **params)
+    check_array_result("Evaluate fit", fitted_y2, fitted_y, rtol=1e-10)
+
+    # Test that metadata is correctly attached to SignalObj when using proc functions
+    src = sigima.objects.create_signal("Test data", x, y)
+    dst = sigima.proc.signal.linear_fit(src)
+    assert "fit_params" in dst.metadata, "Metadata should contain fit_params"
+    fit_params = sigima.proc.signal.extract_fit_params(dst)
+    assert "a" in fit_params and "b" in fit_params, "fit_params should contain a and b"
+    assert fit_params["a"] == params["a"], "Fitted a should match"
+    assert fit_params["b"] == params["b"], "Fitted b should match"
+    dst2 = sigima.proc.signal.evaluate_fit(src, **fit_params)
+    check_array_result("Evaluate fit on SignalObj", dst2.y, dst.y, rtol=1e-10)
+
+
 if __name__ == "__main__":
     guiutils.enable_gui()
     test_signal_linear_fit()
@@ -670,4 +701,5 @@ if __name__ == "__main__":
     test_multilorentzian_double_peak()
     test_fitting_error_handling()
     test_fitting_functions_available()
+    test_fitting_user_experience()
     execenv.print("All fitting unit tests passed!")

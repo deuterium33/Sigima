@@ -13,7 +13,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import warnings
 from collections.abc import Callable
 from enum import Enum
@@ -2532,7 +2531,10 @@ def time_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-def __generic_fit(src: SignalObj, fitfunc: Callable) -> SignalObj:
+def __generic_fit(
+    src: SignalObj,
+    fitfunc: Callable[[np.ndarray, np.ndarray], tuple[np.ndarray, dict[str, float]]],
+) -> SignalObj:
     """Generic fitting function.
 
     Args:
@@ -2548,15 +2550,8 @@ def __generic_fit(src: SignalObj, fitfunc: Callable) -> SignalObj:
     x = src.x[~src.get_masked_view().mask]
     y = src.get_masked_view().compressed()
 
-    # Perform the fit:
-    fitted_y, params = fitfunc(x, y)
-    residual = y - fitted_y
-
-    # Store results:
+    fitted_y, fit_params = fitfunc(x, y)
     dst.set_xydata(x, fitted_y)
-    fit_params = dataclasses.asdict(params)
-    fit_params["fit_type"] = params.__class__.__name__.replace("Params", "").lower()
-    fit_params["residual_rms"] = float(np.sqrt(np.mean(residual**2)))
     dst.metadata["fit_params"] = fit_params
     return dst
 
@@ -2724,6 +2719,41 @@ def sinusoidal_fit(src: SignalObj) -> SignalObj:
         Result signal object
     """
     return __generic_fit(src, fitting.sinusoidal_fit)
+
+
+def extract_fit_params(signal: SignalObj) -> dict[str, float | str]:
+    """Extract fit parameters from a fitted signal.
+
+    Args:
+        signal: Signal object containing fit metadata
+
+    Returns:
+        Fit parameters
+    """
+    if "fit_params" not in signal.metadata:
+        raise ValueError("Signal does not contain fit parameters")
+    fit_params_dict: dict[str, float | str] = signal.metadata["fit_params"]
+    assert "fit_type" in fit_params_dict, "No valid fit parameters found"
+    return fit_params_dict
+
+
+def evaluate_fit(signal_template: SignalObj, **fit_params) -> SignalObj:
+    """Evaluate fit function to create a new signal.
+
+    Args:
+        signal_template: Template signal to copy x-axis and metadata from
+        **fit_params: Fit parameters
+
+    Returns:
+        New signal with evaluated fit
+    """
+    x = signal_template.x
+    y = fitting.evaluate_fit(x, **fit_params)
+
+    result = signal_template.copy()
+    result.y = y
+    result.title = f"Fitted {fit_params['fit_type']}"
+    return result
 
 
 # MARK: compute_1_to_0 functions -------------------------------------------------------
