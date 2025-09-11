@@ -645,6 +645,95 @@ class DoubleExponentialFitComputer(FitComputer):
         }
 
 
+class MultiGaussianFitComputer(FitComputer):
+    """Multi Gaussian fit computer"""
+
+    def __init__(
+        self, x: np.ndarray, y: np.ndarray, peak_indices: list[int] | None = None
+    ) -> None:
+        super().__init__(x, y)
+        self.peak_indices = peak_indices
+
+    def get_params_names(self) -> tuple[str]:
+        """Return the names of the parameters used in this fit."""
+        n_peaks = len(self.peak_indices)
+        names = []
+        for i in range(n_peaks):
+            names.extend([f"amp_{i + 1}", f"sigma_{i + 1}", f"x0_{i + 1}"])
+        names.append("y0")
+        return tuple(names)
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+        """Evaluate the fit function at given x values."""
+        # Determine number of peaks from parameter count
+        n_peaks = (len(params) - 1) // 3  # -1 for y0, then divide by 3 params per peak
+        y_result = np.zeros_like(x) + params["y0"]
+        for i in range(n_peaks):
+            amp = params[f"amp_{i + 1}"]
+            sigma = params[f"sigma_{i + 1}"]
+            x0 = params[f"x0_{i + 1}"]
+            y_result += pulse.GaussianModel.func(x, amp, sigma, x0, 0.0)
+        return y_result
+
+    def compute_initial_params(self) -> dict[str, float]:
+        """Compute initial parameters for Multi Gaussian fitting."""
+        params = {}
+        for i, peak_idx in enumerate(self.peak_indices):
+            if i > 0:
+                istart = (self.peak_indices[i - 1] + peak_idx) // 2
+            else:
+                istart = 0
+            if i < len(self.peak_indices) - 1:
+                iend = (self.peak_indices[i + 1] + peak_idx) // 2
+            else:
+                iend = len(self.x) - 1
+            local_dx = 0.5 * (self.x[iend] - self.x[istart])
+            local_dy = np.max(self.y[istart:iend]) - np.min(self.y[istart:iend])
+            amp = pulse.GaussianModel.get_amp_from_amplitude(local_dy, local_dx * 0.1)
+            sigma = local_dx * 0.1
+            x0 = self.x[peak_idx]
+
+            params[f"amp_{i + 1}"] = amp
+            params[f"sigma_{i + 1}"] = sigma
+            params[f"x0_{i + 1}"] = x0
+
+        params["y0"] = np.min(self.y)
+        return params
+
+    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
+        """Compute parameter bounds for Multi Gaussian fitting."""
+        bounds = []
+        for i, peak_idx in enumerate(self.peak_indices):
+            if i > 0:
+                istart = (self.peak_indices[i - 1] + peak_idx) // 2
+            else:
+                istart = 0
+            if i < len(self.peak_indices) - 1:
+                iend = (self.peak_indices[i + 1] + peak_idx) // 2
+            else:
+                iend = len(self.x) - 1
+            local_dx = 0.5 * (self.x[iend] - self.x[istart])
+            bounds.extend(
+                [
+                    (0.0, initial_params[f"amp_{i + 1}"] * 10.0),  # amp
+                    (local_dx * 0.001, local_dx * 10.0),  # sigma
+                    (self.x[istart], self.x[iend]),  # x0
+                ]
+            )
+        y0 = initial_params["y0"]
+        dy = np.max(self.y) - np.min(self.y)
+        bounds.append((y0 - 0.2 * dy, y0 + 0.2 * dy))
+        return bounds
+
+    def create_params(self, y_fitted: np.ndarray, **params) -> dict[str, float]:
+        """Create a flat fit parameters dictionary."""
+        self.check_params(**params)
+        params["fit_type"] = self.__class__.__name__.replace("FitComputer", "").lower()
+        params["residual_rms"] = np.sqrt(np.mean((self.y - y_fitted) ** 2))
+        return params
+
+
 class MultiLorentzianFitComputer(FitComputer):
     """Multi Lorentzian fit computer"""
 
@@ -716,14 +805,14 @@ class MultiLorentzianFitComputer(FitComputer):
             local_dx = 0.5 * (self.x[iend] - self.x[istart])
             bounds.extend(
                 [
-                    (0.0, initial_params[f"amp_{i + 1}"] * 2),  # amp
-                    (local_dx * 0.01, local_dx),  # sigma
+                    (0.0, initial_params[f"amp_{i + 1}"] * 10.0),  # amp
+                    (local_dx * 0.001, local_dx * 10.0),  # sigma
                     (self.x[istart], self.x[iend]),  # x0
                 ]
             )
         y0 = initial_params["y0"]
         dy = np.max(self.y) - np.min(self.y)
-        bounds.append((y0 - 0.1 * dy, y0 + 0.1 * dy))
+        bounds.append((y0 - dy, y0 + dy))
         return bounds
 
     def create_params(self, y_fitted: np.ndarray, **params) -> dict[str, float]:
@@ -999,6 +1088,22 @@ def multilorentzian_fit(
     return MultiLorentzianFitComputer(x, y, peak_indices).fit()
 
 
+def multigaussian_fit(
+    x: np.ndarray, y: np.ndarray, peak_indices: list[int]
+) -> tuple[np.ndarray, dict[str, float]]:
+    """Compute multi-Gaussian fit for multiple peaks.
+
+    Args:
+        x: x data array
+        y: y data array
+        peak_indices: list of peak indices
+
+    Returns:
+        A tuple containing the fitted y values and a dictionary of fit parameters.
+    """
+    return MultiGaussianFitComputer(x, y, peak_indices).fit()
+
+
 def sinusoidal_fit(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
     """Compute sinusoidal fit.
 
@@ -1061,6 +1166,7 @@ FIT_TYPE_MAPPING = {
     "twohalfgaussian": TwoHalfGaussianFitComputer,
     "doubleexponential": DoubleExponentialFitComputer,
     "multilorentzian": MultiLorentzianFitComputer,
+    "multigaussian": MultiGaussianFitComputer,
     "sinusoidal": SinusoidalFitComputer,
     "voigt": VoigtFitComputer,
     "cdf": CDFFitComputer,

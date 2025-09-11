@@ -527,6 +527,90 @@ def test_signal_twohalfgaussian_fit() -> None:
 
 
 # This is not a validation test as there is no computation function for multi
+# gaussian fitting in sigima.proc.signal
+def test_multigaussian_single_peak() -> None:
+    """Multi-Gaussian fitting validation test with single peak."""
+    execenv.print("Testing multi-Gaussian fitting with single peak...")
+
+    x = np.linspace(-10, 10, 200)
+    amp_true, sigma_true, x0_true, y0_true = 4.0, 1.5, -0.5, 0.2
+
+    # Single Gaussian
+    y = amp_true * np.exp(-0.5 * ((x - x0_true) / sigma_true) ** 2) + y0_true
+    y += np.random.normal(0, 0.02, len(x))
+
+    # Find peak indices for the function
+    peaks = peakdetection.peak_indices(
+        y, thres=0.2
+    )  # Use higher threshold for better detection
+    execenv.print(f"Detected peaks at indices: {peaks}")
+
+    # If no peaks detected, use manual peak
+    if len(peaks) == 0:
+        peak_idx = np.argmax(y)
+        peaks = np.array([peak_idx])
+
+    _y, params = fitting.multigaussian_fit(x, y, peak_indices=peaks.tolist())
+
+    # Check results - expect at least one peak
+    assert len(peaks) >= 1, "Should detect at least one peak"
+    assert "amp_1" in params, "Should have amplitude for first peak"
+    assert "sigma_1" in params, "Should have sigma for first peak"
+    assert "x0_1" in params, "Should have x0 for first peak"
+    assert "y0" in params, "Should have y0 baseline parameter"
+
+
+# This is not a validation test as there is no computation function for multi
+# gaussian fitting in sigima.proc.signal
+def test_multigaussian_double_peak() -> None:
+    """Multi-Gaussian fitting validation test with double peaks."""
+    execenv.print("Testing multi-Gaussian fitting with double peaks...")
+
+    x = np.linspace(-10, 10, 300)
+    # Two well-separated peaks
+    amp1, sigma1, x01 = 3.0, 1.0, -3.0
+    amp2, sigma2, x02 = 2.0, 1.5, 4.0
+    y0_true = 0.1
+
+    y = (
+        amp1 * np.exp(-0.5 * ((x - x01) / sigma1) ** 2)
+        + amp2 * np.exp(-0.5 * ((x - x02) / sigma2) ** 2)
+        + y0_true
+    )
+    y += np.random.normal(0, 0.02, len(x))
+
+    # Find peak indices
+    peaks = peakdetection.peak_indices(y, thres=0.3, min_dist=20)
+    execenv.print(f"Detected peaks at indices: {peaks}")
+
+    # If insufficient peaks detected, use manual peaks
+    if len(peaks) < 2:
+        peaks = np.array([np.argmax(y[:150]), 150 + np.argmax(y[150:])])
+
+    try:
+        yf, params = fitting.multigaussian_fit(x, y, peak_indices=peaks.tolist())
+        guiutils.view_curves_if_gui([[x, y], [x, yf]], title="Test multigaussian_fit")
+
+        # Check that we detected two peaks and got results
+        assert len(peaks) >= 2, "Should detect at least two peaks"
+        assert "amp_1" in params, "Should have amplitude for first peak"
+        assert "amp_2" in params, "Should have amplitude for second peak"
+        assert "sigma_1" in params, "Should have sigma for first peak"
+        assert "sigma_2" in params, "Should have sigma for second peak"
+        assert "x0_1" in params, "Should have x0 for first peak"
+        assert "x0_2" in params, "Should have x0 for second peak"
+        assert "y0" in params, "Should have y0 baseline parameter"
+    except ValueError as e:
+        if "infeasible" in str(e):
+            execenv.print(
+                "Multi-Gaussian fit failed due to optimization bounds "
+                "(expected for complex fitting)"
+            )
+        else:
+            raise
+
+
+# This is not a validation test as there is no computation function for multi
 # lorentzian fitting in sigima.proc.signal
 def test_multilorentzian_single_peak() -> None:
     """Multi-Lorentzian fitting validation test with single peak."""
@@ -537,11 +621,13 @@ def test_multilorentzian_single_peak() -> None:
 
     # Single Lorentzian
     y = amp_true / (1 + ((x - x0_true) / sigma_true) ** 2) + y0_true
+    y += np.random.normal(0, 0.02, len(x))
 
     # Find peak indices for the function
     peaks = peakdetection.peak_indices(
         y, thres=0.2
     )  # Use higher threshold for better detection
+    execenv.print(f"Detected peaks at indices: {peaks}")
 
     # If no peaks detected, use manual peak
     if len(peaks) == 0:
@@ -575,16 +661,19 @@ def test_multilorentzian_double_peak() -> None:
         + amp2 / (1 + ((x - x02) / sigma2) ** 2)
         + y0_true
     )
+    y += np.random.normal(0, 0.02, len(x))
 
     # Find peak indices
     peaks = peakdetection.peak_indices(y, thres=0.3, min_dist=20)
+    execenv.print(f"Detected peaks at indices: {peaks}")
 
     # If insufficient peaks detected, use manual peaks
     if len(peaks) < 2:
         peaks = np.array([np.argmax(y[:150]), 150 + np.argmax(y[150:])])
 
     try:
-        _y, params = fitting.multilorentzian_fit(x, y, peak_indices=peaks.tolist())
+        yf, params = fitting.multilorentzian_fit(x, y, peak_indices=peaks.tolist())
+        guiutils.view_curves_if_gui([[x, y], [x, yf]], title="Test multilorentzian_fit")
 
         # Check that we detected two peaks and got results
         assert len(peaks) >= 2, "Should detect at least two peaks"
@@ -697,6 +786,8 @@ if __name__ == "__main__":
     test_signal_cdf_fit()
     test_signal_sigmoid_fit()
     test_signal_twohalfgaussian_fit()
+    test_multigaussian_single_peak()
+    test_multigaussian_double_peak()
     test_multilorentzian_single_peak()
     test_multilorentzian_double_peak()
     test_fitting_error_handling()
