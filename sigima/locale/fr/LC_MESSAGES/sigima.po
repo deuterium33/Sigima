@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-08 20:41+0200\n"
+"POT-Creation-Date: 2025-09-11 10:40+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -218,6 +218,9 @@ msgstr "Origine"
 
 msgid "Pixel spacing"
 msgstr "Taille des pixels"
+
+msgid "Extent"
+msgstr "Bornes"
 
 msgid "Image title"
 msgstr "Titre de l'image"

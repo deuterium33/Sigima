@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 20:41+0200\n"
+"POT-Creation-Date: 2025-09-11 10:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -351,6 +351,18 @@ msgstr "Elle est implémentée dans la classe de paramètres `sigima.objects.Ram
 
 msgid "New signal generators: linear chirp, logistic function, Planck function."
 msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique, fonction de Planck."
+
+msgid "New image \"Extent\" computed parameters:"
+msgstr "Nouveaux paramètres \"Bornes\" calculés pour l'étendue de l'image :"
+
+msgid "Added computed parameters for image extent: `xmin`, `xmax`, `ymin`, and `ymax`."
+msgstr "Ajout des paramètres calculés pour l'étendue de l'image : `xmin`, `xmax`, `ymin` et `ymax`."
+
+msgid "These parameters are automatically calculated based on the image origin, pixel spacing, and dimensions."
+msgstr "Ces paramètres fournissent les limites de coordonnées physiques de l'image pour une analyse spatiale améliorée."
+
+msgid "They provide the physical coordinate boundaries of the image for enhanced spatial analysis."
+msgstr "Ils fournissent les limites de coordonnées physiques de l'image pour une analyse spatiale améliorée."
 
 msgid "New I/O features:"
 msgstr "Nouvelles fonctionnalités d'E/S:"

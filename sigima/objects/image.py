@@ -817,6 +817,30 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     )  # Annotations as a serialized JSON string  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data"))
 
+    def _compute_xmin(self) -> float:
+        """Compute Xmin"""
+        if self.data is None or self.data.size == 0:
+            return 0.0
+        return self.x0
+
+    def _compute_xmax(self) -> float:
+        """Compute Xmax"""
+        if self.data is None or self.data.size == 0:
+            return 0.0
+        return self.x0 + self.width - self.dx
+
+    def _compute_ymin(self) -> float:
+        """Compute Ymin"""
+        if self.data is None or self.data.size == 0:
+            return 0.0
+        return self.y0
+
+    def _compute_ymax(self) -> float:
+        """Compute Ymax"""
+        if self.data is None or self.data.size == 0:
+            return 0.0
+        return self.y0 + self.height - self.dy
+
     _dxdyg = gds.BeginGroup(f"{_('Origin')} / {_('Pixel spacing')}")
     _origin = gds.BeginGroup(_("Origin"))
     x0 = gds.FloatItem("X<sub>0</sub>", default=0.0)
@@ -826,6 +850,12 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     dx = gds.FloatItem("Δx", default=1.0, nonzero=True)
     dy = gds.FloatItem("Δy", default=1.0, nonzero=True).set_pos(col=1)
     _e_pixel_spacing = gds.EndGroup(_("Pixel spacing"))
+    _boundaries = gds.BeginGroup(_("Extent"))
+    xmin = gds.FloatItem("X<sub>MIN</sub>").set_computed(_compute_xmin)
+    xmax = gds.FloatItem("X<sub>MAX</sub>").set_pos(col=1).set_computed(_compute_xmax)
+    ymin = gds.FloatItem("Y<sub>MIN</sub>").set_computed(_compute_ymin)
+    ymax = gds.FloatItem("Y<sub>MAX</sub>").set_pos(col=1).set_computed(_compute_ymax)
+    _e_boundaries = gds.EndGroup(_("Extent"))
     _e_dxdyg = gds.EndGroup(f"{_('Origin')} / {_('Pixel spacing')}")
 
     _unitsg = gds.BeginGroup(f"{_('Titles')} / {_('Units')}")

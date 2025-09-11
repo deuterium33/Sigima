@@ -143,6 +143,11 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * New signal generators: linear chirp, logistic function, Planck function.
 
+* New image "Extent" computed parameters:
+  * Added computed parameters for image extent: `xmin`, `xmax`, `ymin`, and `ymax`.
+  * These parameters are automatically calculated based on the image origin, pixel spacing, and dimensions.
+  * They provide the physical coordinate boundaries of the image for enhanced spatial analysis.
+
 * New I/O features:
   * Added HDF5 format for signal and image objects (extensions `.h5sig` and `.h5ima`) that may be opened with any HDF5 viewer.
   * Added support for FT-Lab signal and image format.
