@@ -105,7 +105,7 @@ def test_signal_full_width_at_y() -> None:
 
 
 if __name__ == "__main__":
-    # test_signal_fwhm_interactive()
+    test_signal_fwhm_interactive()
     test_signal_fwhm()
     test_signal_fw1e2()
     test_signal_full_width_at_y()
