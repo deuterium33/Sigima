@@ -943,7 +943,8 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.dy = self.dy
         obj.metadata = base.deepcopy_metadata(self.metadata)
         obj.annotations = self.annotations
-        obj.data = np.array(self.data, copy=True, dtype=dtype)
+        if self.data is not None:
+            obj.data = np.array(self.data, copy=True, dtype=dtype)
         obj.dicom_template = self.dicom_template
         return obj
 
