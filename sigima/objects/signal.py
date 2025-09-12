@@ -567,8 +567,6 @@ class NewSignalParam(gds.DataSet):
 
     SIZE_RANGE_ACTIVATION_FLAG = True
 
-    hide_signal_type = False
-
     _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_prop(
