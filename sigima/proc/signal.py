@@ -2026,6 +2026,26 @@ def psd(src: SignalObj, p: SpectrumParam | None = None) -> SignalObj:
     return dst
 
 
+def check_same_sample_rate(src1: SignalObj, src2: SignalObj) -> None:
+    """Check if two signals have a constant step size *and* the same sample rate.
+
+    Args:
+        src1: First signal.
+        src2: Second signal.
+
+    Raises:
+        ValueError: If the signals do not have a constant step size
+         or the same sample rate.
+    """
+    for sig in (src1, src2):
+        if not np.allclose(np.diff(sig.x), sig.x[1] - sig.x[0]):
+            raise ValueError(f"Signal {sig.title} must have a constant step size (dx).")
+    dx1 = src1.x[1] - src1.x[0]
+    dx2 = src2.x[1] - src2.x[0]
+    if not np.isclose(dx1, dx2):
+        raise ValueError(f"Signals must have the same sample rate (dx): {dx1} != {dx2}")
+
+
 @computation_function()
 def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Compute deconvolution.
@@ -2040,10 +2060,10 @@ def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     Returns:
         Result signal.
     """
+    check_same_sample_rate(src1, src2)
     dst = dst_2_to_1(src1, src2, "deconvolution", f"filter={src2.title}")
     x1, y1 = src1.get_data()
-    x2, y2 = src2.get_data()
-    assert np.allclose(x1, x2), "Deconvolution: x axes must be the same."
+    _x2, y2 = src2.get_data()
     result_y = fourier.deconvolve(x1, y1, y2, reg=2.0, gain_max=None, auto_scale=True)
     dst.set_xydata(x1, result_y, None, None)
     restore_data_outside_roi(dst, src1)
@@ -2259,10 +2279,10 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     Returns:
         Result signal.
     """
+    check_same_sample_rate(src1, src2)
     dst = dst_2_to_1(src1, src2, "⊛")
     x1, y1 = src1.get_data()
-    x2, y2 = src2.get_data()
-    assert np.allclose(x1, x2), "Convolution: x axes must be the same."
+    _x2, y2 = src2.get_data()
     ynew = fourier.convolve(x1, y1, y2)
     dst.set_xydata(x1, ynew, None, None)
     restore_data_outside_roi(dst, src1)
