@@ -170,6 +170,88 @@ def psd(
     return f, welch_psd
 
 
+@check_1d_arrays(x_evenly_spaced=True)
+def convolve(
+    x: np.ndarray,
+    y: np.ndarray,
+    h: np.ndarray,
+    boundary: Literal["reflect", "symmetric", "edge", "wrap"] = "reflect",
+    normalize_kernel: bool = True,
+    method: Literal["auto", "direct", "fft"] = "auto",
+    correct_group_delay: bool = True,
+) -> np.ndarray:
+    """Convolve a 1D signal with a kernel, avoiding border artifacts and x-shift.
+
+    The input signal is padded before convolution, then a 'valid' extraction is
+    used to return exactly len(y) samples. Non-zero padding (e.g. "reflect")
+    prevents the typical edge attenuation caused by implicit zero-padding.
+    If the kernel is asymmetric, an optional group-delay correction recenters the
+    output on the same x-grid (no shift), using sub-sample interpolation.
+
+    Args:
+        x: 1D monotonically increasing and uniformly spaced axis (same length as y).
+        y: 1D input signal.
+        h: 1D convolution kernel (impulse response).
+        boundary: Padding mode passed to ``np.pad`` ("reflect" recommended).
+        normalize_kernel: If True, normalize kernel so that ``h.sum() == 1`` to
+            preserve DC level.
+        method: Convolution method for ``scipy.signal.convolve``.
+        correct_group_delay: If True, compensate the kernel center-of-mass shift
+            (group delay) to avoid any x-shift in the output.
+
+    Returns:
+        Convolved signal with the same length as ``y``, aligned on ``x``.
+
+    Raises:
+        ValueError: If inputs are not 1D, empty, or shapes are inconsistent.
+
+    Notes:
+        Precondition: ``x`` is strictly increasing with constant spacing. This is
+        required for standard discrete convolution to represent a physical LTI
+        filtering on the given grid.
+    """
+    if h.size != y.size:
+        raise ValueError("X data and Y data of the filter must have the same size.")
+
+    # ---- Optional DC preservation
+    hsum = h.sum()
+    if normalize_kernel and np.isfinite(hsum) and hsum != 0.0:
+        h = h / hsum
+
+    M = int(h.size)
+    if M == 1:
+        # With normalization, h == [1]; otherwise scale by h[0]
+        return y.copy() if normalize_kernel else y * h[0]
+
+    # ---- Compute asymmetric pad widths so that 'valid' returns exactly len(y)
+    w_left = M // 2
+    w_right = (M - 1) - w_left
+
+    # ---- Pad the signal to mitigate border artifacts during convolution
+    y_pad = np.pad(y, (w_left, w_right), mode=boundary)
+
+    # ---- Linear convolution with 'valid' to get back exactly N samples
+    y_conv = scipy.signal.convolve(y_pad, h, mode="valid", method=method)
+
+    if correct_group_delay:
+        # Center-of-mass of the kernel in sample units relative to w_left.
+        # n runs from -w_left ... +w_right (integer sample offsets).
+        n = np.arange(M, dtype=float) - w_left
+        denom = h.sum() if h.sum() != 0.0 else 1.0
+        mu_samples = float(np.dot(n, h) / denom)  # may be fractional
+
+        if np.isfinite(mu_samples) and mu_samples != 0.0:
+            # Sub-sample compensation on the *x-axis* to keep alignment.
+            # Positive mu_samples means the effective kernel center is to the right
+            # (additional delay); compensate by advancing the output.
+            dx = float(x[1] - x[0])  # uniform spacing guaranteed by your decorator
+            x_shifted = x + mu_samples * dx
+            # Interpolate with edge holding to maintain length and alignment
+            y_conv = np.interp(x, x_shifted, y_conv, left=y_conv[0], right=y_conv[-1])
+
+    return y_conv
+
+
 def _psf_to_otf_1d(h: np.ndarray, L: int) -> np.ndarray:
     """Convert a centered 1D PSF h to an OTF (RFFT length L).
 

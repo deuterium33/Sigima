@@ -2263,7 +2263,7 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     x1, y1 = src1.get_data()
     x2, y2 = src2.get_data()
     assert np.allclose(x1, x2), "Convolution: x axes must be the same."
-    ynew = sps.convolve(y1, y2, mode="same", method="auto")
+    ynew = fourier.convolve(x1, y1, y2)
     dst.set_xydata(x1, ynew, None, None)
     restore_data_outside_roi(dst, src1)
     return dst
