@@ -565,22 +565,15 @@ DEFAULT_TITLE = _("Untitled signal")
 class NewSignalParam(gds.DataSet):
     """New signal dataset"""
 
-    SIZE_RANGE_ACTIVATION_FLAG = True
-
-    _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     size = gds.IntItem(
         _("N<sub>points</sub>"),
         help=_("Total number of points in the signal"),
         min=1,
         default=500,
-    ).set_prop("display", active=_size_range)
-    xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_prop(
-        "display", active=_size_range
     )
-    xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop(
-        "display", active=_size_range, col=1
-    )
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop("display", col=1)
     xlabel = gds.StringItem(_("X label"), default="")
     ylabel = gds.StringItem(_("Y label"), default="").set_prop("display", col=1)
     xunit = gds.StringItem(_("X unit"), default="")
@@ -1251,7 +1244,9 @@ register_signal_parameters_class(SignalTypes.POLYNOMIAL, PolyParam)
 class CustomSignalParam(NewSignalParam):
     """Parameters for custom signal (e.g. manually defined experimental data)"""
 
-    SIZE_RANGE_ACTIVATION_FLAG = False
+    size = gds.IntItem(_("N<sub>points</sub>")).set_prop("display", active=False)
+    xmin = gds.FloatItem("x<sub>min</sub>").set_prop("display", active=False)
+    xmax = gds.FloatItem("x<sub>max</sub>").set_prop("display", active=False, col=1)
 
     xyarray = gds.FloatArrayItem(
         "XY Values",
