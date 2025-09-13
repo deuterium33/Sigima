@@ -568,7 +568,6 @@ class NewSignalParam(gds.DataSet):
     SIZE_RANGE_ACTIVATION_FLAG = True
 
     _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
-    _grp = gds.BeginGroup("")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     size = gds.IntItem(
         _("N<sub>points</sub>"),
@@ -586,7 +585,11 @@ class NewSignalParam(gds.DataSet):
     ylabel = gds.StringItem(_("Y label"), default="").set_prop("display", col=1)
     xunit = gds.StringItem(_("X unit"), default="")
     yunit = gds.StringItem(_("Y unit"), default="").set_prop("display", col=1)
-    _e_grp = gds.EndGroup("")
+
+    # As it is the last item of the dataset, the separator will be hidden if no other
+    # items are present after it (i.e. when derived classes do not add any new items
+    # or when the NewSignalParam class is used alone).
+    sep = gds.SeparatorItem()
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
