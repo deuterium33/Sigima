@@ -353,7 +353,11 @@ def compare_metadata(
 def __array_to_str(data: np.ndarray) -> str:
     """Return a compact description of the array properties"""
     dims = "×".join(str(dim) for dim in data.shape)
-    return f"{dims},{data.dtype},{data.min():.2g}→{data.max():.2g},µ={data.mean():.2g}"
+    return (
+        f"{dims},{data.dtype},"
+        f"{data.min():.2g}→{data.max():.2g},"
+        f"µ={data.mean():.2g},σ={data.std():.2g},∑={data.sum():.2g}"
+    )
 
 
 def check_array_result(
@@ -362,6 +366,7 @@ def check_array_result(
     exp: np.ndarray,
     rtol: float = 1.0e-5,
     atol: float = 1.0e-8,
+    similar: bool = False,
     sort: bool = False,
     verbose: bool = True,
 ) -> None:
@@ -373,6 +378,8 @@ def check_array_result(
         exp: expected array
         rtol: relative tolerance for comparison
         atol: absolute tolerance for comparison
+        similar: if True, arrays are compared exclusively using their textual
+         global representation (e.g. '824,float64,-0.00012→0.036,µ=0.018')
         sort: if True, sort arrays before comparison (default: False)
         verbose: if True, print detailed result (default: True)
 
@@ -385,7 +392,10 @@ def check_array_result(
     restxt = f"{title}: {__array_to_str(res)} (expected: {__array_to_str(exp)})"
     if verbose:
         execenv.print(restxt)
-    assert np.allclose(res, exp, rtol=rtol, atol=atol, equal_nan=True), restxt
+    if similar:
+        assert __array_to_str(res) == __array_to_str(exp), restxt
+    else:
+        assert np.allclose(res, exp, rtol=rtol, atol=atol, equal_nan=True), restxt
     assert res.dtype == exp.dtype, restxt
 
 

@@ -170,66 +170,163 @@ def psd(
     return f, welch_psd
 
 
+def _psf_to_otf_1d(h: np.ndarray, L: int) -> np.ndarray:
+    """Convert a centered 1D PSF h to an OTF (RFFT length L).
+
+    The PSF center (index floor((M-1)/2)) is shifted to index 0 before FFT so that
+    the convolution geometry matches 'same' with a centered kernel.
+
+    Args:
+        h: 1D convolution kernel (PSF).
+        L: Length of the output OTF (RFFT length, power of two recommended).
+
+    Returns:
+        OTF as a 1D complex array of length L//2 + 1 (RFFT output).
+    """
+    M = h.size
+    w_left = M // 2
+    h0 = np.roll(h, -w_left)  # center -> index 0
+    h_z = np.zeros(L, dtype=float)
+    h_z[:M] = h0
+    return np.fft.rfft(h_z)
+
+
 @check_1d_arrays(x_evenly_spaced=True)
 def deconvolve(
     x: np.ndarray,
     y: np.ndarray,
-    filter_x: np.ndarray,
-    filter_y: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Perform deconvolution in the frequency-domain.
+    h: np.ndarray,
+    *,
+    boundary: Literal["reflect", "symmetric", "edge", "wrap"] = "reflect",
+    normalize_kernel: bool = True,
+    # regularized inverse with derivative prior (recommended):
+    method: Literal["wiener", "fft"] = "wiener",
+    reg: float = 5e-2,  # increase to reduce ringing (e.g. 5e-2, 1e-1)
+    gain_max: float | None = 10.0,  # clamp max |gain| in frequency (None to disable)
+    dc_lock: bool = True,  # force exact DC gain (preserve plateau)
+    auto_scale: bool = True,  # auto-correct amplitude scaling after deconvolution
+) -> np.ndarray:
+    """Deconvolve a 1D signal with frequency-dependent regularization and DC lock.
+
+    Strategy:
+      1) Pad y with the same geometry as the 'convolve' step (x-uniform grid).
+      2) Build OTF H(f) from the centered PSF h.
+      3) Compute inverse filter:
+           - 'wiener' (recommended): H*(f) / (|H|^2 + reg * |D|^2), with
+             |D|^2 = (2 sin(ω/2))^2 (1st-derivative prior).
+           - 'fft': bare inverse 1/H(f) (unstable; only for noise-free data).
+         Optionally clamp |G(f)| ≤ gain_max and lock DC gain.
+      4) IFFT, then extract the central unpadded segment (len == len(y)).
+      5) Optionally auto-scale the result to correct amplitude bias from regularization.
 
     Args:
-        x: X data of the input signal.
-        y: Y data of the input signal.
-        filter_x: X data of the filter (signal to deconvolve with).
-        filter_y: Y data of the filter (signal to deconvolve with).
+        x: Strictly increasing, uniformly spaced axis (same length as y).
+        y: Observed signal (result of y_true ⊛ h, plus noise).
+        h: Centered convolution kernel (PSF).
+        boundary: Padding mode (should match your convolution).
+        normalize_kernel: If True, normalize h to preserve DC.
+        method: "wiener" (regularized inverse) or "fft" (bare inverse).
+        reg: Regularization strength for the derivative prior.
+        gain_max: Optional clamp on |G(f)| to avoid wild amplification.
+        dc_lock: If True, enforce exact DC gain (preserve mean/plateau).
+        auto_scale: If True, auto-correct amplitude scaling after deconvolution.
 
     Returns:
-        Deconvolved signal (x, yout) where yout is the deconvolved signal.
-
-    Raises:
-        ValueError: If filter is empty.
-        ValueError: If filter X and Y do not have the same size.
-        ValueError: If filter is all zeros.
+        Deconvolved signal (np.ndarray) with the same length as y, x-aligned.
     """
-    if filter_y.size == 0:
-        raise ValueError("Filter is empty, cannot be used to deconvolve.")
-    if filter_x.size != filter_y.size:
+    if x.ndim != 1 or y.ndim != 1 or h.ndim != 1:
+        raise ValueError("`x`, `y`, and `h` must be 1D arrays.")
+    if y.size == 0 or h.size == 0 or x.size != y.size:
+        raise ValueError("Non-empty arrays required and `x` length must match `y`.")
+    if y.size != h.size:
         raise ValueError("X data and Y data of the filter must have the same size.")
-    if np.allclose(filter_y, 0.0):
+    if np.all(h == 0.0):
         raise ValueError("Filter is all zeros, cannot be used to deconvolve.")
 
-    # Zero-pad both signals to the same length.
-    n_fft = x.size + filter_x.size - 1
-    x_padded, y_padded = zero_padding(x, y, n_append=n_fft - x.size)
-    if filter_x.size > 1:
-        xkernel_padded, ykernel_padded = zero_padding(
-            filter_x, filter_y, n_append=n_fft - filter_x.size
-        )
+    y = np.asarray(y, dtype=float)
+    h = np.asarray(h, dtype=float)
+
+    # Normalize kernel to keep DC consistent
+    if normalize_kernel:
+        s = h.sum()
+        if np.isfinite(s) and s != 0.0:
+            h = h / s
+
+    M = int(h.size)
+    if M == 1:
+        return y.copy()  # normalized h == [1]
+
+    # Padding identical to your convolve() geometry
+    w_left = M // 2
+    w_right = (M - 1) - w_left
+    y_pad = np.pad(y, (w_left, w_right), mode=boundary)
+
+    N = y.size
+    Npad = y_pad.size  # N + (M - 1)
+
+    # FFT size for linear convolution equivalence
+    L_needed = Npad + M - 1
+    L = 1 << int(np.ceil(np.log2(L_needed)))
+
+    # Build spectra
+    y_z = np.zeros(L, dtype=float)
+    y_z[:Npad] = y_pad
+    Y = np.fft.rfft(y_z)
+
+    H = _psf_to_otf_1d(h, L)
+
+    if method == "wiener":
+        # Derivative prior: |D(ω)|^2 = (2 sin(ω/2))^2
+        k = np.arange(H.size, dtype=float)
+        omega = 2.0 * np.pi * k / L
+        D2 = (2.0 * np.sin(omega / 2.0)) ** 2
+
+        Hc = np.conjugate(H)
+        H2 = (H * Hc).real
+        denom = H2 + float(reg) * D2
+        # Lock exact DC gain (avoid plateau bias)
+        if dc_lock:
+            denom[0] = H2[0]  # since D2[0] = 0, this already holds; keep explicit
+
+        G = Hc / denom
+    elif method == "fft":
+        eps = 1e-12
+        G = 1.0 / (H + eps)
     else:
-        #!
-        # If xkernel is a single point, zero_padding does not support it.
-        ykernel_padded = np.pad(filter_y, (0, n_fft - 1), mode="constant")
-        # xkernel at the end is not important.
-        xkernel_padded = x_padded
+        raise ValueError("Unknown method. Use 'wiener' or 'fft'.")
 
-    # Fast Fourier Transforms.
-    x_fft, y_fft = fft1d(x_padded, y_padded, shift=False)
-    _, ykernel_fft = fft1d(xkernel_padded, ykernel_padded, shift=True)
+    # Clamp frequency gain (safety net against spikes)
+    if gain_max is not None and gain_max > 0:
+        mag = np.abs(G)
+        too_big = mag > gain_max
+        if np.any(too_big):
+            G[too_big] *= gain_max / mag[too_big]
 
-    #!
-    # Avoid division by zero.
-    ykernel_fft[np.abs(ykernel_fft) < 1e-12] = 1e-12
+    X = Y * G
+    y_true_pad = np.fft.irfft(X, n=L)[:Npad]
 
-    # Deconvolve.
-    yout_fft = y_fft / ykernel_fft
+    # Extract central segment (same slicing as convolve)
+    y_deconv = y_true_pad[w_left : w_left + N]
 
-    # Inverse Fast Fourier Transform.
-    _, yout = ifft1d(x_fft, yout_fft)
+    # Auto-scale to correct amplitude bias from regularization
+    if auto_scale and method == "wiener" and reg > 0:
+        # Use energy conservation principle for scaling correction
+        # The idea: compare input energy to output energy and adjust
 
-    # Crop output to match input signal size.
-    return x, yout[: x.size]
+        # Calculate RMS (root mean square) of input and output
+        y_rms = np.sqrt(np.mean(y**2)) if len(y) > 0 else 0.0
+        y_deconv_rms = np.sqrt(np.mean(y_deconv**2)) if len(y_deconv) > 0 else 0.0
+
+        if y_rms > 1e-12 and y_deconv_rms > 1e-12:
+            # Calculate the energy-based scaling factor
+            energy_ratio = y_rms / y_deconv_rms
+
+            # Apply scaling if the ratio is reasonable
+            # (regularization typically reduces energy)
+            if 0.5 < energy_ratio < 5.0:  # Conservative bounds
+                y_deconv *= energy_ratio
+
+    return y_deconv
 
 
 @check_1d_arrays(x_evenly_spaced=True)

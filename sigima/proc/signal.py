@@ -2041,10 +2041,11 @@ def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
         Result signal.
     """
     dst = dst_2_to_1(src1, src2, "deconvolution", f"filter={src2.title}")
-    src_x, src_y = src1.get_data()
-    filter_x, filter_y = src2.get_data()
-    result_x, result_y = fourier.deconvolve(src_x, src_y, filter_x, filter_y)
-    dst.set_xydata(result_x, result_y, None, None)
+    x1, y1 = src1.get_data()
+    x2, y2 = src2.get_data()
+    assert np.allclose(x1, x2), "Deconvolution: x axes must be the same."
+    result_y = fourier.deconvolve(x1, y1, y2, reg=2.0, gain_max=None, auto_scale=True)
+    dst.set_xydata(x1, result_y, None, None)
     restore_data_outside_roi(dst, src1)
     return dst
 
