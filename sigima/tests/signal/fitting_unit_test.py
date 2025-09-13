@@ -694,6 +694,45 @@ def test_multilorentzian_double_peak() -> None:
             raise
 
 
+@pytest.mark.validation
+def test_sinusoidal_fit() -> None:
+    """Sinusoidal fitting validation test."""
+    execenv.print("Testing sinusoidal fitting with synthetic data...")
+
+    # Generate synthetic sinusoidal data
+    x = np.linspace(0, 10, 200)
+    amplitude_true = 2.0
+    frequency_true = 1.5  # cycles per unit x
+    phase_true = 0.5  # radians
+    offset_true = 1.0
+
+    # Generate sinusoidal data
+    y = offset_true + amplitude_true * np.sin(
+        2 * np.pi * frequency_true * x + phase_true
+    )
+    y += np.random.normal(0, 0.1, x.size)  # Add small amount of noise
+
+    fitted_y, params = __check_tools_proc_interface(
+        fitting.sinusoidal_fit, sigima.proc.signal.sinusoidal_fit, x, y
+    )
+
+    # Check that fitted curve is reasonable
+    assert isinstance(fitted_y, np.ndarray), "Fitted y should be numpy array"
+    assert fitted_y.shape == y.shape, "Fitted y should have same shape as input"
+
+    # Check parameter structure
+    assert "amplitude" in params, "Should have amplitude parameter"
+    assert "frequency" in params, "Should have frequency parameter"
+    assert "phase" in params, "Should have phase parameter"
+    assert "offset" in params, "Should have offset parameter"
+
+    # Parameters should be reasonable (within factor of 2 of true values)
+    assert 0.5 * amplitude_true < params["amplitude"] < 2 * amplitude_true
+    assert 0.5 * frequency_true < params["frequency"] < 2 * frequency_true
+    assert -np.pi < params["phase"] < np.pi  # Phase should be within -π to π
+    assert 0.5 * offset_true < params["offset"] < 2 * offset_true
+
+
 def test_fitting_error_handling() -> None:
     """Test error handling in fitting functions."""
     execenv.print("Testing fitting error handling...")
@@ -790,6 +829,7 @@ if __name__ == "__main__":
     test_multigaussian_double_peak()
     test_multilorentzian_single_peak()
     test_multilorentzian_double_peak()
+    test_sinusoidal_fit()
     test_fitting_error_handling()
     test_fitting_functions_available()
     test_fitting_user_experience()
