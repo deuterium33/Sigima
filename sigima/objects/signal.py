@@ -905,6 +905,9 @@ class BasePeriodicParam(NewSignalParam):
         """Return frequency in Hz"""
         return FreqUnits.convert_in_hz(self.freq, self.freq_unit)
 
+    # Redefining some parameters with more appropriate defaults
+    xunit = gds.StringItem(_("X unit"), default="s")
+
     a = gds.FloatItem(_("Amplitude"), default=1.0)
     offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
     freq = gds.FloatItem(_("Frequency"), default=1.0)
