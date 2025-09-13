@@ -4,10 +4,11 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 import scipy.signal as sps
 
-from sigima.objects import create_image_from_param
+from sigima.objects import create_image, create_image_from_param
 from sigima.objects.image import Gauss2DParam, ImageObj, Zeros2DParam
 from sigima.proc.image.mathops import convolution, deconvolution
 from sigima.tests import guiutils
@@ -15,7 +16,15 @@ from sigima.tests.helpers import check_array_result
 from sigima.tools.image import deconvolve
 
 
-def _generate_image(size: int = 16) -> ImageObj:
+def _generate_rectangle_image(title: str = "Rectangle", size: int = 32) -> ImageObj:
+    """Generate a test square image with a rectangle in the center."""
+    data = np.zeros((size, size), dtype=np.float64)
+    data[size // 5 : 2 * size // 5, size // 7 : 5 * size // 7] = 1.0
+    img = create_image(title, data)
+    return img
+
+
+def _generate_image(size: int = 32) -> ImageObj:
     """Generate a test square image.
 
     Args:
@@ -29,42 +38,99 @@ def _generate_image(size: int = 16) -> ImageObj:
     return gauss_img
 
 
-@pytest.mark.validation
-def test_image_convolution() -> None:
-    """Validation test for the image convolution processing."""
-    size = 32
-    src1 = _generate_image(size)
-    assert src1.data is not None
-    src2 = create_image_from_param(
-        Gauss2DParam.create(height=size, width=size, sigma=10.0)
+def _generate_gaussian_kernel(size: int = 32, sigma: float = 1.0) -> ImageObj:
+    """Generate a Gaussian kernel image.
+
+    Args:
+        size: The dimension of the square kernel to generate.
+        sigma: The standard deviation of the Gaussian.
+
+    Returns:
+        An image object.
+    """
+    kernel = create_image_from_param(
+        Gauss2DParam.create(height=size, width=size, sigma=sigma)
     )
-    assert src2.data is not None
-    dst = convolution(src1, src2)
-    assert dst.data is not None
-    exp = sps.convolve(src1.data, src2.data, mode="same", method="auto")
-    check_array_result("Convolution", dst.data, exp)
+    return kernel
 
 
-@pytest.mark.validation
-def test_image_deconvolution() -> None:
-    """Validation test for image deconvolution."""
-    size = 32
-    src = _generate_image(size)
-    assert src.data is not None
-    # Identity kernel.
+def _generate_identity_kernel(size: int = 7) -> ImageObj:
+    """Generate an identity kernel image.
+
+    Args:
+        size: The dimension of the square kernel to generate (must be odd).
+
+    Returns:
+        An image object.
+    """
+    assert size % 2 == 1, "Identity kernel size must be odd."
     kernel = create_image_from_param(Zeros2DParam.create(height=size, width=size))
     assert kernel.data is not None
-    kernel.data[0, 0] = 1.0
-    # Deconvolve the image.
-    result = deconvolution(src, kernel)
-    assert result.data is not None
-    # View the images.
+    kernel.data[size // 2, size // 2] = 1.0
+    return kernel
+
+
+def __convolve_image(kernel: ImageObj, size: int = 32) -> tuple[ImageObj, ImageObj]:
+    """Generate a test image and its convolution with a Gaussian kernel.
+
+    Returns:
+        A tuple (source image, kernel, convolved image).
+    """
+    original = _generate_rectangle_image(size=size)
+    assert original.data is not None
+    convolved = convolution(original, kernel)
+    assert convolved.data is not None
+    return original, convolved
+
+
+@pytest.mark.validation
+def test_image_convolution(size: int = 32) -> None:
+    """Validation test for the image convolution processing."""
+    # Test with a Gaussian kernel.
+    kernel = _generate_gaussian_kernel(size=size, sigma=1.0)
+    original, convolved = __convolve_image(kernel, size=size)
+    exp = sps.convolve(original.data, kernel.data, mode="same", method="auto")
+    check_array_result("Convolution", convolved.data, exp)
     guiutils.view_images_side_by_side_if_gui(
-        [src, kernel, result],
-        ["Original", "Kernel", "Deconvolved"],
+        [original, kernel, convolved],
+        ["Original", "Kernel", "Convolved"],
+        title="Image Convolution Test: Gaussian Kernel",
     )
-    # The deconvolution should be identical to the source.
-    check_array_result("Computation image deconvolve test", result.data, src.data)
+    # Test with an identity kernel.
+    kernel = _generate_identity_kernel(size=7)
+    original, convolved = __convolve_image(kernel, size=size)
+    # check_array_result("Convolution identity", convolved.data, original.data)
+    guiutils.view_images_side_by_side_if_gui(
+        [original, kernel, convolved],
+        ["Original", "Kernel", "Convolved"],
+        title="Image Convolution Test: Identity Kernel",
+    )
+
+
+@pytest.mark.validation
+def test_image_deconvolution(size: int = 32) -> None:
+    """Validation test for image deconvolution."""
+    # Test with an identity kernel.
+    kernel = _generate_identity_kernel(size=31)
+    original, convolved = __convolve_image(kernel, size=size)
+    deconvolved = deconvolution(convolved, kernel)
+    guiutils.view_images_side_by_side_if_gui(
+        [original, kernel, convolved, deconvolved],
+        ["Original", "Kernel", "Convolved", "Deconvolved"],
+        title="Image Deconvolution Test: Identity Kernel",
+    )
+    check_array_result("Deconvolution identity", deconvolved.data, original.data)
+
+    # # Test with a Gaussian kernel.
+    kernel = _generate_gaussian_kernel(size=31, sigma=1.0)
+    original, convolved = __convolve_image(kernel, size=64)
+    deconvolved = deconvolution(convolved, kernel)
+    # check_array_result("Deconvolution Gaussian", deconvolved.data, original.data)
+    guiutils.view_images_side_by_side_if_gui(
+        [original, kernel, convolved, deconvolved],
+        ["Original", "Kernel", "Convolved", "Deconvolved"],
+        title="Image Deconvolution Test: Gaussian Kernel",
+    )
 
 
 def test_tools_image_deconvolve_null_kernel() -> None:
@@ -80,5 +146,6 @@ def test_tools_image_deconvolve_null_kernel() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
+    test_image_convolution()
     test_image_deconvolution()
     test_tools_image_deconvolve_null_kernel()

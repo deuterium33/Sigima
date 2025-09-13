@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 import numpy as np
@@ -234,47 +235,76 @@ def gaussian_freq_filter(
     return zout.real
 
 
-def deconvolve(z: np.ndarray, zkernel: np.ndarray) -> np.ndarray:
-    """Perform deconvolution in the frequency-domain.
+@check_2d_array(non_constant=True)
+def deconvolve(
+    data: np.ndarray,
+    kernel: np.ndarray,
+    reg: float = 0.0,
+    boundary: str = "edge",
+) -> np.ndarray:
+    """
+    Perform 2D FFT deconvolution with correct 'same' geometry (no shift).
+
+    The kernel (PSF) must be centered (impulse at center for identity kernel).
+    Odd kernel sizes are recommended.
 
     Args:
-        z: Z data of the input image.
-        zkernel: Z data of the kernel.
+        data: Input image (2D array).
+        kernel: Point Spread Function (PSF), centered.
+        reg: Regularization parameter (if >0, Wiener/Tikhonov inverse:
+         H* / (|H|^2 + reg)).
+        boundary: Padding mode ('edge' for constant plateau,
+         'reflect' for symmetric mirror).
 
     Returns:
-        Deconvolved image data.
+        Deconvolved image (same shape as input).
 
     Raises:
-        ValueError: If the deconvolution kernel is null.
+        ValueError: If kernel is empty or null.
     """
-    if np.all(zkernel == 0):
+    if kernel.size == 0 or not np.any(kernel):
         raise ValueError("Deconvolution kernel cannot be null.")
 
-    # Zero-pad data and kernel to the same shape.
-    nrows = z.shape[0] + zkernel.shape[0] - 1
-    ncols = z.shape[1] + zkernel.shape[1] - 1
-    z_padded = zero_padding(z, nrows - z.shape[0], ncols - z.shape[1])
-    zkernel_padded = zero_padding(
-        zkernel, nrows - zkernel.shape[0], ncols - zkernel.shape[1]
-    )
-    # Fast Fourier Transforms.
-    z_fft = fft2d(z_padded, shift=False)
-    zkernel_fft = fft2d(zkernel_padded, shift=True)
+    H, W = data.shape
+    kh, kw = kernel.shape
 
-    # !
-    # Avoid division by zero.
-    zkernel_fft[np.abs(zkernel_fft) < 1e-12] = 1e-12
+    if kh % 2 == 0 or kw % 2 == 0:
+        # Warning for even-sized kernels (off-by-one in centered FFT)
+        warnings.warn(
+            "Deconvolution kernel should have odd dimensions for centered FFT."
+        )
 
-    # Deconvolve.
-    zout_fft = z_fft / zkernel_fft
+    # Symmetric padding for centered 'same' convolution
+    top = kh // 2
+    bottom = kh - 1 - top
+    left = kw // 2
+    right = kw - 1 - left
+    data_pad = np.pad(data, ((top, bottom), (left, right)), mode=boundary)
+    Hp, Wp = data_pad.shape  # = H+kh-1, W+kw-1
 
-    # Inverse Fast Fourier Transform.
-    zout = ifft2d(zout_fft, shift=False).real
+    # Centered PSF to OTF conversion (avoid off-by-one for even sizes)
+    kernel_pad = np.zeros_like(data_pad, dtype=float)
+    r0 = Hp // 2 - kh // 2
+    c0 = Wp // 2 - kw // 2
+    kernel_pad[r0 : r0 + kh, c0 : c0 + kw] = kernel
+    H_otf = np.fft.fft2(np.fft.ifftshift(kernel_pad))  # center → (0,0)
 
-    # Crop to inital size.
-    zout = zout[: z.shape[0], : z.shape[1]]
+    # FFT of padded image (no shift)
+    Z = np.fft.fft2(data_pad)
 
-    return zout
+    # Frequency domain inversion
+    if reg > 0.0:
+        Hc = np.conj(H_otf)
+        X = Z * Hc / (np.abs(H_otf) ** 2 + float(reg))
+    else:
+        eps = 1e-12
+        X = Z / (H_otf + eps)
+
+    data_true_pad = np.fft.ifft2(X).real
+
+    # Central crop to restore original geometry
+    out = data_true_pad[top : top + H, left : left + W]
+    return out
 
 
 # MARK: Binning ------------------------------------------------------------------------
