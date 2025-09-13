@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-11 10:40+0200\n"
+"POT-Creation-Date: 2025-09-13 09:26+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -387,11 +387,23 @@ msgstr "Personnalisé"
 msgid "Untitled signal"
 msgstr "Signal sans titre"
 
-msgid "Signal size (total number of points)"
-msgstr "Nombre de points"
+msgid "N<sub>points</sub>"
+msgstr "N<sub>points</sub>"
 
-msgid "Size"
-msgstr "Taille"
+msgid "Total number of points in the signal"
+msgstr "Nombre total de points dans le signal"
+
+msgid "X label"
+msgstr "Titre X"
+
+msgid "Y label"
+msgstr "Titre Y"
+
+msgid "X unit"
+msgstr "Unité X"
+
+msgid "Y unit"
+msgstr "Unité Y"
 
 msgid "Temperature"
 msgstr "Température"
@@ -1176,6 +1188,9 @@ msgstr "Contraste"
 msgid "X at min/max"
 msgstr "X à min/max"
 
+msgid "Size"
+msgstr "Taille"
+
 msgid "Number"
 msgstr "Nombre"
 
@@ -1214,4 +1229,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

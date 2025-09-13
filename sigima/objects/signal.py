@@ -568,16 +568,25 @@ class NewSignalParam(gds.DataSet):
     SIZE_RANGE_ACTIVATION_FLAG = True
 
     _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
+    _grp = gds.BeginGroup("")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
+    size = gds.IntItem(
+        _("N<sub>points</sub>"),
+        help=_("Total number of points in the signal"),
+        min=1,
+        default=500,
+    ).set_prop("display", active=_size_range)
     xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_prop(
         "display", active=_size_range
     )
     xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop(
         "display", active=_size_range, col=1
     )
-    size = gds.IntItem(
-        _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
-    ).set_prop("display", active=_size_range)
+    xlabel = gds.StringItem(_("X label"), default="")
+    ylabel = gds.StringItem(_("Y label"), default="").set_prop("display", col=1)
+    xunit = gds.StringItem(_("X unit"), default="")
+    yunit = gds.StringItem(_("Y unit"), default="").set_prop("display", col=1)
+    _e_grp = gds.EndGroup("")
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -1329,5 +1338,11 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     gen_title = param.generate_title()
     if gen_title:
         title = gen_title if param.title == DEFAULT_TITLE else param.title
-    signal = create_signal(title, x, y)
+    signal = create_signal(
+        title,
+        x,
+        y,
+        units=(param.xunit, param.yunit),
+        labels=(param.xlabel, param.ylabel),
+    )
     return signal
