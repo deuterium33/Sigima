@@ -142,6 +142,55 @@ def test_signal_linear_fit() -> None:
 
 
 @pytest.mark.validation
+def test_polynomial_fit() -> None:
+    """Polynomial fitting validation test."""
+    execenv.print("Testing polynomial fitting with perfect synthetic data...")
+
+    # Generate perfect quadratic data
+    x = np.linspace(-5, 5, 100)
+    a_true, b_true, c_true = 1.0, -2.0, 1.0
+    y = a_true * x**2 + b_true * x + c_true
+
+    fitted_y, params = fitting.polynomial_fit(x, y, degree=2)
+    check_scalar_result("Polynomial fit a", params["a"], a_true, rtol=1e-10)
+    check_scalar_result("Polynomial fit b", params["b"], b_true, rtol=1e-10)
+    check_scalar_result("Polynomial fit c", params["c"], c_true, rtol=1e-10)
+    check_array_result("Polynomial fit y-values", fitted_y, y, rtol=1e-10)
+
+    execenv.print("Testing polynomial fitting with noisy synthetic data...")
+
+    # Set random seed for reproducible tests
+    np.random.seed(123)
+
+    x = np.linspace(-5, 5, 100)
+    a_true, b_true, c_true = 1.0, -2.0, 1.0
+    y_clean = a_true * x**2 + b_true * x + c_true
+    noise = np.random.normal(0, 2.0, len(x))
+    y = y_clean + noise
+
+    # Test tools interface
+    fitted_y_tools, params_tools = fitting.polynomial_fit(x, y, degree=2)
+
+    # Test proc interface (needs PolynomialFitParam)
+    src = sigima.objects.create_signal("Test data", x, y)
+    poly_param = sigima.proc.signal.PolynomialFitParam()
+    poly_param.degree = 2
+    dst = sigima.proc.signal.polynomial_fit(src, poly_param)
+    fitted_y = dst.y
+    params = dst.metadata["fit_params"]
+
+    # Check that both interfaces give similar results
+    check_array_result(
+        "polynomial_fit-proc interface", fitted_y, fitted_y_tools, rtol=1e-10
+    )
+    guiutils.view_curves_if_gui([src, dst], title="Test polynomial_fit")
+    # With noise, we expect reasonable accuracy
+    assert np.abs(params["a"] - a_true) < 0.1, "Coefficient a should be accurate"
+    assert np.abs(params["b"] - b_true) < 0.2, "Coefficient b should be accurate"
+    assert np.abs(params["c"] - c_true) < 0.5, "Coefficient c should be accurate"
+
+
+@pytest.mark.validation
 def test_signal_gaussian_fit() -> None:
     """Gaussian fitting validation test."""
     execenv.print("Testing Gaussian fitting with perfect synthetic data...")
@@ -815,7 +864,8 @@ def test_fitting_user_experience() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_signal_linear_fit()
+    # test_signal_linear_fit()
+    test_polynomial_fit()
     test_signal_gaussian_fit()
     test_signal_lorentzian_fit()
     test_signal_voigt_fit()

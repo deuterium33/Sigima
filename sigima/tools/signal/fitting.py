@@ -13,6 +13,7 @@ providing the core fitting algorithms without PlotPy GUI components.
 
 from __future__ import annotations
 
+import string
 import warnings
 from typing import Type
 
@@ -163,17 +164,25 @@ class PolynomialFitComputer(FitComputer):
 
     def get_params_names(self) -> tuple[str]:
         """Return the names of the parameters used in this fit."""
-        return tuple(f"a{i}" for i in range(self.degree, -1, -1))
+        return tuple(string.ascii_lowercase[: self.degree + 1])
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, *coeffs: float) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate polynomial function at given x values."""
+        # Convert parameters to coefficient array in numpy polyval order
+        # (highest to lowest)
+        param_names = sorted(params.keys())  # Get parameter names in order
+        degree = len(param_names) - 1
+        coeffs = [params[letter] for letter in string.ascii_lowercase[: degree + 1]]
         return np.polyval(coeffs, x)
 
     def compute_initial_params(self) -> dict[str, float]:
         """Compute initial parameters for polynomial fitting using numpy polyfit."""
         coeffs = np.polyfit(self.x, self.y, self.degree)
-        return {f"a{i}": coeff for i, coeff in enumerate(reversed(coeffs))}
+        param_names = self.get_params_names()
+
+        # Map numpy polyfit coefficients (highest to lowest degree) to parameter names
+        return {name: coeff for name, coeff in zip(param_names, coeffs)}
 
 
 class GaussianFitComputer(FitComputer):
