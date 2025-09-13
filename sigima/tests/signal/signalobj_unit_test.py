@@ -174,7 +174,118 @@ def test_create_signal() -> None:
     execenv.print(f"{test_create_signal.__doc__}: OK")
 
 
+def test_create_signal_from_param() -> None:
+    """Test creation of a signal object using `create_signal_from_param` function"""
+    execenv.print(f"{test_create_signal_from_param.__doc__}:")
+
+    # Test with different signal parameter types
+    test_cases = [
+        # Basic periodic functions
+        (sigima.objects.SinusParam, "sinus"),
+        (sigima.objects.CosinusParam, "cosinus"),
+        (sigima.objects.SawtoothParam, "sawtooth"),
+        (sigima.objects.TriangleParam, "triangle"),
+        (sigima.objects.SquareParam, "square"),
+        (sigima.objects.SincParam, "sinc"),
+        # Mathematical functions
+        (sigima.objects.GaussParam, "gaussian"),
+        (sigima.objects.LorentzParam, "lorentzian"),
+        (sigima.objects.ExponentialParam, "exponential"),
+        (sigima.objects.LogisticParam, "logistic"),
+        (sigima.objects.LinearChirpParam, "linear_chirp"),
+        (sigima.objects.StepParam, "step"),
+        (sigima.objects.PulseParam, "pulse"),
+        (sigima.objects.PolyParam, "polynomial"),
+        # Noise and random signals
+        (sigima.objects.NormalDistribution1DParam, "normal_noise"),
+        (sigima.objects.PoissonDistribution1DParam, "poisson_noise"),
+        (sigima.objects.UniformDistribution1DParam, "uniform_noise"),
+        (sigima.objects.ZerosParam, "zeros"),
+        # Other signals
+        (sigima.objects.CustomSignalParam, "custom"),
+        (sigima.objects.VoigtParam, "voigt"),
+        (sigima.objects.PlanckParam, "planck"),
+    ]
+
+    # Raise an exception if sigima.objects.signal contain *Param classes not listed here
+    param_classes = {cls: name for cls, name in test_cases}
+    for attr_name in dir(sigima.objects):
+        attr = getattr(sigima.objects, attr_name)
+        if (
+            isinstance(attr, type)
+            and issubclass(attr, sigima.objects.NewSignalParam)
+            and attr is not sigima.objects.NewSignalParam
+            and attr is not sigima.objects.CustomSignalParam
+            and attr not in param_classes
+        ):
+            raise AssertionError(f"Missing test case for {attr.__name__}")
+
+    for param_class, name in test_cases:
+        # Create parameter instance with default values
+        param = param_class.create(size=100, xmin=1.0, xmax=10.0)
+        param.title = f"Test {name} signal"
+
+        # Test the function
+        signal = sigima.objects.create_signal_from_param(param)
+
+        # Verify the returned object
+        assert isinstance(signal, sigima.objects.SignalObj), (
+            f"Expected SignalObj, got {type(signal)} for {name}"
+        )
+        assert signal.title == f"Test {name} signal", (
+            f"Title mismatch for {name}: expected 'Test {name} signal', "
+            f"got '{signal.title}'"
+        )
+        assert signal.x is not None, f"X data is None for {name}"
+        assert signal.y is not None, f"Y data is None for {name}"
+        assert len(signal.x) == 100, f"X length mismatch for {name}"
+        assert len(signal.y) == 100, f"Y length mismatch for {name}"
+        assert isinstance(signal.x, np.ndarray), f"X is not ndarray for {name}"
+        assert isinstance(signal.y, np.ndarray), f"Y is not ndarray for {name}"
+
+        execenv.print(f"  Created {name} signal: OK")
+
+    # Test with custom parameters and title generation
+    param = sigima.objects.GaussParam.create(size=50, xmin=-5.0, xmax=5.0)
+    param.title = ""  # Empty title should trigger automatic numbering
+    signal = sigima.objects.create_signal_from_param(param)
+
+    assert signal.title != "", "Empty title should be replaced"
+
+    # Test parameter validation with units and labels
+    param = sigima.objects.SinusParam()
+    param.title = "Sine wave test"
+    # xunit is set by default to "s" in SinusParam
+    assert param.xunit == "s"
+    param.yunit = "V"
+    param.xlabel = "Time"
+    param.ylabel = "Amplitude"
+
+    signal = sigima.objects.create_signal_from_param(param)
+
+    expected_xunit = "s"
+    assert signal.xunit == expected_xunit, (
+        f"X unit mismatch: expected '{expected_xunit}', got '{signal.xunit}'"
+    )
+    expected_yunit = "V"
+    assert signal.yunit == expected_yunit, (
+        f"Y unit mismatch: expected '{expected_yunit}', got '{signal.yunit}'"
+    )
+    expected_xlabel = "Time"
+    assert signal.xlabel == expected_xlabel, (
+        f"X label mismatch: expected '{expected_xlabel}', got '{signal.xlabel}'"
+    )
+    expected_ylabel = "Amplitude"
+    assert signal.ylabel == expected_ylabel, (
+        f"Y label mismatch: expected '{expected_ylabel}', got '{signal.ylabel}'"
+    )
+
+    execenv.print(f"{test_create_signal_from_param.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_signal_parameters_interactive()
     test_all_signal_types()
     test_hdf5_signal_io()
+    test_create_signal()
+    test_create_signal_from_param()

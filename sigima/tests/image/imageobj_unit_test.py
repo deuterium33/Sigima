@@ -176,8 +176,126 @@ def test_create_image() -> None:
     execenv.print(f"{test_create_image.__doc__}: OK")
 
 
+def test_create_image_from_param() -> None:
+    """Test creation of an image object using `create_image_from_param` function"""
+    execenv.print(f"{test_create_image_from_param.__doc__}:")
+
+    # Test 1: Basic parameter with defaults
+    param = sigima.objects.NewImageParam()
+    param.title = "Test Image"
+    param.height = 100
+    param.width = 200
+    param.dtype = sigima.objects.ImageDatatypes.UINT16
+
+    image = sigima.objects.create_image_from_param(param)
+    assert isinstance(image, sigima.objects.ImageObj)
+    assert image.title == "Test Image"
+    assert image.data is not None
+    assert image.data.shape == (100, 200)
+    assert image.data.dtype == np.uint16
+    assert (image.data == 0).all()  # NewImageParam generates zeros by default
+
+    # Test 2: Parameter with default values (no explicit setting)
+    param_defaults = sigima.objects.NewImageParam()
+    # Don't set any values, use defaults
+
+    image_defaults = sigima.objects.create_image_from_param(param_defaults)
+    assert isinstance(image_defaults, sigima.objects.ImageObj)
+    assert image_defaults.data is not None
+    assert image_defaults.data.shape == (1024, 1024)  # Default dimensions
+    assert image_defaults.data.dtype == np.float64  # Default dtype from NewImageParam
+
+    # Test 3: Different image types using create_image_parameters
+    test_cases = [
+        (sigima.objects.ImageTypes.ZEROS, sigima.objects.ImageDatatypes.UINT8),
+        (
+            sigima.objects.ImageTypes.UNIFORM_DISTRIBUTION,
+            sigima.objects.ImageDatatypes.FLOAT32,
+        ),
+        (
+            sigima.objects.ImageTypes.NORMAL_DISTRIBUTION,
+            sigima.objects.ImageDatatypes.FLOAT64,
+        ),
+        (sigima.objects.ImageTypes.GAUSS, sigima.objects.ImageDatatypes.UINT16),
+        (sigima.objects.ImageTypes.RAMP, sigima.objects.ImageDatatypes.FLOAT64),
+    ]
+
+    for img_type, dtype in test_cases:
+        param_type = sigima.objects.create_image_parameters(
+            img_type,
+            title=f"Test {img_type.value}",
+            height=50,
+            width=60,
+            idtype=dtype,
+        )
+
+        # Preprocess parameters for specific types
+        preprocess_image_parameters(param_type)
+
+        image_type = sigima.objects.create_image_from_param(param_type)
+        assert isinstance(image_type, sigima.objects.ImageObj)
+        assert image_type.data is not None
+        assert image_type.data.shape == (50, 60)
+        assert image_type.data.dtype == dtype.value
+
+        # Validate image type-specific properties
+        if img_type == sigima.objects.ImageTypes.ZEROS:
+            assert (image_type.data == 0).all()
+        elif img_type == sigima.objects.ImageTypes.UNIFORM_DISTRIBUTION:
+            # Uniform distribution should have varying values
+            assert not (image_type.data == image_type.data[0, 0]).all()
+            assert np.isfinite(image_type.data).all()
+        elif img_type == sigima.objects.ImageTypes.NORMAL_DISTRIBUTION:
+            # Normal distribution should have reasonable values
+            assert not (image_type.data == 0).all()
+            assert np.isfinite(image_type.data).all()
+        elif img_type == sigima.objects.ImageTypes.GAUSS:
+            # 2D Gaussian should have non-zero values
+            assert not (image_type.data == 0).all()
+            assert np.isfinite(image_type.data).all()
+        elif img_type == sigima.objects.ImageTypes.RAMP:
+            # Ramp should have varying values
+            assert not (image_type.data == image_type.data[0, 0]).all()
+            assert np.isfinite(image_type.data).all()
+
+    # Test 4: Gaussian parameters with specific values
+    gauss_param = sigima.objects.Gauss2DParam()
+    gauss_param.title = "Custom Gauss"
+    gauss_param.height = 80
+    gauss_param.width = 80
+    gauss_param.dtype = sigima.objects.ImageDatatypes.FLOAT32
+
+    gauss_image = sigima.objects.create_image_from_param(gauss_param)
+    assert isinstance(gauss_image, sigima.objects.ImageObj)
+    assert gauss_image.title == "Custom Gauss"
+    assert gauss_image.data.shape == (80, 80)
+    assert gauss_image.data.dtype == np.float32
+    # Center should have highest value for Gaussian
+    center_val = gauss_image.data[40, 40]
+    corner_val = gauss_image.data[0, 0]
+    assert center_val > corner_val
+
+    # Test 5: Ramp parameters with specific values
+    ramp_param = sigima.objects.Ramp2DParam()
+    ramp_param.title = "Custom Ramp"
+    ramp_param.height = 60
+    ramp_param.width = 40
+    ramp_param.dtype = sigima.objects.ImageDatatypes.FLOAT64
+
+    ramp_image = sigima.objects.create_image_from_param(ramp_param)
+    assert isinstance(ramp_image, sigima.objects.ImageObj)
+    assert ramp_image.title == "Custom Ramp"
+    assert ramp_image.data.shape == (60, 40)
+    assert ramp_image.data.dtype == np.float64
+    # Ramp should have different values at different positions
+    assert ramp_image.data[0, 0] != ramp_image.data[-1, -1]
+
+    execenv.print(f"{test_create_image_from_param.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_image_parameters_interactive()
     test_all_image_types()
     test_hdf5_image_io()
     test_create_image()
+    test_create_image_from_param()

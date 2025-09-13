@@ -7,7 +7,7 @@ according to their purpose:
 
 - :mod:`sigima.tools.signal.dynamic`: Dynamic parameter extraction
 - :mod:`sigima.tools.signal.features`: Feature extraction algorithms
-- :mod:`sigima.tools.signal.fitmodels`: Curve fitting models
+- :mod:`sigima.tools.signal.pulse`: Curve fitting models
 - :mod:`sigima.tools.signal.fourier`: Fourier analysis algorithms
 - :mod:`sigima.tools.signal.interpolation`: Interpolation algorithms
 - :mod:`sigima.tools.signal.peakdetection`: Peak detection algorithms
@@ -32,7 +32,7 @@ Feature Extraction Algorithms
 Curve Fitting Models
 ^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: sigima.tools.signal.fitmodels
+.. automodule:: sigima.tools.signal.pulse
    :members:
 
 Fourier Analysis Algorithms

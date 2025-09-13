@@ -21,7 +21,7 @@ import scipy.signal as sps
 
 from sigima.config import _
 from sigima.objects import base
-from sigima.tools.signal.fitmodels import GaussianModel, LorentzianModel, VoigtModel
+from sigima.tools.signal.pulse import GaussianModel, LorentzianModel, VoigtModel
 
 
 class ROI1DParam(base.BaseROIParam["SignalObj", "SegmentROI"]):
@@ -567,19 +567,29 @@ class NewSignalParam(gds.DataSet):
 
     SIZE_RANGE_ACTIVATION_FLAG = True
 
-    hide_signal_type = False
-
     _size_range = gds.GetAttrProp("SIZE_RANGE_ACTIVATION_FLAG")
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
+    size = gds.IntItem(
+        _("N<sub>points</sub>"),
+        help=_("Total number of points in the signal"),
+        min=1,
+        default=500,
+    ).set_prop("display", active=_size_range)
     xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_prop(
         "display", active=_size_range
     )
     xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop(
         "display", active=_size_range, col=1
     )
-    size = gds.IntItem(
-        _("Size"), help=_("Signal size (total number of points)"), min=1, default=500
-    ).set_prop("display", active=_size_range)
+    xlabel = gds.StringItem(_("X label"), default="")
+    ylabel = gds.StringItem(_("Y label"), default="").set_prop("display", col=1)
+    xunit = gds.StringItem(_("X unit"), default="")
+    yunit = gds.StringItem(_("Y unit"), default="").set_prop("display", col=1)
+
+    # As it is the last item of the dataset, the separator will be hidden if no other
+    # items are present after it (i.e. when derived classes do not add any new items
+    # or when the NewSignalParam class is used alone).
+    sep = gds.SeparatorItem()
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -897,6 +907,9 @@ class BasePeriodicParam(NewSignalParam):
     def get_frequency_in_hz(self):
         """Return frequency in Hz"""
         return FreqUnits.convert_in_hz(self.freq, self.freq_unit)
+
+    # Redefining some parameters with more appropriate defaults
+    xunit = gds.StringItem(_("X unit"), default="s")
 
     a = gds.FloatItem(_("Amplitude"), default=1.0)
     offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
@@ -1331,5 +1344,11 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     gen_title = param.generate_title()
     if gen_title:
         title = gen_title if param.title == DEFAULT_TITLE else param.title
-    signal = create_signal(title, x, y)
+    signal = create_signal(
+        title,
+        x,
+        y,
+        units=(param.xunit, param.yunit),
+        labels=(param.xlabel, param.ylabel),
+    )
     return signal

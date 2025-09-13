@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 09:48+0200\n"
+"POT-Creation-Date: 2025-09-08 20:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -186,9 +186,6 @@ msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
 
 msgid "New utility functions to generate file basenames."
 msgstr "Nouvelles fonctions utilitaires pour générer des noms de fichiers."
-
-msgid "Deconvolution in the frequency domain."
-msgstr "Déconvolution dans le domaine fréquentiel."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
