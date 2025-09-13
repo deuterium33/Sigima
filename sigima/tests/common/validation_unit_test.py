@@ -42,6 +42,59 @@ def test_validation_statistics() -> None:
         stats.generate_statistics_csv(tmpdir)
 
 
+def test_validation_missing_tests() -> None:
+    """Test that specific computation functions have validation tests.
+
+    This test ensures that specific computation functions (those decorated with
+    @computation_function) have corresponding validation tests
+    marked with @pytest.mark.validation. Currently checking for:
+    - sigima.proc.signal.polynomial_fit
+    - sigima.proc.signal.sinusoidal_fit
+    """
+    # Get all functions marked with @pytest.mark.validation
+    validation_tests = get_validation_tests(tests_pkg)
+
+    # Define the specific functions that should have validation tests
+    required_functions = [
+        ("sigima.proc.signal", "polynomial_fit"),
+        ("sigima.proc.signal", "sinusoidal_fit"),
+    ]
+
+    # Check each required function to see if it has a corresponding validation test
+    missing_validation_tests = []
+
+    for module_name, func_name in required_functions:
+        valid_test_names = generate_valid_test_names_for_function(
+            module_name, func_name
+        )
+
+        # Check if any of the valid test names exist in validation tests
+        has_validation_test = any(
+            test_name in [vt[0] for vt in validation_tests]
+            for test_name in valid_test_names
+        )
+
+        if not has_validation_test:
+            missing_validation_tests.append(f"{module_name}.{func_name}")
+
+    # Report any missing validation tests
+    if missing_validation_tests:
+        error_messages = []
+        error_messages.append(
+            "The following computation functions are missing "
+            "validation tests marked with @pytest.mark.validation:"
+        )
+        for func_name in missing_validation_tests:
+            error_messages.append(f"  - {func_name}")
+        error_messages.append("")
+        error_messages.append(f"Found {len(missing_validation_tests)} missing cases.")
+        error_messages.append(
+            "Please add validation tests for these computation functions."
+        )
+
+        raise AssertionError("\n".join(error_messages))
+
+
 def test_validation_decorator_only_on_computation_functions() -> None:
     """Test that @pytest.mark.validation is only used on computation function tests.
 
@@ -94,4 +147,5 @@ def test_validation_decorator_only_on_computation_functions() -> None:
 
 if __name__ == "__main__":
     test_validation_statistics()
+    test_validation_missing_tests()
     test_validation_decorator_only_on_computation_functions()
