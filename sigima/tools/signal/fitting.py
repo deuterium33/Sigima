@@ -44,7 +44,36 @@ class FitComputer:
             raise ValueError(f"Missing required parameters: {missing}")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def args_kwargs_to_list(cls, *args, **kwargs) -> list[float]:
+        """Convert args and kwargs to a parameter list."""
+        if kwargs and args:
+            raise ValueError("Cannot mix positional and keyword arguments")
+        if cls.PARAMS_NAMES:
+            param_names = cls.PARAMS_NAMES
+        else:
+            if not kwargs:
+                raise ValueError("No parameter names available and no kwargs provided")
+            param_names = cls.infer_param_names_from_kwargs(kwargs)
+        if len(args) > len(param_names):
+            raise ValueError("Too many positional arguments")
+        if args:
+            params = list(args)
+        else:
+            params = []
+            for name in param_names:
+                if name in kwargs:
+                    params.append(kwargs[name])
+                else:
+                    raise ValueError(f"Missing required parameter: {name}")
+        return params
+
+    @classmethod
+    def infer_param_names_from_kwargs(cls, kwargs: dict) -> tuple[str, ...]:
+        """Infer parameter names from kwargs. Override in subclasses if needed."""
+        return tuple(kwargs.keys())
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate the fit function at given x values."""
         raise NotImplementedError("Subclasses must implement evaluate method")
 
@@ -142,9 +171,9 @@ class LinearFitComputer(FitComputer):
     PARAMS_NAMES = ("a", "b")  # slope and intercept
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate linear function at given x values."""
-        a, b = params["a"], params["b"]
+        a, b = cls.args_kwargs_to_list(*args, **kwargs)
         return a * x + b
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -168,13 +197,19 @@ class PolynomialFitComputer(FitComputer):
         return tuple(string.ascii_lowercase[: self.degree + 1])
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def infer_param_names_from_kwargs(cls, kwargs: dict) -> tuple[str, ...]:
+        """Infer parameter names for polynomial from kwargs."""
+        # Parameters are named 'a', 'b', 'c', ... in order
+        param_keys = [k for k in kwargs.keys() if k in string.ascii_lowercase]
+        if not param_keys:
+            raise ValueError("No valid polynomial parameters found")
+        # Sort to ensure correct order (a, b, c, ...)
+        return tuple(sorted(param_keys))
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate polynomial function at given x values."""
-        # Convert parameters to coefficient array in numpy polyval order
-        # (highest to lowest)
-        param_names = sorted(params.keys())  # Get parameter names in order
-        degree = len(param_names) - 1
-        coeffs = [params[letter] for letter in string.ascii_lowercase[: degree + 1]]
+        coeffs = cls.args_kwargs_to_list(*args, **kwargs)
         return np.polyval(coeffs, x)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -192,9 +227,9 @@ class GaussianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Gaussian function at given x values."""
-        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
+        amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.GaussianModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -229,9 +264,9 @@ class LorentzianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Lorentzian function at given x values."""
-        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
+        amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.LorentzianModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -266,9 +301,9 @@ class VoigtFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Voigt function at given x values."""
-        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
+        amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.VoigtModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -302,9 +337,9 @@ class ExponentialFitComputer(FitComputer):
     PARAMS_NAMES = ("a", "b", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate exponential function at given x values."""
-        a, b, y0 = params["a"], params["b"], params["y0"]
+        a, b, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         # Clip b to prevent overflow
         b_clipped = np.clip(b, -50, 50)
         return a * np.exp(b_clipped * x) + y0
@@ -351,7 +386,7 @@ class PlanckianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "x0", "sigma", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Return Planckian fitting function
 
         Args:
@@ -361,7 +396,7 @@ class PlanckianFitComputer(FitComputer):
             sigma: width parameter (larger sigma = wider peak)
             y0: baseline offset
         """
-        amp, x0, sigma, y0 = params["amp"], params["x0"], params["sigma"], params["y0"]
+        amp, x0, sigma, y0 = cls.args_kwargs_to_list(*args, **kwargs)
 
         # Planck-like function with Wien's displacement law behavior
         # The function peaks at approximately x0 when properly parameterized
@@ -454,7 +489,7 @@ class TwoHalfGaussianFitComputer(FitComputer):
     )
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Return two half-Gaussian with separate left/right amplitudes
 
         Args:
@@ -467,9 +502,9 @@ class TwoHalfGaussianFitComputer(FitComputer):
             y0_left: baseline offset for x < x0
             y0_right: baseline offset for x >= x0
         """
-        amp_left, amp_right = params["amp_left"], params["amp_right"]
-        sigma_left, sigma_right = params["sigma_left"], params["sigma_right"]
-        x0, y0_left, y0_right = params["x0"], params["y0_left"], params["y0_right"]
+        amp_left, amp_right, sigma_left, sigma_right, x0, y0_left, y0_right = (
+            cls.args_kwargs_to_list(*args, **kwargs)
+        )
 
         y = np.zeros_like(x)
 
@@ -561,7 +596,7 @@ class DoubleExponentialFitComputer(FitComputer):
     PARAMS_NAMES = ("x_center", "a_left", "b_left", "a_right", "b_right", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Return double exponential fitting function
 
         Args:
@@ -573,9 +608,9 @@ class DoubleExponentialFitComputer(FitComputer):
             b_right: right component time constant coefficient
             y0: baseline offset
         """
-        x_center, y0 = params["x_center"], params["y0"]
-        a_left, b_left = params["a_left"], params["b_left"]
-        a_right, b_right = params["a_right"], params["b_right"]
+        x_center, a_left, b_left, a_right, b_right, y0 = cls.args_kwargs_to_list(
+            *args, **kwargs
+        )
         y = np.zeros_like(x)
         y[x < x_center] = a_left * np.exp(b_left * x[x < x_center]) + y0
         y[x >= x_center] = a_right * np.exp(b_right * x[x >= x_center]) + y0
@@ -660,15 +695,31 @@ class MultiGaussianFitComputer(FitComputer):
         return tuple(names)
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def infer_param_names_from_kwargs(cls, kwargs: dict) -> tuple[str, ...]:
+        """Infer parameter names for multi-gaussian from kwargs."""
+        # Find all amp_X parameters to count peaks
+        amp_params = [k for k in kwargs.keys() if k.startswith("amp_")]
+        n_peaks = len(amp_params)
+        if n_peaks == 0:
+            raise ValueError("No amp parameters found")
+
+        names = []
+        for i in range(1, n_peaks + 1):
+            names.extend([f"amp_{i}", f"sigma_{i}", f"x0_{i}"])
+        names.append("y0")
+        return tuple(names)
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate the fit function at given x values."""
+        paramlist = cls.args_kwargs_to_list(*args, **kwargs)
         # Determine number of peaks from parameter count
-        n_peaks = (len(params) - 1) // 3  # -1 for y0, then divide by 3 params per peak
-        y_result = np.zeros_like(x) + params["y0"]
+        n_peaks = (
+            len(paramlist) - 1
+        ) // 3  # -1 for y0, then divide by 3 params per peak
+        y_result = np.zeros_like(x) + paramlist[-1]
         for i in range(n_peaks):
-            amp = params[f"amp_{i + 1}"]
-            sigma = params[f"sigma_{i + 1}"]
-            x0 = params[f"x0_{i + 1}"]
+            amp, sigma, x0 = paramlist[3 * i : 3 * i + 3]
             y_result += pulse.GaussianModel.func(x, amp, sigma, x0, 0.0)
         return y_result
 
@@ -749,15 +800,31 @@ class MultiLorentzianFitComputer(FitComputer):
         return tuple(names)
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def infer_param_names_from_kwargs(cls, kwargs: dict) -> tuple[str, ...]:
+        """Infer parameter names for multi-lorentzian from kwargs."""
+        # Find all amp_X parameters to count peaks
+        amp_params = [k for k in kwargs.keys() if k.startswith("amp_")]
+        n_peaks = len(amp_params)
+        if n_peaks == 0:
+            raise ValueError("No amp parameters found")
+
+        names = []
+        for i in range(1, n_peaks + 1):
+            names.extend([f"amp_{i}", f"sigma_{i}", f"x0_{i}"])
+        names.append("y0")
+        return tuple(names)
+
+    @classmethod
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate the fit function at given x values."""
+        paramlist = cls.args_kwargs_to_list(*args, **kwargs)
         # Determine number of peaks from parameter count
-        n_peaks = (len(params) - 1) // 3  # -1 for y0, then divide by 3 params per peak
-        y_result = np.zeros_like(x) + params["y0"]
+        n_peaks = (
+            len(paramlist) - 1
+        ) // 3  # -1 for y0, then divide by 3 params per peak
+        y_result = np.zeros_like(x) + paramlist[-1]
         for i in range(n_peaks):
-            amp = params[f"amp_{i + 1}"]
-            sigma = params[f"sigma_{i + 1}"]
-            x0 = params[f"x0_{i + 1}"]
+            amp, sigma, x0 = paramlist[3 * i : 3 * i + 3]
             y_result += pulse.LorentzianModel.func(x, amp, sigma, x0, 0.0)
         return y_result
 
@@ -825,10 +892,9 @@ class SinusoidalFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "frequency", "phase", "offset")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate sinusoidal function at given x values."""
-        amplitude, frequency = params["amplitude"], params["frequency"]
-        phase, offset = params["phase"], params["offset"]
+        amplitude, frequency, phase, offset = cls.args_kwargs_to_list(*args, **kwargs)
         return amplitude * np.sin(2 * np.pi * frequency * x + phase) + offset
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -875,10 +941,9 @@ class CDFFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "mu", "sigma", "baseline")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate CDF function at given x values."""
-        amplitude, mu = params["amplitude"], params["mu"]
-        sigma, baseline = params["sigma"], params["baseline"]
+        amplitude, mu, sigma, baseline = cls.args_kwargs_to_list(*args, **kwargs)
         erf = scipy.special.erf  # pylint: disable=no-member
         return amplitude * erf((x - mu) / (sigma * np.sqrt(2))) + baseline
 
@@ -916,10 +981,9 @@ class SigmoidFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "k", "x0", "offset")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Sigmoid function at given x values."""
-        amplitude, k = params["amplitude"], params["k"]
-        x0, offset = params["x0"], params["offset"]
+        amplitude, k, x0, offset = cls.args_kwargs_to_list(*args, **kwargs)
         return amplitude / (1 + np.exp(-k * (x - x0))) + offset
 
     def compute_initial_params(self) -> dict[str, float]:
