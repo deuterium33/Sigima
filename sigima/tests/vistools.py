@@ -171,7 +171,7 @@ def view_curves(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
     """
-    global STYLE
+    global STYLE  # pylint: disable=global-statement
 
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs

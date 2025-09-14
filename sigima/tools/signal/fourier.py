@@ -5,6 +5,8 @@
 
 """
 
+# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+
 from __future__ import annotations
 
 from typing import Literal

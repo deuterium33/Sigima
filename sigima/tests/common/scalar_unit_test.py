@@ -403,7 +403,7 @@ class MockSignalObj:
         """Return an empty list (no ROIs)."""
         return [None]  # Return [None] to indicate full signal with no ROI
 
-    def get_data(self, roi_index=None):
+    def get_data(self, roi_index=None):  # pylint: disable=unused-argument
         """Return the data array."""
         return self._data
 
@@ -427,6 +427,7 @@ def test_table_result_builder_add_valid_function() -> None:
     assert len(builder.columns) == 1
     assert builder.columns[0][0] == "mean"
     assert builder.columns[0][1] == "Mean Value"
+    # pylint: disable=comparison-with-callable
     assert builder.columns[0][2] == mean_func
 
 
@@ -434,7 +435,7 @@ def test_table_result_builder_add_invalid_name() -> None:
     """Test adding function with invalid name."""
     builder = TableResultBuilder("Test Table")
 
-    def dummy_func(data: np.ndarray) -> float:
+    def dummy_func(data: np.ndarray) -> float:  # pylint: disable=unused-argument
         return 1.0
 
     # Test empty name
@@ -450,7 +451,7 @@ def test_table_result_builder_add_invalid_label() -> None:
     """Test adding function with invalid label."""
     builder = TableResultBuilder("Test Table")
 
-    def dummy_func(data: np.ndarray) -> float:
+    def dummy_func(data: np.ndarray) -> float:  # pylint: disable=unused-argument
         return 1.0
 
     # Test non-string label
@@ -481,6 +482,7 @@ def test_table_result_builder_add_function_wrong_annotation() -> None:
     """Test adding function with wrong parameter annotation."""
     builder = TableResultBuilder("Test Table")
 
+    # pylint: disable=unused-argument
     def wrong_annotation_func(data: str) -> float:  # Should be np.ndarray
         return 1.0
 
@@ -492,6 +494,7 @@ def test_table_result_builder_add_function_wrong_return_annotation() -> None:
     """Test adding function with wrong return annotation."""
     builder = TableResultBuilder("Test Table")
 
+    # pylint: disable=unused-argument
     def wrong_return_func(data: np.ndarray) -> str:  # Should be float or int
         return "test"
 
@@ -540,6 +543,8 @@ def test_table_result_builder_compute_with_roi() -> None:
 
     # Create mock signal object with ROI
     class MockSignalObjWithROI:
+        """Mock signal object with ROI for testing TableResultBuilder."""
+
         def __init__(self, data):
             self._data = data
 
@@ -551,10 +556,9 @@ def test_table_result_builder_compute_with_roi() -> None:
             """Return subset of data based on ROI."""
             if roi_index == 0:
                 return self._data[:2]  # First half
-            elif roi_index == 1:
+            if roi_index == 1:
                 return self._data[2:]  # Second half
-            else:
-                return self._data  # Full data
+            return self._data  # Full data
 
     test_data = np.array([1.0, 2.0, 3.0, 4.0])
     mock_signal = MockSignalObjWithROI(test_data)

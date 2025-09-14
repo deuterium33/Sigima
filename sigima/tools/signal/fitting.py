@@ -78,7 +78,7 @@ class FitComputer:
             tuple: (fitted_y_values, fitted_parameters)
         """
         initial_params = self.compute_initial_params()
-        bounds = self.compute_bounds(**initial_params)
+        bounds = self.compute_bounds(**initial_params)  # pylint: disable=E1128
         if bounds is not None:
             # Convert bounds to scipy format
             lower_bounds = [b[0] for b in bounds]
@@ -142,8 +142,9 @@ class LinearFitComputer(FitComputer):
     PARAMS_NAMES = ("a", "b")  # slope and intercept
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, a: float, b: float) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate linear function at given x values."""
+        a, b = params["a"], params["b"]
         return a * x + b
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -182,7 +183,7 @@ class PolynomialFitComputer(FitComputer):
         param_names = self.get_params_names()
 
         # Map numpy polyfit coefficients (highest to lowest degree) to parameter names
-        return {name: coeff for name, coeff in zip(param_names, coeffs)}
+        return dict(zip(param_names, coeffs))
 
 
 class GaussianFitComputer(FitComputer):
@@ -191,10 +192,9 @@ class GaussianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate Gaussian function at given x values."""
+        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
         return pulse.GaussianModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -229,10 +229,9 @@ class LorentzianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate Lorentzian function at given x values."""
+        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
         return pulse.LorentzianModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -267,10 +266,9 @@ class VoigtFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "sigma", "x0", "y0")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amp: float, sigma: float, x0: float, y0: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate Voigt function at given x values."""
+        amp, sigma, x0, y0 = params["amp"], params["sigma"], params["x0"], params["y0"]
         return pulse.VoigtModel.func(x, amp, sigma, x0, y0)
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -304,8 +302,9 @@ class ExponentialFitComputer(FitComputer):
     PARAMS_NAMES = ("a", "b", "y0")
 
     @classmethod
-    def evaluate(cls, x: np.ndarray, a: float, b: float, y0: float) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate exponential function at given x values."""
+        a, b, y0 = params["a"], params["b"], params["y0"]
         # Clip b to prevent overflow
         b_clipped = np.clip(b, -50, 50)
         return a * np.exp(b_clipped * x) + y0
@@ -352,9 +351,7 @@ class PlanckianFitComputer(FitComputer):
     PARAMS_NAMES = ("amp", "x0", "sigma", "y0")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amp: float, x0: float, sigma: float, y0: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Return Planckian fitting function
 
         Args:
@@ -364,6 +361,8 @@ class PlanckianFitComputer(FitComputer):
             sigma: width parameter (larger sigma = wider peak)
             y0: baseline offset
         """
+        amp, x0, sigma, y0 = params["amp"], params["x0"], params["sigma"], params["y0"]
+
         # Planck-like function with Wien's displacement law behavior
         # The function peaks at approximately x0 when properly parameterized
 
@@ -455,17 +454,7 @@ class TwoHalfGaussianFitComputer(FitComputer):
     )
 
     @classmethod
-    def evaluate(
-        cls,
-        x: np.ndarray,
-        amp_left: float,
-        amp_right: float,
-        sigma_left: float,
-        sigma_right: float,
-        x0: float,
-        y0_left: float,
-        y0_right: float,
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Return two half-Gaussian with separate left/right amplitudes
 
         Args:
@@ -478,6 +467,10 @@ class TwoHalfGaussianFitComputer(FitComputer):
             y0_left: baseline offset for x < x0
             y0_right: baseline offset for x >= x0
         """
+        amp_left, amp_right = params["amp_left"], params["amp_right"]
+        sigma_left, sigma_right = params["sigma_left"], params["sigma_right"]
+        x0, y0_left, y0_right = params["x0"], params["y0_left"], params["y0_right"]
+
         y = np.zeros_like(x)
 
         # Left side (x < x0): use amp_left, sigma_left and y0_left
@@ -568,16 +561,7 @@ class DoubleExponentialFitComputer(FitComputer):
     PARAMS_NAMES = ("x_center", "a_left", "b_left", "a_right", "b_right", "y0")
 
     @classmethod
-    def evaluate(
-        cls,
-        x: np.ndarray,
-        x_center: float,
-        a_left: float,
-        b_left: float,
-        a_right: float,
-        b_right: float,
-        y0: float,
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Return double exponential fitting function
 
         Args:
@@ -589,6 +573,9 @@ class DoubleExponentialFitComputer(FitComputer):
             b_right: right component time constant coefficient
             y0: baseline offset
         """
+        x_center, y0 = params["x_center"], params["y0"]
+        a_left, b_left = params["a_left"], params["b_left"]
+        a_right, b_right = params["a_right"], params["b_right"]
         y = np.zeros_like(x)
         y[x < x_center] = a_left * np.exp(b_left * x[x < x_center]) + y0
         y[x >= x_center] = a_right * np.exp(b_right * x[x >= x_center]) + y0
@@ -621,8 +608,8 @@ class DoubleExponentialFitComputer(FitComputer):
         x_left, y_left = self.x[x_left_mask], self.y[x_left_mask]
         x_right, y_right = self.x[x_right_mask], self.y[x_right_mask]
 
-        left_params = dict(a=0.0, b=0.1, y0=0.0)
-        right_params = dict(a=0.0, b=0.1, y0=0.0)
+        left_params = {"a": 0.0, "b": 0.1, "y0": 0.0}
+        right_params = {"a": 0.0, "b": 0.1, "y0": 0.0}
         if np.any(x_left_mask):
             _y_fitted, left_params = ExponentialFitComputer(x_left, y_left).fit()
         if np.any(x_right_mask):
@@ -838,15 +825,10 @@ class SinusoidalFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "frequency", "phase", "offset")
 
     @classmethod
-    def evaluate(
-        cls,
-        x: np.ndarray,
-        amplitude: float,
-        frequency: float,
-        phase: float,
-        offset: float,
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate sinusoidal function at given x values."""
+        amplitude, frequency = params["amplitude"], params["frequency"]
+        phase, offset = params["phase"], params["offset"]
         return amplitude * np.sin(2 * np.pi * frequency * x + phase) + offset
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -893,11 +875,12 @@ class CDFFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "mu", "sigma", "baseline")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amplitude: float, mu: float, sigma: float, baseline: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate CDF function at given x values."""
-        return amplitude * scipy.special.erf((x - mu) / (sigma * np.sqrt(2))) + baseline
+        amplitude, mu = params["amplitude"], params["mu"]
+        sigma, baseline = params["sigma"], params["baseline"]
+        erf = scipy.special.erf  # pylint: disable=no-member
+        return amplitude * erf((x - mu) / (sigma * np.sqrt(2))) + baseline
 
     def compute_initial_params(self) -> dict[str, float]:
         """Compute initial parameters for CDF fitting."""
@@ -933,10 +916,10 @@ class SigmoidFitComputer(FitComputer):
     PARAMS_NAMES = ("amplitude", "k", "x0", "offset")
 
     @classmethod
-    def evaluate(
-        cls, x: np.ndarray, amplitude: float, k: float, x0: float, offset: float
-    ) -> np.ndarray:
+    def evaluate(cls, x: np.ndarray, **params) -> np.ndarray:
         """Evaluate Sigmoid function at given x values."""
+        amplitude, k = params["amplitude"], params["k"]
+        x0, offset = params["x0"], params["offset"]
         return amplitude / (1 + np.exp(-k * (x - x0))) + offset
 
     def compute_initial_params(self) -> dict[str, float]:

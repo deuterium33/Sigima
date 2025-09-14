@@ -208,7 +208,7 @@ def test_create_signal_from_param() -> None:
     ]
 
     # Raise an exception if sigima.objects.signal contain *Param classes not listed here
-    param_classes = {cls: name for cls, name in test_cases}
+    param_classes = dict(test_cases)
     for attr_name in dir(sigima.objects):
         attr = getattr(sigima.objects, attr_name)
         if (

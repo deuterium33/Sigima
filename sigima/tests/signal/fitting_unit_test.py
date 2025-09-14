@@ -169,7 +169,7 @@ def test_polynomial_fit() -> None:
     y = y_clean + noise
 
     # Test tools interface
-    fitted_y_tools, params_tools = fitting.polynomial_fit(x, y, degree=2)
+    fitted_y_tools, _params_tools = fitting.polynomial_fit(x, y, degree=2)
 
     # Test proc interface (needs PolynomialFitParam)
     src = sigima.objects.create_signal("Test data", x, y)
@@ -200,7 +200,7 @@ def test_signal_gaussian_fit() -> None:
     # Generate data using the peak amplitude form
     y = peak_amplitude_true * np.exp(-0.5 * ((x - x0_true) / sigma_true) ** 2) + y0_true
 
-    fitted_y, params = fitting.gaussian_fit(x, y)
+    _fitted_y, params = fitting.gaussian_fit(x, y)
 
     # Convert fitted amp to peak amplitude for comparison
     fitted_peak_amplitude = pulse.GaussianModel.amplitude(
@@ -224,7 +224,7 @@ def test_signal_gaussian_fit() -> None:
     noise = np.random.normal(0, 0.05, len(x))
     y = y_clean + noise
 
-    fitted_y, params = __check_tools_proc_interface(
+    _fitted_y, params = __check_tools_proc_interface(
         fitting.gaussian_fit, sigima.proc.signal.gaussian_fit, x, y
     )
     # With noise, expect reasonable accuracy
@@ -244,7 +244,7 @@ def test_signal_lorentzian_fit() -> None:
     y = peak_amplitude_true / (1 + ((x - x0_true) / sigma_true) ** 2) + y0_true
     y += np.random.normal(0, 0.1, len(x))
 
-    fitted_y, params = __check_tools_proc_interface(
+    _fitted_y, params = __check_tools_proc_interface(
         fitting.lorentzian_fit, sigima.proc.signal.lorentzian_fit, x, y
     )
 
@@ -311,7 +311,7 @@ def test_signal_exponential_fit() -> None:
     y = a_true * np.exp(b_true * x) + y0_true
     y += np.random.normal(0, 0.2, len(x))  # Add some noise
 
-    fitted_y, params = __check_tools_proc_interface(
+    _fitted_y, params = __check_tools_proc_interface(
         fitting.exponential_fit, sigima.proc.signal.exponential_fit, x, y
     )
     # Check parameter accuracy
@@ -327,7 +327,7 @@ def test_signal_exponential_fit() -> None:
     a_true, b_true, y0_true = 2.0, 1.5, 0.5
     y = a_true * np.exp(b_true * x) + y0_true
 
-    fitted_y, params = fitting.exponential_fit(x, y)
+    _fitted_y, params = fitting.exponential_fit(x, y)
     # Growth fitting is more challenging due to rapid increase
     assert np.abs(params["b"] - b_true) / b_true < 0.2, (
         "Growth rate should be reasonably accurate"
@@ -354,7 +354,7 @@ def test_signal_doubleexponential_fit() -> None:
         + np.random.normal(0, 0.2, len(x))
     )
 
-    fitted_y, params = __check_tools_proc_interface(
+    fitted_y, _params = __check_tools_proc_interface(
         fitting.doubleexponential_fit, sigima.proc.signal.doubleexponential_fit, x, y
     )
 
@@ -387,7 +387,9 @@ def test_signal_planckian_fit() -> None:
     y0_true = 0.5  # Baseline offset
 
     # Generate true Planckian data using the actual model
-    y = fitting.PlanckianFitComputer.evaluate(x, amp_true, x0_true, sigma_true, y0_true)
+    y = fitting.PlanckianFitComputer.evaluate(
+        x, amp=amp_true, x0=x0_true, sigma=sigma_true, y0=y0_true
+    )
 
     # Add realistic noise (proportional to signal strength)
     noise_level = 0.02 * (np.max(y) - np.min(y))
@@ -458,10 +460,8 @@ def test_signal_cdf_fit() -> None:
     baseline_true = 1.0
 
     # Generate CDF data using error function
-    y = (
-        amplitude_true * scipy.special.erf((x - mu_true) / (sigma_true * np.sqrt(2)))
-        + baseline_true
-    )
+    erf = scipy.special.erf  # pylint: disable=no-member
+    y = amplitude_true * erf((x - mu_true) / (sigma_true * np.sqrt(2))) + baseline_true
     y += np.random.normal(0, 0.05, x.size)  # Add small amount of noise
 
     fitted_y, params = __check_tools_proc_interface(
@@ -551,7 +551,7 @@ def test_signal_twohalfgaussian_fit() -> None:
     y += np.random.normal(0, 0.1, len(x))
 
     # Test the tools layer directly for now
-    fitted_y, params = __check_tools_proc_interface(
+    _fitted_y, params = __check_tools_proc_interface(
         fitting.twohalfgaussian_fit, sigima.proc.signal.twohalfgaussian_fit, x, y
     )
 
