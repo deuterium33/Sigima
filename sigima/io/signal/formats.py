@@ -109,7 +109,7 @@ class CSVSignalFormat(SignalFormatBase):
                 obj.ylabel = ylabel or ""
                 obj.yunit = yunit or ""
                 if header:
-                    obj.set_metadata_option(self.HEADER_KEY, header)
+                    obj.metadata[self.HEADER_KEY] = header
                 objs.append(obj)
             return objs
         return self.create_signals_from(xydata, filename)
@@ -128,7 +128,7 @@ class CSVSignalFormat(SignalFormatBase):
             obj.xunit,
             [obj.ylabel],
             [obj.yunit],
-            obj.get_metadata_option(self.HEADER_KEY, ""),
+            obj.metadata.get(self.HEADER_KEY, ""),
         )
 
 

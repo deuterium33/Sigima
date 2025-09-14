@@ -34,7 +34,7 @@ class SignalFormatBaseMeta(SignalIORegistry, abc.ABCMeta):
 class SignalFormatBase(abc.ABC, FormatBase, metaclass=SignalFormatBaseMeta):
     """Class representing a signal file type"""
 
-    HEADER_KEY = "HEADER"
+    HEADER_KEY = "header"
 
     @staticmethod
     def create_object(filename: str, index: int | None = None) -> SignalObj:
