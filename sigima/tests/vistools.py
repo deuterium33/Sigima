@@ -383,7 +383,7 @@ def view_images(
         # Display real and imaginary parts of complex images.
         assert data is not None
         kwargs = {"interpolation": "nearest", "eliminate_outliers": 0.1}
-        if data.dtype == np.complexfloating:
+        if np.issubdtype(data.dtype, np.complexfloating):
             re_title = f"Re({image_title})" if image_title is not None else "Real"
             im_title = f"Im({image_title})" if image_title is not None else "Imaginary"
             items.append(make.image(data.real, title=re_title, **kwargs))
