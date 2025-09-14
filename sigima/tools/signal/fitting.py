@@ -676,8 +676,10 @@ class DoubleExponentialFitComputer(FitComputer):
         }
 
 
-class MultiGaussianFitComputer(FitComputer):
-    """Multi Gaussian fit computer"""
+class BaseMultiPeakFitComputer(FitComputer):
+    """Base class for multi-peak fit computers"""
+
+    PULSE_MODEL: Type[pulse.PulseFitModel]  # To be defined by subclasses
 
     def __init__(
         self, x: np.ndarray, y: np.ndarray, peak_indices: list[int] | None = None
@@ -720,7 +722,7 @@ class MultiGaussianFitComputer(FitComputer):
         y_result = np.zeros_like(x) + paramlist[-1]
         for i in range(n_peaks):
             amp, sigma, x0 = paramlist[3 * i : 3 * i + 3]
-            y_result += pulse.GaussianModel.func(x, amp, sigma, x0, 0.0)
+            y_result += cls.PULSE_MODEL.func(x, amp, sigma, x0, 0.0)
         return y_result
 
     def compute_initial_params(self) -> dict[str, float]:
@@ -737,112 +739,7 @@ class MultiGaussianFitComputer(FitComputer):
                 iend = len(self.x) - 1
             local_dx = 0.5 * (self.x[iend] - self.x[istart])
             local_dy = np.max(self.y[istart:iend]) - np.min(self.y[istart:iend])
-            amp = pulse.GaussianModel.get_amp_from_amplitude(local_dy, local_dx * 0.1)
-            sigma = local_dx * 0.1
-            x0 = self.x[peak_idx]
-
-            params[f"amp_{i + 1}"] = amp
-            params[f"sigma_{i + 1}"] = sigma
-            params[f"x0_{i + 1}"] = x0
-
-        params["y0"] = np.min(self.y)
-        return params
-
-    def compute_bounds(self, **initial_params) -> list[tuple[float, float]] | None:
-        """Compute parameter bounds for Multi Gaussian fitting."""
-        bounds = []
-        for i, peak_idx in enumerate(self.peak_indices):
-            if i > 0:
-                istart = (self.peak_indices[i - 1] + peak_idx) // 2
-            else:
-                istart = 0
-            if i < len(self.peak_indices) - 1:
-                iend = (self.peak_indices[i + 1] + peak_idx) // 2
-            else:
-                iend = len(self.x) - 1
-            local_dx = 0.5 * (self.x[iend] - self.x[istart])
-            bounds.extend(
-                [
-                    (0.0, initial_params[f"amp_{i + 1}"] * 10.0),  # amp
-                    (local_dx * 0.001, local_dx * 10.0),  # sigma
-                    (self.x[istart], self.x[iend]),  # x0
-                ]
-            )
-        y0 = initial_params["y0"]
-        dy = np.max(self.y) - np.min(self.y)
-        bounds.append((y0 - 0.2 * dy, y0 + 0.2 * dy))
-        return bounds
-
-    def create_params(self, y_fitted: np.ndarray, **params) -> dict[str, float]:
-        """Create a flat fit parameters dictionary."""
-        self.check_params(**params)
-        params["fit_type"] = self.__class__.__name__.replace("FitComputer", "").lower()
-        params["residual_rms"] = np.sqrt(np.mean((self.y - y_fitted) ** 2))
-        return params
-
-
-class MultiLorentzianFitComputer(FitComputer):
-    """Multi Lorentzian fit computer"""
-
-    def __init__(
-        self, x: np.ndarray, y: np.ndarray, peak_indices: list[int] | None = None
-    ) -> None:
-        super().__init__(x, y)
-        self.peak_indices = peak_indices
-
-    def get_params_names(self) -> tuple[str]:
-        """Return the names of the parameters used in this fit."""
-        n_peaks = len(self.peak_indices)
-        names = []
-        for i in range(n_peaks):
-            names.extend([f"amp_{i + 1}", f"sigma_{i + 1}", f"x0_{i + 1}"])
-        names.append("y0")
-        return tuple(names)
-
-    @classmethod
-    def infer_param_names_from_kwargs(cls, kwargs: dict) -> tuple[str, ...]:
-        """Infer parameter names for multi-lorentzian from kwargs."""
-        # Find all amp_X parameters to count peaks
-        amp_params = [k for k in kwargs.keys() if k.startswith("amp_")]
-        n_peaks = len(amp_params)
-        if n_peaks == 0:
-            raise ValueError("No amp parameters found")
-
-        names = []
-        for i in range(1, n_peaks + 1):
-            names.extend([f"amp_{i}", f"sigma_{i}", f"x0_{i}"])
-        names.append("y0")
-        return tuple(names)
-
-    @classmethod
-    def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
-        """Evaluate the fit function at given x values."""
-        paramlist = cls.args_kwargs_to_list(*args, **kwargs)
-        # Determine number of peaks from parameter count
-        n_peaks = (
-            len(paramlist) - 1
-        ) // 3  # -1 for y0, then divide by 3 params per peak
-        y_result = np.zeros_like(x) + paramlist[-1]
-        for i in range(n_peaks):
-            amp, sigma, x0 = paramlist[3 * i : 3 * i + 3]
-            y_result += pulse.LorentzianModel.func(x, amp, sigma, x0, 0.0)
-        return y_result
-
-    def compute_initial_params(self) -> dict[str, float]:
-        """Compute initial parameters for Multi Lorentzian fitting."""
-        params = {}
-        for i, peak_idx in enumerate(self.peak_indices):
-            if i > 0:
-                istart = (self.peak_indices[i - 1] + peak_idx) // 2
-            else:
-                istart = 0
-            if i < len(self.peak_indices) - 1:
-                iend = (self.peak_indices[i + 1] + peak_idx) // 2
-            else:
-                iend = len(self.x) - 1
-            local_dx = 0.5 * (self.x[iend] - self.x[istart])
-            local_dy = np.max(self.y[istart:iend]) - np.min(self.y[istart:iend])
-            amp = pulse.LorentzianModel.get_amp_from_amplitude(local_dy, local_dx * 0.1)
+            amp = self.PULSE_MODEL.get_amp_from_amplitude(local_dy, local_dx * 0.1)
             sigma = local_dx * 0.1
             x0 = self.x[peak_idx]
 
@@ -884,6 +781,18 @@ class MultiLorentzianFitComputer(FitComputer):
         params["fit_type"] = self.__class__.__name__.replace("FitComputer", "").lower()
         params["residual_rms"] = np.sqrt(np.mean((self.y - y_fitted) ** 2))
         return params
+
+
+class MultiGaussianFitComputer(BaseMultiPeakFitComputer):
+    """Multi Gaussian fit computer"""
+
+    PULSE_MODEL = pulse.GaussianModel
+
+
+class MultiLorentzianFitComputer(BaseMultiPeakFitComputer):
+    """Multi Lorentzian fit computer"""
+
+    PULSE_MODEL = pulse.LorentzianModel
 
 
 class SinusoidalFitComputer(FitComputer):
