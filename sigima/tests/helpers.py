@@ -14,6 +14,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+import warnings
 from collections.abc import Callable
 from typing import Any, Generator
 
@@ -350,13 +351,39 @@ def compare_metadata(
     return same
 
 
+def __evaluate_func_safely(func: Callable, fallback: float | int = np.nan) -> Any:
+    """Evaluate function, ignore warnings and exceptions.
+
+    Args:
+        func: function to evaluate
+        fallback: value to return if function raises an exception (default: np.nan)
+
+    Returns:
+        Function result, or fallback value if function raises an exception
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            return func()
+        except Exception:  # pylint: disable=broad-except
+            return fallback
+
+
 def __array_to_str(data: np.ndarray) -> str:
-    """Return a compact description of the array properties"""
+    """Return a compact description of the array properties.
+
+    Args:
+        data: input array
+
+    Returns:
+        String describing array dimensions, dtype, min/max, mean, std, sum
+    """
     dims = "×".join(str(dim) for dim in data.shape)
+    efs = __evaluate_func_safely
     return (
         f"{dims},{data.dtype},"
-        f"{data.min():.2g}→{data.max():.2g},"
-        f"µ={data.mean():.2g},σ={data.std():.2g},∑={data.sum():.2g}"
+        f"{efs(data.min):.2g}→{efs(data.max):.2g},"
+        f"µ={efs(data.mean):.2g},σ={efs(data.std):.2g},∑={efs(data.sum):.2g}"
     )
 
 
