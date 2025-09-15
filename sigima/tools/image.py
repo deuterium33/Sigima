@@ -970,7 +970,6 @@ def find_blobs_opencv(
     Returns:
         Coordinates of blobs
     """
-
     # Note:
     # Importing OpenCV inside the function in order to eventually raise an ImportError
     # when the function is called and OpenCV is not installed. This error will be

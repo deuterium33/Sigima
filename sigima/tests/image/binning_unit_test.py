@@ -74,7 +74,6 @@ def test_binning_interactive() -> None:
 @pytest.mark.validation
 def test_binning() -> None:
     """Validation test for binning computation"""
-
     # Implementation note:
     # ---------------------
     #

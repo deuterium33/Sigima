@@ -24,7 +24,6 @@ def get_integer_datatypes() -> list[ImageDatatypes]:
 
 def test_clip_astype():
     """Test `clip_astype` algorithm"""
-
     # Test that function do nothing for certain data types
     for dtype1 in ImageDatatypes:
         for dtype2 in ImageDatatypes:
