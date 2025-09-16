@@ -1,3 +1,9 @@
+# Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
+
+"""
+Unit tests for I/O conversion functions
+"""
+
 from __future__ import annotations
 
 import numpy as np
@@ -6,12 +12,6 @@ import pytest
 from sigima.io.common.converters import convert_array_to_valid_dtype
 from sigima.objects.image import ImageObj
 from sigima.objects.signal import SignalObj
-
-# Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
-
-"""
-Unit tests for convert_array_to_standard_type function.
-"""
 
 
 def test_convert_array_to_standard_type_int() -> None:
