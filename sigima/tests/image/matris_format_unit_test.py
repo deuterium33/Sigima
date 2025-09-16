@@ -30,7 +30,7 @@ def _data_file(name: str) -> str:
 def test_read_image_basic():
     """Basic test to read a simple matris image file"""
     fmt = MatrisImageFormat()
-    path = _data_file("image.matris")
+    path = _data_file("image.txt")
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
@@ -41,7 +41,7 @@ def test_read_image_basic():
 def test_read_image_with_unit():
     """Test to read a matris image file with units in metadata"""
     fmt = MatrisImageFormat()
-    path = _data_file("image_with_unit.matris")
+    path = _data_file("image_with_unit.txt")
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     img = imgs[0]
@@ -66,7 +66,7 @@ def test_read_image_with_unit():
 def test_read_image_with_nan():
     """Test to read a matris image file with NaN values"""
     fmt = MatrisImageFormat()
-    path = _data_file("image_with_nan.matris")
+    path = _data_file("image_with_nan.txt")
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
@@ -82,7 +82,7 @@ def test_read_image_with_nan():
 def test_read_complex_image_and_error():
     """Test to read a matris complex image file with associated error image"""
     fmt = MatrisImageFormat()
-    path = _data_file("complex_image.matris")
+    path = _data_file("complex_image.txt")
     imgs = fmt.read(path)
     # should return main image and error image
     assert len(imgs) == 2, f"Expected 2 images, got {len(imgs)}"

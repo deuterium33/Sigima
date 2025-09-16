@@ -186,18 +186,23 @@ class TextImageFormat(SingleImageFormatBase):
         Returns:
             List of image objects
         """
-        # Default implementation covers the case of a single image:
-        try:
-            matris_image = MatrisImageFormat()
-            return matris_image.read(filename, worker)
-        except NotMatrisFileError:
-            obj = self.create_object(filename)
-            obj.data = self.read_data(filename)
-            unique_values = np.unique(obj.data)
-            if len(unique_values) == 2:
-                # Binary image: set LUT range to unique values
-                obj.zscalemin, obj.zscalemax = unique_values.tolist()
-            return [obj]
+        # Try to read as Matris format first (for .txt files that might be Matris)
+        if filename.lower().endswith(".txt"):
+            try:
+                matris_format = MatrisImageFormat()
+                return matris_format.read(filename, worker)
+            except NotMatrisFileError:
+                # Not a Matris file, continue with regular text processing
+                pass
+
+        # Read as generic text file
+        obj = self.create_object(filename)
+        obj.data = self.read_data(filename)
+        unique_values = np.unique(obj.data)
+        if len(unique_values) == 2:
+            # Binary image: set LUT range to unique values
+            obj.zscalemin, obj.zscalemax = unique_values.tolist()
+        return [obj]
 
     @staticmethod
     def read_data(filename: str) -> np.ndarray:
@@ -383,70 +388,105 @@ class MatrisImageFormat(ImageFormatBase):
             - Zim Error (value is none)
         """
         metadata = {}
-        generic_metadata_pattern = (
-            r"^([\w+ ]*\w)\s*:\s*([\d]*)?([^\(\)]*)?\s*\(?([^\(\)]*)\)?"
-        )
-        date_time_pattern = r"# Created on (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d+)"
-        software_version_pattern = r"# Using matrislib ([\d\.a-zA-Z-]+)"
-        author_pattern = r"# Created by (.*)"
+
         try:
             with open(filename, encoding="utf-8") as f:
                 for line in f:
-                    # strip initial whitespaces
                     line = line.strip()
                     if not line.startswith("#"):
                         break
+
                     # Remove leading '#' and strip whitespace
-                    line = line[1:].strip()
+                    content = line[1:].strip()
 
-                    if match := re.match(author_pattern, line):
-                        metadata["author"] = (match.group(1).strip(), None)
-                        continue
+                    # Parse specific patterns
+                    parsed = MatrisImageFormat._parse_metadata_line(content)
+                    if parsed:
+                        key, value_unit = parsed
+                        metadata[key] = value_unit
 
-                    if match := re.search(date_time_pattern, line):
-                        date_str = match.group(1)  # "2020-12-03"
-                        time_str = match.group(2)  # "09:35:33.049769"
-                        metadata["creation_date"] = (f"{date_str}", None)
-                        metadata["creation_time"] = (time_str, None)
-                        continue
-
-                    if match := re.search(software_version_pattern, line):
-                        metadata["software_version"] = (
-                            f"matrislib {match.group(1)}",
-                            None,
-                        )
-                        continue
-
-                    # Ensure the line contains a colon for key-value separation
-                    if ":" not in line:
-                        if line.startswith(("Z Error", "Zre Error", "Zim Error")):
-                            # Handle special cases for Z Error
-                            line = line.replace("Error", "Error :", 1)
-                    # Remove Real(...) or Imaginary(...) wrappers if present
-                    line = re.sub(
-                        r"(?:Real|Imaginary)\(([^\)]*)\)", r"\1", line, count=1
-                    )
-                    # Match key : value (possibly with units in parentheses)
-
-                    if match := re.match(generic_metadata_pattern, line):
-                        key = match.group(1).strip()
-
-                        # Determine if value is int, str, or None
-                        if match.group(2) != "":
-                            value = int(match.group(2).strip())
-                        elif match.group(3) != "":
-                            value = match.group(3)
-                        else:
-                            value = None
-                        unit = match.group(4).strip()
-                        if unit == "":
-                            unit = None
-                        metadata[key] = (value, unit)
-
-        except ValueError as exc:
+        except (ValueError, IOError) as exc:
             raise ValueError(f"Could not read metadata from file {filename}") from exc
 
         return metadata
+
+    @staticmethod
+    def _parse_metadata_line(line: str) -> tuple[str, tuple] | None:
+        """Parse a single metadata line into key-value-unit tuple.
+
+        Args:
+            line: Line to parse (without # prefix)
+
+        Returns:
+            Tuple of (key, (value, unit)) or None if not parseable
+        """
+        # Handle special patterns first
+        if match := re.match(r"Created by (.*)", line):
+            return "author", (match.group(1).strip(), None)
+
+        if match := re.match(
+            r"Created on (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d+)", line
+        ):
+            date_str, time_str = match.groups()
+            return "creation_date", (date_str, None)
+            # Note: creation_time is lost in this simplified version
+
+        if match := re.match(r"Using matrislib ([\d\.a-zA-Z-]+)", line):
+            return "software_version", (f"matrislib {match.group(1)}", None)
+
+        # Handle error columns without colons
+        if line.startswith(("Z Error", "Zre Error", "Zim Error")):
+            if ":" not in line:
+                line = line.replace("Error", "Error :", 1)
+
+        # Must contain colon for key-value pairs
+        if ":" not in line:
+            return None
+
+        # Remove Real(...) or Imaginary(...) wrappers
+        line = re.sub(r"(?:Real|Imaginary)\(([^\)]*)\)", r"\1", line)
+
+        # Split on first colon
+        key, rest = line.split(":", 1)
+        key = key.strip()
+        rest = rest.strip()
+
+        # Parse value and unit
+        value, unit = MatrisImageFormat._parse_value_and_unit(rest)
+
+        return key, (value, unit)
+
+    @staticmethod
+    def _parse_value_and_unit(text: str) -> tuple[int | str | None, str | None]:
+        """Parse value and unit from text like 'value (unit)' or just 'value'.
+
+        Args:
+            text: Text to parse
+
+        Returns:
+            Tuple of (value, unit) where value can be int, str, or None
+        """
+        text = text.strip()
+
+        # Extract unit in parentheses if present
+        unit = None
+        if text.endswith(")"):
+            if "(" in text:
+                parts = text.rsplit("(", 1)
+                text = parts[0].strip()
+                unit = parts[1].rstrip(")").strip()
+                if not unit:
+                    unit = None
+
+        # Parse value
+        if not text:
+            value = None
+        elif text.isdigit():
+            value = int(text)
+        else:
+            value = text
+
+        return value, unit
 
     @staticmethod
     def verify_metadata(filename: str, metadata: dict[str, tuple | None]) -> None:
@@ -460,83 +500,115 @@ class MatrisImageFormat(ImageFormatBase):
             metadata: Metadata dictionary parsed from file header.
 
         Raises:
-            SyntaxError: On mutually exclusive or missing field combinations.
-            ValueError: When required fields are missing.
+            NotMatrisFileError: When file is not a valid Matris format.
+            ValueError: When required fields are missing or inconsistent.
         """
-        err = ValueError
-        if "software_version" not in metadata:
-            err = NotMatrisFileError
+        # Check if this is a Matris file by looking for key indicators
+        has_matris_indicators = "software_version" in metadata or (
+            "creation_date" in metadata
+            and any(col in metadata for col in ["X", "Y", "Z", "Zre", "Zim"])
+        )
+
+        if not has_matris_indicators:
+            raise NotMatrisFileError(
+                f"File {filename} does not appear to be a Matris format file "
+                "(missing expected metadata structure)"
+            )
 
         columns_header = [k for k in metadata.keys() if k not in ("nx", "ny")]
 
-        if "Z Error" in columns_header and (
-            "Zre Error" in columns_header or "Zim Error" in columns_header
-        ):
-            raise err(
-                f"File {filename} contains both Z Error and Zre Error/Zim Error"
-                " columns, which is not supported."
+        # Required columns check
+        if "X" not in columns_header or "Y" not in columns_header:
+            raise ValueError(
+                f"File {filename}: Missing required X, Y columns in header"
             )
 
-        one_and_only_one_z = ("Z" in columns_header) ^ (
-            "Zre" in columns_header or "Zim" in columns_header
+        # Z column validation
+        has_z = "Z" in columns_header
+        has_complex = "Zre" in columns_header or "Zim" in columns_header
+
+        if not (has_z or has_complex):
+            raise ValueError(
+                f"File {filename}: Must contain either Z column or Zre/Zim columns"
+            )
+
+        if has_z and has_complex:
+            raise ValueError(
+                f"File {filename}: Cannot contain both Z and Zre/Zim columns"
+            )
+
+        # Complex Z validation
+        if has_complex:
+            if ("Zre" in columns_header) ^ ("Zim" in columns_header):
+                raise ValueError(
+                    f"File {filename}: Both Zre and Zim columns "
+                    f"must be present together"
+                )
+
+        # Error column validation
+        has_z_error = "Z Error" in columns_header
+        has_complex_error = (
+            "Zre Error" in columns_header or "Zim Error" in columns_header
         )
 
-        if one_and_only_one_z is False:
-            raise err(
-                f"File {filename} should contain one and only one "
-                "between both Z and Zre/Zim columns,"
-                " which is not supported."
+        if has_z_error and has_complex_error:
+            raise ValueError(
+                f"File {filename}: Cannot contain both Z Error and "
+                f"Zre Error/Zim Error columns"
             )
 
-        if "X" not in columns_header or "Y" not in columns_header:
-            raise err(
-                f"File {filename} wrong format: X, Y and Z columns should be present"
-            )
-
-        if ("Zre" in columns_header) ^ ("Zim" in columns_header):
-            raise err(
-                f"File {filename} contains only one between Zre/Zim columns,"
-                " which is not supported."
-            )
-        if ("Zre Error" in columns_header) ^ ("Zim Error" in columns_header):
-            raise err(
-                f"File {filename} contains only one between 'Zre Error'/ 'Zim Error'"
-                " columns, which is not supported."
-            )
+        if has_complex_error:
+            if ("Zre Error" in columns_header) ^ ("Zim Error" in columns_header):
+                raise ValueError(
+                    f"File {filename}: Both Zre Error and Zim Error columns "
+                    f"must be present together"
+                )
 
     @staticmethod
     def _try_df_reading(filename: str, columns_header: list[str]) -> pd.DataFrame:
         """Try to read the data file with various parsing options.
+
         Args:
             filename: File name
             columns_header: List of column headers to use when reading the data.
+
         Returns:
             DataFrame containing the image data.
+
         Raises:
             ValueError: If the file cannot be read with any of the tried options.
-        Note:
-            use this function to avoid nested loops with continue and break
-            i.e. see PEP 3136 rejection note (https://peps.python.org/pep-3136/)
         """
-        for encoding in FileEncoding:
-            for decimal in (".", ","):
-                for delimiter in (r"\s+", ",", ";"):
-                    try:
-                        df = pd.read_csv(
-                            filename,
-                            decimal=decimal,
-                            comment="#",
-                            delimiter=delimiter,
-                            encoding=encoding,
-                            names=columns_header,
-                        )
-                        # drop entirely empty columns
-                        # introduced by trailing delimiters
-                        df = df.dropna(axis=1, how="all")
-                        return df
-                    except ValueError:
-                        continue
-        raise ValueError(f"Could not read image data from file {filename}.")
+        # Define parsing configurations to try in order of preference
+        parsing_configs = [
+            (encoding, decimal, delimiter)
+            for encoding in FileEncoding
+            for decimal in (".", ",")
+            for delimiter in (r"\s+", ",", ";")
+        ]
+
+        last_error = None
+        for encoding, decimal, delimiter in parsing_configs:
+            try:
+                df = pd.read_csv(
+                    filename,
+                    decimal=decimal,
+                    comment="#",
+                    delimiter=delimiter,
+                    encoding=encoding,
+                    names=columns_header,
+                )
+                # Drop entirely empty columns introduced by trailing delimiters
+                df = df.dropna(axis=1, how="all")
+                return df
+
+            except (ValueError, UnicodeDecodeError) as exc:
+                last_error = exc
+                continue
+
+        # If we get here, all parsing attempts failed
+        raise ValueError(
+            f"Could not read image data from file {filename}. Last error: {last_error}"
+        ) from last_error
 
     @staticmethod
     def read_data(filename: str, columns_header: list[str]) -> pd.DataFrame:
