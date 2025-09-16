@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def dtypes_to_sorted_short_codes(
-    dtypes: Sequence[Any], keep_only: str = ""
+    dtypes: Sequence[Any], kind_filter: str | None = None
 ) -> list[str]:
     """Return sorted short dtype codes for numeric dtypes.
 
@@ -34,8 +34,8 @@ def dtypes_to_sorted_short_codes(
 
     Args:
         dtypes: Sequence of objects acceptable by numpy.dtype (dtype, str, etc.)
-        keeponly: String of dtype kind letters to keep, e.g. "iu" for
-            unsigned/signed integers. If empty or None, keep all numeric types
+        kind_filter: String of dtype kind letters to keep, e.g. "iu" for
+         unsigned/signed integers. If empty or None, keep all numeric types
 
     Returns:
         List of unique short dtype codes in the requested order.
@@ -43,8 +43,9 @@ def dtypes_to_sorted_short_codes(
     dtypes = [np.dtype(d).str[1:] for d in dtypes]
     ordered: list[np.dtype] = []
 
-    if not keep_only:
-        keep_only = "iubfc"  # all numeric types
+    if kind_filter is None:
+        kind_filter = "iubfc"  # all numeric types
+    assert kind_filter != "", "kind_filter cannot be empty string"
 
     # Standard dtype codes in desired order
     bool_codes = ("b1",)
@@ -55,7 +56,7 @@ def dtypes_to_sorted_short_codes(
     ordered = [
         code
         for code in bool_codes + int_codes + float_codes + complex_codes
-        if code in dtypes and code[0] in keep_only
+        if code in dtypes and code[0] in kind_filter
     ]
     return ordered
 
@@ -84,7 +85,7 @@ def _convert_int_array(
     Raises:
         ValueError: If no supported dtype can represent the data.
     """
-    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, keep_only="iu")
+    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, kind_filter="iu")
 
     amin = np.min(array) if array.size > 0 else 0
     amax = np.max(array) if array.size > 0 else 0
@@ -124,7 +125,7 @@ def _convert_float_array(
 
     itemsize = array.dtype.itemsize
 
-    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, keep_only=kind)
+    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, kind_filter=kind)
 
     # Filter out any codes that don't match the requested kind (defensive).
     valid_codes: list[str] = []
