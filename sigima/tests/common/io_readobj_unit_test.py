@@ -20,7 +20,7 @@ from sigima.tests.env import execenv
 
 def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
     """Read objects from a file"""
-    if "curve_formats" in fname:
+    if "curve" in fname:
         objs = read_signals(fname)
     else:
         objs = read_images(fname)
@@ -45,7 +45,7 @@ def __read_and_view_objs(
         List of ImageObj or SignalObj read from the file.
     """
     objs = __read_objs(fname)
-    guiutils.view_curves_and_images_if_gui(objs, title=title)
+    guiutils.view_curves_and_images_if_gui(objs, title=f"{title} - {fname}")
     return objs
 
 
