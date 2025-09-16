@@ -208,7 +208,4 @@ def to_string(obj: Any) -> str:
             return obj.decode()
         except UnicodeDecodeError:
             return obj.decode("latin-1")
-    try:
-        return str(obj)
-    except UnicodeDecodeError:
-        return str(obj, encoding="latin-1")
+    return str(obj)
