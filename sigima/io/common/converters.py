@@ -8,12 +8,13 @@ I/O conversion functions
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
 import skimage
 
-from sigima.objects.base import BaseObj
+if TYPE_CHECKING:
+    from sigima.objects.base import TypeObj
 
 
 def dtypes_to_sorted_short_codes(
@@ -158,7 +159,7 @@ def _convert_float_array(
 
 
 def convert_array_to_valid_dtype(
-    array: np.ndarray, dest_object_type: type[BaseObj]
+    array: np.ndarray, dest_object_type: TypeObj
 ) -> np.ndarray:
     """Convert an integer array to a standard type.
 
@@ -166,6 +167,7 @@ def convert_array_to_valid_dtype(
 
     Args:
         array: array to convert
+        dest_object_type: destination object type (SignalObj, ImageObj, ...)
 
     Raises:
         ValueError: if array is not of integer type
@@ -176,7 +178,7 @@ def convert_array_to_valid_dtype(
     if not isinstance(array, np.ndarray):
         raise TypeError("Input must be a numpy ndarray.")
 
-    kind = array.dtype.kind
+    kind: str = array.dtype.kind
 
     supported_data_types: tuple[np.dtype, ...] = dest_object_type.VALID_DTYPES
 
