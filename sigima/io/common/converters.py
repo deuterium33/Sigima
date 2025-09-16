@@ -178,18 +178,18 @@ def convert_array_to_valid_dtype(
     if not isinstance(array, np.ndarray):
         raise TypeError("Input must be a numpy ndarray.")
 
-    kind: str = array.dtype.kind
-
     supported_data_types: tuple[np.dtype, ...] = dest_object_type.VALID_DTYPES
-
-    if kind in supported_data_types:
+    if array.dtype in supported_data_types:
         return array
+
+    kind: str = array.dtype.kind
     if kind in ["f", "c"]:
         return _convert_float_array(array, supported_data_types)
     if kind == "b":
         return _convert_bool_array(array)
     if kind in ["i", "u"]:
         return _convert_int_array(array, supported_data_types)
+
     raise ValueError("Unsupported data type")
 
 
