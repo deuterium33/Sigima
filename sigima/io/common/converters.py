@@ -46,20 +46,17 @@ def dtypes_to_sorted_short_codes(
     if not keep_only:
         keep_only = "iubfc"  # all numeric types
 
-    STANDARD_BOOL_CODE = ("b1",)
-    STANDARD_INT_CODES = ("u1", "i1", "u2", "i2", "u4", "i4", "u8", "i8")
-    STANDARD_FLOAT_CODES = ("f2", "f4", "f8")
-    STANDARD_COMPLEX_CODES = ("c8", "c16")
+    # Standard dtype codes in desired order
+    bool_codes = ("b1",)
+    int_codes = ("u1", "i1", "u2", "i2", "u4", "i4", "u8", "i8")
+    float_codes = ("f2", "f4", "f8")
+    complex_codes = ("c8", "c16")
 
     ordered = [
         code
-        for code in STANDARD_BOOL_CODE
-        + STANDARD_INT_CODES
-        + STANDARD_FLOAT_CODES
-        + STANDARD_COMPLEX_CODES
+        for code in bool_codes + int_codes + float_codes + complex_codes
         if code in dtypes and code[0] in keep_only
     ]
-
     return ordered
 
 
