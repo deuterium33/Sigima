@@ -14,7 +14,7 @@ from sigima.objects.signal import create_signal
 from sigima.proc.signal import ParametersParam, SignalObj, get_parameters
 from sigima.tests import guiutils
 from sigima.tests.data import generate_square_signal, generate_step_signal
-from sigima.tests.helpers import check_scalar_result, check_string_result
+from sigima.tests.helpers import check_scalar_result
 from sigima.tools.signal import pulse
 
 
@@ -32,46 +32,37 @@ def test_heuristically_recognize_shape() -> None:
         - Step signal with custom initial and final values.
         - Square signal with custom initial and high values.
 
-    The test uses `check_string_result` to assert that the recognized shape matches the
-    expected result.
     """
     x, y_noisy = generate_step_signal(seed=0)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (4, 8))
-    check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
-
+    assert shape == SignalShape.STEP, f"Expected {SignalShape.STEP}, got {shape}"
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     shape = pulse.heuristically_recognize_shape(x, y_noisy)
-    check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
+    assert shape == SignalShape.STEP, f"Expected {SignalShape.STEP}, got {shape}"
 
     x, y_noisy = generate_square_signal(seed=0)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (12, 14))
-    check_string_result(
-        "square, heuristically recognize shape", shape, SignalShape.SQUARE
-    )
-
+    assert shape == SignalShape.SQUARE, f"Expected {SignalShape.SQUARE}, got {shape}"
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (4, 8))
-    check_string_result("step, heuristically recognize shape", shape, SignalShape.STEP)
+    assert shape == SignalShape.STEP, f"Expected {SignalShape.STEP}, got {shape}"
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, f"Detected shape = {shape}")
 
     x, y_noisy = generate_square_signal(seed=0, y_initial=5, y_high=2)
     shape = pulse.heuristically_recognize_shape(x, y_noisy, (0, 2), (12, 14))
-    check_string_result(
-        "square, heuristically recognize shape", shape, SignalShape.SQUARE
-    )
+    assert shape == SignalShape.SQUARE, f"Expected {SignalShape.SQUARE}, got {shape}"
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Detected shape = {shape}")
 
 
 def test_detect_polarity() -> None:
-    """
-    Unit test for the `pulse.detect_polarity` function.
+    """Unit test for the `pulse.detect_polarity` function.
 
     This test verifies the correct detection of signal polarity for both step and
     square signals, with various initial and final values, and using different detection
@@ -201,8 +192,7 @@ def test_get_amplitude() -> None:
 
 
 def test_get_crossing_ratio_time() -> None:
-    """
-    Unit test for the `pulse.get_crossing_ratio_time` function.
+    """Unit test for the `pulse.get_crossing_ratio_time` function.
 
     This test verifies the correct calculation of the crossing time at a given ratio
     for both positive and negative polarity step signals, with and without specified
@@ -213,14 +203,14 @@ def test_get_crossing_ratio_time() -> None:
 
     crossing_time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result(
-        "step, get crossing time, positive polarity", crossing_time, 3.44
+        "step, get crossing time, positive polarity", crossing_time, 3.3761
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Crossing time = {crossing_time:.3f}")
 
     crossing_time = pulse.get_crossing_ratio_time(x, y_noisy, None, None, 0.2)
     check_scalar_result(
-        "step, get crossing time, positive polarity", crossing_time, 2.75
+        "step, get crossing time, positive polarity", crossing_time, 2.189
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(
@@ -247,8 +237,7 @@ def test_get_crossing_ratio_time() -> None:
 
 
 def test_get_step_rise_time() -> None:
-    """
-    Unit test for the `pulse.get_step_rise_time` function.
+    """Unit test for the `pulse.get_step_rise_time` function.
 
     This test verifies the correct calculation of the rise time for step signals with
     both positive and negative polarity, using various noise amplitudes and different
@@ -258,7 +247,7 @@ def test_get_step_rise_time() -> None:
     x, y_noisy = generate_step_signal(seed=0)
 
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
-    check_scalar_result("step, get rise time, positive polarity", rise_time, 1.235)
+    check_scalar_result("step, get rise time, positive polarity", rise_time, 1.1902)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
@@ -285,8 +274,7 @@ def test_get_step_rise_time() -> None:
 
 
 def test_get_step_time_at_half_maximum() -> None:
-    """
-    Unit test for the `pulse.get_step_time_at_half_maximum` function.
+    """Unit test for the `pulse.get_crossing_ratio_time` function at 0.5 ratio.
 
     This test verifies the correct calculation of the time at which a step signal
     reaches half of its maximum amplitude, for both positive and negative polarity
@@ -295,9 +283,9 @@ def test_get_step_time_at_half_maximum() -> None:
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
-    time = pulse.get_step_time_at_half_maximum(x, y_noisy, (0, 2), (6, 8))
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.5)
     check_scalar_result(
-        "step, get time at half maximum, positive polarity", time, 4.045
+        "step, get time at half maximum, positive polarity", time, 3.9532
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Time at half max = {time:.3f}")
@@ -305,7 +293,7 @@ def test_get_step_time_at_half_maximum() -> None:
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
-    time = pulse.get_step_time_at_half_maximum(x, y_noisy, (0, 2), (6, 8))
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.5)
     check_scalar_result(
         "step, get time at half maximum, negative polarity", time, 4.025
     )
@@ -314,8 +302,7 @@ def test_get_step_time_at_half_maximum() -> None:
 
 
 def test_get_step_starttime() -> None:
-    """
-    Unit test for the `pulse.get_step_start_time` function.
+    """Unit test for the `pulse.get_crossing_ratio_time` function with start ratio.
 
     This test verifies the correct calculation of the start time for step signals
     with both positive and negative polarity, using specified baseline regions and
@@ -324,46 +311,44 @@ def test_get_step_starttime() -> None:
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
 
-    time = pulse.get_step_start_time(x, y_noisy, (0, 2), (6, 8), 0.2)
-    check_scalar_result("step, get start time", time, 3.44)
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
+    check_scalar_result("step, get start time", time, 3.3761)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Start time = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
-    time = pulse.get_step_start_time(x, y_noisy, (0, 2), (6, 8), 0.2)
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result("step, get start time", time, 2.995)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Start time (neg) = {time:.3f}")
 
 
 def test_get_step_end_time() -> None:
-    """
-    Unit test for the `pulse.get_step_end_time` function.
+    """Unit test for the `pulse.get_crossing_ratio_time` function with end ratio.
 
     This test verifies the correct calculation of the end time for step signals
     with both positive and negative polarity, using specified baseline regions and
-    rise ratios.
+    rise ratios. Using 1-0.2 = 0.8 for end crossing.
     """
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
-    time = pulse.get_step_end_time(x, y_noisy, (0, 2), (6, 8), 0.2)
-    check_scalar_result("step, get end time", time, 4.675)
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.8)
+    check_scalar_result("step, get end time", time, 4.5662)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"End time = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
-    time = pulse.get_step_end_time(x, y_noisy, (0, 2), (6, 8), 0.2)
+    time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.8)
     check_scalar_result("step, get end time", time, 4.68)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"End time (neg) = {time:.3f}")
 
 
 def test_heuristically_find_foot_end_time() -> None:
-    """
-    Unit test for the `pulse.heuristically_find_foot_end_time` function.
+    """Unit test for the `pulse.heuristically_find_foot_end_time` function.
 
     This test verifies that the function correctly identifies the end time of the foot
     (baseline) region in a step signal with a sharp rise, ensuring accurate detection
@@ -395,8 +380,7 @@ def test_heuristically_find_foot_end_time() -> None:
 
 
 def test_get_foot_info() -> None:
-    """
-    Unit test for the `pulse.get_foot_info` function.
+    """Unit test for the `pulse.get_foot_info` function.
 
     This test verifies that the function correctly computes the foot (baseline) region
     information for a generated step signal, including the end index, threshold, foot
@@ -418,37 +402,37 @@ def test_get_foot_info() -> None:
         start_rise_ratio=start_rise_ratio,
     )
 
-    # Check keys exist
-    assert "index" in foot_info
-    assert "threshold" in foot_info
-    assert "foot_duration" in foot_info
-    assert "x_end" in foot_info
+    # Check attributes exist (dataclass instead of dictionary)
+    assert hasattr(foot_info, "index")
+    assert hasattr(foot_info, "threshold")
+    assert hasattr(foot_info, "foot_duration")
+    assert hasattr(foot_info, "x_end")
 
     # The foot should end at t ~ 5.0
-    check_scalar_result("foot_info x_end", foot_info["x_end"], 3.315)
+    check_scalar_result("foot_info x_end", foot_info.x_end, 3.239)
     # The threshold should be close to y at t=5
-    idx = foot_info["index"]
+    idx = foot_info.index
     check_scalar_result(
         "foot_info threshold",
-        foot_info["threshold"],
+        foot_info.threshold,
         y[idx],
         atol=start_basement_level,
     )
     # The foot duration should be - x[0] + x_end (x_end, since x[0]=0)
     check_scalar_result(
         "foot_info foot_duration",
-        foot_info["foot_duration"],
-        foot_info["x_end"],
+        foot_info.foot_duration,
+        foot_info.x_end,
         atol=1e-8,
     )
     # The index should correspond to the first x >= x_end
-    assert np.isclose(x[idx], foot_info["x_end"], atol=0.01)
+    assert np.isclose(x[idx], foot_info.x_end, atol=0.01)
 
     signal = create_signal("", x, y)
     guiutils.view_curves_if_gui(
         signal,
-        title=f"Foot info: x_end={foot_info['x_end']:.3f},"
-        f"threshold={foot_info['threshold']:.3f}",
+        title=f"Foot info: x_end={foot_info.x_end:.3f},"
+        f"threshold={foot_info.threshold:.3f}",
     )
 
 
@@ -520,11 +504,10 @@ def test_get_parameters() -> None:
             assert params[key] is None, (
                 f"Expected {key} to be None, but got {params[key]}"
             )
-    assert params["signal_shape"] == SignalShape.STEP, (
-        f"Expected signal_shape to be 'step', but got {params['signal_shape']}"
-    )
-
-    signal = create_signal("", x, y)
+        assert params["signal_shape"] == SignalShape.STEP, (
+            f"Expected signal_shape to be 'step', but got {params['signal_shape']}"
+        )
+        signal = create_signal("", x, y)
     guiutils.view_curves_if_gui(
         signal,
         title=(
@@ -608,11 +591,10 @@ def test_get_parameters() -> None:
             assert params[key] is None, (
                 f"Expected {key} to be None, but got {params[key]}"
             )
-    assert params["signal_shape"] == SignalShape.SQUARE, (
-        f"Expected signal_shape to be 'square', but got {params['signal_shape']}"
-    )
-
-    signal = create_signal("", x, y)
+        assert params["signal_shape"] == SignalShape.SQUARE, (
+            f"Expected signal_shape to be 'square', but got {params['signal_shape']}"
+        )
+        signal = create_signal("", x, y)
     guiutils.view_curves_if_gui(
         signal,
         title="Step parameters: "

@@ -165,7 +165,7 @@ class FrequencyFilterMethod(Enum):
     ELLIPTIC = _("Elliptic")
 
 
-class SignalShape(str, Enum):
+class SignalShape(Enum):
     """Enum for signal shapes."""
 
     STEP = "step"

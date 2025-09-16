@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import abc
 import warnings
+from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
@@ -19,6 +20,50 @@ import scipy.special
 from sigima.enums import SignalShape
 from sigima.tools.checks import check_1d_arrays
 from sigima.tools.signal import features, peakdetection
+
+
+class PulseAnalysisError(Exception):
+    """Base exception for pulse analysis errors."""
+
+
+class InvalidSignalError(PulseAnalysisError):
+    """Raised when signal data is invalid or insufficient."""
+
+
+class PolarityDetectionError(PulseAnalysisError):
+    """Raised when polarity cannot be determined."""
+
+
+@dataclass
+class PulseAnalysisConfig:
+    """Configuration for pulse analysis parameters."""
+
+    start_basement_range: tuple[float, float] | None = None
+    end_basement_range: tuple[float, float] | None = None
+    high_baseline_range: tuple[float, float] | None = None
+    signal_shape: SignalShape | str | None = None
+    start_rise_ratio: float = 0.1
+    stop_rise_ratio: float = 0.1
+    z_score_threshold: float = 5.0
+
+    def __post_init__(self):
+        """Validate configuration parameters."""
+        if self.start_rise_ratio < 0 or self.start_rise_ratio > 1:
+            raise ValueError("start_rise_ratio must be between 0 and 1")
+        if self.stop_rise_ratio < 0 or self.stop_rise_ratio > 1:
+            raise ValueError("stop_rise_ratio must be between 0 and 1")
+        if self.z_score_threshold <= 0:
+            raise ValueError("z_score_threshold must be positive")
+
+
+@dataclass
+class FootInfo:
+    """Information about the foot (flat region before rise) of a signal."""
+
+    index: int
+    threshold: float
+    foot_duration: float
+    x_end: float
 
 
 class PulseFitModel(abc.ABC):
@@ -154,7 +199,8 @@ def heuristically_recognize_shape(
     y: np.ndarray,
     start_basement_range: tuple[float, float] | None = None,
     end_basement_range: tuple[float, float] | None = None,
-) -> str:
+    step_threshold_ratio: float = 0.5,
+) -> SignalShape:
     """
     Heuristically determine the shape of the signal: 'step' or 'square'.
 
@@ -163,10 +209,20 @@ def heuristically_recognize_shape(
         y: 1D array of y values corresponding to x.
         start_basement_range: Range for the first baseline (lower plateau).
         end_basement_range: Range for the second baseline (upper plateau).
+        step_threshold_ratio: Threshold ratio to distinguish step from square pulse.
+            If step amplitude > threshold_ratio * total_amplitude, classify as step.
 
     Returns:
-        Detected signal shape, either 'step' or 'square'.
+        Signal shape, either SignalShape.STEP or SignalShape.SQUARE.
+
+    Raises:
+        InvalidSignalError: If signal data is invalid.
     """
+    if x.size != y.size:
+        raise InvalidSignalError("x and y arrays must have the same length")
+    if x.size < 3:
+        raise InvalidSignalError("Signal must have at least 3 data points")
+
     # if ranges are None, use the first and last points
     if start_basement_range is None:
         start_basement_range = (x[0], x[0])
@@ -176,13 +232,17 @@ def heuristically_recognize_shape(
     step_amplitude = get_amplitude(
         x, y, start_basement_range, end_basement_range, signal_shape=SignalShape.STEP
     )
+    total_amplitude = np.max(y) - np.min(y)
 
-    if step_amplitude > 0.5 * (np.max(y) - np.min(y)):
+    if total_amplitude == 0:
+        raise InvalidSignalError("Signal has zero amplitude")
+
+    if step_amplitude > step_threshold_ratio * total_amplitude:
         signal_shape = SignalShape.STEP
     else:
         signal_shape = SignalShape.SQUARE
 
-    return str(signal_shape)
+    return signal_shape
 
 
 def _detect_square_polarity(
@@ -261,7 +321,7 @@ def detect_polarity(
     end_basement_range: tuple[float, float] | None = None,
     high_baseline_range: tuple[float, float] | None = None,
     signal_shape: SignalShape | None = None,
-) -> int | None:
+) -> int:
     """Get step curve polarity.
 
     Args:
@@ -273,7 +333,11 @@ def detect_polarity(
         signal_shape: Shape of the signal. Defaults to None.
 
     Returns:
-        Polarity of the step (1 for positive, -1 for negative, None if indeterminate).
+        Polarity of the step (1 for positive, -1 for negative).
+
+    Raises:
+        PolarityDetectionError: If polarity cannot be determined.
+        ValueError: If signal shape is unknown.
     """
     if start_basement_range is None:
         start_basement_range = (x[0], x[0])
@@ -298,11 +362,9 @@ def detect_polarity(
         if start_basement > end_basement:
             return -1
 
-        warnings.warn(
-            "Polarity could not be determined. Please check your data.",
-            RuntimeWarning,
+        raise PolarityDetectionError(
+            "Polarity could not be determined. Check signal data and basement ranges."
         )
-        return None
     if signal_shape == SignalShape.SQUARE:
         return _detect_square_polarity(
             x,
@@ -349,10 +411,16 @@ def get_amplitude(
         min_level = _calculate_basement_value(x, y, start_basement_range, np.min)
         max_level = _calculate_basement_value(x, y, end_basement_range, np.max)
     elif signal_shape == SignalShape.SQUARE:
-        polarity = detect_polarity(
-            x, y, start_basement_range, end_basement_range, signal_shape=signal_shape
-        )
-        if polarity is None:
+        try:
+            polarity = detect_polarity(
+                x,
+                y,
+                start_basement_range,
+                end_basement_range,
+                signal_shape=signal_shape,
+            )
+        except PolarityDetectionError:
+            # If polarity cannot be determined, use total amplitude
             return np.max(y) - np.min(y)
 
         # reverse y if polarity is negative
@@ -415,14 +483,16 @@ def get_crossing_ratio_time(
         The x-value where the normalized signal crosses the specified fractional
         amplitude.
     """
-    polarity = detect_polarity(
-        x, y, start_basement_range, end_basement_range, signal_shape=SignalShape.STEP
-    )
-    if polarity is None:
-        warnings.warn(
-            "Polarity could not be determined. Returning None for crossing time."
+    try:
+        polarity = detect_polarity(
+            x,
+            y,
+            start_basement_range,
+            end_basement_range,
+            signal_shape=SignalShape.STEP,
         )
-        return None
+    except PolarityDetectionError as e:
+        raise InvalidSignalError(f"Cannot determine crossing time: {e}") from e
     amplitude = get_amplitude(x, y, start_basement_range, end_basement_range)
     y_positive = y * polarity
     start_basement = (
@@ -505,8 +575,7 @@ def heuristically_find_foot_end_time(
     Finds the first index in the input array where the value deviates significantly
     from the running average of all previous values.
 
-    A value is considered an outlier if it differs from the mean of all preceding values
-    by more than `z_score_threshold` times the standard deviation of those values.
+    Uses an optimized approach with running statistics to avoid O(n²) complexity.
 
     Args:
         x: 1D array of x values (e.g., time).
@@ -517,25 +586,49 @@ def heuristically_find_foot_end_time(
          threshold.
 
     Returns:
-        The index of the first outlier, or None if no such value is found.
+        The x-value of the first outlier, or None if no such value is found.
+
+    Raises:
+        InvalidSignalError: If insufficient data is provided.
     """
-    data_size = y.size
+    if y.size < 10:
+        raise InvalidSignalError(
+            "Insufficient data for statistical analysis (need ≥10 points)"
+        )
 
-    if data_size < 10:
-        return None  # Not enough data to compute statistics
+    start_indices = np.nonzero(x >= start_basement_range[1])[0]
+    if len(start_indices) == 0:
+        raise InvalidSignalError("No data points found after start_basement_range")
 
-    for i in range(np.nonzero(x >= start_basement_range[1])[0][0], data_size):
-        # Compute the mean and standard deviation of all previous values
-        mean_prev = np.mean(y[:i])
-        std_prev = np.std(y[:i])
+    start_idx = start_indices[0]
+    if start_idx < 2:  # Need at least 2 points for statistics
+        start_idx = 2
 
-        if std_prev == 0:
-            continue  # Skip this index if standard deviation is zero (no variability)
+    # Initialize running statistics
+    running_sum = np.sum(y[:start_idx])
+    running_sum_sq = np.sum(y[:start_idx] ** 2)
+    n = start_idx
 
-        # Check if the current value deviates more than 3 standard deviations from the
-        # previous mean
+    for i in range(start_idx, y.size):
+        # Update running statistics with previous value
+        if i > start_idx:
+            prev_val = y[i - 1]
+            running_sum += prev_val
+            running_sum_sq += prev_val**2
+            n += 1
+
+        # Calculate mean and std efficiently
+        mean_prev = running_sum / n
+        variance = (running_sum_sq / n) - (mean_prev**2)
+
+        if variance <= 0:
+            continue  # Skip if no variability
+
+        std_prev = np.sqrt(variance)
+
+        # Check if current value is an outlier
         if abs(y[i] - mean_prev) >= z_score_threshold * std_prev:
-            return x[i]  # Return the first index that violates the condition
+            return x[i]
 
     return None  # No outlier found
 
@@ -547,7 +640,7 @@ def get_foot_info(
     end_basement_range: tuple[float, float],
     start_rise_ratio: float | None = None,
     end_time: float | None = None,
-) -> dict[str, float | int]:
+) -> FootInfo:
     """
     Detects the 'foot' of a rising signal: the region before the rise starts.
 
@@ -559,35 +652,47 @@ def get_foot_info(
         end_basement_range: A range (min, max) representing the final high region after
          the rise.
         start_rise_ratio: Fraction of the rise height to detect the start of the rise.
-        end_time (optional): If provided, only consider data up to this x-value.
+        end_time: If provided, only consider data up to this x-value.
 
     Returns:
-        A dictionary with:
-            - 'index': Index where the signal reaches the end of the foot.
-            - 'threshold': y[index], the ordinate of the end of the foot.
-            - 'foot_duration': Duration of the foot region (flat before the rise).
-            - 'x_end': x-value where the signal starts to rise.
+        FootInfo object containing foot analysis results.
+
+    Raises:
+        InvalidSignalError: If foot end time cannot be determined.
     """
     if end_time is None:
         if start_rise_ratio is not None:
-            end_time = get_crossing_ratio_time(
-                x, y, start_basement_range, end_basement_range, start_rise_ratio
-            )
-            if end_time is None:
-                warnings.warn(
-                    "Could not determine end time for the foot. Using heuristic method."
+            try:
+                end_time = get_crossing_ratio_time(
+                    x, y, start_basement_range, end_basement_range, start_rise_ratio
                 )
-                end_time = heuristically_find_foot_end_time(x, y, start_basement_range)
+            except Exception:
+                end_time = None
+
+            if end_time is None:
+                try:
+                    end_time = heuristically_find_foot_end_time(
+                        x, y, start_basement_range
+                    )
+                except InvalidSignalError:
+                    raise InvalidSignalError("Could not determine foot end time")
         else:
             end_time = heuristically_find_foot_end_time(x, y, start_basement_range)
 
-    idx = int(np.nonzero(x >= end_time)[0][0]) if end_time is not None else len(x) - 1
-    return {
-        "index": idx,
-        "threshold": y[idx] if end_time is not None else y.dtype.type(np.nan),
-        "foot_duration": -x[0] + end_time,
-        "x_end": x.dtype.type(end_time),
-    }
+    if end_time is None:
+        raise InvalidSignalError("Could not determine foot end time")
+
+    indices = np.nonzero(x >= end_time)[0]
+    if len(indices) == 0:
+        raise InvalidSignalError("End time is beyond signal range")
+
+    idx = int(indices[0])
+    return FootInfo(
+        index=idx,
+        threshold=float(y[idx]),
+        foot_duration=float(end_time - x[0]),
+        x_end=float(end_time),
+    )
 
 
 @check_1d_arrays(x_sorted=True)
@@ -667,7 +772,11 @@ def full_width_at_ratio(
         function.
     """
     amplitude = get_amplitude(x, y, start_basement_range, end_basement_range)
-    polarity = detect_polarity(x, y, start_basement_range, end_basement_range)
+
+    try:
+        polarity = detect_polarity(x, y, start_basement_range, end_basement_range)
+    except PolarityDetectionError as e:
+        raise InvalidSignalError(f"Cannot determine width at ratio: {e}") from e
 
     start_basement = np.mean(
         y[np.logical_and(x >= start_basement_range[0], x <= start_basement_range[1])]
@@ -677,17 +786,8 @@ def full_width_at_ratio(
     )
 
     if amplitude == 0:
-        raise ValueError("Amplitude of your square signal is zero. Check your data.")
-    if polarity is None:
-        warnings.warn(
-            "Polarity could not be determined. Returning NaN for crossing times.",
-            RuntimeWarning,
-        )
-        return (
-            x.dtype.type(np.nan),
-            y.dtype.type(np.nan),
-            x.dtype.type(np.nan),
-            y.dtype.type(np.nan),
+        raise InvalidSignalError(
+            "Amplitude of your square signal is zero. Check your data."
         )
 
     y_norm = np.asarray(polarity * (y - start_basement) / amplitude, dtype=y.dtype.type)
@@ -874,7 +974,7 @@ def get_parameters(
         )
         t_fall = None
         fwhm_value = None
-    elif signal_shape == SignalShape.SQUARE:
+    else:  # is square
         t_rise = get_step_rise_time(
             x[0 : tmax_idx + 1],
             y[0 : tmax_idx + 1],
@@ -915,14 +1015,12 @@ def get_parameters(
             # rely on rising and falling times, as the pulse is too narrow
             t_fall = None
             t_rise = None
-    else:
-        raise ValueError("Unknown signal type. Use 'step' or 'square'.")
 
     offset = np.mean(
         y[np.logical_and(x >= start_basement_range[0], x <= start_basement_range[1])]
     )
 
-    foot_duration = foot_info.get("foot_duration", None)
+    foot_duration = foot_info.foot_duration
 
     return {
         "signal_shape": signal_shape,

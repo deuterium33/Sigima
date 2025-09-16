@@ -459,51 +459,6 @@ def check_scalar_result(
         assert np.isclose(res, exp, rtol=rtol, atol=atol), restxt
 
 
-def check_string_result(
-    title: str,
-    res: str,
-    exp: str | tuple[str, ...],
-    case_sensitive: bool = True,
-    strip: bool = True,
-    verbose: bool = True,
-) -> None:
-    """Assert that two strings (or one of multiple expected strings) match.
-
-    Args:
-        title: title of the test
-        res: result string
-        exp: expected string or tuple of expected strings
-        case_sensitive: if True, comparison is case-sensitive (default: True)
-        strip: if True, leading and trailing whitespace is removed (default: True)
-        verbose: if True, print detailed result (default: True)
-
-    Raises:
-        AssertionError: if result does not match expected string(s)
-    """
-    if strip:
-        res = res.strip()
-        if isinstance(exp, tuple):
-            exp = tuple(e.strip() for e in exp)
-        else:
-            exp = exp.strip()
-
-    if not case_sensitive:
-        res = res.lower()
-        if isinstance(exp, tuple):
-            exp = tuple(e.lower() for e in exp)
-        else:
-            exp = exp.lower()
-
-    restxt = f"{title}: '{res}' (expected: '{exp}')"
-    if verbose:
-        execenv.print(restxt)
-
-    if isinstance(exp, tuple):
-        assert any(res == e for e in exp), restxt
-    else:
-        assert res == exp, restxt
-
-
 def print_obj_data_dimensions(obj: SignalObj | ImageObj, indent: int = 0) -> None:
     """Print data array shape for the given signal or image object,
     including ROI data if available.
