@@ -14,8 +14,7 @@ import sys
 import time
 
 import numpy as np
-
-from sigima.io.common.converters import to_string
+from guidata.utils.misc import to_string
 
 
 # ==============================================================================

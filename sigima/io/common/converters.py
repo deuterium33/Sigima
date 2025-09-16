@@ -189,21 +189,3 @@ def convert_array_to_valid_dtype(
         return _convert_int_array(array, supported_data_types)
 
     raise ValueError("Unsupported data type")
-
-
-def to_string(obj: Any) -> str:
-    """Convert an object to a string using UTF-8 or Latin-1 decoding.
-
-    Args:
-        obj: The object to convert. If bytes, attempts decoding with UTF-8,
-            then falls back to Latin-1. Otherwise, converts using str().
-
-    Returns:
-        The string representation of the input object.
-    """
-    if isinstance(obj, bytes):
-        try:
-            return obj.decode()
-        except UnicodeDecodeError:
-            return obj.decode("latin-1")
-    return str(obj)
