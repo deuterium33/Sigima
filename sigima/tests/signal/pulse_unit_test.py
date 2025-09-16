@@ -15,8 +15,8 @@ import pytest
 from sigima.objects.signal import create_signal
 from sigima.proc.signal import ParametersParam, SignalObj, get_parameters
 from sigima.tests import guiutils
+from sigima.tests.data import generate_square_signal, generate_step_signal
 from sigima.tests.helpers import check_scalar_result, check_string_result
-from sigima.tests.signal.utils import generate_square_signal, generate_step_signal
 from sigima.tools.signal import pulse
 from sigima.tools.signal.pulse import SignalShape
 
