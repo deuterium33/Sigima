@@ -151,7 +151,7 @@ class NumPySignalFormat(SignalFormatBase):
         Returns:
             NumPy array xydata
         """
-        return convert_array_to_valid_dtype(np.load(filename), SignalObj)
+        return convert_array_to_valid_dtype(np.load(filename), SignalObj.VALID_DTYPES)
 
     def write(self, filename: str, obj: SignalObj) -> None:
         """Write data to file

@@ -147,7 +147,7 @@ class NumPyImageFormat(SingleImageFormatBase):
         Returns:
             Image array data
         """
-        return convert_array_to_valid_dtype(np.load(filename), ImageObj)
+        return convert_array_to_valid_dtype(np.load(filename), ImageObj.VALID_DTYPES)
 
     @staticmethod
     def write_data(filename: str, data: np.ndarray) -> None:
@@ -223,7 +223,7 @@ class TextImageFormat(SingleImageFormatBase):
                         # Handle the extra column created with trailing delimiters.
                         df = df.dropna(axis=1, how="all")
                         data = df.to_numpy()
-                        return convert_array_to_valid_dtype(data, ImageObj)
+                        return convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
                     except ValueError:
                         continue
         raise ValueError(f"Could not read image data from file {filename}.")
@@ -306,7 +306,7 @@ class MatrisImageFormat(ImageFormatBase):
 
         try:
             data = df.pivot(index="Y", columns="X", values="Z").values
-            data = convert_array_to_valid_dtype(data, ImageObj)
+            data = convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
 
             (zlabel, zunit) = file_metadata.get("Z", file_metadata.get("Zre", ("", "")))
             (xlabel, xunit) = file_metadata.get("X", ("X", ""))

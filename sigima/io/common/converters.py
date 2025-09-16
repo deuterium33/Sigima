@@ -8,13 +8,10 @@ I/O conversion functions
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import Any, Sequence
 
 import numpy as np
 import skimage
-
-if TYPE_CHECKING:
-    from sigima.objects.base import TypeObj
 
 
 def dtypes_to_sorted_short_codes(
@@ -157,37 +154,36 @@ def _convert_float_array(
 
 
 def convert_array_to_valid_dtype(
-    array: np.ndarray, dest_object_type: TypeObj
+    array: np.ndarray, valid_dtypes: tuple[np.dtype, ...]
 ) -> np.ndarray:
-    """Convert array to a valid dtype for the destination object type.
+    """Convert array to the most appropriate valid dtype.
 
-    Converts arrays to dtypes supported by the destination object, choosing
-    the most appropriate type based on the input array's characteristics.
+    Converts arrays to one of the valid dtypes, choosing the most appropriate type
+    based on the input array's characteristics.
 
     Args:
         array: array to convert
-        dest_object_type: destination object type (SignalObj, ImageObj, ...)
+        valid_dtypes: tuple of valid dtypes
 
     Returns:
-        Converted array with a dtype supported by dest_object_type
+        Converted array with the most appropriate valid dtype.
 
     Raises:
         TypeError: if input is not a numpy ndarray
-        ValueError: if array dtype cannot be converted to any supported type
+        ValueError: if array dtype cannot be converted to any valid type
     """
     if not isinstance(array, np.ndarray):
         raise TypeError("Input must be a numpy ndarray.")
 
-    supported_data_types: tuple[np.dtype, ...] = dest_object_type.VALID_DTYPES
-    if array.dtype in supported_data_types:
+    if array.dtype in valid_dtypes:
         return array
 
     kind: str = array.dtype.kind
     if kind in ["f", "c"]:
-        return _convert_float_array(array, supported_data_types)
+        return _convert_float_array(array, valid_dtypes)
     if kind == "b":
         return _convert_bool_array(array)
     if kind in ["i", "u"]:
-        return _convert_int_array(array, supported_data_types)
+        return _convert_int_array(array, valid_dtypes)
 
     raise ValueError("Unsupported data type")
