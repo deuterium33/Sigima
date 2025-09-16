@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable
+from dataclasses import fields
 from enum import Enum
 from math import ceil, log2
 from typing import Any
@@ -2860,8 +2861,8 @@ def compute_geometry_from_obj(
     return None
 
 
-class ParametersParam(gds.DataSet):
-    """Parameters for get parameters function."""
+class PulseParametersParam(gds.DataSet):
+    """Pulse parameters."""
 
     signal_shape = gds.ChoiceItem(
         _("Signal shape"),
@@ -2873,51 +2874,49 @@ class ParametersParam(gds.DataSet):
         default=None,
         help=_("Signal type: auto-detect, step, or square."),
     )
-    start_basement_range_min = gds.FloatItem(
-        _("Start basement min"),
+    start_range_min = gds.FloatItem(
+        _("Start baseline min"),
         default=0.0,
-        help=_("Interval for the first plateau, xmin."),
+        help=_("Lower X boundary for the start baseline"),
     )
-    start_basement_range_max = gds.FloatItem(
-        _("Start basement max"),
+    start_range_max = gds.FloatItem(
+        _("Start baseline max"),
         default=0.0,
-        help=_("Interval for the first plateau, xmax."),
+        help=_("Upper X boundary for the start baseline"),
     )
-    end_basement_range_min = gds.FloatItem(
-        _("End basement min"),
+    end_range_min = gds.FloatItem(
+        _("End baseline min"),
         default=1.0,
-        help=_("Interval for the last plateau, xmin."),
+        help=_("Lower X boundary for the end baseline"),
     )
-    end_basement_range_max = gds.FloatItem(
-        _("End basement max"),
+    end_range_max = gds.FloatItem(
+        _("End baseline max"),
         default=1.0,
-        help=_("Interval for the last plateau, xmax."),
+        help=_("Upper X boundary for the end baseline"),
     )
     start_rise_ratio = gds.FloatItem(
         _("Start rise ratio"),
         default=0.1,
         min=0.0,
         max=1.0,
-        help=_("Fraction for rise start (0 to 1)."),
+        help=_("Fraction for rise start"),
     )
     stop_rise_ratio = gds.FloatItem(
         _("Stop rise ratio"),
-        default=0.1,
+        default=0.9,
         min=0.0,
         max=1.0,
-        help=_("Fraction for rise end (0 to 1)."),
+        help=_("Fraction for rise end"),
     )
 
     def update_from_obj(self, obj: SignalObj) -> None:
-        """Update the filter parameters from a signal object"""
-        self.start_basement_range_min = obj.x[0]
-        self.start_basement_range_max = obj.x[int(obj.x.size * 0.1)]
-        self.end_basement_range_min = obj.x[int(obj.x.size * 0.9)]
-        self.end_basement_range_max = obj.x[-1]
+        """Update the filter parameters from a signal object."""
+        self.start_range_min, self.start_range_max = pulse.get_start_range(obj.x)
+        self.end_range_min, self.end_range_max = pulse.get_end_range(obj.x)
 
 
 @computation_function()
-def get_parameters(obj: SignalObj, p: ParametersParam) -> TableResult:
+def get_pulse_parameters(obj: SignalObj, p: PulseParametersParam) -> TableResult:
     """Get parameters from a signal object.
 
     This function retrieves the parameters of a signal object and returns them as a
@@ -2932,17 +2931,19 @@ def get_parameters(obj: SignalObj, p: ParametersParam) -> TableResult:
     """
     x, y = obj.get_data()
 
-    param = pulse.get_parameters(
+    param = pulse.get_pulse_parameters(
         x,
         y,
         signal_shape=p.signal_shape,
-        start_basement_range=[p.start_basement_range_min, p.start_basement_range_max],
-        end_basement_range=[p.end_basement_range_min, p.end_basement_range_max],
+        start_baseline_range=[p.start_range_min, p.start_range_max],
+        end_baseline_range=[p.end_range_min, p.end_range_max],
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )
     builder = TableResultBuilder(f"parameters | {obj.title}")
-    for key, value in param.items():
+    for field in fields(param):
+        key = field.name
+        value = getattr(param, key)
         if isinstance(value, (int, float, np.floating, np.integer)):
             fmt = f"{key} = %g"
         else:
