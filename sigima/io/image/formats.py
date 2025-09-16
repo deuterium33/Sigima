@@ -427,7 +427,7 @@ class MatrisImageFormat(ImageFormatBase):
         if match := re.match(
             r"Created on (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}\.\d+)", line
         ):
-            date_str, time_str = match.groups()
+            date_str, _time_str = match.groups()
             return "creation_date", (date_str, None)
             # Note: creation_time is lost in this simplified version
 
