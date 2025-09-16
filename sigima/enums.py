@@ -163,3 +163,10 @@ class FrequencyFilterMethod(Enum):
     CHEBYSHEV1 = "Chebyshev I"
     CHEBYSHEV2 = "Chebyshev II"
     ELLIPTIC = _("Elliptic")
+
+
+class SignalShape(str, Enum):
+    """Enum for signal shapes."""
+
+    STEP = "step"
+    SQUARE = "square"

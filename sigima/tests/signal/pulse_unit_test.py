@@ -1,10 +1,7 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-CDLSignal2 test
----------------
-
-Checking DataLab pulse analysis functions
+Unit tests for the `sigima.tools.signal.pulse` module.
 """
 
 import numbers
@@ -12,13 +9,13 @@ import numbers
 import numpy as np
 import pytest
 
+from sigima.enums import SignalShape
 from sigima.objects.signal import create_signal
 from sigima.proc.signal import ParametersParam, SignalObj, get_parameters
 from sigima.tests import guiutils
 from sigima.tests.data import generate_square_signal, generate_step_signal
 from sigima.tests.helpers import check_scalar_result, check_string_result
 from sigima.tools.signal import pulse
-from sigima.tools.signal.pulse import SignalShape
 
 
 def test_heuristically_recognize_shape() -> None:

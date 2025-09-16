@@ -34,6 +34,7 @@ from sigima.enums import (
     NormalizationMethod,
     PadLocation,
     PowerUnit,
+    SignalShape,
     WindowingMethod,
 )
 from sigima.objects import (
@@ -2866,8 +2867,8 @@ class ParametersParam(gds.DataSet):
         _("Signal shape"),
         [
             (None, _("Auto")),
-            (pulse.SignalShape.STEP, _("Step")),
-            (pulse.SignalShape.SQUARE, _("Square")),
+            (SignalShape.STEP, _("Step")),
+            (SignalShape.SQUARE, _("Square")),
         ],
         default=None,
         help=_("Signal type: auto-detect, step, or square."),

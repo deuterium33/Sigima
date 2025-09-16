@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 import abc
-import enum
 import warnings
 from typing import Literal
 
@@ -17,6 +16,7 @@ import numpy as np
 import scipy.optimize  # type: ignore
 import scipy.special
 
+from sigima.enums import SignalShape
 from sigima.tools.checks import check_1d_arrays
 from sigima.tools.signal import features, peakdetection
 
@@ -125,16 +125,6 @@ class VoigtModel(PulseFitModel):
 # MARK: Pulse analysis -----------------------------------------------------------------
 
 
-class SignalShape(str, enum.Enum):
-    """Enum for signal shapes."""
-
-    def __str__(self) -> str:
-        return self.value
-
-    STEP = "step"
-    SQUARE = "square"
-
-
 def heuristically_recognize_shape(
     x: np.ndarray,
     y: np.ndarray,
@@ -180,29 +170,22 @@ def _detect_square_polarity(
     start_basement: float | None = None,
     end_basement: float | None = None,
 ) -> int:
-    """
-    Detects the polarity of a square pulse in a signal based on baseline and pulse
-    regions.
+    """Detect the polarity of a square pulse in a signal based on baseline regions.
 
-    Parameters
-    ----------
-    x : The array of x-values (typically time or sample indices).
-    y : The array of y-values (signal amplitudes) corresponding to `x`.
-    start_basement_range :
-        The (start, end) range in `x` for the initial baseline (before the pulse).
-    end_basement_range :
-        The (start, end) range in `x` for the final baseline (after the pulse).
-    high_baseline_range :
-        The (start, end) range in `x` for a high baseline region, if applicable.
-        If None, uses the reduced y-values.
-    start_basement :
-        The baseline value at the start of the pulse.
-    end_basement :
-        The baseline value at the end of the pulse.
+    Args:
+        x: The array of x-values (typically time or sample indices).
+        y: The array of y-values (signal amplitudes) corresponding to `x`.
+        start_basement_range: The (start, end) range in `x` for the initial
+         baseline (before the pulse). Defaults to None.
+        end_basement_range: The (start, end) range in `x` for the final baseline
+         (after the pulse). Defaults to None.
+        high_baseline_range: The (start, end) range in `x` for a high baseline
+         region, if applicable. If None, uses the reduced y-values. Defaults to None.
+        start_basement: The baseline value at the start of the pulse. Defaults to None.
+        end_basement: The baseline value at the end of the pulse. Defaults to None.
 
-    Returns
-    -------
-        Returns 1 if the pulse is positive, -1 if negative, or 0 if indeterminate.
+    Returns:
+        1 if the pulse is positive, -1 if negative, or 0 if indeterminate.
     """
     if start_basement_range is None:
         start_basement_range = (x[0], x[0])
@@ -253,18 +236,20 @@ def detect_polarity(
     start_basement_range: tuple[float, float] | None = None,
     end_basement_range: tuple[float, float] | None = None,
     high_baseline_range: tuple[float, float] | None = None,
-    signal_shape: str | None = None,
-):
-    """get step curve polarity
+    signal_shape: SignalShape | None = None,
+) -> int | None:
+    """Get step curve polarity.
 
     Args:
-        x: abscisse
-        y: ordinate
-        start_basement_range: range first basement
-        end_basement_range: range second basement
+        x: Array of x-values (abscisse).
+        y: Array of y-values (ordinate).
+        start_basement_range: Range for the first basement. Defaults to None.
+        end_basement_range: Range for the second basement. Defaults to None.
+        high_baseline_range: Range for the high baseline. Defaults to None.
+        signal_shape: Shape of the signal. Defaults to None.
 
     Returns:
-        amplitude of the step
+        Polarity of the step (1 for positive, -1 for negative, None if indeterminate).
     """
     if start_basement_range is None:
         start_basement_range = (x[0], x[0])
@@ -317,16 +302,18 @@ def get_amplitude(
     high_baseline_range: tuple[float, float] | None = None,
     signal_shape: str | None = None,
 ) -> float:
-    """get curve amplitude
+    """Get curve amplitude.
 
     Args:
-        x: abscisse
-        y: ordinate
-        start_basement_range: range first basement
-        end_basement_range: range second basement
+        x: Array of x-values (abscisse).
+        y: Array of y-values (ordinate).
+        start_basement_range: Range for the first basement. Defaults to None.
+        end_basement_range: Range for the second basement. Defaults to None.
+        high_baseline_range: Range for the high baseline. Defaults to None.
+        signal_shape: Shape of the signal. Defaults to None.
 
     Returns:
-        amplitude of the step
+        Amplitude of the step.
     """
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(
