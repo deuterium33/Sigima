@@ -159,19 +159,21 @@ def _convert_float_array(
 def convert_array_to_valid_dtype(
     array: np.ndarray, dest_object_type: TypeObj
 ) -> np.ndarray:
-    """Convert an integer array to a standard type.
+    """Convert array to a valid dtype for the destination object type.
 
-    Ignores floating point arrays.
+    Converts arrays to dtypes supported by the destination object, choosing
+    the most appropriate type based on the input array's characteristics.
 
     Args:
         array: array to convert
         dest_object_type: destination object type (SignalObj, ImageObj, ...)
 
-    Raises:
-        ValueError: if array is not of integer type
-
     Returns:
-        Converted array
+        Converted array with a dtype supported by dest_object_type
+
+    Raises:
+        TypeError: if input is not a numpy ndarray
+        ValueError: if array dtype cannot be converted to any supported type
     """
     if not isinstance(array, np.ndarray):
         raise TypeError("Input must be a numpy ndarray.")
