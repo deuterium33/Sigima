@@ -8,6 +8,12 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 * New image operation:
   * Convolution.
 
+* New image format support:
+  * **Matris text image files**: Added support for reading Matris format text files (`.txt` extension).
+    * Supports both real and complex-valued image data with optional error images.
+    * Automatically handles NaN values in the data.
+    * Reads metadata including units (X, Y, Z) and labels from file headers.
+
 ✨ Core architecture update: scalar result types
 
 * Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.

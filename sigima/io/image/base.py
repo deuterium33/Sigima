@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import abc
 import os.path as osp
+from typing import Sequence
 
 import numpy as np
 
@@ -40,7 +41,7 @@ class ImageFormatBase(abc.ABC, FormatBase, metaclass=ImageFormatBaseMeta):
     @abc.abstractmethod
     def read(
         self, filename: str, worker: CallbackWorkerProtocol | None = None
-    ) -> list[ImageObj]:
+    ) -> Sequence[ImageObj]:
         """Read list of image objects from file
 
         Args:

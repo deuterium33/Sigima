@@ -118,7 +118,7 @@ def test_hdf5_image_io() -> None:
             assert data.shape == orig_data.shape
             assert data.dtype == orig_data.dtype
             assert fetch_image.annotations == orig_image.annotations
-            assert np.isclose(data, orig_data, atol=0.0).all()
+            assert np.allclose(data, orig_data, atol=0.0, equal_nan=True)
             assert compare_metadata(fetch_image.metadata, orig_image.metadata.copy())
     execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
 

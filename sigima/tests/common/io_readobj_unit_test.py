@@ -20,7 +20,7 @@ from sigima.tests.env import execenv
 
 def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
     """Read objects from a file"""
-    if "curve_formats" in fname:
+    if "curve" in fname:
         objs = read_signals(fname)
     else:
         objs = read_images(fname)
@@ -45,25 +45,25 @@ def __read_and_view_objs(
         List of ImageObj or SignalObj read from the file.
     """
     objs = __read_objs(fname)
-    guiutils.view_curves_and_images_if_gui(objs, title=title)
+    guiutils.view_curves_and_images_if_gui(objs, title=f"{title} - {fname}")
     return objs
 
 
 @helpers.try_open_test_data("Testing TXT file reader", "*.txt")
 def test_open_txt(fname: str | None = None, title: str | None = None) -> None:
-    """Testing TXT files"""
+    """Testing TXT files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing CSV file reader", "*.csv")
 def test_open_csv(fname: str | None = None, title: str | None = None) -> None:
-    """Testing CSV files"""
+    """Testing CSV files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab signal file reader", "*.sig")
 def test_open_sigdata(fname: str | None = None, title: str | None = None) -> None:
-    """Testing FTLab signal files"""
+    """Testing FTLab signal files."""
     __read_and_view_objs(fname, title)
 
     # Read the FTLab signal file and compare the data with the reference
@@ -74,19 +74,19 @@ def test_open_sigdata(fname: str | None = None, title: str | None = None) -> Non
 
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
 def test_open_mat(fname: str | None = None, title: str | None = None) -> None:
-    """Testing MAT files"""
+    """Testing MAT files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SIF file handler", "*.sif")
 def test_open_sif(fname: str | None = None, title: str | None = None) -> None:
-    """Testing SIF files"""
+    """Testing SIF files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SCOR-DATA file handler", "*.scor-data")
 def test_open_scordata(fname: str | None = None, title: str | None = None) -> None:
-    """Testing SCOR-DATA files"""
+    """Testing SCOR-DATA files."""
     __read_and_view_objs(fname, title)
 
 
