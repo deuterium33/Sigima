@@ -4,33 +4,16 @@
 Unit tests for opening matris format files.
 """
 
-import os.path as osp
-
 import numpy as np
 
 from sigima.io.image.formats import MatrisImageFormat
-from sigima.tests.helpers import check_array_result
-
-
-def _data_file(name: str) -> str:
-    base = osp.abspath(
-        osp.join(
-            osp.dirname(__file__),
-            "..",
-            "..",
-            "data",
-            "tests",
-            "image_formats",
-            "matris",
-        )
-    )
-    return osp.join(base, name)
+from sigima.tests.helpers import check_array_result, get_test_fnames
 
 
 def test_read_image_basic():
     """Basic test to read a simple matris image file"""
     fmt = MatrisImageFormat()
-    path = _data_file("image.txt")
+    path = get_test_fnames("matris/image.txt")[0]
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
@@ -41,7 +24,7 @@ def test_read_image_basic():
 def test_read_image_with_unit():
     """Test to read a matris image file with units in metadata"""
     fmt = MatrisImageFormat()
-    path = _data_file("image_with_unit.txt")
+    path = get_test_fnames("matris/image_with_unit.txt")[0]
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     img = imgs[0]
@@ -66,7 +49,7 @@ def test_read_image_with_unit():
 def test_read_image_with_nan():
     """Test to read a matris image file with NaN values"""
     fmt = MatrisImageFormat()
-    path = _data_file("image_with_nan.txt")
+    path = get_test_fnames("matris/image_with_nan.txt")[0]
     imgs = fmt.read(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
@@ -82,7 +65,7 @@ def test_read_image_with_nan():
 def test_read_complex_image_and_error():
     """Test to read a matris complex image file with associated error image"""
     fmt = MatrisImageFormat()
-    path = _data_file("complex_image.txt")
+    path = get_test_fnames("matris/complex_image.txt")[0]
     imgs = fmt.read(path)
     # should return main image and error image
     assert len(imgs) == 2, f"Expected 2 images, got {len(imgs)}"
