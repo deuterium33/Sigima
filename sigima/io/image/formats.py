@@ -164,125 +164,23 @@ class NotMatrisFileError(Exception):
     """Exception raised when a file is not a Matris file"""
 
 
-class TextImageFormat(SingleImageFormatBase):
-    """Object representing text image file type"""
+class MatrisFileReader:
+    """Utility class for reading Matris software text files"""
 
-    FORMAT_INFO = FormatInfo(
-        name=_("Text files"),
-        extensions="*.txt *.csv *.asc",
-        readable=True,
-        writeable=True,
-    )
-
-    def read(
-        self, filename: str, worker: CallbackWorkerProtocol | None = None
-    ) -> list[ImageObj]:
-        """Read list of image objects from file
+    @staticmethod
+    def read_images(filename: str) -> list[ImageObj]:
+        """Read list of image objects from Matris file.
 
         Args:
             filename: File name
-            worker: Callback worker object
 
         Returns:
             List of image objects
         """
-        # Try to read as Matris format first (for .txt files that might be Matris)
-        if filename.lower().endswith(".txt"):
-            try:
-                matris_format = MatrisImageFormat()
-                return matris_format.read(filename, worker)
-            except NotMatrisFileError:
-                # Not a Matris file, continue with regular text processing
-                pass
-
-        # Read as generic text file
-        obj = self.create_object(filename)
-        obj.data = self.read_data(filename)
-        unique_values = np.unique(obj.data)
-        if len(unique_values) == 2:
-            # Binary image: set LUT range to unique values
-            obj.zscalemin, obj.zscalemax = unique_values.tolist()
-        return [obj]
-
-    @staticmethod
-    def read_data(filename: str) -> np.ndarray:
-        """Read data and return it
-
-        Args:
-            filename: File name
-
-        Returns:
-            Image array data
-        """
-        for encoding in FileEncoding:
-            for decimal in (".", ","):
-                for delimiter in (",", ";", r"\s+"):
-                    try:
-                        df = pd.read_csv(
-                            filename,
-                            decimal=decimal,
-                            delimiter=delimiter,
-                            encoding=encoding,
-                            header=None,
-                        )
-                        # Handle the extra column created with trailing delimiters.
-                        df = df.dropna(axis=1, how="all")
-                        data = df.to_numpy()
-                        return convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
-                    except ValueError:
-                        continue
-        raise ValueError(f"Could not read image data from file {filename}.")
-
-    @staticmethod
-    def write_data(filename: str, data: np.ndarray) -> None:
-        """Write data to file.
-
-        Args:
-            filename: File name.
-            data: Image array data.
-        """
-        if np.issubdtype(data.dtype, np.integer):
-            fmt = "%d"
-        elif np.issubdtype(data.dtype, np.floating) or np.issubdtype(
-            data.dtype, np.complexfloating
-        ):
-            fmt = "%.18e"
-        else:
-            raise NotImplementedError(
-                f"Writing data of type {data.dtype} to text file is not supported."
-            )
-        ext = osp.splitext(filename)[1]
-        if ext.lower() in (".txt", ".asc", ""):
-            np.savetxt(filename, data, fmt=fmt)
-        elif ext.lower() == ".csv":
-            np.savetxt(filename, data, fmt=fmt, delimiter=",")
-        else:
-            raise ValueError(f"Unknown text file extension {ext}")
-
-
-class MatrisImageFormat(ImageFormatBase):
-    """Object representing image file type issue from matris software"""
-
-    FORMAT_INFO = FormatInfo(
-        name=_("Matris software files format"),
-        extensions="*.matris",
-        readable=True,
-        writeable=False,
-    )
-
-    def read(self, filename, worker=None):
-        """Read list of image objects from file
-        Args:
-            filename: File name
-            worker: Callback worker object
-
-        Returns:
-            List of image objects
-        """
-        file_metadata = self.read_metadata(filename)
+        file_metadata = MatrisFileReader.read_metadata(filename)
 
         # Validate metadata and raise on inconsistent or missing keys
-        self.verify_metadata(filename, file_metadata)
+        MatrisFileReader.verify_metadata(filename, file_metadata)
 
         dict_keys = file_metadata.keys()
         allowed_column_header = {
@@ -305,7 +203,7 @@ class MatrisImageFormat(ImageFormatBase):
         }
         metadata["source"] = filename
 
-        df = self.read_data(filename, columns_header)
+        df = MatrisFileReader.read_data(filename, columns_header)
 
         name = osp.basename(filename)
 
@@ -400,7 +298,7 @@ class MatrisImageFormat(ImageFormatBase):
                     content = line[1:].strip()
 
                     # Parse specific patterns
-                    parsed = MatrisImageFormat._parse_metadata_line(content)
+                    parsed = MatrisFileReader._parse_metadata_line(content)
                     if parsed:
                         key, value_unit = parsed
                         metadata[key] = value_unit
@@ -452,7 +350,7 @@ class MatrisImageFormat(ImageFormatBase):
         rest = rest.strip()
 
         # Parse value and unit
-        value, unit = MatrisImageFormat._parse_value_and_unit(rest)
+        value, unit = MatrisFileReader._parse_value_and_unit(rest)
 
         return key, (value, unit)
 
@@ -623,7 +521,7 @@ class MatrisImageFormat(ImageFormatBase):
         # Try several parsing variants (encoding, decimal and delimiter).
         df: pd.DataFrame | None = None
 
-        df = MatrisImageFormat._try_df_reading(filename, columns_header)
+        df = MatrisFileReader._try_df_reading(filename, columns_header)
 
         # if Z is present, the image is Real
 
@@ -636,9 +534,100 @@ class MatrisImageFormat(ImageFormatBase):
 
         return df
 
-    def write(self, filename: str, obj: ImageObj) -> None:
-        """Write data to file not implemented"""
-        raise NotImplementedError("Writing Matris files is not supported.")
+
+class TextImageFormat(SingleImageFormatBase):
+    """Object representing text image file type"""
+
+    FORMAT_INFO = FormatInfo(
+        name=_("Text files"),
+        extensions="*.txt *.csv *.asc",
+        readable=True,
+        writeable=True,
+    )
+
+    def read(
+        self, filename: str, worker: CallbackWorkerProtocol | None = None
+    ) -> list[ImageObj]:
+        """Read list of image objects from file
+
+        Args:
+            filename: File name
+            worker: Callback worker object
+
+        Returns:
+            List of image objects
+        """
+        # Try to read as Matris format first (for .txt files that might be Matris)
+        if filename.lower().endswith(".txt"):
+            try:
+                return MatrisFileReader.read_images(filename)
+            except NotMatrisFileError:
+                # Not a Matris file, continue with regular text processing
+                pass
+
+        # Read as generic text file
+        obj = self.create_object(filename)
+        obj.data = self.read_data(filename)
+        unique_values = np.unique(obj.data)
+        if len(unique_values) == 2:
+            # Binary image: set LUT range to unique values
+            obj.zscalemin, obj.zscalemax = unique_values.tolist()
+        return [obj]
+
+    @staticmethod
+    def read_data(filename: str) -> np.ndarray:
+        """Read data and return it
+
+        Args:
+            filename: File name
+
+        Returns:
+            Image array data
+        """
+        for encoding in FileEncoding:
+            for decimal in (".", ","):
+                for delimiter in (",", ";", r"\s+"):
+                    try:
+                        df = pd.read_csv(
+                            filename,
+                            decimal=decimal,
+                            delimiter=delimiter,
+                            encoding=encoding,
+                            header=None,
+                        )
+                        # Handle the extra column created with trailing delimiters.
+                        df = df.dropna(axis=1, how="all")
+                        data = df.to_numpy()
+                        return convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
+                    except ValueError:
+                        continue
+        raise ValueError(f"Could not read image data from file {filename}.")
+
+    @staticmethod
+    def write_data(filename: str, data: np.ndarray) -> None:
+        """Write data to file.
+
+        Args:
+            filename: File name.
+            data: Image array data.
+        """
+        if np.issubdtype(data.dtype, np.integer):
+            fmt = "%d"
+        elif np.issubdtype(data.dtype, np.floating) or np.issubdtype(
+            data.dtype, np.complexfloating
+        ):
+            fmt = "%.18e"
+        else:
+            raise NotImplementedError(
+                f"Writing data of type {data.dtype} to text file is not supported."
+            )
+        ext = osp.splitext(filename)[1]
+        if ext.lower() in (".txt", ".asc", ""):
+            np.savetxt(filename, data, fmt=fmt)
+        elif ext.lower() == ".csv":
+            np.savetxt(filename, data, fmt=fmt, delimiter=",")
+        else:
+            raise ValueError(f"Unknown text file extension {ext}")
 
 
 class MatImageFormat(SingleImageFormatBase):

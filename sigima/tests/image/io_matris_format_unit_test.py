@@ -6,31 +6,29 @@ Unit tests for opening matris format files.
 
 import numpy as np
 
-from sigima.io.image.formats import MatrisImageFormat
+from sigima.io.image.formats import MatrisFileReader
 from sigima.tests.helpers import check_array_result, get_test_fnames
 
 
 def test_read_image_basic():
     """Basic test to read a simple matris image file"""
-    fmt = MatrisImageFormat()
     path = get_test_fnames("matris/image.txt")[0]
-    imgs = fmt.read(path)
+    imgs = MatrisFileReader.read_images(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
     expected = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.uint8)
-    check_array_result("test read image.matris", arr, expected)
+    check_array_result("test read image.txt", arr, expected)
 
 
 def test_read_image_with_unit():
     """Test to read a matris image file with units in metadata"""
-    fmt = MatrisImageFormat()
     path = get_test_fnames("matris/image_with_unit.txt")[0]
-    imgs = fmt.read(path)
+    imgs = MatrisFileReader.read_images(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     img = imgs[0]
     # units should come from metadata (X, Y, Z)
     check_array_result(
-        "test read image_with_unit.matris",
+        "test read image_with_unit.txt",
         np.asarray(img.data),
         np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
     )
@@ -48,9 +46,8 @@ def test_read_image_with_unit():
 
 def test_read_image_with_nan():
     """Test to read a matris image file with NaN values"""
-    fmt = MatrisImageFormat()
     path = get_test_fnames("matris/image_with_nan.txt")[0]
-    imgs = fmt.read(path)
+    imgs = MatrisFileReader.read_images(path)
     assert len(imgs) == 1, f"Expected 1 image, got {len(imgs)}"
     arr = np.asarray(imgs[0].data)
     # expected NaN positions from the test file
@@ -64,9 +61,8 @@ def test_read_image_with_nan():
 
 def test_read_complex_image_and_error():
     """Test to read a matris complex image file with associated error image"""
-    fmt = MatrisImageFormat()
     path = get_test_fnames("matris/complex_image.txt")[0]
-    imgs = fmt.read(path)
+    imgs = MatrisFileReader.read_images(path)
     # should return main image and error image
     assert len(imgs) == 2, f"Expected 2 images, got {len(imgs)}"
     img, img_err = imgs[0], imgs[1]

@@ -17,8 +17,7 @@ import numpy as np
 from guidata.utils.misc import to_string
 
 
-# ==============================================================================
-# SIF I/O functions
+# MARK: SIF I/O functions
 # ==============================================================================
 # Original code:
 # --------------
@@ -267,8 +266,7 @@ def imread_sif(filename: str) -> np.ndarray:
     return sif_file.read()
 
 
-# ==============================================================================
-# SPIRICON I/O functions
+# MARK: SPIRICON I/O functions
 # ==============================================================================
 
 
@@ -354,6 +352,10 @@ def imread_scor(filename: str) -> np.ndarray:
     """
     scor_file = SCORFile(filename)
     return scor_file.read()
+
+
+# MARK: DICOM I/O functions
+# ==============================================================================
 
 
 # Original code: see PlotPy package (BSD 3-Clause license)

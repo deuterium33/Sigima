@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-08 20:41+0200\n"
+"POT-Creation-Date: 2025-09-16 15:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -33,6 +33,21 @@ msgstr "Nouvelle opération d'image :"
 
 msgid "Convolution."
 msgstr "Convolution."
+
+msgid "New image format support:"
+msgstr "Nouveau support de format d'image :"
+
+msgid "**Matris text image files**: Added support for reading Matris format text files (`.txt` extension)."
+msgstr "**Fichiers image texte Matris** : Ajout du support pour la lecture des fichiers texte au format Matris (extension `.txt`)."
+
+msgid "Supports both real and complex-valued image data with optional error images."
+msgstr "Prend en charge à la fois les données d'image réelles et à valeurs complexes avec des images d'erreur facultatives."
+
+msgid "Automatically handles NaN values in the data."
+msgstr "Gère automatiquement les valeurs NaN dans les données."
+
+msgid "Reads metadata including units (X, Y, Z) and labels from file headers."
+msgstr "Lit les métadonnées, y compris les unités (X, Y, Z) et les étiquettes, à partir des en-têtes de fichiers."
 
 msgid "✨ Core architecture update: scalar result types"
 msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
@@ -186,6 +201,9 @@ msgstr "Du bruit gaussien, de Poisson ou uniforme peut être ajouté."
 
 msgid "New utility functions to generate file basenames."
 msgstr "Nouvelles fonctions utilitaires pour générer des noms de fichiers."
+
+msgid "Deconvolution in the frequency domain."
+msgstr ""
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
@@ -357,6 +375,18 @@ msgstr "Elle est implémentée dans la classe de paramètres `sigima.objects.Ram
 
 msgid "New signal generators: linear chirp, logistic function, Planck function."
 msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique, fonction de Planck."
+
+msgid "New image \"Extent\" computed parameters:"
+msgstr ""
+
+msgid "Added computed parameters for image extent: `xmin`, `xmax`, `ymin`, and `ymax`."
+msgstr ""
+
+msgid "These parameters are automatically calculated based on the image origin, pixel spacing, and dimensions."
+msgstr ""
+
+msgid "They provide the physical coordinate boundaries of the image for enhanced spatial analysis."
+msgstr ""
 
 msgid "New I/O features:"
 msgstr "Nouvelles fonctionnalités d'E/S:"

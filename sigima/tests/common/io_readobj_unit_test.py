@@ -90,12 +90,6 @@ def test_open_scordata(fname: str | None = None, title: str | None = None) -> No
     __read_and_view_objs(fname, title)
 
 
-@helpers.try_open_test_data("Testing Matris file handler", "*.matris")
-def test_open_matris(fname: str | None = None, title: str | None = None) -> None:
-    """Testing Matris files."""
-    __read_and_view_objs(fname, title)
-
-
 @helpers.try_open_test_data("Testing FTLab image file handler", "*.ima")
 def test_open_imadata(fname: str | None = None, title: str | None = None) -> None:
     """Testing FTLab image files."""
@@ -122,7 +116,6 @@ def test_read_obj_interactive() -> None:
     test_open_mat()
     test_open_sif()
     test_open_scordata()
-    test_open_matris()
     test_open_imadata()
 
 
