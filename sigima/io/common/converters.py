@@ -8,15 +8,159 @@ I/O conversion functions
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 import skimage
 
+from sigima.objects.base import BaseObj
 
-def convert_array_to_standard_type(array: np.ndarray) -> np.ndarray:
-    """Convert an integer array to a standard type
-    (int8, int16, int32, uint8, uint16, uint32).
+
+def dtypes_to_sorted_short_codes(
+    dtypes: Sequence[Any], keep_only: str = ""
+) -> list[str]:
+    """Return sorted short dtype codes for numeric dtypes.
+
+    Convert each input to a numpy dtype and ignore non-numeric types.
+    Order:
+      - Integer types first, unsigned (and boolean) before signed,
+        sorted by itemsize ascending.
+      - floats numeric types, sorted by itemsize ascending.
+      - complex numeric types, sorted by itemsize ascending.
+
+    Short codes use numpy kind letter plus itemsize in bytes, e.g. "u1", "i2",
+    "f8".
+
+    Args:
+        dtypes: Sequence of objects acceptable by numpy.dtype (dtype, str, etc.)
+        keeponly: String of dtype kind letters to keep, e.g. "iu" for
+            unsigned/signed integers. If empty or None, keep all numeric types
+
+    Returns:
+        List of unique short dtype codes in the requested order.
+    """
+    dtypes = [np.dtype(d).str[1:] for d in dtypes]
+    ordered: list[np.dtype] = []
+
+    if not keep_only:
+        keep_only = "iubfc"  # all numeric types
+
+    STANDARD_BOOL_CODE = ("b1",)
+    STANDARD_INT_CODES = ("u1", "i1", "u2", "i2", "u4", "i4", "u8", "i8")
+    STANDARD_FLOAT_CODES = ("f2", "f4", "f8")
+    STANDARD_COMPLEX_CODES = ("c8", "c16")
+
+    ordered = [
+        code
+        for code in STANDARD_BOOL_CODE
+        + STANDARD_INT_CODES
+        + STANDARD_FLOAT_CODES
+        + STANDARD_COMPLEX_CODES
+        if code in dtypes and code[0] in keep_only
+    ]
+
+    return ordered
+
+
+def _convert_bool_array(array: np.ndarray) -> np.ndarray:
+    """Convert boolean array to uint8."""
+    return skimage.util.img_as_ubyte(array)
+
+
+def _convert_int_array(
+    array: np.ndarray, supported_data_types: tuple[np.dtype]
+) -> np.ndarray:
+    """Convert an integer array to a standard type.
+
+    Select the smallest supported integer dtype that can represent all values in the
+    array. If no suitable integer dtype is found, convert the array to a supported
+    float type.
+
+    Args:
+        array: Input numpy array of integer type.
+        supported_data_types: Tuple of supported numpy dtypes for destination object.
+
+    Returns:
+        Converted numpy array with the selected dtype.
+
+    Raises:
+        ValueError: If no supported dtype can represent the data.
+    """
+    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, keep_only="iu")
+
+    amin = np.min(array) if array.size > 0 else 0
+    amax = np.max(array) if array.size > 0 else 0
+    for code in ordered_codes:
+        info = np.iinfo(code)
+        if amin >= info.min and amax <= info.max:
+            new_type = np.dtype(code).newbyteorder("=")
+            break
+    else:
+        new_type = _convert_float_array(array, supported_data_types).dtype
+
+    return array.astype(new_type, copy=False)
+
+
+def _convert_float_array(
+    array: np.ndarray, supported_data_types: tuple[np.dtype]
+) -> np.ndarray:
+    """Convert float/complex array to smallest allowed type at least large as current.
+
+    Choose the smallest supported dtype of the same kind ("f" for floats,
+    "c" for complex) whose itemsize is greater than or equal to the array's
+    itemsize. If no such type exists, fall back to the largest supported
+    dtype for that kind.
+
+    Args:
+        array: Array to convert.
+        supported_data_types: Sequence of allowed dtypes for the destination
+            object type.
+
+    Returns:
+        Converted array with the selected dtype. If no supported dtype of the
+        same kind exists, return the original array.
+    """
+    kind = array.dtype.kind
+    if kind in ["i", "u", "b"]:
+        kind = "f"  # convert integers to floats
+
+    itemsize = array.dtype.itemsize
+
+    ordered_codes = dtypes_to_sorted_short_codes(supported_data_types, keep_only=kind)
+
+    # Filter out any codes that don't match the requested kind (defensive).
+    valid_codes: list[str] = []
+    for code in ordered_codes:
+        try:
+            dt = np.dtype(code)
+        except TypeError:
+            continue
+        if dt.kind == kind:
+            valid_codes.append(code)
+
+    if not valid_codes:
+        # No supported dtype for this kind, return original array.
+        raise ValueError("Unsupported data type")
+
+    # Find smallest supported type with itemsize >= current itemsize.
+    selected_code: str | None = None
+    for code in valid_codes:
+        dt = np.dtype(code)
+        if dt.itemsize >= itemsize:
+            selected_code = code
+            break
+    else:
+        # Fallback to the largest supported type for this kind.
+        selected_code = valid_codes[-1]
+
+    new_type = np.dtype(selected_code).newbyteorder("=")
+    return array.astype(new_type, copy=False)
+
+
+def convert_array_to_valid_dtype(
+    array: np.ndarray, dest_object_type: type[BaseObj]
+) -> np.ndarray:
+    """Convert an integer array to a standard type.
 
     Ignores floating point arrays.
 
@@ -29,37 +173,34 @@ def convert_array_to_standard_type(array: np.ndarray) -> np.ndarray:
     Returns:
         Converted array
     """
-    # Determine the kind and size of the data type
+    if not isinstance(array, np.ndarray):
+        raise TypeError("Input must be a numpy ndarray.")
+
     kind = array.dtype.kind
-    itemsize = array.dtype.itemsize
 
-    if kind in ["f", "c"]:  # 'f' for floating point, 'c' for complex
+    supported_data_types: tuple[np.dtype, ...] = dest_object_type.VALID_DTYPES
+
+    if kind in supported_data_types:
         return array
-
-    if kind == "b":  # 'b' for boolean
-        # Convert to uint8
-        return skimage.util.img_as_ubyte(array)
-
-    if kind in ["i", "u"]:  # 'i' for signed integers, 'u' for unsigned integers
-        if itemsize == 1:  # 8-bit
-            new_type = np.dtype(f"{kind}1").newbyteorder("=")
-        elif itemsize == 2:  # 16-bit
-            new_type = np.dtype(f"{kind}2").newbyteorder("=")
-        elif itemsize == 4:  # 32-bit
-            new_type = np.dtype(f"{kind}4").newbyteorder("=")
-        else:
-            raise ValueError("Unsupported item size for integer type")
-
-        # Convert to the new type if it is different from the current type
-        if array.dtype != new_type:
-            return array.astype(new_type)
-        return array
-
+    if kind in ["f", "c"]:
+        return _convert_float_array(array, supported_data_types)
+    if kind == "b":
+        return _convert_bool_array(array)
+    if kind in ["i", "u"]:
+        return _convert_int_array(array, supported_data_types)
     raise ValueError("Unsupported data type")
 
 
 def to_string(obj: Any) -> str:
-    """Convert to string, trying utf-8 then latin-1 codec"""
+    """Convert an object to a string using UTF-8 or Latin-1 decoding.
+
+    Args:
+        obj: The object to convert. If bytes, attempts decoding with UTF-8,
+            then falls back to Latin-1. Otherwise, converts using str().
+
+    Returns:
+        The string representation of the input object.
+    """
     if isinstance(obj, bytes):
         try:
             return obj.decode()

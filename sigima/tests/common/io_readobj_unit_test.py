@@ -51,19 +51,19 @@ def __read_and_view_objs(
 
 @helpers.try_open_test_data("Testing TXT file reader", "*.txt")
 def test_open_txt(fname: str | None = None, title: str | None = None) -> None:
-    """Testing TXT files"""
+    """Testing TXT files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing CSV file reader", "*.csv")
 def test_open_csv(fname: str | None = None, title: str | None = None) -> None:
-    """Testing CSV files"""
+    """Testing CSV files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab signal file reader", "*.sig")
 def test_open_sigdata(fname: str | None = None, title: str | None = None) -> None:
-    """Testing FTLab signal files"""
+    """Testing FTLab signal files."""
     __read_and_view_objs(fname, title)
 
     # Read the FTLab signal file and compare the data with the reference
@@ -74,19 +74,25 @@ def test_open_sigdata(fname: str | None = None, title: str | None = None) -> Non
 
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
 def test_open_mat(fname: str | None = None, title: str | None = None) -> None:
-    """Testing MAT files"""
+    """Testing MAT files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SIF file handler", "*.sif")
 def test_open_sif(fname: str | None = None, title: str | None = None) -> None:
-    """Testing SIF files"""
+    """Testing SIF files."""
     __read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SCOR-DATA file handler", "*.scor-data")
 def test_open_scordata(fname: str | None = None, title: str | None = None) -> None:
-    """Testing SCOR-DATA files"""
+    """Testing SCOR-DATA files."""
+    __read_and_view_objs(fname, title)
+
+
+@helpers.try_open_test_data("Testing Matris file handler", "*.matris")
+def test_open_matris(fname: str | None = None, title: str | None = None) -> None:
+    """Testing Matris files."""
     __read_and_view_objs(fname, title)
 
 
@@ -116,6 +122,7 @@ def test_read_obj_interactive() -> None:
     test_open_mat()
     test_open_sif()
     test_open_scordata()
+    test_open_matris()
     test_open_imadata()
 
 

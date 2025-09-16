@@ -13,7 +13,7 @@ from guidata.io import HDF5Reader, HDF5Writer
 from sigima.config import _
 from sigima.io import ftlab
 from sigima.io.base import FormatInfo
-from sigima.io.common.converters import convert_array_to_standard_type
+from sigima.io.common.converters import convert_array_to_valid_dtype
 from sigima.io.signal import funcs
 from sigima.io.signal.base import SignalFormatBase
 from sigima.objects.signal import SignalObj
@@ -151,7 +151,7 @@ class NumPySignalFormat(SignalFormatBase):
         Returns:
             NumPy array xydata
         """
-        return convert_array_to_standard_type(np.load(filename))
+        return convert_array_to_valid_dtype(np.load(filename), SignalObj)
 
     def write(self, filename: str, obj: SignalObj) -> None:
         """Write data to file
