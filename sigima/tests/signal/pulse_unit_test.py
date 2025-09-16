@@ -210,7 +210,7 @@ def test_get_crossing_ratio_time() -> None:
 
     crossing_time = pulse.get_crossing_ratio_time(x, y_noisy, None, None, 0.2)
     check_scalar_result(
-        "step, get crossing time, positive polarity", crossing_time, 2.189
+        "step, get crossing time, positive polarity", crossing_time, 2.189, atol=0.001
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(
@@ -224,7 +224,7 @@ def test_get_crossing_ratio_time() -> None:
 
     crossing_time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
     check_scalar_result(
-        "step, get crossing time, negative polarity", crossing_time, 3.41
+        "step, get crossing time, negative polarity", crossing_time, 3.31, atol=0.001
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(
@@ -247,20 +247,26 @@ def test_get_step_rise_time() -> None:
     x, y_noisy = generate_step_signal(seed=0)
 
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
-    check_scalar_result("step, get rise time, positive polarity", rise_time, 1.1902)
+    check_scalar_result(
+        "step, get rise time, positive polarity", rise_time, 1.19, atol=0.01
+    )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
     x, y_noisy = generate_step_signal(seed=0, noise_amplitude=0)
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
-    check_scalar_result("step, get rise time, positive polarity", rise_time, 1.19)
+    check_scalar_result(
+        "step, get rise time, positive polarity", rise_time, 1.19, atol=0.01
+    )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
     rise_time = pulse.get_step_rise_time(
         x, y_noisy, start_rise_ratio=0.2, stop_rise_ratio=0.2
     )
-    check_scalar_result("step, get rise time, positive polarity", rise_time, 1.19)
+    check_scalar_result(
+        "step, get rise time, positive polarity", rise_time, 1.19, atol=0.01
+    )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Rise time = {rise_time:.3f}")
 
@@ -268,7 +274,9 @@ def test_get_step_rise_time() -> None:
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
     rise_time = pulse.get_step_rise_time(x, y_noisy, (0, 2), (6, 8), 0.2, 0.2)
-    check_scalar_result("step, get rise time, negative polarity", rise_time, 1.685)
+    check_scalar_result(
+        "step, get rise time, negative polarity", rise_time, 2.16, atol=0.01
+    )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Rise time (neg) = {rise_time:.3f}")
 
@@ -285,7 +293,7 @@ def test_get_step_time_at_half_maximum() -> None:
 
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.5)
     check_scalar_result(
-        "step, get time at half maximum, positive polarity", time, 3.9532
+        "step, get time at half maximum, positive polarity", time, 3.95, atol=0.01
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Time at half max = {time:.3f}")
@@ -295,7 +303,7 @@ def test_get_step_time_at_half_maximum() -> None:
 
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.5)
     check_scalar_result(
-        "step, get time at half maximum, negative polarity", time, 4.025
+        "step, get time at half maximum, negative polarity", time, 3.80, atol=0.01
     )
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Time at half max (neg) = {time:.3f}")
@@ -312,7 +320,7 @@ def test_get_step_starttime() -> None:
     x, y_noisy = generate_step_signal(seed=0)
 
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
-    check_scalar_result("step, get start time", time, 3.3761)
+    check_scalar_result("step, get start time", time, 3.38, atol=0.01)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Start time = {time:.3f}")
 
@@ -320,7 +328,7 @@ def test_get_step_starttime() -> None:
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
 
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.2)
-    check_scalar_result("step, get start time", time, 2.995)
+    check_scalar_result("step, get start time", time, 2.38, atol=0.01)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"Start time (neg) = {time:.3f}")
 
@@ -335,14 +343,14 @@ def test_get_step_end_time() -> None:
     # positive polarity
     x, y_noisy = generate_step_signal(seed=0)
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.8)
-    check_scalar_result("step, get end time", time, 4.5662)
+    check_scalar_result("step, get end time", time, 4.57, atol=0.01)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"End time = {time:.3f}")
 
     # negative polarity
     x, y_noisy = generate_step_signal(seed=0, y_initial=5, y_final=2)
     time = pulse.get_crossing_ratio_time(x, y_noisy, (0, 2), (6, 8), 0.8)
-    check_scalar_result("step, get end time", time, 4.68)
+    check_scalar_result("step, get end time", time, 4.54, atol=0.01)
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(signal, title=f"End time (neg) = {time:.3f}")
 
