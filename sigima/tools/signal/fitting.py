@@ -173,6 +173,7 @@ class LinearFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate linear function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         a, b = cls.args_kwargs_to_list(*args, **kwargs)
         return a * x + b
 
@@ -209,6 +210,7 @@ class PolynomialFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate polynomial function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         coeffs = cls.args_kwargs_to_list(*args, **kwargs)
         return np.polyval(coeffs, x)
 
@@ -229,6 +231,7 @@ class GaussianFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Gaussian function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.GaussianModel.func(x, amp, sigma, x0, y0)
 
@@ -266,6 +269,7 @@ class LorentzianFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Lorentzian function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.LorentzianModel.func(x, amp, sigma, x0, y0)
 
@@ -303,6 +307,7 @@ class VoigtFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Voigt function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amp, sigma, x0, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         return pulse.VoigtModel.func(x, amp, sigma, x0, y0)
 
@@ -339,6 +344,7 @@ class ExponentialFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate exponential function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         a, b, y0 = cls.args_kwargs_to_list(*args, **kwargs)
         # Clip b to prevent overflow
         b_clipped = np.clip(b, -50, 50)
@@ -396,6 +402,7 @@ class PlanckianFitComputer(FitComputer):
             sigma: width parameter (larger sigma = wider peak)
             y0: baseline offset
         """
+        # pylint: disable=unbalanced-tuple-unpacking
         amp, x0, sigma, y0 = cls.args_kwargs_to_list(*args, **kwargs)
 
         # Planck-like function with Wien's displacement law behavior
@@ -502,6 +509,7 @@ class TwoHalfGaussianFitComputer(FitComputer):
             y0_left: baseline offset for x < x0
             y0_right: baseline offset for x >= x0
         """
+        # pylint: disable=unbalanced-tuple-unpacking
         amp_left, amp_right, sigma_left, sigma_right, x0, y0_left, y0_right = (
             cls.args_kwargs_to_list(*args, **kwargs)
         )
@@ -608,6 +616,7 @@ class DoubleExponentialFitComputer(FitComputer):
             b_right: right component time constant coefficient
             y0: baseline offset
         """
+        # pylint: disable=unbalanced-tuple-unpacking
         x_center, a_left, b_left, a_right, b_right, y0 = cls.args_kwargs_to_list(
             *args, **kwargs
         )
@@ -714,6 +723,7 @@ class BaseMultiPeakFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate the fit function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         paramlist = cls.args_kwargs_to_list(*args, **kwargs)
         # Determine number of peaks from parameter count
         n_peaks = (
@@ -803,6 +813,7 @@ class SinusoidalFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate sinusoidal function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amplitude, frequency, phase, offset = cls.args_kwargs_to_list(*args, **kwargs)
         return amplitude * np.sin(2 * np.pi * frequency * x + phase) + offset
 
@@ -852,6 +863,7 @@ class CDFFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate CDF function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amplitude, mu, sigma, baseline = cls.args_kwargs_to_list(*args, **kwargs)
         erf = scipy.special.erf  # pylint: disable=no-member
         return amplitude * erf((x - mu) / (sigma * np.sqrt(2))) + baseline
@@ -892,6 +904,7 @@ class SigmoidFitComputer(FitComputer):
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
         """Evaluate Sigmoid function at given x values."""
+        # pylint: disable=unbalanced-tuple-unpacking
         amplitude, k, x0, offset = cls.args_kwargs_to_list(*args, **kwargs)
         return amplitude / (1 + np.exp(-k * (x - x0))) + offset
 
