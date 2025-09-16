@@ -6,8 +6,6 @@
 
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 
 from sigima.tools.checks import check_1d_array, check_1d_arrays
@@ -102,55 +100,6 @@ def find_all_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.n
         Array of values where :math:`y = f(x)` equals :math:`y_0`.
     """
     return find_x_intercepts(x, y - y0)
-
-
-def get_crossing_time(
-    x: np.ndarray,
-    y: np.ndarray,
-    level: float,
-    warn_if_multiple: bool = True,
-) -> float:
-    """
-    Finds the x-value at which the signal, supposed monotonic crosses a given threshold
-    level. y can be noisy, an estimation of crossing time is returned in such case.
-
-    This function detects zero-crossings in the shifted signal `y - level`,
-    and estimates the crossing time as the average of the x-values around
-    the first and last crossing points. It assumes a monotonic transition
-    (e.g., a single step or slope).
-
-    Args:
-        x: 1D array of x values (e.g., time).
-        y: 1D array of y values corresponding to `x`.
-        level: Threshold level at which to detect the crossing.
-
-    Returns:
-        Estimated x-value where the signal crosses the specified level.
-    """
-    y_shift = y - level
-    start_intersections_index = find_zero_crossings(y_shift)
-    if len(start_intersections_index) == 0:
-        warnings.warn(
-            "No zero-crossing found: signal does not cross the specified level.",
-            RuntimeWarning,
-        )
-        return np.nan
-    if len(start_intersections_index) == 1:
-        # If only one crossing is found, return the corresponding x value
-        return x[start_intersections_index[0]]
-    # If multiple crossings are found, average the x values around the first and last
-    # crossing
-    if warn_if_multiple:
-        warnings.warn(
-            "Multiple zero-crossings found: averaging the x values"
-            " around the first and last crossing.",
-            UserWarning,
-        )
-    # Average the x values at the first and last crossing points
-    start_time = np.mean(
-        [x[start_intersections_index[0]], x[start_intersections_index[-1] + 1]]
-    )
-    return start_time
 
 
 @check_1d_arrays(x_evenly_spaced=True)

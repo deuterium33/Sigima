@@ -447,7 +447,12 @@ def get_crossing_ratio_time(
         else np.min(y_positive)
     )
     y_norm = (y_positive - start_basement) / amplitude
-    return features.get_crossing_time(x, y_norm, decimal_ratio)
+    roots = features.find_all_x_at_given_y_value(x, y_norm, decimal_ratio)
+    if len(roots) == 0:
+        return None
+    if len(roots) > 1:
+        warnings.warn("Multiple crossing points found. Returning first.")
+    return roots[0]
 
 
 def get_step_rise_time(
@@ -710,16 +715,22 @@ def full_width_at_y(
     """
     tmax_idx = np.argmax(y)
 
-    t1 = features.get_crossing_time(
+    roots1 = features.find_all_x_at_given_y_value(
         x[0 : tmax_idx + 1],
         y[0 : tmax_idx + 1],
         level,
     )
-    t2 = features.get_crossing_time(
+    if len(roots1) > 1:
+        warnings.warn("Multiple crossing points found. Returning first.")
+    roots2 = features.find_all_x_at_given_y_value(
         x[tmax_idx:-1],
         y[tmax_idx:-1],
         level,
     )
+    if len(roots2) > 1:
+        warnings.warn("Multiple crossing points found. Returning last.")
+    t1 = roots1[0] if len(roots1) > 0 else np.nan
+    t2 = roots2[-1] if len(roots2) > 0 else np.nan
     return t1, y.dtype.type(level), t2, y.dtype.type(level)
 
 
@@ -758,7 +769,7 @@ def full_width_at_ratio(
     Notes:
         - The function normalizes the signal based on the detected amplitude and
         polarity.
-        - The crossing times are computed using the `features.get_crossing_time`
+        - The crossing times are computed using `features.find_first_x_at_given_y_value`
           function.
     """
     amplitude = get_amplitude(x, y, start_basement_range, end_basement_range)
@@ -791,16 +802,22 @@ def full_width_at_ratio(
 
     tmax_idx = np.argmax(y_norm)
 
-    x1 = features.get_crossing_time(
+    roots1 = features.find_all_x_at_given_y_value(
         x[0 : tmax_idx + 1],
         y_norm[0 : tmax_idx + 1],
         ratio,
     )
-    x2 = features.get_crossing_time(
+    if len(roots1) > 1:
+        warnings.warn("Multiple crossing points found. Returning first.")
+    x1 = roots1[0] if len(roots1) > 0 else np.nan
+    roots2 = features.find_all_x_at_given_y_value(
         x[tmax_idx:-1],
         y_norm[tmax_idx:-1],
         ratio,
     )
+    if len(roots2) > 1:
+        warnings.warn("Multiple crossing points found. Returning last.")
+    x2 = roots2[-1] if len(roots2) > 0 else np.nan
     return x1, level, x2, level
 
 
