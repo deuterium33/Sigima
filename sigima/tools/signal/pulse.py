@@ -125,6 +125,30 @@ class VoigtModel(PulseFitModel):
 # MARK: Pulse analysis -----------------------------------------------------------------
 
 
+def _calculate_basement_value(
+    x: np.ndarray,
+    y: np.ndarray,
+    basement_range: tuple[float, float] | None,
+    fallback_func=None,
+) -> float:
+    """Calculate the basement value for a given range.
+
+    Args:
+        x: 1D array of x values.
+        y: 1D array of y values.
+        basement_range: Range to calculate basement from.
+        fallback_func: Function to use if basement_range is None.
+
+    Returns:
+        Calculated basement value.
+    """
+    if basement_range is not None:
+        return np.mean(
+            y[np.logical_and(x >= basement_range[0], x <= basement_range[1])]
+        )
+    return fallback_func(y) if fallback_func is not None else 0.0
+
+
 def heuristically_recognize_shape(
     x: np.ndarray,
     y: np.ndarray,
@@ -300,7 +324,7 @@ def get_amplitude(
     start_basement_range: tuple[float, float] | None = None,
     end_basement_range: tuple[float, float] | None = None,
     high_baseline_range: tuple[float, float] | None = None,
-    signal_shape: str | None = None,
+    signal_shape: SignalShape | str | None = None,
 ) -> float:
     """Get curve amplitude.
 
@@ -322,28 +346,8 @@ def get_amplitude(
 
     if signal_shape == SignalShape.STEP:
         # compute base level
-        min_level = (
-            np.mean(
-                y[
-                    np.logical_and(
-                        x >= start_basement_range[0], x <= start_basement_range[1]
-                    )
-                ]
-            )
-            if start_basement_range is not None
-            else np.min(y)
-        )
-        max_level = (
-            np.mean(
-                y[
-                    np.logical_and(
-                        x >= end_basement_range[0], x <= end_basement_range[1]
-                    )
-                ]
-            )
-            if end_basement_range is not None
-            else np.max(y)
-        )
+        min_level = _calculate_basement_value(x, y, start_basement_range, np.min)
+        max_level = _calculate_basement_value(x, y, end_basement_range, np.max)
     elif signal_shape == SignalShape.SQUARE:
         polarity = detect_polarity(
             x, y, start_basement_range, end_basement_range, signal_shape=signal_shape
@@ -404,9 +408,8 @@ def get_crossing_ratio_time(
         y: 1D array of y values corresponding to `x`.
         start_basement_range: Tuple defining the lower plateau region (baseline).
         end_basement_range: Tuple defining the upper plateau region (peak).
-        decimalRatio: The fractional amplitude (between 0 and 1) at which to find the
-            crossing time.
-            For example, 0.5 corresponds to the half-maximum crossing.
+        decimal_ratio: The fractional amplitude (between 0 and 1) at which to find the
+         crossing time. For example, 0.5 corresponds to the half-maximum crossing.
 
     Returns:
         The x-value where the normalized signal crosses the specified fractional
@@ -467,9 +470,9 @@ def get_step_rise_time(
         start_basement_range: Tuple defining the lower plateau region (before the rise).
         end_basement_range: Tuple defining the upper plateau region (after the rise).
         start_rise_ratio: Fraction of the step height at which the rise starts.
-            Default is 0.1 (i.e., 10% of the step height).
+         Default is 0.1 (i.e., 10% of the step height).
         stop_rise_ratio: Fraction from the top of the step to define the end
-            of the rise. Default is 0.1 (i.e., 90% of the step height).
+         of the rise. Default is 0.1 (i.e., 90% of the step height).
 
     Returns:
         The rise time (difference between the stop and start of the step).
@@ -492,102 +495,6 @@ def get_step_rise_time(
     return stop_time - start_time
 
 
-def get_step_time_at_half_maximum(
-    x: np.ndarray,
-    y: np.ndarray,
-    start_basement_range: tuple[float, float],
-    end_basement_range: tuple[float, float],
-) -> float | None:
-    """
-    Estimates the time at which a rising signal reaches half of its total step height.
-
-    This function computes the time at which the signal crosses 50% of the amplitude
-    difference between two reference regions (typically representing the initial and
-    final plateaus of a step-like transition). It uses `get_crossing_ratio_time` with
-    a fixed ratio of 0.5 to identify the midpoint of the rise.
-
-    Args:
-        x: 1D array of x values (e.g., time).
-        y: 1D array of y values corresponding to `x`.
-        start_basement_range: Tuple defining the lower plateau region (start of
-            the step).
-        end_basement_range: Tuple defining the upper plateau region (end of the step).
-
-    Returns:
-        The x-value (e.g., time) at which the signal reaches 50% of the step height.
-    """
-    # start rise
-    time_at_half_maximum = get_crossing_ratio_time(
-        x, y, start_basement_range, end_basement_range, 0.5
-    )
-    return time_at_half_maximum
-
-
-def get_step_start_time(
-    x: np.ndarray,
-    y: np.ndarray,
-    start_basement_range: tuple[float, float],
-    end_basement_range: tuple[float, float],
-    start_rise_ratio: float = 0.1,
-) -> float | None:
-    """
-    Estimates the time at which a rising signal begins its step transition.
-
-    This function computes the time at which the signal reaches a specified fraction
-    of the rise between two reference regions.
-
-    Args:
-        x: 1D array of x values (e.g., time).
-        y: 1D array of y values corresponding to `x`.
-        start_basement_range: Tuple defining the lower plateau region (before the rise).
-        end_basement_range: Tuple defining the upper plateau region (after the rise).
-        start_rise_ratio: Ratio (between 0 and 1) that determines when the
-            rise is considered to have started. Default is 0.1 (i.e., 10% of the full
-            step height).
-
-    Returns:
-        The x-value (e.g., time) at which the signal starts rising significantly.
-    """
-    stop_time = get_crossing_ratio_time(
-        x, y, start_basement_range, end_basement_range, start_rise_ratio
-    )
-
-    return stop_time
-
-
-def get_step_end_time(
-    x: np.ndarray,
-    y: np.ndarray,
-    start_basement_range: tuple[float, float],
-    end_basement_range: tuple[float, float],
-    stop_rise_ratio: float = 0.1,
-) -> float | None:
-    """
-    Estimates the time at which a rising signal reaches the end of its step (plateau).
-
-    This function computes the time at which the signal reaches a specified percentage
-    (typically close to 1) of the rise between two reference ranges.
-
-    Args:
-        x: 1D array of x values (e.g., time).
-        y: 1D array of y values corresponding to `x`.
-        start_basement_range: Tuple defining the lower plateau region (start of the
-            step).
-        end_basement_range: Tuple defining the upper plateau region (end of the step).
-        stop_rise_ratio: Ratio (between 0 and 1) used to determine the end
-            of the rise. For example, 0.1 corresponds to detecting when the signal has
-            reached 90% of its step (1 - 0.1). Default is 0.1.
-
-    Returns:
-        The x-value (e.g., time) at which the signal reaches the end of the step.
-    """
-    stop_time = get_crossing_ratio_time(
-        x, y, start_basement_range, end_basement_range, 1 - stop_rise_ratio
-    )
-
-    return stop_time
-
-
 def heuristically_find_foot_end_time(
     x: np.ndarray,
     y: np.ndarray,
@@ -605,9 +512,9 @@ def heuristically_find_foot_end_time(
         x: 1D array of x values (e.g., time).
         y: 1D array of y values corresponding to `x`.
         start_basement_range: Tuple defining the lower plateau region (start of the
-            step).
+         step).
         z_score_threshold: Number of standard deviations to use as the outlier
-            threshold.
+         threshold.
 
     Returns:
         The index of the first outlier, or None if no such value is found.
@@ -648,14 +555,14 @@ def get_foot_info(
         x: 1D array of x values (e.g., time or position).
         y: 1D array of y values (same size as x).
         start_basement_range: A range (min, max) representing the initial flat region
-            ("foot").
+         ("foot").
         end_basement_range: A range (min, max) representing the final high region after
-            the rise.
+         the rise.
         start_rise_ratio: Fraction of the rise height to detect the start of the rise.
         end_time (optional): If provided, only consider data up to this x-value.
 
     Returns:
-        dict: A dictionary with:
+        A dictionary with:
             - 'index': Index where the signal reaches the end of the foot.
             - 'threshold': y[index], the ordinate of the end of the foot.
             - 'foot_duration': Duration of the foot region (flat before the rise).
@@ -672,7 +579,7 @@ def get_foot_info(
                 )
                 end_time = heuristically_find_foot_end_time(x, y, start_basement_range)
         else:
-            heuristically_find_foot_end_time(x, y, start_basement_range)
+            end_time = heuristically_find_foot_end_time(x, y, start_basement_range)
 
     idx = int(np.nonzero(x >= end_time)[0][0]) if end_time is not None else len(x) - 1
     return {
@@ -710,8 +617,8 @@ def full_width_at_y(
     if len(roots1) > 1:
         warnings.warn("Multiple crossing points found. Returning first.")
     roots2 = features.find_all_x_at_given_y_value(
-        x[tmax_idx:-1],
-        y[tmax_idx:-1],
+        x[tmax_idx:],
+        y[tmax_idx:],
         level,
     )
     if len(roots2) > 1:
@@ -740,9 +647,9 @@ def full_width_at_ratio(
         y: 1D array of y-values.
         ratio: Ratio (between 0 and 1) of the amplitude at which to measure the width.
         start_basement_range: Range of x-values to estimate the baseline at the start
-            of the signal.
+         of the signal.
         end_basement_range: Range of x-values to estimate the baseline at the end
-            of the signal.
+         of the signal.
 
     Returns:
         (x1, level, x2, level), where x1 and x2 are the crossing points at the specified
@@ -751,13 +658,13 @@ def full_width_at_ratio(
     Raises:
         ValueError: If the amplitude of the signal is zero.
         RuntimeWarning: If the polarity cannot be determined, returns NaN for crossing
-            times.
+         times.
 
     Notes:
         - The function normalizes the signal based on the detected amplitude and
         polarity.
         - The crossing times are computed using `features.find_first_x_at_given_y_value`
-          function.
+        function.
     """
     amplitude = get_amplitude(x, y, start_basement_range, end_basement_range)
     polarity = detect_polarity(x, y, start_basement_range, end_basement_range)
@@ -798,8 +705,8 @@ def full_width_at_ratio(
         warnings.warn("Multiple crossing points found. Returning first.")
     x1 = roots1[0] if len(roots1) > 0 else np.nan
     roots2 = features.find_all_x_at_given_y_value(
-        x[tmax_idx:-1],
-        y_norm[tmax_idx:-1],
+        x[tmax_idx:],
+        y_norm[tmax_idx:],
         ratio,
     )
     if len(roots2) > 1:
@@ -902,7 +809,7 @@ def get_parameters(
     end_basement_range: tuple[float, float],
     start_rise_ratio: float = 0.1,
     stop_rise_ratio: float = 0.1,
-    signal_shape: str | None = None,
+    signal_shape: SignalShape | str | None = None,
 ) -> dict[str, float | int | None]:
     """
     Compute characteristic parameters of a step or square signal.
@@ -955,11 +862,12 @@ def get_parameters(
             start_rise_ratio=start_rise_ratio,
             stop_rise_ratio=stop_rise_ratio,
         )
-        t50 = get_step_time_at_half_maximum(
+        t50 = get_crossing_ratio_time(
             x,
             y,
             start_basement_range,
             end_basement_range,
+            0.5,
         )
         foot_info = get_foot_info(
             x, y, start_basement_range, end_basement_range, start_rise_ratio
@@ -975,15 +883,16 @@ def get_parameters(
             start_rise_ratio=start_rise_ratio,
             stop_rise_ratio=stop_rise_ratio,
         )
-        t50 = get_step_time_at_half_maximum(
+        t50 = get_crossing_ratio_time(
             x[0 : tmax_idx + 1],
             y[0 : tmax_idx + 1],
-            start_basement_range=start_basement_range,
-            end_basement_range=(x[tmax_idx], x[tmax_idx]),
+            start_basement_range,
+            (x[tmax_idx], x[tmax_idx]),
+            0.5,
         )
         t_fall = get_step_rise_time(
-            x[tmax_idx:-1],
-            y[tmax_idx:-1],
+            x[tmax_idx:],
+            y[tmax_idx:],
             start_basement_range=(x[tmax_idx], x[tmax_idx]),
             end_basement_range=end_basement_range,
             start_rise_ratio=start_rise_ratio,
@@ -1002,8 +911,8 @@ def get_parameters(
         fwhm_value = x2 - x1  # full width at half maximum
         mean_x_sampling_time = float(np.mean(np.diff(x)))
         if fwhm_value <= 10 * mean_x_sampling_time:
-            # if the fwhm is larger than 10 times the mean sampling time, we cannot rely
-            # on rising and falling times, as they are not well measured
+            # if the fwhm is smaller than 10 times the mean sampling time, we cannot
+            # rely on rising and falling times, as the pulse is too narrow
             t_fall = None
             t_rise = None
     else:
