@@ -3031,6 +3031,21 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     return compute_geometry_from_obj("∆X", "segment", obj, pulse.full_width_at_y, p.y)
 
 
+def _find_first_x_at_y_value(xy: np.ndarray, y_target: float) -> float:
+    """Find the first x value where :math:`y = f(x)` equals the value :math:`y_target`.
+
+    Args:
+        xy: Tuple of (x, y) data arrays.
+        y_target: Target y value.
+
+    Returns:
+        The first interpolated x value at the given :math:`y_target`,
+        or `nan` if none found.
+    """
+    x_values = features.find_x_values_at_y(xy[0], xy[1], y_target)
+    return x_values[0] if len(x_values) > 0 else np.nan
+
+
 @computation_function()
 def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     """
@@ -3045,7 +3060,7 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     """
     table = TableResultBuilder(f"x|y={p.y}")
     table.add(
-        lambda xy: features.find_first_x_at_given_y_value(xy[0], xy[1], p.y),
+        lambda xy: _find_first_x_at_y_value(xy, p.y),
         "x@y",
         "x = %g {.xunit}",
     )
@@ -3072,7 +3087,7 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
     """
     table = TableResultBuilder(f"y|x={p.x}")
     table.add(
-        lambda xy: features.find_y_at_given_x_value(xy[0], xy[1], p.x),
+        lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x),
         "y@x",
         "y = %g {.yunit}",
     )

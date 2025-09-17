@@ -21,12 +21,11 @@ def find_zero_crossings(y: np.ndarray) -> np.ndarray:
     Returns:
         An array of indices where zero-crossings occur.
     """
-    zero_crossing_indices = np.nonzero(np.diff(np.sign(y)))[0]
-    return zero_crossing_indices
+    return np.nonzero(np.diff(np.sign(y)))[0]
 
 
 @check_1d_arrays(x_sorted=True)
-def find_x_intercepts(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+def find_x_axis_crossings(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Find the :math:`x_n` values where :math:`y = f(x)` intercepts the x-axis.
 
     This function uses zero-crossing detection and interpolation to find the x values
@@ -48,58 +47,43 @@ def find_x_intercepts(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     slope = (y[xi_after] - y[xi_before]) / (x[xi_after] - x[xi_before])
     with np.errstate(divide="ignore"):
         x0 = -y[xi_before] / slope + x[xi_before]
-        mask = ~np.isfinite(x0)
-        x0[mask] = xi_before[mask]
+        x0 = np.where(np.isfinite(x0), x0, (x[xi_before] + x[xi_after]) / 2)
+        # mask = ~np.isfinite(x0)
+        # x0[mask] = xi_before[mask]
     return x0
 
 
-@check_1d_arrays(x_sorted=True)
-def find_first_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> float:
-    """Find the first x value where :math:`y = f(x)` equals the value :math:`y_0`.
-
-    Args:
-        x: X data.
-        y: Y data.
-        y0: Target y value.
-
-    Returns:
-        The first interpolated x value at the given :math:`y_0`, or `nan` if none found.
-    """
-    x_values = find_all_x_at_given_y_value(x, y, y0)
-    return x_values[0] if len(x_values) > 0 else np.nan
-
-
 @check_1d_arrays(x_min_size=2, x_finite_only=True, x_sorted=True)
-def find_y_at_given_x_value(x: np.ndarray, y: np.ndarray, x0: float) -> float:
+def find_y_at_x_value(x: np.ndarray, y: np.ndarray, x_target: float) -> float:
     """Return the y value at a specified x value using linear interpolation.
 
     Args:
         x: X data.
         y: Y data.
-        x0: Input x value.
+        x_target: Input x value.
 
     Returns:
-        Interpolated y value at x0, or `nan` if input value is not within the
+        Interpolated y value at x_target, or `nan` if input value is not within the
         interpolation range.
     """
-    if np.isnan(x0):
+    if np.isnan(x_target):
         return np.nan
-    return float(np.interp(x0, x, y, left=np.nan, right=np.nan))
+    return float(np.interp(x_target, x, y, left=np.nan, right=np.nan))
 
 
 @check_1d_arrays
-def find_all_x_at_given_y_value(x: np.ndarray, y: np.ndarray, y0: float) -> np.ndarray:
-    """Find the first x value where :math:`y = f(x)` equals the value :math:`y_0`.
+def find_x_values_at_y(x: np.ndarray, y: np.ndarray, y_target: float) -> np.ndarray:
+    """Find all x values where :math:`y = f(x)` equals the value :math:`y_target`.
 
     Args:
         x: X data.
         y: Y data.
-        y0: Target value.
+        y_target: Target value.
 
     Returns:
-        Array of values where :math:`y = f(x)` equals :math:`y_0`.
+        Array of x values where :math:`y = f(x)` equals :math:`y_target`.
     """
-    return find_x_intercepts(x, y - y0)
+    return find_x_axis_crossings(x, y - y_target)
 
 
 @check_1d_arrays(x_evenly_spaced=True)
@@ -119,7 +103,7 @@ def find_bandwidth_coordinates(
         Returns None if the bandwidth cannot be determined.
     """
     level: float = np.max(y) + threshold
-    crossings = find_all_x_at_given_y_value(x, y, level)
+    crossings = find_x_values_at_y(x, y, level)
     if len(crossings) == 1:
         # One crossing: 1) baseband bandwidth if max is above crossing
         #               2) passband bandwidth if max is below crossing

@@ -479,7 +479,8 @@ def get_crossing_ratio_time(
     decimal_ratio: float = 0.1,
     fraction: float = 0.05,
 ) -> float | None:
-    """
+    """Get the x-value at which the signal crosses a specified fractional amplitude.
+
     Calculates the x-value at which a normalized step signal crosses a specified
     fractional amplitude.
 
@@ -510,15 +511,15 @@ def get_crossing_ratio_time(
             end_range,
             signal_shape=SignalShape.STEP,
         )
-    except PolarityDetectionError as e:
-        raise InvalidSignalError(f"Cannot determine crossing time: {e}") from e
+    except PolarityDetectionError as exc:
+        raise InvalidSignalError(f"Cannot determine crossing time: {exc}") from exc
     amplitude = get_amplitude(x, y, start_range, end_range)
     y_positive = y * polarity
     if start_range is None:
         start_range = get_start_range(x, fraction)
     y_start = get_range_mean_y(x, y_positive, start_range)
     y_norm = (y_positive - y_start) / amplitude
-    roots = features.find_all_x_at_given_y_value(x, y_norm, decimal_ratio)
+    roots = features.find_x_values_at_y(x, y_norm, decimal_ratio)
     if len(roots) == 0:
         return None
     if len(roots) > 1:
@@ -717,14 +718,14 @@ def full_width_at_y(
     """
     tmax_idx = np.argmax(y)
 
-    roots1 = features.find_all_x_at_given_y_value(
+    roots1 = features.find_x_values_at_y(
         x[0 : tmax_idx + 1],
         y[0 : tmax_idx + 1],
         level,
     )
     if len(roots1) > 1:
         warnings.warn("Multiple crossing points found. Returning first.")
-    roots2 = features.find_all_x_at_given_y_value(
+    roots2 = features.find_x_values_at_y(
         x[tmax_idx:],
         y[tmax_idx:],
         level,
@@ -772,7 +773,7 @@ def full_width_at_ratio(
     Notes:
         - The function normalizes the signal based on the detected amplitude and
         polarity.
-        - The crossing times are computed using `features.find_first_x_at_given_y_value`
+        - The crossing times are computed using `features.find_first_x_at_y_value`
         function.
     """
     amplitude = get_amplitude(x, y, start_range, end_range)
@@ -799,7 +800,7 @@ def full_width_at_ratio(
 
     tmax_idx = np.argmax(y_norm)
 
-    roots1 = features.find_all_x_at_given_y_value(
+    roots1 = features.find_x_values_at_y(
         x[0 : tmax_idx + 1],
         y_norm[0 : tmax_idx + 1],
         ratio,
@@ -807,7 +808,7 @@ def full_width_at_ratio(
     if len(roots1) > 1:
         warnings.warn("Multiple crossing points found. Returning first.")
     x1 = roots1[0] if len(roots1) > 0 else np.nan
-    roots2 = features.find_all_x_at_given_y_value(
+    roots2 = features.find_x_values_at_y(
         x[tmax_idx:],
         y_norm[tmax_idx:],
         ratio,
