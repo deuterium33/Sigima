@@ -29,6 +29,12 @@ Feature Extraction Algorithms
 .. automodule:: sigima.tools.signal.features
    :members:
 
+Filtering Functions
+^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: sigima.tools.signal.filtering
+   :members:
+
 Curve Fitting Models
 ^^^^^^^^^^^^^^^^^^^^
 
