@@ -273,21 +273,11 @@ def _detect_square_polarity(
         max_y = np.max(y_red)
         min_y = np.min(y_red)
     else:
-        max_y = min_y = np.mean(
-            y[np.logical_and(x >= plateau_range[0], x <= plateau_range[1])]
-        )
+        max_y = min_y = get_range_mean_y(x, y, plateau_range)
     positive_score = negative_score = 0
 
-    y_start = (
-        np.mean(y[np.logical_and(x >= start_range[0], x <= start_range[1])])
-        if y_start is None
-        else y_start
-    )
-    y_end = (
-        np.mean(y[np.logical_and(x >= end_range[0], x <= end_range[1])])
-        if y_end is None
-        else y_end
-    )
+    y_start = get_range_mean_y(x, y, start_range) if y_start is None else y_start
+    y_end = get_range_mean_y(x, y, end_range) if y_end is None else y_end
 
     if max_y > y_start and max_y > y_end:
         positive_score = (max_y - y_start) ** 2 + (max_y - y_end) ** 2
@@ -303,6 +293,7 @@ def detect_polarity(
     end_range: tuple[float, float] | None = None,
     plateau_range: tuple[float, float] | None = None,
     signal_shape: SignalShape | None = None,
+    fraction: float = 0.05,
 ) -> int:
     """Get step curve polarity.
 
@@ -313,6 +304,7 @@ def detect_polarity(
         end_range: Range for the end baseline.
         plateau_range: Range for the plateau.
         signal_shape: Shape of the signal.
+        fraction: Fraction of the x-range to use for baseline and plateau calculations.
 
     Returns:
         Polarity of the step (1 for positive, -1 for negative).
@@ -322,22 +314,20 @@ def detect_polarity(
         ValueError: If signal shape is unknown.
     """
     if start_range is None:
-        start_range = (x[0], x[0])
+        start_range = get_start_range(x, fraction)
     if end_range is None:
-        end_range = (x[-1], x[-1])
+        end_range = get_end_range(x, fraction)
 
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
 
-    start_baseline = np.mean(
-        y[np.logical_and(x >= start_range[0], x <= start_range[1])]
-    )
-    end_baseline = np.mean(y[np.logical_and(x >= end_range[0], x <= end_range[1])])
+    y_start = get_range_mean_y(x, y, start_range)
+    y_end = get_range_mean_y(x, y, end_range)
 
     if signal_shape == SignalShape.STEP:
-        if start_baseline < end_baseline:
+        if y_start < y_end:
             return 1
-        if start_baseline > end_baseline:
+        if y_start > y_end:
             return -1
 
         raise PolarityDetectionError(
@@ -350,8 +340,8 @@ def detect_polarity(
             start_range,
             end_range,
             plateau_range,
-            start_baseline,
-            end_baseline,
+            y_start,
+            y_end,
         )
     raise ValueError(
         f"\nUnknown signal shape '{signal_shape}'. Use 'step' or 'square'."
@@ -405,6 +395,24 @@ def get_plateau_range(
     return (x[max_index] - 0.5 * x_fraction, x[max_index] + 0.5 * x_fraction)
 
 
+def get_range_mean_y(
+    x: np.ndarray,
+    y: np.ndarray,
+    value_range: tuple[float, float],
+) -> float:
+    """Get mean y-value in a given x-range.
+
+    Args:
+        x: 1D array of x values.
+        y: 1D array of y values.
+        value_range: Tuple representing the x-range (min, max).
+
+    Returns:
+        Mean y-value in the specified x-range.
+    """
+    return float(np.mean(y[np.logical_and(x >= value_range[0], x <= value_range[1])]))
+
+
 def get_amplitude(
     x: np.ndarray,
     y: np.ndarray,
@@ -438,8 +446,8 @@ def get_amplitude(
         end_range = get_end_range(x, fraction)
 
     if signal_shape == SignalShape.STEP:
-        min_level = np.mean(y[np.logical_and(x >= start_range[0], x <= start_range[1])])
-        max_level = np.mean(y[np.logical_and(x >= end_range[0], x <= end_range[1])])
+        min_level = get_range_mean_y(x, y, start_range)
+        max_level = get_range_mean_y(x, y, end_range)
     elif signal_shape == SignalShape.SQUARE:
         try:
             polarity = detect_polarity(
@@ -455,20 +463,8 @@ def get_amplitude(
         # reverse y if polarity is negative
         y_positive = y * polarity
         # compute base level
-        min_level = (
-            np.mean(
-                y_positive[np.logical_and(x >= start_range[0], x <= start_range[1])]
-            )
-            if start_range is not None
-            else np.min(y_positive)
-        )
-        max_level = (
-            np.mean(
-                y_positive[np.logical_and(x >= plateau_range[0], x <= plateau_range[1])]
-            )
-            if plateau_range is not None
-            else np.max(y_positive)
-        )
+        min_level = get_range_mean_y(x, y_positive, start_range)
+        max_level = get_range_mean_y(x, y_positive, plateau_range)
     else:
         raise ValueError("Unknown signal type. Use 'step' or 'square'.")
 
@@ -481,6 +477,7 @@ def get_crossing_ratio_time(
     start_range: tuple[float, float] | None = None,
     end_range: tuple[float, float] | None = None,
     decimal_ratio: float = 0.1,
+    fraction: float = 0.05,
 ) -> float | None:
     """
     Calculates the x-value at which a normalized step signal crosses a specified
@@ -498,6 +495,8 @@ def get_crossing_ratio_time(
         end_range: Tuple defining the end baseline region (final plateau).
         decimal_ratio: The fractional amplitude (between 0 and 1) at which to find the
          crossing time. For example, 0.5 corresponds to the half-maximum crossing.
+        fraction: Fraction of the x-range to use for baseline calculations if
+         start_range or end_range are None.
 
     Returns:
         The x-value where the normalized signal crosses the specified fractional
@@ -515,12 +514,10 @@ def get_crossing_ratio_time(
         raise InvalidSignalError(f"Cannot determine crossing time: {e}") from e
     amplitude = get_amplitude(x, y, start_range, end_range)
     y_positive = y * polarity
-    start_baseline = (
-        np.mean(y_positive[np.logical_and(x >= start_range[0], x <= start_range[1])])
-        if start_range is not None
-        else np.min(y_positive)
-    )
-    y_norm = (y_positive - start_baseline) / amplitude
+    if start_range is None:
+        start_range = get_start_range(x, fraction)
+    y_start = get_range_mean_y(x, y_positive, start_range)
+    y_norm = (y_positive - y_start) / amplitude
     roots = features.find_all_x_at_given_y_value(x, y_norm, decimal_ratio)
     if len(roots) == 0:
         return None
@@ -745,6 +742,7 @@ def full_width_at_ratio(
     ratio: float,
     start_range: tuple[float, float] | None = None,
     end_range: tuple[float, float] | None = None,
+    fraction: float = 0.05,
 ) -> tuple[float, float, float, float]:
     """
     Calculate the full width at a specified ratio of the amplitude for a pulse signal.
@@ -759,6 +757,8 @@ def full_width_at_ratio(
         ratio: Ratio (between 0 and 1) of the amplitude at which to measure the width.
         start_range: Range of x-values to estimate the start baseline.
         end_range: Range of x-values to estimate the end baseline.
+        fraction: Fraction of the x-range to use for baseline calculations if
+         start_range or end_range are None.
 
     Returns:
         (x1, level, x2, level), where x1 and x2 are the crossing points at the specified
@@ -782,12 +782,11 @@ def full_width_at_ratio(
     except PolarityDetectionError as e:
         raise InvalidSignalError(f"Cannot determine width at ratio: {e}") from e
 
-    start_baseline = np.mean(
-        y[np.logical_and(x >= start_range[0], x <= start_range[1])]
-        if start_range is not None
-        else np.min(y),
-        dtype=y.dtype.type,
-    )
+    if start_range is None:
+        start_range = get_start_range(x, fraction)
+    if end_range is None:
+        end_range = get_end_range(x, fraction)
+    start_baseline = get_range_mean_y(x, y * polarity, start_range)
 
     if amplitude == 0:
         raise InvalidSignalError(
@@ -997,7 +996,7 @@ def get_pulse_parameters(
             t_fall = None
             t_rise = None
 
-    offset = np.mean(y[np.logical_and(x >= start_range[0], x <= start_range[1])])
+    offset = get_range_mean_y(x, y * polarity, start_range)  # baseline
 
     foot_duration = foot_info.foot_duration
 
