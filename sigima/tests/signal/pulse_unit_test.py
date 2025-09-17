@@ -392,9 +392,6 @@ def test_get_crossing_ratio_time() -> None:
     guiutils.view_curves_if_gui(signal, title=f"Crossing time = {crossing_time:.3f}")
 
     # Auto-detection may find different baseline due to noise effects
-    # Skip this test as auto-detection behavior depends on signal statistics
-    # which can vary significantly with noise
-    pytest.skip("Auto-detection crossing time varies with noise effects")
     signal = create_signal("", x, y_noisy)
     guiutils.view_curves_if_gui(
         signal, title=f"Crossing time (auto) = {crossing_time:.3f}"
@@ -745,8 +742,8 @@ def test_get_foot_info() -> None:
     )
 
 
-def test_get_parameters() -> None:
-    """Test the extraction of step parameters from generated step and square signals."""
+def test_tools_feature_extraction() -> None:
+    """Test the feature extraction tools."""
     # Test the extraction of step parameters from a generated step signal
     y_initial, y_final = 1.0, 6.0
     expected_amp = theoretical_step_amplitude(y_initial, y_final)
@@ -857,7 +854,7 @@ def test_get_parameters() -> None:
 
 
 @pytest.mark.validation
-def test_signal_get_parameters() -> None:
+def test_signal_extract_pulse_features() -> None:
     """Validation test for extract_pulse_features computation function."""
     # Generate a step signal
     x, y = generate_step_signal(
@@ -991,5 +988,5 @@ if __name__ == "__main__":
     test_get_step_end_time()
     test_heuristically_find_foot_end_time()
     test_get_foot_info()
-    test_get_parameters()
-    test_signal_get_parameters()
+    test_tools_feature_extraction()
+    test_signal_extract_pulse_features()
