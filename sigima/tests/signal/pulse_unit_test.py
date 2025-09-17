@@ -31,23 +31,17 @@ def theoretical_square_amplitude(y_initial: float, y_high: float) -> float:
     return abs(y_high - y_initial)
 
 
-def theoretical_crossing_time(
-    t_step: float, t_rise: float, ratio: float, y_initial: float, y_final: float
-) -> float:
+def theoretical_crossing_time(t_step: float, t_rise: float, ratio: float) -> float:
     """Calculate theoretical crossing time for a step signal with linear rise.
 
     Args:
         t_step: Time when the rise starts
         t_rise: Duration of the linear rise
         ratio: Crossing ratio (0.0 to 1.0)
-        y_initial: Initial signal value
-        y_final: Final signal value
 
     Returns:
         Theoretical time when signal reaches the specified ratio of its amplitude
     """
-    # For a linear rise from y_initial to y_final over duration t_rise,
-    # the crossing occurs at t_step + ratio * t_rise
     return t_step + ratio * t_rise
 
 
@@ -93,11 +87,10 @@ def theoretical_square_crossing_time(
     """
     if edge == "rise":
         return t_step + ratio * t_rise
-    elif edge == "fall":
+    if edge == "fall":
         t_start_fall = t_step + t_rise + square_duration
         return t_start_fall + ratio * t_fall
-    else:
-        raise ValueError("edge must be 'rise' or 'fall'")
+    raise ValueError("edge must be 'rise' or 'fall'")
 
 
 def _test_shape_recognition_case(
@@ -374,9 +367,7 @@ def test_get_crossing_ratio_time() -> None:
 
     # positive polarity (y_initial=0, y_final=5)
     y_initial, y_final = 0, 5
-    expected_crossing_time = theoretical_crossing_time(
-        t_step, t_rise, ratio, y_initial, y_final
-    )
+    expected_crossing_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -399,9 +390,7 @@ def test_get_crossing_ratio_time() -> None:
 
     # negative polarity (y_initial=5, y_final=2)
     y_initial, y_final = 5, 2
-    expected_crossing_time = theoretical_crossing_time(
-        t_step, t_rise, ratio, y_initial, y_final
-    )
+    expected_crossing_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0,
         t_step=t_step,
@@ -550,7 +539,7 @@ def test_get_step_time_at_half_maximum() -> None:
 
     # positive polarity (y_initial=0, y_final=5)
     y_initial, y_final = 0, 5
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -567,7 +556,7 @@ def test_get_step_time_at_half_maximum() -> None:
 
     # negative polarity (y_initial=5, y_final=2)
     y_initial, y_final = 5, 2
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -595,7 +584,7 @@ def test_get_step_starttime() -> None:
 
     # positive polarity (y_initial=0, y_final=5)
     y_initial, y_final = 0, 5
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -607,7 +596,7 @@ def test_get_step_starttime() -> None:
 
     # negative polarity (y_initial=5, y_final=2)
     y_initial, y_final = 5, 2
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -630,7 +619,7 @@ def test_get_step_end_time() -> None:
 
     # positive polarity (y_initial=0, y_final=5)
     y_initial, y_final = 0, 5
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )
@@ -642,7 +631,7 @@ def test_get_step_end_time() -> None:
 
     # negative polarity (y_initial=5, y_final=2)
     y_initial, y_final = 5, 2
-    expected_time = theoretical_crossing_time(t_step, t_rise, ratio, y_initial, y_final)
+    expected_time = theoretical_crossing_time(t_step, t_rise, ratio)
     x, y_noisy = generate_step_signal(
         seed=0, t_step=t_step, t_rise=t_rise, y_initial=y_initial, y_final=y_final
     )

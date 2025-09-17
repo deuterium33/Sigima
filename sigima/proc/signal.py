@@ -2934,8 +2934,8 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         x,
         y,
         signal_shape=p.signal_shape,
-        start_baseline_range=[p.start_range_min, p.start_range_max],
-        end_baseline_range=[p.end_range_min, p.end_range_max],
+        start_range=[p.start_range_min, p.start_range_max],
+        end_range=[p.end_range_min, p.end_range_max],
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )

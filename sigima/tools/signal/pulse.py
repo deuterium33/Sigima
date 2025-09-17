@@ -609,8 +609,7 @@ def heuristically_find_foot_end_time(
         raise InvalidSignalError("No data points found after start_baseline_range")
 
     start_idx = start_indices[0]
-    if start_idx < 2:  # Need at least 2 points for statistics
-        start_idx = 2
+    start_idx = max(start_idx, 2)  # Ensure at least 2 points for statistics
 
     # Initialize running statistics
     running_sum = np.sum(y[:start_idx])
@@ -672,14 +671,16 @@ def get_foot_info(
                 end_time = get_crossing_ratio_time(
                     x, y, start_range, end_range, start_rise_ratio
                 )
-            except Exception:
+            except InvalidSignalError:
                 end_time = None
 
             if end_time is None:
                 try:
                     end_time = heuristically_find_foot_end_time(x, y, start_range)
-                except InvalidSignalError:
-                    raise InvalidSignalError("Could not determine foot end time")
+                except InvalidSignalError as exc:
+                    raise InvalidSignalError(
+                        "Could not determine foot end time"
+                    ) from exc
         else:
             end_time = heuristically_find_foot_end_time(x, y, start_range)
 
