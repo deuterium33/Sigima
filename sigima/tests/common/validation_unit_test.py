@@ -43,21 +43,19 @@ def test_validation_statistics() -> None:
 
 
 def test_validation_missing_tests() -> None:
-    """Test that specific computation functions have validation tests.
+    """Test that all computation functions have validation tests.
 
-    This test ensures that specific computation functions (those decorated with
+    This test ensures that all computation functions (those decorated with
     @computation_function) have corresponding validation tests
-    marked with @pytest.mark.validation. Currently checking for:
-    - sigima.proc.signal.polynomial_fit
-    - sigima.proc.signal.sinusoidal_fit
+    marked with @pytest.mark.validation.
     """
     # Get all functions marked with @pytest.mark.validation
     validation_tests = get_validation_tests(tests_pkg)
 
-    # Define the specific functions that should have validation tests
+    # Get all computation functions that should have validation tests
+    computation_functions = find_computation_functions()
     required_functions = [
-        ("sigima.proc.signal", "polynomial_fit"),
-        ("sigima.proc.signal", "sinusoidal_fit"),
+        (module_name, func_name) for module_name, func_name, _ in computation_functions
     ]
 
     # Check each required function to see if it has a corresponding validation test
