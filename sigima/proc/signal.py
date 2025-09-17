@@ -2843,6 +2843,8 @@ def compute_geometry_from_obj(
             results: np.ndarray = func(x, y)
         else:
             results: np.ndarray = func(x, y, *args)
+        if results is None:
+            continue
         if not isinstance(results, (np.ndarray, list, tuple)):
             raise ValueError(
                 "The computation function must return a NumPy array, a list or a tuple"
