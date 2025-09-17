@@ -20,6 +20,7 @@ from plotpy.plot import (
     PlotOptions,
     SyncPlotDialog,
 )
+from plotpy.styles import ShapeParam
 
 from sigima.config import _
 from sigima.objects import ImageObj, SignalObj
@@ -84,6 +85,41 @@ def create_curve_dialog(
     )
     win.setObjectName(name)
     return win
+
+
+def create_signal_segment(
+    x0: float,
+    y0: float,
+    x1: float,
+    y1: float,
+    label: str | None = None,
+) -> CurveItem:
+    """Create a signal segment item
+
+    Args:
+        x0: X-coordinate of the start point
+        y0: Y-coordinate of the start point
+        x1: X-coordinate of the end point
+        y1: Y-coordinate of the end point
+        label: Label for the segment, or None for no label
+
+    Returns:
+        A `CurveItem` representing the signal segment
+    """
+    item = make.annotated_segment(x0, y0, x1, y1, label, show_computations=False)
+    item.label.labelparam.bgalpha = 0.6
+    item.label.labelparam.anchor = "T"
+    item.label.labelparam.yc = 10
+    item.label.labelparam.update_item(item.label)
+    p: ShapeParam = item.shape.shapeparam
+    p.line.color = "#33ff00"
+    p.line.width = 5
+    p.symbol.facecolor = "#26be00"
+    p.symbol.edgecolor = "#33ff00"
+    p.symbol.marker = "Ellipse"
+    p.symbol.size = 11
+    p.update_item(item.shape)
+    return item
 
 
 def view_curve_items(

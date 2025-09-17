@@ -36,14 +36,14 @@ def test_signal_bandwidth_3db() -> None:
             # pylint: disable=import-outside-toplevel
             from plotpy.builder import make
 
-            from sigima.tests.vistools import view_curve_items
+            from sigima.tests import vistools
 
             x0, y0, x1, y1 = geometry.coords[0]
             x, y = obj.xydata
-            view_curve_items(
+            vistools.view_curve_items(
                 [
                     make.mcurve(x.real, y.real, label=obj.title),
-                    make.annotated_segment(x0, y0, x1, y1, "Bandwidth@-3dB"),
+                    vistools.create_signal_segment(x0, y0, x1, y1, "Bandwidth@-3dB"),
                 ],
                 title="Bandwidth@-3dB",
             )

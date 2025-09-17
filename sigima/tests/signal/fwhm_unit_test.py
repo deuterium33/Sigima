@@ -25,16 +25,16 @@ def __test_fwhm_interactive(obj: sigima.objects.SignalObj, method: str) -> None:
     # pylint: disable=import-outside-toplevel
     from plotpy.builder import make
 
-    from sigima.tests.vistools import view_curve_items
+    from sigima.tests import vistools
 
     param = sigima.params.FWHMParam.create(method=method)
     geometry = sigima.proc.signal.fwhm(obj, param)
     x0, y0, x1, y1 = geometry.coords[0]
     x, y = obj.xydata
-    view_curve_items(
+    vistools.view_curve_items(
         [
             make.mcurve(x.real, y.real, label=obj.title),
-            make.annotated_segment(x0, y0, x1, y1),
+            vistools.create_signal_segment(x0, y0, x1, y1, "FWHM"),
         ],
         title=f"FWHM [{method}]",
     )

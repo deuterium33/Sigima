@@ -299,7 +299,34 @@ def _test_amplitude_case(
         amp = pulse.get_amplitude(x, y_noisy, start_range, end_range)
 
     check_scalar_result(title, amp, expected_amp, atol=atol)
-    guiutils.view_curves_if_gui([x, y_noisy], title=f"{title}: {amp:.3f}")
+
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            # pylint: disable=import-outside-toplevel
+            from plotpy.builder import make
+
+            from sigima.tests import vistools
+
+            ys = pulse.get_range_mean_y(x, y_noisy, start_range)
+            ye = pulse.get_range_mean_y(x, y_noisy, end_range)
+            xs0, xs1 = start_range
+            xe0, xe1 = end_range
+            items = [
+                make.mcurve(x, y_noisy, label="Noisy signal"),
+                vistools.create_signal_segment(xs0, ys, xs1, ys, "Start baseline"),
+                vistools.create_signal_segment(xe0, ye, xe1, ye, "End baseline"),
+            ]
+            if signal_type == "square":
+                if plateau_range is None:
+                    polarity = pulse.detect_polarity(x, y_noisy, start_range, end_range)
+                    plateau_range = pulse.get_plateau_range(x, y_noisy, polarity)
+                xp0, xp1 = plateau_range
+                yp = pulse.get_range_mean_y(x, y_noisy, plateau_range)
+                items.append(
+                    vistools.create_signal_segment(xp0, yp, xp1, yp, "Plateau")
+                )
+
+            vistools.view_curve_items(items, title=f"{title}: {amp:.3f}")
 
     # Test auto-detection
     amplitude_auto = pulse.get_amplitude(x, y_noisy)
