@@ -13,12 +13,12 @@ import pytest
 
 from sigima.enums import SignalShape
 from sigima.objects.signal import create_signal
-from sigima.proc.signal import PulseParametersParam, SignalObj, get_pulse_parameters
+from sigima.proc.signal import PulseFeaturesParam, SignalObj, extract_pulse_features
 from sigima.tests import guiutils
 from sigima.tests.data import generate_square_signal, generate_step_signal
 from sigima.tests.helpers import check_scalar_result
 from sigima.tools.signal import pulse
-from sigima.tools.signal.pulse import PulseParameters
+from sigima.tools.signal.pulse import PulseFeatures
 
 
 def theoretical_step_amplitude(y_initial: float, y_final: float) -> float:
@@ -766,10 +766,12 @@ def test_get_parameters() -> None:
     end_range = (6.0, 8.0)
     start_rise_ratio = 0.1
 
-    params = pulse.get_pulse_parameters(x, y, start_range, end_range, start_rise_ratio)
+    params = pulse.extract_pulse_features(
+        x, y, start_range, end_range, start_rise_ratio
+    )
 
-    # Check that we got a PulseParameters dataclass
-    assert isinstance(params, PulseParameters)
+    # Check that we got a PulseFeatures dataclass
+    assert isinstance(params, PulseFeatures)
 
     # Check values for all attributes
     check_scalar_result("polarity", params.polarity, 1, atol=1e-8)
@@ -820,10 +822,12 @@ def test_get_parameters() -> None:
     end_range = (15.0, 17.0)
     start_rise_ratio = 0.1
 
-    params = pulse.get_pulse_parameters(x, y, start_range, end_range, start_rise_ratio)
+    params = pulse.extract_pulse_features(
+        x, y, start_range, end_range, start_rise_ratio
+    )
 
-    # Check that we got a PulseParameters dataclass
-    assert isinstance(params, PulseParameters)
+    # Check that we got a PulseFeatures dataclass
+    assert isinstance(params, PulseFeatures)
 
     # Check values for all attributes
     check_scalar_result("polarity", params.polarity, 1, atol=1e-8)
@@ -854,7 +858,7 @@ def test_get_parameters() -> None:
 
 @pytest.mark.validation
 def test_signal_get_parameters() -> None:
-    """Validation test for get_pulse_parameters computation function."""
+    """Validation test for extract_pulse_features computation function."""
     # Generate a step signal
     x, y = generate_step_signal(
         t_start=0,
@@ -870,7 +874,7 @@ def test_signal_get_parameters() -> None:
     sig = SignalObj("test_signal")
     sig.set_xydata(x, y)
 
-    p = PulseParametersParam()
+    p = PulseFeaturesParam()
     p.start_baseline_range_min = 0
     p.start_baseline_range_max = 4
     p.end_baseline_range_min = 6
@@ -878,7 +882,7 @@ def test_signal_get_parameters() -> None:
     p.start_rise_ratio = 0.1
     p.stop_rise_ratio = 0.1
 
-    result = get_pulse_parameters(sig, p)
+    result = extract_pulse_features(sig, p)
 
     param_dict = dict(zip(result.names, result.data[0, :]))
     exptected_result = [
@@ -915,7 +919,7 @@ def test_signal_get_parameters() -> None:
         f"foot_duration={param_dict['foot_duration']}",
     )
 
-    # Validation test for get_pulse_parameters with a SQUARE signal
+    # Validation test for extract_pulse_features with a SQUARE signal
     x, y = generate_square_signal(
         t_start=0,
         t_end=20,
@@ -931,7 +935,7 @@ def test_signal_get_parameters() -> None:
     sig = SignalObj("test_square_signal")
     sig.set_xydata(x, y)
 
-    p = PulseParametersParam()
+    p = PulseFeaturesParam()
     p.start_baseline_range_min = 0
     p.start_baseline_range_max = 2.5
     p.end_baseline_range_min = 15
@@ -939,7 +943,7 @@ def test_signal_get_parameters() -> None:
     p.start_rise_ratio = 0.1
     p.stop_rise_ratio = 0.1
 
-    result = get_pulse_parameters(sig, p)
+    result = extract_pulse_features(sig, p)
 
     param_dict = dict(zip(result.names, result.data[0, :]))
     expected_result = [
@@ -977,9 +981,9 @@ def test_signal_get_parameters() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_heuristically_recognize_shape()
-    test_detect_polarity()
-    test_get_amplitude()
+    # test_heuristically_recognize_shape()
+    # test_detect_polarity()
+    # test_get_amplitude()
     test_get_crossing_ratio_time()
     test_get_step_rise_time()
     test_get_step_time_at_half_maximum()

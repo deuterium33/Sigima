@@ -171,8 +171,8 @@ class FootInfo:
 
 
 @dataclass
-class PulseParameters:
-    """Parameters computed from pulse analysis."""
+class PulseFeatures:
+    """Extracted features from a pulse signal."""
 
     signal_shape: SignalShape
     polarity: int
@@ -905,7 +905,7 @@ def fw1e2(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float, float]:
     return mu - hw, yhm, mu + hw, yhm
 
 
-def get_pulse_parameters(
+def extract_pulse_features(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float],
@@ -913,9 +913,8 @@ def get_pulse_parameters(
     start_rise_ratio: float = 0.1,
     stop_rise_ratio: float = 0.9,
     signal_shape: SignalShape | str | None = None,
-) -> PulseParameters:
-    """
-    Compute characteristic parameters of a step or square signal.
+) -> PulseFeatures:
+    """Extract various pulse features from the input signal.
 
     Args:
         x: 1D array of x values (e.g., time).
@@ -927,7 +926,7 @@ def get_pulse_parameters(
         stop_rise_ratio: Fraction for rise end.
 
     Returns:
-        Pulse parameters.
+        Pulse features.
     """
     if signal_shape is None or signal_shape == "auto":
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
@@ -1000,7 +999,7 @@ def get_pulse_parameters(
 
     foot_duration = foot_info.foot_duration
 
-    return PulseParameters(
+    return PulseFeatures(
         signal_shape=signal_shape,
         polarity=polarity,
         amplitude=amplitude,

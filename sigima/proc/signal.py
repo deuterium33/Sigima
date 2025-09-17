@@ -2861,8 +2861,8 @@ def compute_geometry_from_obj(
     return None
 
 
-class PulseParametersParam(gds.DataSet):
-    """Pulse parameters."""
+class PulseFeaturesParam(gds.DataSet):
+    """Pulse features parameters."""
 
     signal_shape = gds.ChoiceItem(
         _("Signal shape"),
@@ -2910,28 +2910,25 @@ class PulseParametersParam(gds.DataSet):
     )
 
     def update_from_obj(self, obj: SignalObj) -> None:
-        """Update the filter parameters from a signal object."""
+        """Update parameters from a signal object."""
         self.start_range_min, self.start_range_max = pulse.get_start_range(obj.x)
         self.end_range_min, self.end_range_max = pulse.get_end_range(obj.x)
 
 
 @computation_function()
-def get_pulse_parameters(obj: SignalObj, p: PulseParametersParam) -> TableResult:
-    """Get parameters from a signal object.
-
-    This function retrieves the parameters of a signal object and returns them as a
-    ResultProperties object.
+def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult:
+    """Extract pulse features.
 
     Args:
-        obj: The signal object from which to retrieve parameters.
-        p: Parameters for the function (not used in this case).
+        obj: The signal object from which to extract features.
+        p: The pulse features parameters.
 
     Returns:
-        A ResultProperties object containing the parameters of the signal object.
+        An object containing the pulse features.
     """
     x, y = obj.get_data()
 
-    param = pulse.get_pulse_parameters(
+    param = pulse.extract_pulse_features(
         x,
         y,
         signal_shape=p.signal_shape,
