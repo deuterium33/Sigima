@@ -3131,7 +3131,7 @@ def bandwidth_3db(obj: SignalObj) -> GeometryResult | None:
         Result shape with bandwidth.
     """
     return compute_geometry_from_obj(
-        "bandwidth", "segment", obj, features.bandwidth, -3.0
+        "bandwidth", "segment", obj, features.find_bandwidth_coordinates, -3.0
     )
 
 
