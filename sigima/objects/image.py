@@ -1128,20 +1128,21 @@ DEFAULT_TITLE = _("Untitled image")
 class NewImageParam(gds.DataSet):
     """New image dataset."""
 
-    hide_image_height = False
-    hide_image_dtype = False
-    hide_image_type = False
+    hide_height = False
+    hide_width = False
+    hide_dtype = False
+    hide_type = False
 
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     height = gds.IntItem(
         _("Height"), default=1024, help=_("Image height: number of rows"), min=1
-    ).set_prop("display", hide=gds.GetAttrProp("hide_image_height"))
+    ).set_prop("display", hide=gds.GetAttrProp("hide_height"))
     width = gds.IntItem(
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
-    )
+    ).set_prop("display", hide=gds.GetAttrProp("hide_width"))
     dtype = gds.ChoiceItem(
         _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
-    ).set_prop("display", hide=gds.GetAttrProp("hide_image_dtype"))
+    ).set_prop("display", hide=gds.GetAttrProp("hide_dtype"))
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
