@@ -1254,7 +1254,7 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class UniformDistribution2DParam(NewImageParam, base.BaseUniformDistributionParam):
+class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1279,7 +1279,7 @@ register_image_parameters_class(
 )
 
 
-class NormalDistribution2DParam(NewImageParam, base.BaseNormalDistributionParam):
+class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1304,7 +1304,7 @@ register_image_parameters_class(
 )
 
 
-class PoissonDistribution2DParam(base.BasePoissonDistributionParam, NewImageParam):
+class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
     """Poisson-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:

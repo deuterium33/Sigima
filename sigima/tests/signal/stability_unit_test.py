@@ -32,10 +32,10 @@ def get_optimal_points(test_func: Callable) -> int:
     func_name = test_func.__name__
     if "overlapping" in func_name or "hadamard" in func_name:
         return 500  # Minimum for meaningful results
-    elif "modified" in func_name or "total" in func_name:
+    if "modified" in func_name or "total" in func_name:
         return 1000  # Need more for averaging
-    else:  # allan_variance, allan_deviation, time_deviation
-        return 2000  # Balance between speed and accuracy
+    # allan_variance, allan_deviation, time_deviation
+    return 2000  # Balance between speed and accuracy
 
 
 def generate_white_noise(n_points: int, sigma=1.0) -> np.ndarray:

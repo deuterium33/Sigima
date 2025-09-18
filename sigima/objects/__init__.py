@@ -40,6 +40,17 @@ Scalar results
 .. autoclass:: sigima.objects.GeometryResult
 .. autoclass:: sigima.objects.TableResult
 
+Common features of signals and images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: sigima.objects.TypeObj
+.. autoclass:: sigima.objects.TypeROI
+.. autoclass:: sigima.objects.TypeROIParam
+.. autoclass:: sigima.objects.TypeSingleROI
+.. autodataset:: sigima.objects.NormalDistributionParam
+.. autodataset:: sigima.objects.PoissonDistributionParam
+.. autodataset:: sigima.objects.UniformDistributionParam
+
 Signals
 ^^^^^^^
 
@@ -101,6 +112,9 @@ __all__ = [
     "TypeROI",
     "TypeROIParam",
     "TypeSingleROI",
+    "NormalDistributionParam",
+    "PoissonDistributionParam",
+    "UniformDistributionParam",
     "CircularROI",
     "Gauss2DParam",
     "ImageDatatypes",
@@ -163,7 +177,15 @@ __all__ = [
     "create_signal_roi",
 ]
 
-from sigima.objects.base import TypeObj, TypeROI, TypeROIParam, TypeSingleROI
+from sigima.objects.base import (
+    NormalDistributionParam,
+    PoissonDistributionParam,
+    TypeObj,
+    TypeROI,
+    TypeROIParam,
+    TypeSingleROI,
+    UniformDistributionParam,
+)
 from sigima.objects.image import (
     CircularROI,
     Gauss2DParam,
