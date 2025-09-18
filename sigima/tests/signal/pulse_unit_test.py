@@ -16,63 +16,75 @@ import pytest
 
 from sigima.config import _
 from sigima.enums import SignalShape
-from sigima.objects.signal import create_signal
+from sigima.objects import NewSignalParam, create_signal
 from sigima.proc.signal import PulseFeaturesParam, extract_pulse_features
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_scalar_result
 from sigima.tools.signal import filtering, pulse
 
 
-class BasePulseParam(gds.DataSet):
+@dataclass
+class ExpectedFeatures:
+    """Expected pulse feature values for validation."""
+
+    polarity: int
+    amplitude: float
+    rise_time: float  # Rise time between specified ratios
+    offset: float
+    x50: float
+    x100: float  # Time at 100% amplitude (maximum)
+    foot_duration: float
+    fall_time: float | None = None  # Fall time between specified ratios
+    fwhm: float | None = None
+
+
+@dataclass
+class FeatureTolerances:
+    """Absolute tolerance values for pulse feature validation."""
+
+    polarity: float = 1e-8
+    amplitude: float = 0.5
+    rise_time: float = 0.2
+    offset: float = 0.5
+    x50: float = 0.1
+    x100: float = 0.5  # Tolerance for time at 100% amplitude
+    foot_duration: float = 0.5
+    fall_time: float = 1.0
+    fwhm: float = 0.5
+
+
+class BasePulseParam(NewSignalParam):
     """Base class for pulse signal parameters."""
 
-    t_start = gds.FloatItem(_("Start time"), default=0.0)
-    t_end = gds.FloatItem(_("End time"), default=10.0)
-    dt = gds.FloatItem(_("Time step"), default=0.01, min=0.001)
-    t_rise = gds.FloatItem(_("Rise time"), default=2.0, min=0.0)
-    t_step = gds.FloatItem(_("Step time"), default=3.0, min=0.0)
-    y_initial = gds.FloatItem(_("Initial value"), default=0.0)
+    SEED = 0
+
+    # Redefine NewSignalParam parameters with more appropriate defaults
+    xmin = gds.FloatItem(_("Start time"), default=0.0)
+    xmax = gds.FloatItem(_("End time"), default=10.0)
+    size = gds.IntItem(_("Number of points"), default=1000, min=1)
+
+    # Specific pulse parameters
+    total_rise_time = gds.FloatItem(_("Total rise time"), default=2.0, min=0.0)
+    x_rise_start = gds.FloatItem(_("Rise start time"), default=3.0, min=0.0)
+    offset = gds.FloatItem(_("Initial value"), default=0.0)
+    amplitude = gds.FloatItem(_("Amplitude"), default=5.0)
     noise_amplitude = gds.FloatItem(_("Noise amplitude"), default=0.2, min=0.0)
-    seed = gds.IntItem(_("Random seed"), default=0, min=0)
 
-    def get_y_end_value(self) -> float:
-        """Get the end value for polarity and amplitude calculation.
-
-        Returns:
-            The end value (y_final for step, y_high for square)
-
-        Raises:
-            NotImplementedError: Must be implemented by subclasses
-        """
-        raise NotImplementedError("Subclasses must implement get_y_end_value")
-
-    def get_fall_time_duration(
-        self, start_ratio: float, stop_ratio: float
-    ) -> float | None:
-        """Get the fall time duration for this signal type.
+    def get_crossing_time(self, edge: Literal["rise", "fall"], ratio: float) -> float:
+        """Get the theoretical crossing time for the specified edge and ratio.
 
         Args:
-            start_ratio: Start ratio for fall time calculation
-            stop_ratio: Stop ratio for fall time calculation
+            edge: Which edge to calculate ("rise" or "fall")
+            ratio: Crossing ratio (0.0 to 1.0)
 
         Returns:
-            Fall time duration or None if not applicable
-
-        Raises:
-            NotImplementedError: Must be implemented by subclasses
+            Theoretical crossing time for the specified edge and ratio
         """
-        raise NotImplementedError("Subclasses must implement get_fall_time_duration")
-
-    def get_fwhm_duration(self) -> float | None:
-        """Get the FWHM (Full Width at Half Maximum) for this signal type.
-
-        Returns:
-            FWHM duration or None if not applicable
-
-        Raises:
-            NotImplementedError: Must be implemented by subclasses
-        """
-        raise NotImplementedError("Subclasses must implement get_fwhm_duration")
+        if edge == "rise":
+            return self.x_rise_start + ratio * self.total_rise_time
+        raise NotImplementedError(
+            "Fall edge crossing time not implemented for this signal type"
+        )
 
     def get_expected_features(
         self, start_ratio: float = 0.1, stop_ratio: float = 0.9
@@ -86,31 +98,15 @@ class BasePulseParam(gds.DataSet):
         Returns:
             ExpectedFeatures dataclass with all expected values
         """
-        y_end_value = self.get_y_end_value()
-
-        # Common calculations for all pulse signals
-        polarity = 1 if y_end_value > self.y_initial else -1
-        amplitude = abs(y_end_value - self.y_initial)
-        rise_time = (stop_ratio - start_ratio) * self.t_rise
-        offset = self.y_initial
-        t50 = self.t_start + self.t_step + 0.5 * self.t_rise
-        tmax = self.t_start + self.t_step + self.t_rise
-        foot_duration = self.t_step - self.t_start
-
-        # Signal-specific calculations
-        fall_time = self.get_fall_time_duration(start_ratio, stop_ratio)
-        fwhm = self.get_fwhm_duration()
-
+        y_end_value = self.offset + self.amplitude
         return ExpectedFeatures(
-            polarity=polarity,
-            amplitude=amplitude,
-            rise_time=rise_time,
-            offset=offset,
-            t50=t50,
-            tmax=tmax,
-            foot_duration=foot_duration,
-            fall_time=fall_time,
-            fwhm=fwhm,
+            polarity=1 if y_end_value > self.offset else -1,
+            amplitude=abs(y_end_value - self.offset),
+            rise_time=(stop_ratio - start_ratio) * self.total_rise_time,
+            offset=self.offset,
+            x50=self.x_rise_start + 0.5 * self.total_rise_time,
+            x100=self.x_rise_start + self.total_rise_time,
+            foot_duration=self.x_rise_start - self.xmin,
         )
 
     def get_feature_tolerances(self) -> FeatureTolerances:
@@ -122,90 +118,68 @@ class BasePulseParam(gds.DataSet):
         return FeatureTolerances()
 
 
-class StepSignalParam(BasePulseParam):
+class StepPulseParam(BasePulseParam):
     """Parameters for generating step signals."""
 
-    y_final = gds.FloatItem(_("Final value"), default=5.0)
 
-    def get_y_end_value(self) -> float:
-        """Get the end value for polarity and amplitude calculation.
-
-        Returns:
-            The final value of the step signal
-        """
-        return self.y_final
-
-    def get_fall_time_duration(
-        self, start_ratio: float, stop_ratio: float
-    ) -> float | None:
-        """Get the fall time duration for this signal type.
-
-        Args:
-            start_ratio: Start ratio for fall time calculation
-            stop_ratio: Stop ratio for fall time calculation
-
-        Returns:
-            None since step signals don't have a fall time
-        """
-        return None
-
-    def get_fwhm_duration(self) -> float | None:
-        """Get the FWHM (Full Width at Half Maximum) for this signal type.
-
-        Returns:
-            None since step signals don't have a FWHM
-        """
-        return None
-
-    def get_feature_tolerances(self) -> FeatureTolerances:
-        """Get absolute tolerance values for step signal feature validation.
-
-        Returns:
-            FeatureTolerances dataclass with step-specific tolerance values
-        """
-        return FeatureTolerances(
-            t50=0.05,  # Tighter tolerance for step signals
-            tmax=0.5,  # Standard tolerance for step signals
-        )
-
-
-class SquareSignalParam(BasePulseParam):
+class SquarePulseParam(BasePulseParam):
     """Parameters for generating square signals."""
 
-    t_end = gds.FloatItem(_("End time"), default=15.0)
-    square_duration = gds.FloatItem(_("Square duration"), default=2.0, min=0.0)
-    t_fall = gds.FloatItem(_("Fall time"), default=5.0, min=0.0)
-    y_high = gds.FloatItem(_("High value"), default=5.0)
+    xmax = gds.FloatItem(_("End time"), default=15.0)
+    fwhm = gds.FloatItem(_("Full Width at Half Maximum"), default=5.5, min=0.0)
+    total_fall_time = gds.FloatItem(_("Total fall time"), default=5.0, min=0.0)
 
-    def get_y_end_value(self) -> float:
-        """Get the end value for polarity and amplitude calculation.
+    @property
+    def square_duration(self) -> float:
+        """Calculate the square duration from FWHM and total rise/fall times."""
+        return self.fwhm - 0.5 * self.total_rise_time - 0.5 * self.total_fall_time
+
+    def get_plateau_range(self) -> tuple[float, float]:
+        """Get the theoretical plateau range (start, end) for the square signal.
 
         Returns:
-            The high value of the square signal
+            Tuple with (start, end) times of the plateau
         """
-        return self.y_high
+        return (
+            self.x_rise_start + self.total_rise_time,
+            self.x_rise_start + self.total_rise_time + self.square_duration,
+        )
 
-    def get_fall_time_duration(
-        self, start_ratio: float, stop_ratio: float
-    ) -> float | None:
-        """Get the fall time duration for this signal type.
+    def get_crossing_time(self, edge: Literal["rise", "fall"], ratio: float) -> float:
+        """Get the theoretical crossing time for the specified edge and ratio.
 
         Args:
-            start_ratio: Start ratio for fall time calculation
-            stop_ratio: Stop ratio for fall time calculation
+            edge: Which edge to calculate ("rise" or "fall")
+            ratio: Crossing ratio (0.0 to 1.0)
 
         Returns:
-            Fall time duration for the square signal
+            Theoretical crossing time for the specified edge and ratio
         """
-        return (stop_ratio - start_ratio) * self.t_fall
+        if edge == "rise":
+            return super().get_crossing_time(edge, ratio)
+        if edge == "fall":
+            t_start_fall = (
+                self.x_rise_start + self.total_rise_time + self.square_duration
+            )
+            return t_start_fall + ratio * self.total_fall_time
+        raise ValueError("edge must be 'rise' or 'fall'")
 
-    def get_fwhm_duration(self) -> float | None:
-        """Get the FWHM (Full Width at Half Maximum) for this signal type.
+    def get_expected_features(
+        self, start_ratio: float = 0.1, stop_ratio: float = 0.9
+    ) -> ExpectedFeatures:
+        """Calculate expected pulse features for this signal.
+
+        Args:
+            start_ratio: Start ratio for rise time calculation
+            stop_ratio: Stop ratio for rise time calculation
 
         Returns:
-            FWHM duration for the square signal
+            ExpectedFeatures dataclass with all expected values
         """
-        return self.square_duration + 0.5 * self.t_rise + 0.5 * self.t_fall
+        features = super().get_expected_features(start_ratio, stop_ratio)
+        features.fall_time = (stop_ratio - start_ratio) * self.total_fall_time
+        features.fwhm = self.fwhm
+        return features
 
     def get_feature_tolerances(self) -> FeatureTolerances:
         """Get absolute tolerance values for square signal feature validation.
@@ -214,19 +188,18 @@ class SquareSignalParam(BasePulseParam):
             FeatureTolerances dataclass with square-specific tolerance values
         """
         return FeatureTolerances(
-            t50=0.1,  # Looser tolerance for square signals
-            tmax=1.0,  # Looser tolerance for square signals
+            x100=0.8,  # Looser tolerance for square signals
         )
 
 
 def generate_step_signal(
-    params: StepSignalParam | None = None,
+    params: StepPulseParam | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generate a noisy step signal with a linear rise.
 
     The function creates a time vector and generates a signal that starts at
-    `y_initial`, rises linearly to `y_final` starting at `t_step` over a duration
-    of `t_rise`, and remains at `y_final` afterwards.
+    `offset`, rises linearly to `offset + amplitude` starting at `x_rise_start` over
+    a duration of `total_rise_time`, and remains at the final value afterwards.
     Gaussian noise is added to the signal.
 
     Args:
@@ -236,27 +209,35 @@ def generate_step_signal(
         Tuple containing the time vector and noisy step signal.
     """
     if params is None:
-        params = StepSignalParam()
+        params = StepPulseParam()
 
     # time vector
-    x = np.arange(params.t_start, params.t_end + params.dt, params.dt)
+    x = np.linspace(params.xmin, params.xmax, params.size)
+
+    # Calculate final value from offset and amplitude
+    y_final = params.offset + params.amplitude
 
     # creating the signal
+    rise_end_time = params.x_rise_start + params.total_rise_time
     y = np.piecewise(
         x,
         [
-            x < params.t_step,
-            (x >= params.t_step) & (x < params.t_step + params.t_rise),
-            x >= params.t_step + params.t_rise,
+            x < params.x_rise_start,
+            (x >= params.x_rise_start) & (x < rise_end_time),
+            x >= rise_end_time,
         ],
         [
-            params.y_initial,
-            lambda t: params.y_initial
-            + (params.y_final - params.y_initial) * (t - params.t_step) / params.t_rise,
-            params.y_final,
+            params.offset,
+            lambda t: (
+                params.offset
+                + (y_final - params.offset)
+                * (t - params.x_rise_start)
+                / params.total_rise_time
+            ),
+            y_final,
         ],
     )
-    rdg = np.random.default_rng(params.seed)
+    rdg = np.random.default_rng(params.SEED)
     noise = rdg.normal(0, params.noise_amplitude, size=len(y))
     y_noisy = y + noise
 
@@ -264,7 +245,7 @@ def generate_step_signal(
 
 
 def generate_square_signal(
-    params: SquareSignalParam | None = None,
+    params: SquarePulseParam | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generate a synthetic square-like signal with configurable parameters.
 
@@ -278,33 +259,41 @@ def generate_square_signal(
         Tuple containing the time vector and noisy square signal.
     """
     if params is None:
-        params = SquareSignalParam()
+        params = SquarePulseParam()
 
     # time vector
-    x = np.arange(params.t_start, params.t_end + params.dt, params.dt)
+    x = np.linspace(params.xmin, params.xmax, params.size)
 
-    t_start_fall = params.t_step + params.t_rise + params.square_duration
+    # Calculate high value from offset and amplitude
+    y_high = params.offset + params.amplitude
+
+    x_rise_end = params.x_rise_start + params.total_rise_time
+    x_start_fall = params.x_rise_start + params.total_rise_time + params.square_duration
     # creating the signal
     y = np.piecewise(
         x,
         [
-            x < params.t_step,
-            (x >= params.t_step) & (x < params.t_step + params.t_rise),
-            (x >= params.t_step + params.t_rise) & (x < t_start_fall),
-            (x >= t_start_fall) & (x < params.t_fall + t_start_fall),
-            x >= params.t_fall + t_start_fall,
+            x < params.x_rise_start,
+            (x >= params.x_rise_start) & (x < x_rise_end),
+            (x >= x_rise_end) & (x < x_start_fall),
+            (x >= x_start_fall) & (x < x_start_fall + params.total_fall_time),
+            x >= params.total_fall_time + x_start_fall,
         ],
         [
-            params.y_initial,
-            lambda t: params.y_initial
-            + (params.y_high - params.y_initial) * (t - params.t_step) / params.t_rise,
-            params.y_high,
-            lambda t: params.y_high
-            - (params.y_high - params.y_initial) * (t - t_start_fall) / params.t_fall,
-            params.y_initial,
+            params.offset,
+            lambda t: (
+                params.offset
+                + (y_high - params.offset)
+                * (t - params.x_rise_start)
+                / params.total_rise_time
+            ),
+            y_high,
+            lambda t: y_high
+            - (y_high - params.offset) * (t - x_start_fall) / params.total_fall_time,
+            params.offset,
         ],
     )
-    rdg = np.random.default_rng(params.seed)
+    rdg = np.random.default_rng(params.SEED)
     noise = rdg.normal(0, params.noise_amplitude, size=len(y))
     y_noisy = y + noise
 
@@ -319,105 +308,6 @@ class AnalysisParams:
     stop_ratio: float = 0.9
     start_range: tuple[float, float] = (0.0, 4.0)
     end_range: tuple[float, float] = (6.0, 8.0)
-
-
-@dataclass
-class ExpectedFeatures:
-    """Expected pulse feature values for validation."""
-
-    polarity: int
-    amplitude: float
-    rise_time: float
-    offset: float
-    t50: float
-    tmax: float
-    foot_duration: float
-    fall_time: float | None = None
-    fwhm: float | None = None
-
-
-@dataclass
-class FeatureTolerances:
-    """Absolute tolerance values for pulse feature validation."""
-
-    polarity: float = 1e-8
-    amplitude: float = 0.5
-    rise_time: float = 0.2
-    offset: float = 0.5
-    t50: float = 0.05
-    tmax: float = 0.5
-    foot_duration: float = 0.5
-    fall_time: float = 1.0
-    fwhm: float = 0.5
-
-
-def theoretical_step_amplitude(y_initial: float, y_final: float) -> float:
-    """Calculate theoretical amplitude for a step signal."""
-    return abs(y_final - y_initial)
-
-
-def theoretical_square_amplitude(y_initial: float, y_high: float) -> float:
-    """Calculate theoretical amplitude for a square signal."""
-    return abs(y_high - y_initial)
-
-
-def theoretical_crossing_time(t_step: float, t_rise: float, ratio: float) -> float:
-    """Calculate theoretical crossing time for a step signal with linear rise.
-
-    Args:
-        t_step: Time when the rise starts
-        t_rise: Duration of the linear rise
-        ratio: Crossing ratio (0.0 to 1.0)
-
-    Returns:
-        Theoretical time when signal reaches the specified ratio of its amplitude
-    """
-    return t_step + ratio * t_rise
-
-
-def theoretical_rise_time(
-    t_rise: float, start_rise_ratio: float, stop_rise_ratio: float
-) -> float:
-    """Calculate theoretical rise time between two amplitude ratios.
-
-    Args:
-        t_rise: Total rise duration of the signal
-        start_rise_ratio: Starting amplitude ratio (e.g., 0.2 for 20%)
-        stop_rise_ratio: Stopping amplitude ratio (e.g., 0.8 for 80%)
-
-    Returns:
-        Theoretical rise time between the two ratios
-    """
-    return (stop_rise_ratio - start_rise_ratio) * t_rise
-
-
-def theoretical_square_crossing_time(
-    t_step: float,
-    t_rise: float,
-    square_duration: float,
-    t_fall: float,
-    ratio: float,
-    edge: Literal["rise", "fall"] = "rise",
-) -> float:
-    """Calculate theoretical crossing time for square signal.
-
-    Args:
-        t_step: Time when the rise starts
-        t_rise: Duration of the rising edge
-        square_duration: Duration of the plateau
-        t_fall: Duration of the falling edge
-        ratio: Crossing ratio (0.0 to 1.0)
-        edge: Which edge to calculate
-
-    Returns:
-        Theoretical crossing time for the specified edge
-    """
-    if edge == "rise":
-        return t_step + ratio * t_rise
-    if edge == "fall":
-        t_start_fall = t_step + t_rise + square_duration
-        return t_start_fall + ratio * t_fall
-    raise ValueError("edge must be 'rise' or 'fall'")
 
 
 def _test_shape_recognition_case(
@@ -440,14 +330,14 @@ def _test_shape_recognition_case(
     """
     # Generate signal
     if signal_type == "step":
-        step_params = StepSignalParam()
-        step_params.y_initial = y_initial
-        step_params.y_final = y_final_or_high
+        step_params = StepPulseParam()
+        step_params.offset = y_initial
+        step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_step_signal(step_params)
     else:  # square
-        square_params = SquareSignalParam()
-        square_params.y_initial = y_initial
-        square_params.y_high = y_final_or_high
+        square_params = SquarePulseParam()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_square_signal(square_params)
 
     # Create title
@@ -521,14 +411,14 @@ def _test_polarity_detection_case(
     """
     # Generate signal
     if signal_type == "step":
-        step_params = StepSignalParam()
-        step_params.y_initial = y_initial
-        step_params.y_final = y_final_or_high
+        step_params = StepPulseParam()
+        step_params.offset = y_initial
+        step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_step_signal(step_params)
     else:  # square
-        square_params = SquareSignalParam()
-        square_params.y_initial = y_initial
-        square_params.y_high = y_final_or_high
+        square_params = SquarePulseParam()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_square_signal(square_params)
 
     # Create title
@@ -649,15 +539,15 @@ def _test_amplitude_case(
     """
     # Generate signal and calculate expected amplitude
     if signal_type == "step":
-        step_params = StepSignalParam()
-        step_params.y_initial = y_initial
-        step_params.y_final = y_final_or_high
+        step_params = StepPulseParam()
+        step_params.offset = y_initial
+        step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_step_signal(step_params)
         expected_features = step_params.get_expected_features()
     else:  # square
-        square_params = SquareSignalParam()
-        square_params.y_initial = y_initial
-        square_params.y_high = y_final_or_high
+        square_params = SquarePulseParam()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = generate_square_signal(square_params)
         expected_features = square_params.get_expected_features()
 
@@ -752,24 +642,15 @@ def _test_crossing_ratio_time_case(
     """
     # Generate signal and calculate expected crossing time
     if signal_type == "step":
-        step_params = StepSignalParam()
+        step_params = StepPulseParam()
         x, y_noisy = generate_step_signal(step_params)
         # Calculate crossing time for the specific ratio
-        expected_ct = theoretical_crossing_time(
-            step_params.t_step, step_params.t_rise, ratio
-        )
+        expected_ct = step_params.get_crossing_time("rise", ratio)
     else:  # square
-        square_params = SquareSignalParam()
+        square_params = SquarePulseParam()
         x, y_noisy = generate_square_signal(square_params)
         # For square signals, calculate crossing time based on edge and ratio
-        expected_ct = theoretical_square_crossing_time(
-            square_params.t_step,
-            square_params.t_rise,
-            square_params.square_duration,
-            square_params.t_fall,
-            ratio,
-            edge,
-        )
+        expected_ct = square_params.get_crossing_time(edge, ratio)
 
     # Create title
     title = (
@@ -864,16 +745,16 @@ def _test_step_rise_time_case(
 
     # Generate signal and calculate expected rise time
     if signal_type == "step":
-        step_params = StepSignalParam()
-        step_params.y_initial = y_initial
-        step_params.y_final = y_final_or_high
+        step_params = StepPulseParam()
+        step_params.offset = y_initial
+        step_params.amplitude = y_final_or_high - y_initial
         step_params.noise_amplitude = noise_amplitude
         x, y_noisy = generate_step_signal(step_params)
         expected_features = step_params.get_expected_features()
     else:  # square
-        square_params = SquareSignalParam()
-        square_params.y_initial = y_initial
-        square_params.y_high = y_final_or_high
+        square_params = SquarePulseParam()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
         square_params.noise_amplitude = noise_amplitude
         x, y_noisy = generate_square_signal(square_params)
         expected_features = square_params.get_expected_features()
@@ -981,19 +862,21 @@ def test_heuristically_find_foot_end_time() -> None:
     even in the presence of noise.
     """
     # Generate a signal with a step at t = 3 and a sharp rise at t = 5
-    step_params = StepSignalParam()
+    step_params = StepPulseParam()
     x, y = generate_step_signal(step_params)
     time = pulse.heuristically_find_foot_end_time(x, y, (0, 4))
     if time is not None:
+        # Expected time should be x_rise_start (3.0) + total_rise_time (2.0) = 5.0
+        expected_foot_end_time = step_params.x_rise_start + step_params.total_rise_time
         check_scalar_result(
             "heuristically find foot end time",
             time,
-            5.0,
+            expected_foot_end_time,
             atol=0.02,  # small tolerance due to possible slight variation
         )
     else:
         # If the function returns None, let's use the expected step start time
-        expected_time = step_params.t_step  # Should be 3.0 by default
+        expected_time = step_params.x_rise_start  # Should be 3.0 by default
         check_scalar_result(
             "heuristically find foot end time (fallback)",
             expected_time,
@@ -1012,7 +895,7 @@ def test_get_foot_info() -> None:
     duration, and x_end value.
     """
     # Generate a step signal with a sharp rise at t=5
-    step_params = StepSignalParam()
+    step_params = StepPulseParam()
     x, y = generate_step_signal(step_params)
     # Use start_baseline_range before the step, end_baseline_range after
     start_baseline_range = (0, 4)
@@ -1034,8 +917,8 @@ def test_get_foot_info() -> None:
     assert hasattr(foot_info, "foot_duration")
     assert hasattr(foot_info, "x_end")
 
-    # The foot should end at t ~ 5.0
-    check_scalar_result("foot_info x_end", foot_info.x_end, 3.239)
+    # The foot should end at t ~ 3.24 (with new sampling)
+    check_scalar_result("foot_info x_end", foot_info.x_end, 3.242, atol=0.01)
     # The threshold should be close to y at t=5
     idx = foot_info.index
     check_scalar_result(
@@ -1066,9 +949,7 @@ def view_pulse_features(
     y: np.ndarray,
     title: str,
     signal_type: Literal["step", "square"],
-    params: pulse.PulseFeatures,
-    start_range: tuple[float, float],
-    end_range: tuple[float, float],
+    features: pulse.PulseFeatures,
 ) -> None:
     """Helper function to visualize pulse features.
 
@@ -1077,9 +958,7 @@ def view_pulse_features(
         y: Y data.
         title: Title for the plot.
         signal_type: Signal shape type
-        params: Extracted pulse features.
-        start_range: Start baseline range.
-        end_range: End baseline range.
+        features: Extracted pulse features.
     """
     # pylint: disable=import-outside-toplevel
     from sigima.tests import vistools
@@ -1087,15 +966,15 @@ def view_pulse_features(
     params_text = "<br>".join(
         [
             f"<b>Extracted {signal_type} parameters:</b>",
-            f"Polarity: {params.polarity}",
-            f"Amplitude: {params.amplitude}",
-            f"Rise time: {params.rise_time}",
-            f"Fall time: {params.fall_time}",
-            f"FWHM: {params.fwhm}",
-            f"Offset: {params.offset}",
-            f"T50: {params.t50}",
-            f"Tmax: {params.tmax}",
-            f"Foot duration: {params.foot_duration}",
+            f"Polarity: {features.polarity}",
+            f"Amplitude: {features.amplitude}",
+            f"Rise time: {features.rise_time}",
+            f"Fall time: {features.fall_time}",
+            f"FWHM: {features.fwhm}",
+            f"Offset: {features.offset}",
+            f"T50: {features.x50}",
+            f"X100: {features.x100}",
+            f"Foot duration: {features.foot_duration}",
         ]
     )
     view_baseline_plateau_and_curve(
@@ -1103,8 +982,8 @@ def view_pulse_features(
         y,
         title,
         signal_type,
-        start_range,
-        end_range,
+        [features.xstartmin, features.xstartmax],
+        [features.xendmin, features.xendmax],
         plateau_range=None,
         other_items=[vistools.create_label(params_text)],
     )
@@ -1115,7 +994,7 @@ def _extract_and_validate_step_features(
     y: np.ndarray,
     analysis: AnalysisParams,
     expected: ExpectedFeatures,
-    signal_params: StepSignalParam,
+    signal_params: StepPulseParam,
 ) -> pulse.PulseFeatures:
     """Helper function to extract and validate step signal features.
 
@@ -1132,7 +1011,7 @@ def _extract_and_validate_step_features(
     # Extract features while ignoring FWHM warnings for noisy signals
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
-        params = pulse.extract_pulse_features(
+        features = pulse.extract_pulse_features(
             x,
             y,
             analysis.start_range,
@@ -1145,23 +1024,17 @@ def _extract_and_validate_step_features(
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
             view_pulse_features(
-                x,
-                y,
-                "Step signal feature extraction",
-                "step",
-                params,
-                analysis.start_range,
-                analysis.end_range,
+                x, y, "Step signal feature extraction", "step", features
             )
 
     # Validate that we got the correct type
-    assert isinstance(params, pulse.PulseFeatures), (
-        f"Expected PulseFeatures, got {type(params)}"
+    assert isinstance(features, pulse.PulseFeatures), (
+        f"Expected PulseFeatures, got {type(features)}"
     )
 
     # Validate signal shape
-    assert params.signal_shape == SignalShape.STEP, (
-        f"Expected signal_shape to be STEP, but got {params.signal_shape}"
+    assert features.signal_shape == SignalShape.STEP, (
+        f"Expected signal_shape to be STEP, but got {features.signal_shape}"
     )
 
     # Get tolerance values
@@ -1169,41 +1042,46 @@ def _extract_and_validate_step_features(
 
     # Validate numerical features
     check_scalar_result(
-        "[step] polarity", params.polarity, expected.polarity, atol=tolerances.polarity
+        "[step] polarity",
+        features.polarity,
+        expected.polarity,
+        atol=tolerances.polarity,
     )
     check_scalar_result(
         "[step] amplitude",
-        params.amplitude,
+        features.amplitude,
         expected.amplitude,
         atol=tolerances.amplitude,
     )
     check_scalar_result(
         "[step] rise_time",
-        params.rise_time,
+        features.rise_time,
         expected.rise_time,
         atol=tolerances.rise_time,
     )
     check_scalar_result(
-        "[step] offset", params.offset, expected.offset, atol=tolerances.offset
+        "[step] offset", features.offset, expected.offset, atol=tolerances.offset
     )
-    check_scalar_result("[step] t50", params.t50, expected.t50, atol=tolerances.t50)
-    check_scalar_result("[step] tmax", params.tmax, expected.tmax, atol=tolerances.tmax)
+    check_scalar_result("[step] x50", features.x50, expected.x50, atol=tolerances.x50)
+    check_scalar_result(
+        "[step] x100", features.x100, expected.x100, atol=tolerances.x100
+    )
     check_scalar_result(
         "[step] foot_duration",
-        params.foot_duration,
+        features.foot_duration,
         expected.foot_duration,
         atol=tolerances.foot_duration,
     )
 
     # Validate that step-specific features are None
-    assert params.fall_time is None, (
-        f"Expected fall_time to be None for step signal, but got {params.fall_time}"
+    assert features.fall_time is None, (
+        f"Expected fall_time to be None for step signal, but got {features.fall_time}"
     )
-    assert params.fwhm is None, (
-        f"Expected fwhm to be None for step signal, but got {params.fwhm}"
+    assert features.fwhm is None, (
+        f"Expected fwhm to be None for step signal, but got {features.fwhm}"
     )
 
-    return params
+    return features
 
 
 def _extract_and_validate_square_features(
@@ -1211,7 +1089,7 @@ def _extract_and_validate_square_features(
     y: np.ndarray,
     analysis: AnalysisParams,
     expected: ExpectedFeatures,
-    signal_params: SquareSignalParam,
+    signal_params: SquarePulseParam,
 ) -> pulse.PulseFeatures:
     """Helper function to extract and validate square signal features.
 
@@ -1228,7 +1106,7 @@ def _extract_and_validate_square_features(
     # Extract features while ignoring FWHM warnings for noisy signals
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
-        params = pulse.extract_pulse_features(
+        features = pulse.extract_pulse_features(
             x,
             y,
             analysis.start_range,
@@ -1241,23 +1119,17 @@ def _extract_and_validate_square_features(
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
             view_pulse_features(
-                x,
-                y,
-                "Square signal feature extraction",
-                "square",
-                params,
-                analysis.start_range,
-                analysis.end_range,
+                x, y, "Square signal feature extraction", "square", features
             )
 
     # Validate that we got the correct type
-    assert isinstance(params, pulse.PulseFeatures), (
-        f"Expected PulseFeatures, got {type(params)}"
+    assert isinstance(features, pulse.PulseFeatures), (
+        f"Expected PulseFeatures, got {type(features)}"
     )
 
     # Validate signal shape
-    assert params.signal_shape == SignalShape.SQUARE, (
-        f"Expected signal_shape to be SQUARE, but got {params.signal_shape}"
+    assert features.signal_shape == SignalShape.SQUARE, (
+        f"Expected signal_shape to be SQUARE, but got {features.signal_shape}"
     )
 
     # Get tolerance values
@@ -1266,46 +1138,46 @@ def _extract_and_validate_square_features(
     # Validate numerical features
     check_scalar_result(
         "[square] polarity",
-        params.polarity,
+        features.polarity,
         expected.polarity,
         atol=tolerances.polarity,
     )
     check_scalar_result(
         "[square] amplitude",
-        params.amplitude,
+        features.amplitude,
         expected.amplitude,
         atol=tolerances.amplitude,
     )
     check_scalar_result(
         "[square] rise_time",
-        params.rise_time,
+        features.rise_time,
         expected.rise_time,
         atol=tolerances.rise_time,
     )
     check_scalar_result(
         "[square] fall_time",
-        params.fall_time,
+        features.fall_time,
         expected.fall_time,
         atol=tolerances.fall_time,
     )
     check_scalar_result(
-        "[square] fwhm", params.fwhm, expected.fwhm, atol=tolerances.fwhm
+        "[square] fwhm", features.fwhm, expected.fwhm, atol=tolerances.fwhm
     )
     check_scalar_result(
-        "[square] offset", params.offset, expected.offset, atol=tolerances.offset
+        "[square] offset", features.offset, expected.offset, atol=tolerances.offset
     )
-    check_scalar_result("[square] t50", params.t50, expected.t50, atol=tolerances.t50)
+    check_scalar_result("[square] x50", features.x50, expected.x50, atol=tolerances.x50)
     check_scalar_result(
-        "[square] tmax", params.tmax, expected.tmax, atol=tolerances.tmax
+        "[square] x100", features.x100, expected.x100, atol=tolerances.x100
     )
     check_scalar_result(
         "[square] foot_duration",
-        params.foot_duration,
+        features.foot_duration,
         expected.foot_duration,
         atol=tolerances.foot_duration,
     )
 
-    return params
+    return features
 
 
 def test_step_feature_extraction() -> None:
@@ -1316,7 +1188,7 @@ def test_step_feature_extraction() -> None:
     rise time, timing features, and baseline characteristics.
     """
     # Define signal parameters
-    signal_params = StepSignalParam()
+    signal_params = StepPulseParam()
 
     # Define analysis parameters
     analysis = AnalysisParams()
@@ -1342,7 +1214,7 @@ def test_square_feature_extraction() -> None:
     rise/fall times, FWHM, timing features, and baseline characteristics.
     """
     # Define signal parameters with custom ranges for square signal
-    signal_params = SquareSignalParam()
+    signal_params = SquarePulseParam()
 
     # Define analysis parameters with custom ranges for square signal
     analysis = AnalysisParams(
@@ -1371,16 +1243,16 @@ def test_signal_extract_pulse_features() -> None:
     validating that all computed parameters match expected theoretical values.
     """
     # Test STEP signal feature extraction
-    step_params = StepSignalParam()
+    step_params = StepPulseParam()
     x_step, y_step = generate_step_signal(step_params)
     sig_step = create_signal("Test Step Signal", x_step, y_step)
 
     # Define step analysis parameters
     p_step = PulseFeaturesParam()
-    p_step.start_range_min = 0
-    p_step.start_range_max = 4
-    p_step.end_range_min = 6
-    p_step.end_range_max = 8
+    p_step.xstartmin = 0
+    p_step.xstartmax = 4
+    p_step.xendmin = 6
+    p_step.xendmax = 8
     p_step.start_rise_ratio = 0.1
     p_step.stop_rise_ratio = 0.9
 
@@ -1395,12 +1267,16 @@ def test_signal_extract_pulse_features() -> None:
         "amplitude": (expected_step.amplitude, 0.5),  # Increased tolerance for noise
         "rise_time": (expected_step.rise_time, 0.2),  # Increased tolerance for noise
         "offset": (expected_step.offset, 0.5),  # Increased tolerance for noise
-        "t50": (expected_step.t50, 0.1),
-        "tmax": (expected_step.tmax, 0.5),
+        "x50": (expected_step.x50, 0.1),
+        "x100": (expected_step.x100, 0.5),
         "foot_duration": (
             expected_step.foot_duration,
             0.5,
         ),  # Increased tolerance for noise
+        "xstartmin": (p_step.xstartmin, 0.0),
+        "xstartmax": (p_step.xstartmax, 0.0),
+        "xendmin": (p_step.xendmin, 0.0),
+        "xendmax": (p_step.xendmax, 0.0),
     }
 
     # Extract and validate step features
@@ -1409,30 +1285,25 @@ def test_signal_extract_pulse_features() -> None:
     for key, (expected, atol) in expected_step_values_and_atol.items():
         check_scalar_result(f"[step] {key}", tdict_step[key], expected, atol=atol)
 
-    # Visualize step results
-    guiutils.view_curves_if_gui(
-        sig_step,
-        title="Step signal feature extraction: "
-        f"polarity={tdict_step['polarity']}, "
-        f"amplitude={tdict_step['amplitude']:.2f}, "
-        f"rise_time={tdict_step['rise_time']:.2f}, "
-        f"offset={tdict_step['offset']:.2f}, "
-        f"t50={tdict_step['t50']:.2f}, "
-        f"tmax={tdict_step['tmax']:.2f}, "
-        f"foot_duration={tdict_step['foot_duration']:.2f}",
-    )
+    # Visualize results if GUI is available
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            features = pulse.PulseFeatures(**tdict_step)
+            view_pulse_features(
+                x_step, y_step, "Step signal feature extraction", "step", features
+            )
 
     # Test SQUARE signal feature extraction
-    square_params = SquareSignalParam()
+    square_params = SquarePulseParam()
     x_square, y_square = generate_square_signal(square_params)
     sig_square = create_signal("Test Square Signal", x_square, y_square)
 
     # Define square analysis parameters
     p_square = PulseFeaturesParam()
-    p_square.start_range_min = 0
-    p_square.start_range_max = 2.5
-    p_square.end_range_min = 15
-    p_square.end_range_max = 17
+    p_square.xstartmin = 0
+    p_square.xstartmax = 2.5
+    p_square.xendmin = 15
+    p_square.xendmax = 17
     p_square.start_rise_ratio = 0.1
     p_square.stop_rise_ratio = 0.9
 
@@ -1442,6 +1313,8 @@ def test_signal_extract_pulse_features() -> None:
         stop_ratio=p_square.stop_rise_ratio,
     )
 
+    plateau_range = square_params.get_plateau_range()
+
     expected_square_values_and_atol = {
         "polarity": (expected_square.polarity, 0.02),
         "amplitude": (expected_square.amplitude, 0.5),
@@ -1449,9 +1322,15 @@ def test_signal_extract_pulse_features() -> None:
         "fall_time": (expected_square.fall_time, 1.0),
         "fwhm": (expected_square.fwhm, 0.5),
         "offset": (expected_square.offset, 0.5),
-        "t50": (expected_square.t50, 0.1),
-        "tmax": (expected_square.tmax, 1.0),
+        "x50": (expected_square.x50, 0.1),
+        "x100": (expected_square.x100, 1.0),
         "foot_duration": (expected_square.foot_duration, 0.5),
+        "xstartmin": (p_square.xstartmin, 0.0),
+        "xstartmax": (p_square.xstartmax, 0.0),
+        "xendmin": (p_square.xendmin, 0.0),
+        "xendmax": (p_square.xendmax, 0.0),
+        "xplateaumin": (plateau_range[0], 1.0),
+        "xplateaumax": (plateau_range[1], 0.5),
     }
 
     # Extract and validate square features
@@ -1460,34 +1339,31 @@ def test_signal_extract_pulse_features() -> None:
     for key, (expected, atol) in expected_square_values_and_atol.items():
         check_scalar_result(f"[square] {key}", tdict_square[key], expected, atol=atol)
 
-    # Visualize square results
-    guiutils.view_curves_if_gui(
-        sig_square,
-        title="Square signal feature extraction: "
-        f"polarity={tdict_square['polarity']}, "
-        f"amplitude={tdict_square['amplitude']:.2f}, "
-        f"rise_time={tdict_square['rise_time']:.2f}, "
-        f"fall_time={tdict_square['fall_time']:.2f}, "
-        f"fwhm={tdict_square['fwhm']:.2f}, "
-        f"offset={tdict_square['offset']:.2f}, "
-        f"t50={tdict_square['t50']:.2f}, "
-        f"tmax={tdict_square['tmax']:.2f}, "
-        f"foot_duration={tdict_square['foot_duration']:.2f}",
-    )
+    # Visualize results if GUI is available
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            features = pulse.PulseFeatures(**tdict_square)
+            view_pulse_features(
+                x_square,
+                y_square,
+                "Square signal feature extraction",
+                "square",
+                features,
+            )
 
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    # test_heuristically_recognize_shape()
-    # test_detect_polarity()
-    # test_get_amplitude()
-    # test_get_crossing_ratio_time(0.2)
-    # test_get_crossing_ratio_time(0.5)
-    # test_get_crossing_ratio_time(0.8)
-    # test_get_step_rise_time(0.1)
-    # test_get_step_rise_time(0.0)
-    # test_heuristically_find_foot_end_time()
-    # test_get_foot_info()
-    # test_step_feature_extraction()
-    # test_square_feature_extraction()
+    test_heuristically_recognize_shape()
+    test_detect_polarity()
+    test_get_amplitude()
+    test_get_crossing_ratio_time(0.2)
+    test_get_crossing_ratio_time(0.5)
+    test_get_crossing_ratio_time(0.8)
+    test_get_step_rise_time(0.1)
+    test_get_step_rise_time(0.0)
+    test_heuristically_find_foot_end_time()
+    test_get_foot_info()
+    test_step_feature_extraction()
+    test_square_feature_extraction()
     test_signal_extract_pulse_features()

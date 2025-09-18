@@ -51,9 +51,9 @@ Conventions regarding ROI and geometry are as follows:
 
 from __future__ import annotations
 
+import dataclasses
 import enum
 import inspect
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
@@ -82,7 +82,7 @@ class KindShape(str, enum.Enum):
         return [e.value for e in cls]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class TableResult:
     """Table of scalar results, optionally per-ROI.
 
@@ -105,11 +105,13 @@ class TableResult:
     """
 
     title: str
-    names: Sequence[str] = field(default_factory=list)
-    labels: Sequence[str] = field(default_factory=list)
-    data: np.ndarray = field(default_factory=lambda: np.empty((0, 0), float))
+    names: Sequence[str] = dataclasses.field(default_factory=list)
+    labels: Sequence[str] = dataclasses.field(default_factory=list)
+    data: np.ndarray = dataclasses.field(
+        default_factory=lambda: np.empty((0, 0), float)
+    )
     roi_indices: np.ndarray | None = None
-    attrs: dict[str, object] = field(default_factory=dict)
+    attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""
@@ -306,6 +308,21 @@ class TableResultBuilder:
         self.title = title
         self.columns: list[tuple[Callable, str, str]] = []
 
+    def add_from_dataclass(self, parameters: object) -> None:
+        """Add columns from a dataclass's float/int fields.
+
+        Args:
+            parameters: The dataclass instance to extract fields from.
+        """
+        for field in dataclasses.fields(parameters):
+            key = field.name
+            value = getattr(parameters, key)
+            if isinstance(value, (int, float, np.floating, np.integer)):
+                fmt = f"{key} = %g"
+            else:
+                continue
+            self.add(lambda xy, v=value: v, key, fmt)
+
     def add(self, func: Callable, name: str, label: str = "") -> None:
         """Add a column to the table.
 
@@ -377,7 +394,7 @@ class TableResultBuilder:
         )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class GeometryResult:
     """Geometric outputs, optionally per-ROI.
 
@@ -431,7 +448,7 @@ class GeometryResult:
     kind: KindShape
     coords: np.ndarray
     roi_indices: np.ndarray | None = None
-    attrs: dict[str, object] = field(default_factory=dict)
+    attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""

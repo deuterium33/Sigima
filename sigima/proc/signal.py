@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable
-from dataclasses import fields
 from enum import Enum
 from math import ceil, log2
 from typing import Any
@@ -2876,22 +2875,22 @@ class PulseFeaturesParam(gds.DataSet):
         default=None,
         help=_("Signal type: auto-detect, step, or square."),
     )
-    start_range_min = gds.FloatItem(
+    xstartmin = gds.FloatItem(
         _("Start baseline min"),
         default=0.0,
         help=_("Lower X boundary for the start baseline"),
     )
-    start_range_max = gds.FloatItem(
+    xstartmax = gds.FloatItem(
         _("Start baseline max"),
         default=0.0,
         help=_("Upper X boundary for the start baseline"),
     )
-    end_range_min = gds.FloatItem(
+    xendmin = gds.FloatItem(
         _("End baseline min"),
         default=1.0,
         help=_("Lower X boundary for the end baseline"),
     )
-    end_range_max = gds.FloatItem(
+    xendmax = gds.FloatItem(
         _("End baseline max"),
         default=1.0,
         help=_("Upper X boundary for the end baseline"),
@@ -2913,8 +2912,8 @@ class PulseFeaturesParam(gds.DataSet):
 
     def update_from_obj(self, obj: SignalObj) -> None:
         """Update parameters from a signal object."""
-        self.start_range_min, self.start_range_max = pulse.get_start_range(obj.x)
-        self.end_range_min, self.end_range_max = pulse.get_end_range(obj.x)
+        self.xstartmin, self.xstartmax = pulse.get_start_range(obj.x)
+        self.xendmin, self.xendmax = pulse.get_end_range(obj.x)
 
 
 @computation_function()
@@ -2929,25 +2928,17 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         An object containing the pulse features.
     """
     x, y = obj.get_data()
-
-    param = pulse.extract_pulse_features(
+    features = pulse.extract_pulse_features(
         x,
         y,
         signal_shape=p.signal_shape,
-        start_range=[p.start_range_min, p.start_range_max],
-        end_range=[p.end_range_min, p.end_range_max],
+        start_range=[p.xstartmin, p.xstartmax],
+        end_range=[p.xendmin, p.xendmax],
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )
-    builder = TableResultBuilder(f"parameters | {obj.title}")
-    for field in fields(param):
-        key = field.name
-        value = getattr(param, key)
-        if isinstance(value, (int, float, np.floating, np.integer)):
-            fmt = f"{key} = %g"
-        else:
-            continue
-        builder.add(lambda xy, v=value: v, key, fmt)
+    builder = TableResultBuilder("Pulse features")
+    builder.add_from_dataclass(features)
     return builder.compute(obj)
 
 

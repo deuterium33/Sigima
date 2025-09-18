@@ -138,67 +138,6 @@ class PolarityDetectionError(PulseAnalysisError):
     """Raised when polarity cannot be determined."""
 
 
-# @dataclass
-# class PulseAnalysisConfig:
-#     """Configuration for pulse analysis parameters."""
-
-#     start_range: tuple[float, float] | None = None
-#     end_range: tuple[float, float] | None = None
-#     plateau_range: tuple[float, float] | None = None
-#     signal_shape: SignalShape | str | None = None
-#     start_rise_ratio: float = 0.1
-#     stop_rise_ratio: float = 0.9
-#     z_score_threshold: float = 5.0
-
-#     def __post_init__(self):
-#         """Validate configuration parameters."""
-#         if self.start_rise_ratio < 0 or self.start_rise_ratio > 1:
-#             raise ValueError("start_rise_ratio must be between 0 and 1")
-#         if self.stop_rise_ratio < 0 or self.stop_rise_ratio > 1:
-#             raise ValueError("stop_rise_ratio must be between 0 and 1")
-#         if self.z_score_threshold <= 0:
-#             raise ValueError("z_score_threshold must be positive")
-
-
-@dataclass
-class FootInfo:
-    """Information about the foot (flat region before rise) of a signal."""
-
-    index: int
-    threshold: float
-    foot_duration: float
-    x_end: float
-
-
-@dataclass
-class PulseFeatures:
-    """Extracted features from a pulse signal.
-
-    Attributes:
-        signal_shape: The shape of the signal (step or square).
-        polarity: The polarity of the signal (1 for positive, -1 for negative).
-        amplitude: The amplitude of the signal.
-        rise_time: The rise time of the signal (time from start_ratio to stop_ratio).
-        fall_time: The fall time of the signal (time from stop_ratio to start_ratio).
-        fwhm: The full width at half maximum of the signal.
-        offset: The baseline offset of the signal.
-        t50: The time at which the signal reaches 50% of its amplitude.
-        tmax: The time at which the signal reaches its maximum amplitude.
-        foot_duration: The duration of the foot (flat region before rise) of the signal.
-    """
-
-    signal_shape: SignalShape
-    polarity: int
-    amplitude: float
-    rise_time: float | None
-    fall_time: float | None
-    fwhm: float | None
-    offset: float
-    t50: float | None
-    tmax: float
-    foot_duration: float
-
-
 def heuristically_recognize_shape(
     x: np.ndarray,
     y: np.ndarray,
@@ -675,6 +614,16 @@ def heuristically_find_foot_end_time(
     return None  # No outlier found
 
 
+@dataclass
+class FootInfo:
+    """Information about the foot (flat region before rise) of a signal."""
+
+    index: int
+    threshold: float
+    foot_duration: float
+    x_end: float
+
+
 def get_foot_info(
     x: np.ndarray,
     y: np.ndarray,
@@ -942,6 +891,47 @@ def fw1e2(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float, float]:
     return mu - hw, yhm, mu + hw, yhm
 
 
+@dataclass
+class PulseFeatures:
+    """Extracted features from a pulse signal.
+
+    Attributes:
+        signal_shape: The shape of the signal (step or square).
+        polarity: The polarity of the signal (1 for positive, -1 for negative).
+        amplitude: The amplitude of the signal.
+        offset: The baseline offset of the signal.
+        foot_duration: The duration of the foot (flat region before rise) of the signal.
+        xstartmin: The minimum x-value of the start baseline region.
+        xstartmax: The maximum x-value of the start baseline region.
+        xendmin: The minimum x-value of the end baseline region.
+        xendmax: The maximum x-value of the end baseline region.
+        xplateaumin: The minimum x-value of the plateau region (if applicable).
+        xplateaumax: The maximum x-value of the plateau region (if applicable).
+        rise_time: The rise time of the signal (time from start_ratio to stop_ratio).
+        fall_time: The fall time of the signal (time from stop_ratio to start_ratio).
+        fwhm: The full width at half maximum of the signal.
+        x50: The time at which the signal reaches 50% of its amplitude.
+        x100: The time at which the signal reaches its maximum amplitude.
+    """
+
+    signal_shape: SignalShape = SignalShape.STEP
+    polarity: int = 1
+    amplitude: float = 0.0
+    offset: float = 0.0
+    foot_duration: float = 0.0
+    xstartmin: float = 0.0
+    xstartmax: float = 0.0
+    xendmin: float = 0.0
+    xendmax: float = 0.0
+    xplateaumin: float | None = None
+    xplateaumax: float | None = None
+    rise_time: float | None = None
+    fall_time: float | None = None
+    fwhm: float | None = None
+    x50: float | None = None
+    x100: float | None = None
+
+
 def extract_pulse_features(
     x: np.ndarray,
     y: np.ndarray,
@@ -979,83 +969,81 @@ def extract_pulse_features(
         y = filtering.denoise_preserve_shape(y)[0]
 
     polarity = detect_polarity(x, y, start_range, end_range, signal_shape=signal_shape)
-    plateau_range = get_plateau_range(x, y, polarity, fraction)
+    plateau_range = None
+    if signal_shape == SignalShape.SQUARE:
+        plateau_range = get_plateau_range(x, y, polarity, fraction)
     amplitude = get_amplitude(x, y, start_range, end_range, plateau_range, signal_shape)
+
     ymax_idx = np.argmax(y)
 
     if signal_shape == SignalShape.STEP:
-        t_rise = get_step_rise_time(
-            x,
-            y,
-            start_range,
-            end_range,
-            start_rise_ratio=start_rise_ratio,
-            stop_rise_ratio=stop_rise_ratio,
+        rise_time = get_step_rise_time(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
-        t50 = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
+        x50 = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
         foot_info = get_foot_info(x, y, start_range, end_range, start_rise_ratio)
-        t_fall = None
-        fwhm_value = None
+        fall_time = None
+        fwhm_val = None
     else:  # is square
-        t_rise = get_step_rise_time(
+        rise_time = get_step_rise_time(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
-            start_range=start_range,
-            end_range=(x[ymax_idx], x[ymax_idx]),
-            start_rise_ratio=start_rise_ratio,
-            stop_rise_ratio=stop_rise_ratio,
+            start_range,
+            (x[ymax_idx], x[ymax_idx]),
+            start_rise_ratio,
+            stop_rise_ratio,
         )
-        t50 = find_crossing_at_ratio(
+        x50 = find_crossing_at_ratio(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
             0.5,
             start_range,
             (x[ymax_idx], x[ymax_idx]),
         )
-        t_fall = get_step_rise_time(
+        fall_time = get_step_rise_time(
             x[ymax_idx:],
             y[ymax_idx:],
-            start_range=(x[ymax_idx], x[ymax_idx]),
-            end_range=end_range,
-            start_rise_ratio=start_rise_ratio,
-            stop_rise_ratio=stop_rise_ratio,
+            (x[ymax_idx], x[ymax_idx]),
+            end_range,
+            start_rise_ratio,
+            stop_rise_ratio,
         )
-
         foot_info = get_foot_info(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
-            start_range=start_range,
-            end_range=(x[ymax_idx], x[ymax_idx]),
-            start_rise_ratio=start_rise_ratio,
+            start_range,
+            (x[ymax_idx], x[ymax_idx]),
+            start_rise_ratio,
         )
-        # fwhm = t50 - t50fall  # half maximum value
         x1, _, x2, _ = fwhm(x, y, "zero-crossing")
-        fwhm_value = x2 - x1  # full width at half maximum
+        fwhm_val = x2 - x1  # full width at half maximum
         mean_x_sampling_time = float(np.mean(np.diff(x)))
-        if fwhm_value <= 10 * mean_x_sampling_time:
+        if fwhm_val <= 10 * mean_x_sampling_time:
             # if the fwhm is smaller than 10 times the mean sampling time, we cannot
             # rely on rising and falling times, as the pulse is too narrow
-            t_fall = None
-            t_rise = None
+            fall_time = None
+            rise_time = None
 
-    if t50 is None:
-        tmax = x[ymax_idx]
+    if x50 is None:
+        x100 = x[ymax_idx]
     else:
-        tmax = t50 + t_rise  # Rough estimate of tmax
-
-    offset = get_range_mean_y(x, y * polarity, start_range)  # baseline
-
-    foot_duration = foot_info.foot_duration
+        x100 = x50 + rise_time  # Rough estimate of x100
 
     return PulseFeatures(
         signal_shape=signal_shape,
         polarity=polarity,
         amplitude=amplitude,
-        rise_time=t_rise,
-        fall_time=t_fall,
-        fwhm=fwhm_value,
-        offset=offset,
-        t50=t50,
-        tmax=tmax,
-        foot_duration=foot_duration,
+        offset=get_range_mean_y(x, y * polarity, start_range),
+        foot_duration=foot_info.foot_duration,
+        xstartmin=start_range[0],
+        xstartmax=start_range[1],
+        xendmin=end_range[0],
+        xendmax=end_range[1],
+        xplateaumin=None if plateau_range is None else plateau_range[0],
+        xplateaumax=None if plateau_range is None else plateau_range[1],
+        rise_time=rise_time,
+        fall_time=fall_time,
+        fwhm=fwhm_val,
+        x50=x50,
+        x100=x100,
     )
