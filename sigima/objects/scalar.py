@@ -54,7 +54,7 @@ from __future__ import annotations
 import enum
 import inspect
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
 
@@ -91,8 +91,8 @@ class TableResult:
         names: Column names (one per metric).
         labels: Human-readable labels for each column (including units as
          formatted strings).
-        data: 2-D array of shape (N, len(names)) with scalar values.
-        roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
+        data: 2-D list of shape (N, len(names)) with scalar values.
+        roi_indices: Optional list (N,) mapping rows to ROI indices.
          Use NO_ROI (-1) for the "full image / no ROI" row.
         attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
@@ -107,8 +107,8 @@ class TableResult:
     title: str
     names: Sequence[str] = field(default_factory=list)
     labels: Sequence[str] = field(default_factory=list)
-    data: np.ndarray = field(default_factory=lambda: np.empty((0, 0), float))
-    roi_indices: np.ndarray | None = None
+    data: list[list] = field(default_factory=list)
+    roi_indices: list[int] | None = None
     attrs: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -123,16 +123,17 @@ class TableResult:
             isinstance(c, str) for c in self.labels
         ):
             raise ValueError("labels must be a sequence of strings")
-        if not isinstance(self.data, np.ndarray):
-            raise ValueError("data must be a numpy array")
-        if self.data.ndim != 2 or self.data.shape[1] != len(self.names):
-            raise ValueError("data must be (N, ncols) and match names length")
+        if not isinstance(self.data, list):
+            raise ValueError("data must be a list of lists")
+        if self.data and not isinstance(self.data[0], list):
+            raise ValueError("data must be a list of lists")
+        if self.data and len(self.data[0]) != len(self.names):
+            raise ValueError("data columns must match names length")
         if self.roi_indices is not None:
-            if (
-                not isinstance(self.roi_indices, np.ndarray)
-                or self.roi_indices.ndim != 1
-            ):
-                raise ValueError("roi_indices must be a 1-D numpy array if provided")
+            if not isinstance(self.roi_indices, list):
+                raise ValueError("roi_indices must be a list if provided")
+            if self.roi_indices and isinstance(self.roi_indices[0], list):
+                raise ValueError("roi_indices must be a list if provided")
             if len(self.roi_indices) != len(self.data):
                 raise ValueError("roi_indices length must match number of data rows")
 
@@ -168,8 +169,8 @@ class TableResult:
             title,
             names,
             labels,
-            np.asarray(rows, float),
-            None if roi_indices is None else np.asarray(roi_indices, int),
+            np.asarray(rows, float).tolist(),
+            None if roi_indices is None else np.asarray(roi_indices, int).tolist(),
             {} if attrs is None else dict(attrs),
         )
 
@@ -182,10 +183,8 @@ class TableResult:
             "title": self.title,
             "names": list(self.names),
             "labels": list(self.labels),
-            "data": self.data.tolist(),
-            "roi_indices": None
-            if self.roi_indices is None
-            else self.roi_indices.tolist(),
+            "data": self.data,
+            "roi_indices": self.roi_indices,
             "attrs": dict(self.attrs) if self.attrs else {},
         }
 
@@ -196,31 +195,29 @@ class TableResult:
             title=d["title"],
             names=list(d["names"]),
             labels=list(d["labels"]),
-            data=np.asarray(d["data"], dtype=float),
-            roi_indices=None
-            if d.get("roi_indices") is None
-            else np.asarray(d["roi_indices"], dtype=int),
+            data=d["data"],
+            roi_indices=d.get("roi_indices"),
             attrs=dict(d.get("attrs", {})),
         )
 
     # -------- User-oriented methods --------
 
-    def col(self, name: str) -> np.ndarray:
+    def col(self, name: str) -> list:
         """Return the column vector by name (raises KeyError if missing).
 
         Args:
             name: The name of the column to retrieve.
 
         Returns:
-            A 1-D numpy array containing the column data.
+            A list containing the column data.
         """
         try:
             j = list(self.names).index(name)
         except ValueError as exc:
             raise KeyError(name) from exc
-        return self.data[:, j]
+        return [row[j] for row in self.data]
 
-    def __getitem__(self, name: str) -> np.ndarray:
+    def __getitem__(self, name: str) -> list:
         """Shorthand for col(name)."""
         return self.col(name)
 
@@ -257,16 +254,20 @@ class TableResult:
                 raise ValueError(
                     "Ambiguous selection: multiple rows but no ROI indices"
                 )
-            return float(vec[0])
+            return vec[0]
         target = NO_ROI if roi is None else int(roi)
-        mask: np.ndarray = self.roi_indices == target
-        if not mask.any():
+        matching_indices = [
+            i for i, roi_idx in enumerate(self.roi_indices) if roi_idx == target
+        ]
+        if not matching_indices:
             raise KeyError(f"No row for ROI={target}")
-        if mask.sum() != 1:
-            raise ValueError(f"Ambiguous selection: {mask.sum()} rows for ROI={target}")
-        return float(vec[mask][0])
+        if len(matching_indices) != 1:
+            raise ValueError(
+                f"Ambiguous selection: {len(matching_indices)} rows for ROI={target}"
+            )
+        return vec[matching_indices[0]]
 
-    def as_dict(self, roi: int | None = None) -> dict[str, float]:
+    def as_dict(self, roi: int | None = None) -> dict[str, Any]:
         """Return a {column -> value} mapping for one row (ROI or full image).
 
         Args:
@@ -277,22 +278,25 @@ class TableResult:
             A dictionary mapping column names to their corresponding values.
         """
         if self.roi_indices is None:
-            if self.data.shape[0] != 1:
+            if len(self.data) != 1:
                 raise ValueError(
                     "Ambiguous selection: multiple rows but no ROI indices"
                 )
             row = self.data[0]
         else:
             target = NO_ROI if roi is None else int(roi)
-            mask: np.ndarray = self.roi_indices == target
-            if not mask.any():
+            matching_indices = [
+                i for i, roi_idx in enumerate(self.roi_indices) if roi_idx == target
+            ]
+            if not matching_indices:
                 raise KeyError(f"No row for ROI={target}")
-            if mask.sum() != 1:
+            if len(matching_indices) != 1:
                 raise ValueError(
-                    f"Ambiguous selection: {mask.sum()} rows for ROI={target}"
+                    f"Ambiguous selection: {len(matching_indices)} rows for "
+                    f"ROI={target}"
                 )
-            row = self.data[mask][0]
-        return {name: float(row[j]) for j, name in enumerate(self.names)}
+            row = self.data[matching_indices[0]]
+        return {name: row[j] for j, name in enumerate(self.names)}
 
 
 class TableResultBuilder:
@@ -612,8 +616,8 @@ def calc_table_from_data(
         return TableResult(
             title=title,
             names=names,
-            data=np.asarray(rows, dtype=float),
-            roi_indices=np.asarray(roi_idx, dtype=int),
+            data=rows,
+            roi_indices=roi_idx,
             attrs={} if attrs is None else dict(attrs),
         )
 
@@ -622,8 +626,8 @@ def calc_table_from_data(
     return TableResult(
         title=title,
         names=names,
-        data=np.asarray([row], dtype=float),
-        roi_indices=np.asarray([NO_ROI], dtype=int),
+        data=[row],
+        roi_indices=[NO_ROI],
         attrs={} if attrs is None else dict(attrs),
     )
 
@@ -643,7 +647,7 @@ def concat_tables(title: str, items: Iterable[TableResult]) -> TableResult:
     """
     items = list(items)
     if not items:
-        return TableResult(title=title, names=[], data=np.zeros((0, 0), float))
+        return TableResult(title=title, names=[], data=[])
     first = items[0]
     cols = list(first.names)
     for it in items[1:]:
@@ -651,21 +655,16 @@ def concat_tables(title: str, items: Iterable[TableResult]) -> TableResult:
             raise ValueError(
                 "All TableResult objects must share the same names to concatenate"
             )
-    data = (
-        np.vstack([it.data for it in items])
-        if any(len(it.data) for it in items)
-        else np.zeros((0, len(cols)))
-    )
+    data = []
+    for it in items:
+        data.extend(it.data)
     if any(it.roi_indices is not None for it in items):
-        parts = [
-            (
-                it.roi_indices
-                if it.roi_indices is not None
-                else np.full((len(it.data),), NO_ROI, int)
-            )
-            for it in items
-        ]
-        roi = np.concatenate(parts) if len(parts) else None
+        roi = []
+        for it in items:
+            if it.roi_indices is not None:
+                roi.extend(it.roi_indices)
+            else:
+                roi.extend([NO_ROI] * len(it.data))
     else:
         roi = None
     return TableResult(title=title, names=cols, data=data, roi_indices=roi)
@@ -684,8 +683,8 @@ def filter_table_by_roi(res: TableResult, roi: int | None) -> TableResult:
     if res.roi_indices is None:
         # No ROI info: either keep all or none depending on request
         keep_all = roi in (None, NO_ROI)
-        data = res.data if keep_all else np.zeros((0, res.data.shape[1]))
-        indices = None if keep_all else np.zeros((0,), int)
+        data = res.data if keep_all else []
+        indices = None if keep_all else []
         return TableResult(
             title=res.title,
             names=list(res.names),
@@ -694,12 +693,17 @@ def filter_table_by_roi(res: TableResult, roi: int | None) -> TableResult:
             attrs=dict(res.attrs),
         )
     target = NO_ROI if roi is None else int(roi)
-    mask = res.roi_indices == target
+    filtered_data = []
+    filtered_indices = []
+    for i, roi_idx in enumerate(res.roi_indices):
+        if roi_idx == target:
+            filtered_data.append(res.data[i])
+            filtered_indices.append(roi_idx)
     return TableResult(
         title=res.title,
         names=list(res.names),
-        data=res.data[mask],
-        roi_indices=res.roi_indices[mask],
+        data=filtered_data,
+        roi_indices=filtered_indices,
         attrs=dict(res.attrs),
     )
 

@@ -31,7 +31,7 @@ def test_table_result_builder_basic() -> None:
     table = builder.compute(sig)
 
     assert table.title == "Signal Stats"
-    assert table.data.shape == (2, 3)  # [None, ROI_0] x 3 stats
+    assert len(table.data) == 2 and len(table.data[0]) == 3  # [None, ROI_0] x 3 stats
     assert list(table.names) == ["min", "max", "mean"]
     assert table.roi_indices[0] == -1  # NO_ROI
     assert table.roi_indices[1] == 0
