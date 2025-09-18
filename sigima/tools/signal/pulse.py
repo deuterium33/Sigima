@@ -343,7 +343,8 @@ def get_plateau_range(
         Tuple representing the plateau range (min, max).
     """
     x_fraction = fraction * (x[-1] - x[0])
-    max_indexes = y >= 0.95 * np.max(y * polarity)
+    y_polarity_corrected = y if polarity == 1 else np.max(y) - y
+    max_indexes = y_polarity_corrected >= 0.95 * np.max(y_polarity_corrected)
     max_index = max_indexes.nonzero()[0][len(max_indexes[max_indexes]) // 2]
     return (x[max_index] - 0.5 * x_fraction, x[max_index] + 0.5 * x_fraction)
 

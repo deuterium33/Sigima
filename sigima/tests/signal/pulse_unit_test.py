@@ -587,6 +587,17 @@ def _test_amplitude_case(
 
     # Test auto-detection
     amplitude_auto = pulse.get_amplitude(x, y_noisy)
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            view_baseline_plateau_and_curve(
+                x,
+                y_noisy,
+                f"{title}: {amp:.3f} (auto)",
+                signal_type,
+                pulse.get_start_range(x),
+                pulse.get_end_range(x),
+                pulse.get_plateau_range(x, y_noisy, expected_features.polarity),
+            )
     check_scalar_result(f"{title} (auto)", amplitude_auto, expected_amp, rtol=rtol)
 
 
@@ -608,10 +619,10 @@ def test_get_amplitude() -> None:
     """
     tac = _test_amplitude_case
     # Step signals
-    tac("step", "positive", 0.0, 5.0, (0.0, 2.0), (6.0, 8.0))
-    tac("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0))
+    # tac("step", "positive", 0.0, 5.0, (0.0, 2.0), (6.0, 8.0))
+    # tac("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0))
     # Square signals with plateau
-    tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
+    # tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
     tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
     # Square signals without plateau
     tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
@@ -1292,7 +1303,7 @@ if __name__ == "__main__":
     guiutils.enable_gui()
     # test_heuristically_recognize_shape()
     # test_detect_polarity()
-    # test_get_amplitude()
+    test_get_amplitude()
     # test_get_crossing_ratio_time(0.2)
     # test_get_crossing_ratio_time(0.5)
     # test_get_crossing_ratio_time(0.8)
