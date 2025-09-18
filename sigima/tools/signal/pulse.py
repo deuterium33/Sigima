@@ -19,7 +19,7 @@ import scipy.special
 
 from sigima.enums import SignalShape
 from sigima.tools.checks import check_1d_arrays
-from sigima.tools.signal import features, peakdetection
+from sigima.tools.signal import features, filtering, peakdetection
 
 
 class PulseFitModel(abc.ABC):
@@ -172,7 +172,20 @@ class FootInfo:
 
 @dataclass
 class PulseFeatures:
-    """Extracted features from a pulse signal."""
+    """Extracted features from a pulse signal.
+
+    Attributes:
+        signal_shape: The shape of the signal (step or square).
+        polarity: The polarity of the signal (1 for positive, -1 for negative).
+        amplitude: The amplitude of the signal.
+        rise_time: The rise time of the signal (time from start_ratio to stop_ratio).
+        fall_time: The fall time of the signal (time from stop_ratio to start_ratio).
+        fwhm: The full width at half maximum of the signal.
+        offset: The baseline offset of the signal.
+        t50: The time at which the signal reaches 50% of its amplitude.
+        tmax: The time at which the signal reaches its maximum amplitude.
+        foot_duration: The duration of the foot (flat region before rise) of the signal.
+    """
 
     signal_shape: SignalShape
     polarity: int
@@ -391,7 +404,8 @@ def get_plateau_range(
         Tuple representing the plateau range (min, max).
     """
     x_fraction = fraction * (x[-1] - x[0])
-    max_index = np.argmax(y * polarity)
+    max_indexes = y >= 0.95 * np.max(y * polarity)
+    max_index = max_indexes.nonzero()[0][len(max_indexes[max_indexes]) // 2]
     return (x[max_index] - 0.5 * x_fraction, x[max_index] + 0.5 * x_fraction)
 
 
@@ -413,6 +427,7 @@ def get_range_mean_y(
     return float(np.mean(y[np.logical_and(x >= value_range[0], x <= value_range[1])]))
 
 
+@check_1d_arrays(x_sorted=True)
 def get_amplitude(
     x: np.ndarray,
     y: np.ndarray,
@@ -471,15 +486,18 @@ def get_amplitude(
     return np.abs(min_level - max_level)
 
 
-def get_crossing_ratio_time(
+@check_1d_arrays(x_sorted=True)
+def find_crossing_at_ratio(
     x: np.ndarray,
     y: np.ndarray,
+    ratio: float = 0.1,
     start_range: tuple[float, float] | None = None,
     end_range: tuple[float, float] | None = None,
-    decimal_ratio: float = 0.1,
+    signal_shape: SignalShape | str | None = None,
     fraction: float = 0.05,
+    warn_multiple_crossings: bool = False,
 ) -> float | None:
-    """Get the x-value at which the signal crosses a specified fractional amplitude.
+    """Find the x-value at which the signal crosses a specified fractional amplitude.
 
     Calculates the x-value at which a normalized step signal crosses a specified
     fractional amplitude.
@@ -487,43 +505,61 @@ def get_crossing_ratio_time(
     This function normalizes the input signal `y` relative to the baseline level defined
     by `start` and the amplitude between `start` and `end`. It accounts for the
     polarity of the step (rising or falling) and then finds the x-position where the
-    normalized signal crosses the specified `decimalRatio` fraction of the step height.
+    normalized signal crosses the specified `ratio` fraction of the step height.
 
     Args:
         x: 1D array of x values (e.g., time).
         y: 1D array of y values corresponding to `x`.
+        ratio: The fractional amplitude (between 0 and 1) at which to find the
+         crossing time. For example, 0.5 corresponds to the half-maximum crossing.
         start_range: Tuple defining the start baseline region (initial plateau).
         end_range: Tuple defining the end baseline region (final plateau).
-        decimal_ratio: The fractional amplitude (between 0 and 1) at which to find the
-         crossing time. For example, 0.5 corresponds to the half-maximum crossing.
+        signal_shape: Shape of the signal. If None, it will be heuristically
+         determined.
         fraction: Fraction of the x-range to use for baseline calculations if
          start_range or end_range are None.
+        warn_multiple_crossings: If True, a warning is issued when multiple crossings
+         are found.
 
     Returns:
         The x-value where the normalized signal crosses the specified fractional
         amplitude.
+
+    Raises:
+        ValueError: If `ratio` is not between 0 and 1.
+        InvalidSignalError: If the signal is invalid or if polarity cannot be
+         determined.
     """
+    if not 0 <= ratio <= 1:
+        raise ValueError("ratio must be between 0 and 1")
+    if signal_shape is None:
+        signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
     try:
         polarity = detect_polarity(
             x,
             y,
             start_range,
             end_range,
-            signal_shape=SignalShape.STEP,
+            signal_shape=signal_shape,
         )
     except PolarityDetectionError as exc:
         raise InvalidSignalError(f"Cannot determine crossing time: {exc}") from exc
-    amplitude = get_amplitude(x, y, start_range, end_range)
+    amplitude = get_amplitude(
+        x, y, start_range, end_range, signal_shape=signal_shape, fraction=fraction
+    )
     y_positive = y * polarity
     if start_range is None:
         start_range = get_start_range(x, fraction)
     y_start = get_range_mean_y(x, y_positive, start_range)
     y_norm = (y_positive - y_start) / amplitude
-    roots = features.find_x_values_at_y(x, y_norm, decimal_ratio)
+    roots = features.find_x_values_at_y(x, y_norm, ratio)
     if len(roots) == 0:
         return None
-    if len(roots) > 1:
-        warnings.warn("Multiple crossing points found. Returning first.")
+    if len(roots) > 1 and warn_multiple_crossings:
+        warnings.warn(
+            f"Multiple crossing points found at ratio {ratio}. "
+            f"Returning first at x={roots[0]:.6f}"
+        )
     return roots[0]
 
 
@@ -539,7 +575,7 @@ def get_step_rise_time(
 
     The rise time is defined as the time it takes for the signal to increase from
     a specified lower fraction (`start_rise_ratio`) to a higher fraction
-    (`1 - stop_rise_ratio`) of the total amplitude change between two reference
+    (`stop_rise_ratio`) of the total amplitude change between two reference
     regions (e.g., before and after the step transition).
 
     This function uses `get_crossing_ratio_time` to find both the start and stop
@@ -559,12 +595,10 @@ def get_step_rise_time(
         The rise time (difference between the stop and start of the step).
     """
     # start rise
-    start_time = get_crossing_ratio_time(x, y, start_range, end_range, start_rise_ratio)
+    start_time = find_crossing_at_ratio(x, y, start_rise_ratio, start_range, end_range)
 
     # stop rise
-    stop_time = get_crossing_ratio_time(
-        x, y, start_range, end_range, 1 - stop_rise_ratio
-    )
+    stop_time = find_crossing_at_ratio(x, y, stop_rise_ratio, start_range, end_range)
     if start_time is None or stop_time is None:
         warnings.warn(
             "Could not determine start or stop time for the step rise. Returning None."
@@ -574,6 +608,7 @@ def get_step_rise_time(
     return stop_time - start_time
 
 
+@check_1d_arrays(x_sorted=True)
 def heuristically_find_foot_end_time(
     x: np.ndarray,
     y: np.ndarray,
@@ -668,8 +703,8 @@ def get_foot_info(
     if end_time is None:
         if start_rise_ratio is not None:
             try:
-                end_time = get_crossing_ratio_time(
-                    x, y, start_range, end_range, start_rise_ratio
+                end_time = find_crossing_at_ratio(
+                    x, y, start_rise_ratio, start_range, end_range
                 )
             except InvalidSignalError:
                 end_time = None
@@ -914,7 +949,9 @@ def extract_pulse_features(
     end_range: tuple[float, float],
     start_rise_ratio: float = 0.1,
     stop_rise_ratio: float = 0.9,
-    signal_shape: SignalShape | str | None = None,
+    signal_shape: SignalShape | None = None,
+    fraction: float = 0.05,
+    denoise: bool = True,
 ) -> PulseFeatures:
     """Extract various pulse features from the input signal.
 
@@ -923,24 +960,28 @@ def extract_pulse_features(
         y: 1D array of y values (signal).
         start_range: Interval for the first plateau (baseline).
         end_range: Interval for the second plateau (peak).
-        signal_shape: Signal type ('step' or 'square').
+        signal_shape: Signal type (None for auto-detection).
         start_rise_ratio: Fraction for rise start.
         stop_rise_ratio: Fraction for rise end.
+        fraction: Fraction of the x-range to use for baseline calculations if
+         start_range or end_range are None.
+        denoise: If True, apply a denoising filter to the signal before analysis.
 
     Returns:
         Pulse features.
     """
-    if signal_shape is None or signal_shape == "auto":
+    if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
-    if signal_shape not in (SignalShape.STEP, SignalShape.SQUARE):
-        raise ValueError(
-            f"\nUnknown signal shape '{signal_shape}'. Use 'step' or 'square'."
-        )
+    if not isinstance(signal_shape, SignalShape):
+        raise ValueError("signal_shape must be an instance of SignalShape Enum")
+
+    if denoise:
+        y = filtering.denoise_preserve_shape(y)[0]
 
     polarity = detect_polarity(x, y, start_range, end_range, signal_shape=signal_shape)
-    amplitude = get_amplitude(x, y, start_range, end_range, signal_shape=signal_shape)
-    tmax_idx = np.argmax(y)
-    tmax = x[tmax_idx]
+    plateau_range = get_plateau_range(x, y, polarity, fraction)
+    amplitude = get_amplitude(x, y, start_range, end_range, plateau_range, signal_shape)
+    ymax_idx = np.argmax(y)
 
     if signal_shape == SignalShape.STEP:
         t_rise = get_step_rise_time(
@@ -951,40 +992,40 @@ def extract_pulse_features(
             start_rise_ratio=start_rise_ratio,
             stop_rise_ratio=stop_rise_ratio,
         )
-        t50 = get_crossing_ratio_time(x, y, start_range, end_range, 0.5)
+        t50 = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
         foot_info = get_foot_info(x, y, start_range, end_range, start_rise_ratio)
         t_fall = None
         fwhm_value = None
     else:  # is square
         t_rise = get_step_rise_time(
-            x[0 : tmax_idx + 1],
-            y[0 : tmax_idx + 1],
+            x[0 : ymax_idx + 1],
+            y[0 : ymax_idx + 1],
             start_range=start_range,
-            end_range=(x[tmax_idx], x[tmax_idx]),
+            end_range=(x[ymax_idx], x[ymax_idx]),
             start_rise_ratio=start_rise_ratio,
             stop_rise_ratio=stop_rise_ratio,
         )
-        t50 = get_crossing_ratio_time(
-            x[0 : tmax_idx + 1],
-            y[0 : tmax_idx + 1],
-            start_range,
-            (x[tmax_idx], x[tmax_idx]),
+        t50 = find_crossing_at_ratio(
+            x[0 : ymax_idx + 1],
+            y[0 : ymax_idx + 1],
             0.5,
+            start_range,
+            (x[ymax_idx], x[ymax_idx]),
         )
         t_fall = get_step_rise_time(
-            x[tmax_idx:],
-            y[tmax_idx:],
-            start_range=(x[tmax_idx], x[tmax_idx]),
+            x[ymax_idx:],
+            y[ymax_idx:],
+            start_range=(x[ymax_idx], x[ymax_idx]),
             end_range=end_range,
             start_rise_ratio=start_rise_ratio,
             stop_rise_ratio=stop_rise_ratio,
         )
 
         foot_info = get_foot_info(
-            x[0 : tmax_idx + 1],
-            y[0 : tmax_idx + 1],
+            x[0 : ymax_idx + 1],
+            y[0 : ymax_idx + 1],
             start_range=start_range,
-            end_range=(x[tmax_idx], x[tmax_idx]),
+            end_range=(x[ymax_idx], x[ymax_idx]),
             start_rise_ratio=start_rise_ratio,
         )
         # fwhm = t50 - t50fall  # half maximum value
@@ -996,6 +1037,11 @@ def extract_pulse_features(
             # rely on rising and falling times, as the pulse is too narrow
             t_fall = None
             t_rise = None
+
+    if t50 is None:
+        tmax = x[ymax_idx]
+    else:
+        tmax = t50 + t_rise  # Rough estimate of tmax
 
     offset = get_range_mean_y(x, y * polarity, start_range)  # baseline
 

@@ -6,13 +6,21 @@ Visualization tools for `sigima` interactive tests (based on PlotPy)
 
 from __future__ import annotations
 
-from typing import Generator
+from typing import Generator, Literal
 
 import numpy as np
 import plotpy.tools
 from guidata.qthelpers import exec_dialog
 from plotpy.builder import make
-from plotpy.items import AnnotatedPolygon, CurveItem, ImageItem
+from plotpy.items import (
+    AnnotatedPolygon,
+    AnnotatedXRange,
+    AnnotatedYRange,
+    CurveItem,
+    ImageItem,
+    LabelItem,
+    Marker,
+)
 from plotpy.plot import (
     BasePlot,
     BasePlotOptions,
@@ -107,7 +115,7 @@ def create_signal_segment(
         A `CurveItem` representing the signal segment
     """
     item = make.annotated_segment(x0, y0, x1, y1, label, show_computations=False)
-    item.label.labelparam.bgalpha = 0.6
+    item.label.labelparam.bgalpha = 0.5
     item.label.labelparam.anchor = "T"
     item.label.labelparam.yc = 10
     item.label.labelparam.update_item(item.label)
@@ -119,6 +127,88 @@ def create_signal_segment(
     p.symbol.marker = "Ellipse"
     p.symbol.size = 11
     p.update_item(item.shape)
+    item.set_movable(False)
+    item.set_resizable(False)
+    item.set_selectable(False)
+    return item
+
+
+def create_cursor(
+    orientation: Literal["h", "v"], position: float, label: str
+) -> Marker:
+    """Create a horizontal or vertical cursor item
+
+    Args:
+        orientation: 'h' for horizontal cursor, 'v' for vertical cursor
+        position: Position of the cursor along the relevant axis
+        label: Label format string for the cursor
+
+    Returns:
+        A `Marker` representing the cursor
+    """
+    if orientation == "h":
+        cursor = make.hcursor(position, label=label)
+    elif orientation == "v":
+        cursor = make.vcursor(position, label=label)
+    else:
+        raise ValueError("Orientation must be 'h' or 'v'")
+    cursor.set_movable(False)
+    cursor.set_selectable(False)
+    cursor.markerparam.line.color = "#a7ff33"
+    cursor.markerparam.line.width = 3
+    cursor.markerparam.symbol.marker = "NoSymbol"
+    cursor.markerparam.text.textcolor = "#ffffff"
+    cursor.markerparam.text.background_color = "#000000"
+    cursor.markerparam.text.background_alpha = 0.5
+    cursor.markerparam.text.font.bold = True
+    cursor.markerparam.update_item(cursor)
+    return cursor
+
+
+def create_range(
+    orientation: Literal["h", "v"], pos_min: float, pos_max: float, title: str
+) -> AnnotatedXRange | AnnotatedYRange:
+    """Create a horizontal or vertical range item
+
+    Args:
+        orientation: 'h' for horizontal range, 'v' for vertical range
+        pos_min: Minimum position of the range along the relevant axis
+        pos_max: Maximum position of the range along the relevant axis
+        title: Title for the range
+
+    Returns:
+        An `AnnotatedXRange` or `AnnotatedYRange` representing the range
+    """
+    if orientation == "h":
+        item = make.annotated_xrange(
+            pos_min, pos_max, title=title, show_computations=False
+        )
+    elif orientation == "v":
+        item = make.annotated_yrange(
+            pos_min, pos_max, title=title, show_computations=False
+        )
+    else:
+        raise ValueError("Orientation must be 'h' or 'v'")
+    item.label.labelparam.bgalpha = 0.5
+    item.label.labelparam.anchor = "L"
+    item.label.labelparam.xc = 20
+    item.label.labelparam.update_item(item.label)
+    item.set_movable(False)
+    item.set_resizable(False)
+    item.set_selectable(False)
+    return item
+
+
+def create_label(text: str) -> LabelItem:
+    """Create a text label item
+
+    Args:
+        text: Text content of the label
+
+    Returns:
+        A `LabelItem` representing the text label
+    """
+    item = make.label(text, "TL", (0, 0), "TL")
     return item
 
 
