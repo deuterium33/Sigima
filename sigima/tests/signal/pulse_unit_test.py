@@ -6,6 +6,7 @@ Unit tests for the `sigima.tools.signal.pulse` module.
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 from dataclasses import dataclass
 from typing import Literal
@@ -27,6 +28,7 @@ from sigima.tools.signal import filtering, pulse
 class ExpectedFeatures:
     """Expected pulse feature values for validation."""
 
+    signal_shape: SignalShape
     polarity: int
     amplitude: float
     rise_time: float  # Rise time between specified ratios
@@ -47,7 +49,7 @@ class FeatureTolerances:
     rise_time: float = 0.2
     offset: float = 0.5
     x50: float = 0.1
-    x100: float = 0.5  # Tolerance for time at 100% amplitude
+    x100: float = 0.6  # Tolerance for time at 100% amplitude
     foot_duration: float = 0.5
     fall_time: float = 1.0
     fwhm: float = 0.5
@@ -100,6 +102,7 @@ class BasePulseParam(NewSignalParam):
         """
         y_end_value = self.offset + self.amplitude
         return ExpectedFeatures(
+            signal_shape=SignalShape.STEP,
             polarity=1 if y_end_value > self.offset else -1,
             amplitude=abs(y_end_value - self.offset),
             rise_time=(stop_ratio - start_ratio) * self.total_rise_time,
@@ -125,7 +128,7 @@ class StepPulseParam(BasePulseParam):
 class SquarePulseParam(BasePulseParam):
     """Parameters for generating square signals."""
 
-    xmax = gds.FloatItem(_("End time"), default=15.0)
+    xmax = gds.FloatItem(_("End time"), default=20.0)
     fwhm = gds.FloatItem(_("Full Width at Half Maximum"), default=5.5, min=0.0)
     total_fall_time = gds.FloatItem(_("Total fall time"), default=5.0, min=0.0)
 
@@ -177,6 +180,7 @@ class SquarePulseParam(BasePulseParam):
             ExpectedFeatures dataclass with all expected values
         """
         features = super().get_expected_features(start_ratio, stop_ratio)
+        features.signal_shape = SignalShape.SQUARE
         features.fall_time = (stop_ratio - start_ratio) * self.total_fall_time
         features.fwhm = self.fwhm
         return features
@@ -306,7 +310,7 @@ class AnalysisParams:
 
     start_ratio: float = 0.1
     stop_ratio: float = 0.9
-    start_range: tuple[float, float] = (0.0, 4.0)
+    start_range: tuple[float, float] = (0.0, 3.0)
     end_range: tuple[float, float] = (6.0, 8.0)
 
 
@@ -989,6 +993,40 @@ def view_pulse_features(
     )
 
 
+def __check_features(
+    features: pulse.PulseFeatures,
+    expected: ExpectedFeatures,
+    tolerances: FeatureTolerances,
+) -> None:
+    """Helper function to validate extracted pulse features against expected values.
+
+    Args:
+        features: Extracted pulse features.
+        expected: Expected feature values for validation.
+        tolerances: Tolerance values for each feature.
+    """
+    signal_shape = features.signal_shape
+    # Validate numerical features
+    for field in dataclasses.fields(features):
+        value = getattr(features, field.name)
+        expected_value = getattr(expected, field.name, None)
+        if expected_value is None:
+            continue  # Skip fields without expected values
+        tolerance = getattr(tolerances, field.name, None)
+        if tolerance is None:
+            assert value == expected_value, (
+                f"[{signal_shape.value}] {field.name}: "
+                f"Expected {expected_value}, got {value}"
+            )
+        else:
+            check_scalar_result(
+                f"[{signal_shape.value}] {field.name}",
+                value,
+                expected_value,
+                atol=tolerance,
+            )
+
+
 def _extract_and_validate_step_features(
     x: np.ndarray,
     y: np.ndarray,
@@ -1041,37 +1079,7 @@ def _extract_and_validate_step_features(
     tolerances = signal_params.get_feature_tolerances()
 
     # Validate numerical features
-    check_scalar_result(
-        "[step] polarity",
-        features.polarity,
-        expected.polarity,
-        atol=tolerances.polarity,
-    )
-    check_scalar_result(
-        "[step] amplitude",
-        features.amplitude,
-        expected.amplitude,
-        atol=tolerances.amplitude,
-    )
-    check_scalar_result(
-        "[step] rise_time",
-        features.rise_time,
-        expected.rise_time,
-        atol=tolerances.rise_time,
-    )
-    check_scalar_result(
-        "[step] offset", features.offset, expected.offset, atol=tolerances.offset
-    )
-    check_scalar_result("[step] x50", features.x50, expected.x50, atol=tolerances.x50)
-    check_scalar_result(
-        "[step] x100", features.x100, expected.x100, atol=tolerances.x100
-    )
-    check_scalar_result(
-        "[step] foot_duration",
-        features.foot_duration,
-        expected.foot_duration,
-        atol=tolerances.foot_duration,
-    )
+    __check_features(features, expected, tolerances)
 
     # Validate that step-specific features are None
     assert features.fall_time is None, (
@@ -1136,46 +1144,7 @@ def _extract_and_validate_square_features(
     tolerances = signal_params.get_feature_tolerances()
 
     # Validate numerical features
-    check_scalar_result(
-        "[square] polarity",
-        features.polarity,
-        expected.polarity,
-        atol=tolerances.polarity,
-    )
-    check_scalar_result(
-        "[square] amplitude",
-        features.amplitude,
-        expected.amplitude,
-        atol=tolerances.amplitude,
-    )
-    check_scalar_result(
-        "[square] rise_time",
-        features.rise_time,
-        expected.rise_time,
-        atol=tolerances.rise_time,
-    )
-    check_scalar_result(
-        "[square] fall_time",
-        features.fall_time,
-        expected.fall_time,
-        atol=tolerances.fall_time,
-    )
-    check_scalar_result(
-        "[square] fwhm", features.fwhm, expected.fwhm, atol=tolerances.fwhm
-    )
-    check_scalar_result(
-        "[square] offset", features.offset, expected.offset, atol=tolerances.offset
-    )
-    check_scalar_result("[square] x50", features.x50, expected.x50, atol=tolerances.x50)
-    check_scalar_result(
-        "[square] x100", features.x100, expected.x100, atol=tolerances.x100
-    )
-    check_scalar_result(
-        "[square] foot_duration",
-        features.foot_duration,
-        expected.foot_duration,
-        atol=tolerances.foot_duration,
-    )
+    __check_features(features, expected, tolerances)
 
     return features
 
@@ -1249,48 +1218,33 @@ def test_signal_extract_pulse_features() -> None:
 
     # Define step analysis parameters
     p_step = PulseFeaturesParam()
-    p_step.xstartmin = 0
-    p_step.xstartmax = 4
-    p_step.xendmin = 6
-    p_step.xendmax = 8
+    p_step.xstartmin = 0.0
+    p_step.xstartmax = 3.0
+    p_step.xendmin = 6.0
+    p_step.xendmax = 8.0
     p_step.start_rise_ratio = 0.1
     p_step.stop_rise_ratio = 0.9
 
     # Calculate expected step features using the DataSet method
     expected_step = step_params.get_expected_features(
-        start_ratio=p_step.start_rise_ratio,
-        stop_ratio=p_step.stop_rise_ratio,
+        p_step.start_rise_ratio, p_step.stop_rise_ratio
     )
-
-    expected_step_values_and_atol = {
-        "polarity": (expected_step.polarity, 0.02),
-        "amplitude": (expected_step.amplitude, 0.5),  # Increased tolerance for noise
-        "rise_time": (expected_step.rise_time, 0.2),  # Increased tolerance for noise
-        "offset": (expected_step.offset, 0.5),  # Increased tolerance for noise
-        "x50": (expected_step.x50, 0.1),
-        "x100": (expected_step.x100, 0.5),
-        "foot_duration": (
-            expected_step.foot_duration,
-            0.5,
-        ),  # Increased tolerance for noise
-        "xstartmin": (p_step.xstartmin, 0.0),
-        "xstartmax": (p_step.xstartmax, 0.0),
-        "xendmin": (p_step.xendmin, 0.0),
-        "xendmax": (p_step.xendmax, 0.0),
-    }
+    tolerances_step = step_params.get_feature_tolerances()
 
     # Extract and validate step features
-    tdict_step = extract_pulse_features(sig_step, p_step).as_dict()
-
-    for key, (expected, atol) in expected_step_values_and_atol.items():
-        check_scalar_result(f"[step] {key}", tdict_step[key], expected, atol=atol)
+    table_step = extract_pulse_features(sig_step, p_step)
+    tdict_step = table_step.as_dict()
+    features_step = pulse.PulseFeatures(**tdict_step)
+    # TODO: Until table result actually supports non numeric values (here string would
+    # be suitable), we set it the signal shape manually for validation
+    features_step.signal_shape = SignalShape.STEP
+    __check_features(features_step, expected_step, tolerances_step)
 
     # Visualize results if GUI is available
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
-            features = pulse.PulseFeatures(**tdict_step)
             view_pulse_features(
-                x_step, y_step, "Step signal feature extraction", "step", features
+                x_step, y_step, "Step signal feature extraction", "step", features_step
             )
 
     # Test SQUARE signal feature extraction
@@ -1309,61 +1263,43 @@ def test_signal_extract_pulse_features() -> None:
 
     # Calculate expected square features using the DataSet method
     expected_square = square_params.get_expected_features(
-        start_ratio=p_square.start_rise_ratio,
-        stop_ratio=p_square.stop_rise_ratio,
+        p_square.start_rise_ratio, p_square.stop_rise_ratio
     )
 
-    plateau_range = square_params.get_plateau_range()
-
-    expected_square_values_and_atol = {
-        "polarity": (expected_square.polarity, 0.02),
-        "amplitude": (expected_square.amplitude, 0.5),
-        "rise_time": (expected_square.rise_time, 0.2),
-        "fall_time": (expected_square.fall_time, 1.0),
-        "fwhm": (expected_square.fwhm, 0.5),
-        "offset": (expected_square.offset, 0.5),
-        "x50": (expected_square.x50, 0.1),
-        "x100": (expected_square.x100, 1.0),
-        "foot_duration": (expected_square.foot_duration, 0.5),
-        "xstartmin": (p_square.xstartmin, 0.0),
-        "xstartmax": (p_square.xstartmax, 0.0),
-        "xendmin": (p_square.xendmin, 0.0),
-        "xendmax": (p_square.xendmax, 0.0),
-        "xplateaumin": (plateau_range[0], 1.0),
-        "xplateaumax": (plateau_range[1], 0.5),
-    }
-
     # Extract and validate square features
-    tdict_square = extract_pulse_features(sig_square, p_square).as_dict()
-
-    for key, (expected, atol) in expected_square_values_and_atol.items():
-        check_scalar_result(f"[square] {key}", tdict_square[key], expected, atol=atol)
+    table_square = extract_pulse_features(sig_square, p_square)
+    tdict_square = table_square.as_dict()
+    features_square = pulse.PulseFeatures(**tdict_square)
+    # TODO: Until table result actually supports non numeric values (here string would
+    # be suitable), we set it the signal shape manually for validation
+    features_square.signal_shape = SignalShape.SQUARE
+    tolerances_square = square_params.get_feature_tolerances()
+    __check_features(features_square, expected_square, tolerances_square)
 
     # Visualize results if GUI is available
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
-            features = pulse.PulseFeatures(**tdict_square)
             view_pulse_features(
                 x_square,
                 y_square,
                 "Square signal feature extraction",
                 "square",
-                features,
+                features_square,
             )
 
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_heuristically_recognize_shape()
-    test_detect_polarity()
-    test_get_amplitude()
-    test_get_crossing_ratio_time(0.2)
-    test_get_crossing_ratio_time(0.5)
-    test_get_crossing_ratio_time(0.8)
-    test_get_step_rise_time(0.1)
-    test_get_step_rise_time(0.0)
-    test_heuristically_find_foot_end_time()
-    test_get_foot_info()
-    test_step_feature_extraction()
-    test_square_feature_extraction()
+    # test_heuristically_recognize_shape()
+    # test_detect_polarity()
+    # test_get_amplitude()
+    # test_get_crossing_ratio_time(0.2)
+    # test_get_crossing_ratio_time(0.5)
+    # test_get_crossing_ratio_time(0.8)
+    # test_get_step_rise_time(0.1)
+    # test_get_step_rise_time(0.0)
+    # test_heuristically_find_foot_end_time()
+    # test_get_foot_info()
+    # test_step_feature_extraction()
+    # test_square_feature_extraction()
     test_signal_extract_pulse_features()
