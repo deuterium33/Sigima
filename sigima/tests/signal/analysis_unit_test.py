@@ -61,12 +61,13 @@ def test_dynamic_parameters() -> None:
     param = sigima.params.DynamicParam.create(full_scale=1.0)
     table = sigima.proc.signal.dynamic_parameters(obj, param)
     assert table is not None, "Dynamic parameters computation failed"
-    check_scalar_result("ENOB", table["enob"][0], 5.1, rtol=0.001)
-    check_scalar_result("SINAD", table["sinad"][0], 32.49, rtol=0.001)
-    check_scalar_result("THD", table["thd"][0], -30.18, rtol=0.001)
-    check_scalar_result("SFDR", table["sfdr"][0], 34.03, rtol=0.001)
-    check_scalar_result("Freq", table["freq"][0], 49998377.464, rtol=0.001)
-    check_scalar_result("SNR", table["snr"][0], 101.52, rtol=0.001)
+    tdict = table.as_dict()
+    check_scalar_result("ENOB", tdict["enob"], 5.1, rtol=0.001)
+    check_scalar_result("SINAD", tdict["sinad"], 32.49, rtol=0.001)
+    check_scalar_result("THD", tdict["thd"], -30.18, rtol=0.001)
+    check_scalar_result("SFDR", tdict["sfdr"], 34.03, rtol=0.001)
+    check_scalar_result("Freq", tdict["freq"], 49998377.464, rtol=0.001)
+    check_scalar_result("SNR", tdict["snr"], 101.52, rtol=0.001)
 
 
 @pytest.mark.validation
