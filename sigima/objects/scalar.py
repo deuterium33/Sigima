@@ -108,10 +108,8 @@ class TableResult:
     title: str
     headers: Sequence[str] = dataclasses.field(default_factory=list)
     labels: Sequence[str] = dataclasses.field(default_factory=list)
-    data: np.ndarray = dataclasses.field(
-        default_factory=lambda: np.empty((0, 0), float)
-    )
-    roi_indices: np.ndarray | None = None
+    data: list[list] = dataclasses.field(default_factory=list)
+    roi_indices: list[int] | None = None
     attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -148,8 +146,8 @@ class TableResult:
         title: str,
         headers: Sequence[str],
         labels: Sequence[str],
-        rows: np.ndarray,
-        roi_indices: np.ndarray | None = None,
+        rows: list[list],
+        roi_indices: list[int] | None = None,
         *,
         attrs: dict[str, object] | None = None,
     ) -> TableResult:
@@ -160,8 +158,8 @@ class TableResult:
             headers: Column names (one per metric).
             labels: Human-readable labels for each column (including units as
              formatted strings).
-            rows: 2-D array of shape (N, len(headers)) with scalar values.
-            roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
+            rows: 2-D list of lists of shape (N, len(headers)) with values.
+            roi_indices: Optional list (N,) mapping rows to ROI indices.
              Use NO_ROI (-1) for the "full image / no ROI" row.
             attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
@@ -172,8 +170,8 @@ class TableResult:
             title,
             headers,
             labels,
-            np.asarray(rows, float).tolist(),
-            None if roi_indices is None else np.asarray(roi_indices, int).tolist(),
+            rows,
+            roi_indices,
             {} if attrs is None else dict(attrs),
         )
 
@@ -384,6 +382,11 @@ class TableResultBuilder:
             value = getattr(parameters, key)
             if isinstance(value, (int, float, np.floating, np.integer)):
                 fmt = f"{key} = %g"
+            elif isinstance(value, enum.Enum):
+                value = value.value
+                fmt = f"{key} = %s"
+            elif isinstance(value, str):
+                fmt = f"{key} = %s"
             else:
                 continue
             self.add(lambda xy, v=value: v, key, fmt)
@@ -432,11 +435,14 @@ class TableResultBuilder:
         names = [name for name, _, _ in self.columns]
         labels = [label for _, label, _ in self.columns]
         for label in labels:
-            if label != "":
-                # Check if formatting works
+            if label != "" and ("{" in label or "%" in label):
+                # Check if formatting works for labels with format specifiers
                 try:
-                    label.format(obj) % 1.234  # Test formatting with a dummy value
-                except KeyError as exc:
+                    if "{" in label:
+                        label.format(obj)
+                    if "%" in label:
+                        label % 1.234  # Test formatting with a dummy value
+                except (KeyError, TypeError, ValueError) as exc:
                     raise ValueError(f"Label '{label}' is not valid") from exc
 
         roi_indices = list(obj.iterate_roi_indices())
@@ -447,15 +453,26 @@ class TableResultBuilder:
         roi_idx = []
         for i_roi in roi_indices:
             data = obj.get_data(i_roi)
-            rows.append([float(func(data)) for _name, _label, func in self.columns])
+            row_data = []
+            for _name, _label, func in self.columns:
+                value = func(data)
+                try:
+                    value = float(value)
+                except ValueError as exc:
+                    if not isinstance(value, str):
+                        raise ValueError(
+                            f"Unexpected non-numeric value: {value!r}"
+                        ) from exc
+                row_data.append(value)
+            rows.append(row_data)
             roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
 
         return TableResult.from_rows(
             title=self.title,
             headers=names,
             labels=labels,
-            rows=np.asarray(rows, float),
-            roi_indices=np.asarray(roi_idx, int),
+            rows=rows,
+            roi_indices=roi_idx,
         )
 
 

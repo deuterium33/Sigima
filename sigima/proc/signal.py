@@ -2941,15 +2941,8 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )
-
-    # TODO: Until table result actually supports non numeric values (here string would
-    # be useful for `signal_shape`), we use the table title to store the signal shape
-    # information, which is not ideal.
-    # (The `signal_shape` field from `PulseFeatures` dataclass will be ignored by
-    # `builder.add_from_dataclass` since it is not a numeric field.)
-    builder = TableResultBuilder(f"pulse_features|{features.signal_shape.value}")
+    builder = TableResultBuilder(_("Pulse features"))
     builder.add_from_dataclass(features)
-
     return builder.compute(obj)
 
 

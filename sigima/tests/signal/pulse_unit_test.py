@@ -1017,6 +1017,8 @@ def __check_features(
         tolerances: Tolerance values for each feature.
     """
     signal_shape = features.signal_shape
+    # Get signal shape string for error messages (handle both string and enum)
+    shape_str = signal_shape if isinstance(signal_shape, str) else signal_shape.value
     # Validate numerical features
     for field in dataclasses.fields(features):
         value = getattr(features, field.name)
@@ -1026,12 +1028,11 @@ def __check_features(
         tolerance = getattr(tolerances, field.name, None)
         if tolerance is None:
             assert value == expected_value, (
-                f"[{signal_shape.value}] {field.name}: "
-                f"Expected {expected_value}, got {value}"
+                f"[{shape_str}] {field.name}: Expected {expected_value}, got {value}"
             )
         else:
             check_scalar_result(
-                f"[{signal_shape.value}] {field.name}",
+                f"[{shape_str}] {field.name}",
                 value,
                 expected_value,
                 atol=tolerance,
@@ -1246,9 +1247,6 @@ def test_signal_extract_pulse_features() -> None:
     table_step = extract_pulse_features(sig_step, p_step)
     tdict_step = table_step.as_dict()
     features_step = pulse.PulseFeatures(**tdict_step)
-    # TODO: Until table result actually supports non numeric values (here string would
-    # be suitable), we set it the signal shape manually for validation
-    features_step.signal_shape = SignalShape.STEP
     __check_features(features_step, expected_step, tolerances_step)
 
     # Visualize results if GUI is available
@@ -1281,9 +1279,6 @@ def test_signal_extract_pulse_features() -> None:
     table_square = extract_pulse_features(sig_square, p_square)
     tdict_square = table_square.as_dict()
     features_square = pulse.PulseFeatures(**tdict_square)
-    # TODO: Until table result actually supports non numeric values (here string would
-    # be suitable), we set it the signal shape manually for validation
-    features_square.signal_shape = SignalShape.SQUARE
     tolerances_square = square_params.get_feature_tolerances()
     __check_features(features_square, expected_square, tolerances_square)
 
