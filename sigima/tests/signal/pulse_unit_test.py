@@ -28,6 +28,38 @@ from sigima.tests.helpers import check_scalar_result
 from sigima.tools.signal import filtering, pulse
 
 
+def create_test_step_params() -> StepPulseParam:
+    """Create StepPulseParam with explicit test values."""
+    params = StepPulseParam()
+    # Explicit values to ensure test stability
+    params.xmin = 0.0
+    params.xmax = 10.0
+    params.size = 1000
+    params.offset = 0.0
+    params.amplitude = 5.0
+    params.noise_amplitude = 0.2
+    params.x_rise_start = 3.0
+    params.total_rise_time = 2.0
+    return params
+
+
+def create_test_square_params() -> SquarePulseParam:
+    """Create SquarePulseParam with explicit test values."""
+    params = SquarePulseParam()
+    # Explicit values to ensure test stability
+    params.xmin = 0.0
+    params.xmax = 20.0
+    params.size = 1000
+    params.offset = 0.0
+    params.amplitude = 5.0
+    params.noise_amplitude = 0.2
+    params.x_rise_start = 3.0
+    params.total_rise_time = 2.0
+    params.fwhm = 5.5
+    params.total_fall_time = 5.0
+    return params
+
+
 @dataclass
 class AnalysisParams:
     """Parameters for pulse analysis."""
@@ -58,12 +90,12 @@ def _test_shape_recognition_case(
     """
     # Generate signal
     if signal_type == "step":
-        step_params = StepPulseParam()
+        step_params = create_test_step_params()
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
     else:  # square
-        square_params = SquarePulseParam()
+        square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
@@ -139,12 +171,12 @@ def _test_polarity_detection_case(
     """
     # Generate signal
     if signal_type == "step":
-        step_params = StepPulseParam()
+        step_params = create_test_step_params()
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
     else:  # square
-        square_params = SquarePulseParam()
+        square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
@@ -267,13 +299,13 @@ def _test_amplitude_case(
     """
     # Generate signal and calculate expected amplitude
     if signal_type == "step":
-        step_params = StepPulseParam()
+        step_params = create_test_step_params()
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
         expected_features = step_params.get_expected_features()
     else:  # square
-        square_params = SquarePulseParam()
+        square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
@@ -381,12 +413,12 @@ def _test_crossing_ratio_time_case(
     """
     # Generate signal and calculate expected crossing time
     if signal_type == "step":
-        step_params = StepPulseParam()
+        step_params = create_test_step_params()
         x, y_noisy = step_params.generate_1d_data()
         # Calculate crossing time for the specific ratio
         expected_ct = step_params.get_crossing_time("rise", ratio)
     else:  # square
-        square_params = SquarePulseParam()
+        square_params = create_test_square_params()
         x, y_noisy = square_params.generate_1d_data()
         # For square signals, calculate crossing time based on edge and ratio
         expected_ct = square_params.get_crossing_time(edge, ratio)
@@ -484,14 +516,14 @@ def _test_step_rise_time_case(
 
     # Generate signal and calculate expected rise time
     if signal_type == "step":
-        step_params = StepPulseParam()
+        step_params = create_test_step_params()
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         step_params.noise_amplitude = noise_amplitude
         x, y_noisy = step_params.generate_1d_data()
         expected_features = step_params.get_expected_features()
     else:  # square
-        square_params = SquarePulseParam()
+        square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         square_params.noise_amplitude = noise_amplitude
@@ -601,7 +633,7 @@ def test_heuristically_find_foot_end_time() -> None:
     even in the presence of noise.
     """
     # Generate a signal with a step at t = 3 and a sharp rise at t = 5
-    step_params = StepPulseParam()
+    step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
     time = pulse.heuristically_find_foot_end_time(x, y, (0, 4))
     if time is not None:
@@ -634,7 +666,7 @@ def test_get_foot_info() -> None:
     duration, and x_end value.
     """
     # Generate a step signal with a sharp rise at t=5
-    step_params = StepPulseParam()
+    step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
     # Use start_baseline_range before the step, end_baseline_range after
     start_baseline_range = (0, 4)
@@ -893,7 +925,7 @@ def test_step_feature_extraction() -> None:
     rise time, timing features, and baseline characteristics.
     """
     # Define signal parameters
-    signal_params = StepPulseParam()
+    signal_params = create_test_step_params()
 
     # Define analysis parameters
     analysis = AnalysisParams()
@@ -919,7 +951,7 @@ def test_square_feature_extraction() -> None:
     rise/fall times, FWHM, timing features, and baseline characteristics.
     """
     # Define signal parameters with custom ranges for square signal
-    signal_params = SquarePulseParam()
+    signal_params = create_test_square_params()
 
     # Define analysis parameters with custom ranges for square signal
     analysis = AnalysisParams(
@@ -948,7 +980,7 @@ def test_signal_extract_pulse_features() -> None:
     validating that all computed parameters match expected theoretical values.
     """
     # Test STEP signal feature extraction
-    step_params = StepPulseParam()
+    step_params = create_test_step_params()
     x_step, y_step = step_params.generate_1d_data()
     sig_step = create_signal("Test Step Signal", x_step, y_step)
 
@@ -981,7 +1013,7 @@ def test_signal_extract_pulse_features() -> None:
             )
 
     # Test SQUARE signal feature extraction
-    square_params = SquarePulseParam()
+    square_params = create_test_square_params()
     x_square, y_square = square_params.generate_1d_data()
     sig_square = create_signal("Test Square Signal", x_square, y_square)
 
@@ -1020,16 +1052,16 @@ def test_signal_extract_pulse_features() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    # test_heuristically_recognize_shape()
-    # test_detect_polarity()
+    test_heuristically_recognize_shape()
+    test_detect_polarity()
     test_get_amplitude()
-    # test_get_crossing_ratio_time(0.2)
-    # test_get_crossing_ratio_time(0.5)
-    # test_get_crossing_ratio_time(0.8)
-    # test_get_step_rise_time(0.1)
-    # test_get_step_rise_time(0.0)
-    # test_heuristically_find_foot_end_time()
-    # test_get_foot_info()
-    # test_step_feature_extraction()
-    # test_square_feature_extraction()
+    test_get_crossing_ratio_time(0.2)
+    test_get_crossing_ratio_time(0.5)
+    test_get_crossing_ratio_time(0.8)
+    test_get_step_rise_time(0.1)
+    test_get_step_rise_time(0.0)
+    test_heuristically_find_foot_end_time()
+    test_get_foot_info()
+    test_step_feature_extraction()
+    test_square_feature_extraction()
     test_signal_extract_pulse_features()
