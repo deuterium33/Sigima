@@ -15,10 +15,10 @@ from collections.abc import Generator
 from copy import deepcopy
 from typing import Any, Generic, Iterator, Type, TypeVar
 
+import guidata.dataset as gds
 import numpy as np
 from numpy import ma
 
-import guidata.dataset as gds
 from sigima.config import _
 
 if sys.version_info >= (3, 11):
