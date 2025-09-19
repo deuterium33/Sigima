@@ -12,7 +12,8 @@ Signal object and related classes
 from __future__ import annotations
 
 import enum
-from typing import Type
+from dataclasses import dataclass
+from typing import Literal, Type
 
 import guidata.dataset as gds
 import numpy as np
@@ -20,6 +21,7 @@ import scipy.constants
 import scipy.signal as sps
 
 from sigima.config import _
+from sigima.enums import SignalShape
 from sigima.objects import base
 from sigima.tools.signal.pulse import GaussianModel, LorentzianModel, VoigtModel
 
@@ -557,6 +559,10 @@ class SignalTypes(enum.Enum):
     LOGISTIC = _("Logistic")
     #: Pulse function
     PULSE = _("Pulse")
+    #: Step pulse function (with configurable rise time)
+    STEP_PULSE = _("Step pulse")
+    #: Square pulse function (with configurable rise/fall times)
+    SQUARE_PULSE = _("Square pulse")
     #: Polynomial function
     POLYNOMIAL = _("Polynomial")
     #: Custom function
@@ -1189,8 +1195,8 @@ class PulseParam(NewSignalParam):
 
     amp = gds.FloatItem("Amplitude", default=1.0)
     start = gds.FloatItem(_("Start"), default=0.0).set_pos(col=1)
-    offset = gds.FloatItem(_("Offset"), default=0.0)
-    stop = gds.FloatItem(_("End"), default=0.0).set_pos(col=1)
+    offset = gds.FloatItem(_("Offset"), default=10.0)
+    stop = gds.FloatItem(_("End"), default=5.0).set_pos(col=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -1212,6 +1218,298 @@ class PulseParam(NewSignalParam):
 
 
 register_signal_parameters_class(SignalTypes.PULSE, PulseParam)
+
+
+@dataclass
+class ExpectedFeatures:
+    """Expected pulse feature values for validation."""
+
+    signal_shape: SignalShape
+    polarity: int
+    amplitude: float
+    rise_time: float  # Rise time between specified ratios
+    offset: float
+    x50: float
+    x100: float  # Time at 100% amplitude (maximum)
+    foot_duration: float
+    fall_time: float | None = None  # Fall time between specified ratios
+    fwhm: float | None = None
+
+
+@dataclass
+class FeatureTolerances:
+    """Absolute tolerance values for pulse feature validation."""
+
+    polarity: float = 1e-8
+    amplitude: float = 0.5
+    rise_time: float = 0.2
+    offset: float = 0.5
+    x50: float = 0.1
+    x100: float = 0.6  # Tolerance for time at 100% amplitude
+    foot_duration: float = 0.5
+    fall_time: float = 1.0
+    fwhm: float = 0.5
+
+
+class BasePulseParam(NewSignalParam):
+    """Base class for pulse signal parameters."""
+
+    SEED = 0
+
+    # Redefine NewSignalParam parameters with more appropriate defaults
+    xmin = gds.FloatItem(_("Start time"), default=0.0)
+    xmax = gds.FloatItem(_("End time"), default=10.0)
+    size = gds.IntItem(_("Number of points"), default=1000, min=1)
+
+    # Specific pulse parameters
+    offset = gds.FloatItem(_("Initial value"), default=0.0)
+    amplitude = gds.FloatItem(_("Amplitude"), default=5.0).set_pos(col=1)
+    noise_amplitude = gds.FloatItem(_("Noise amplitude"), default=0.2, min=0.0)
+    x_rise_start = gds.FloatItem(_("Rise start time"), default=3.0, min=0.0)
+    total_rise_time = gds.FloatItem(_("Total rise time"), default=2.0, min=0.0).set_pos(
+        col=1
+    )
+
+    def get_crossing_time(self, edge: Literal["rise", "fall"], ratio: float) -> float:
+        """Get the theoretical crossing time for the specified edge and ratio.
+
+        Args:
+            edge: Which edge to calculate ("rise" or "fall")
+            ratio: Crossing ratio (0.0 to 1.0)
+
+        Returns:
+            Theoretical crossing time for the specified edge and ratio
+        """
+        if edge == "rise":
+            return self.x_rise_start + ratio * self.total_rise_time
+        raise NotImplementedError(
+            "Fall edge crossing time not implemented for this signal type"
+        )
+
+    def get_expected_features(
+        self, start_ratio: float = 0.1, stop_ratio: float = 0.9
+    ) -> ExpectedFeatures:
+        """Calculate expected pulse features for this signal.
+
+        Args:
+            start_ratio: Start ratio for rise time calculation
+            stop_ratio: Stop ratio for rise time calculation
+
+        Returns:
+            ExpectedFeatures dataclass with all expected values
+        """
+        y_end_value = self.offset + self.amplitude
+        return ExpectedFeatures(
+            signal_shape=SignalShape.STEP,
+            polarity=1 if y_end_value > self.offset else -1,
+            amplitude=abs(y_end_value - self.offset),
+            rise_time=(stop_ratio - start_ratio) * self.total_rise_time,
+            offset=self.offset,
+            x50=self.x_rise_start + 0.5 * self.total_rise_time,
+            x100=self.x_rise_start + self.total_rise_time,
+            foot_duration=self.x_rise_start - self.xmin,
+        )
+
+    def get_feature_tolerances(self) -> FeatureTolerances:
+        """Get absolute tolerance values for pulse feature validation.
+
+        Returns:
+            FeatureTolerances dataclass with default tolerance values
+        """
+        return FeatureTolerances()
+
+
+class StepPulseParam(BasePulseParam):
+    """Parameters for generating step signals with configurable rise time."""
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"step_pulse(rise_time={self.total_rise_time:.3g},"
+            f"x_start={self.x_rise_start:.3g},offset={self.offset:.3g},"
+            f"amp={self.amplitude:.3g})"
+        )
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Generate a noisy step signal with a linear rise.
+
+        The function creates a time vector and generates a signal that starts at
+        `offset`, rises linearly to `offset + amplitude` starting at `x_rise_start` over
+        a duration of `total_rise_time`, and remains at the final value afterwards.
+        Gaussian noise is added to the signal.
+
+        Returns:
+            Tuple containing the time vector and noisy step signal.
+        """
+        # time vector
+        x = self.generate_x_data()
+
+        # Calculate final value from offset and amplitude
+        y_final = self.offset + self.amplitude
+
+        # creating the signal
+        rise_end_time = self.x_rise_start + self.total_rise_time
+        y = np.piecewise(
+            x,
+            [
+                x < self.x_rise_start,
+                (x >= self.x_rise_start) & (x < rise_end_time),
+                x >= rise_end_time,
+            ],
+            [
+                self.offset,
+                lambda t: (
+                    self.offset
+                    + (y_final - self.offset)
+                    * (t - self.x_rise_start)
+                    / self.total_rise_time
+                ),
+                y_final,
+            ],
+        )
+        rdg = np.random.default_rng(self.SEED)
+        noise = rdg.normal(0, self.noise_amplitude, size=len(y))
+        y_noisy = y + noise
+
+        return x, y_noisy
+
+
+register_signal_parameters_class(SignalTypes.STEP_PULSE, StepPulseParam)
+
+
+class SquarePulseParam(BasePulseParam):
+    """Parameters for generating square signals with configurable rise/fall times."""
+
+    # Redefine NewSignalParam parameters with more appropriate defaults
+    xmax = gds.FloatItem(_("End time"), default=20.0)
+
+    # Specific square pulse parameters
+    fwhm = gds.FloatItem(_("Full Width at Half Maximum"), default=5.5, min=0.0)
+    total_fall_time = gds.FloatItem(_("Total fall time"), default=5.0, min=0.0).set_pos(
+        col=1
+    )
+
+    @property
+    def square_duration(self) -> float:
+        """Calculate the square duration from FWHM and total rise/fall times."""
+        return self.fwhm - 0.5 * self.total_rise_time - 0.5 * self.total_fall_time
+
+    def get_plateau_range(self) -> tuple[float, float]:
+        """Get the theoretical plateau range (start, end) for the square signal.
+
+        Returns:
+            Tuple with (start, end) times of the plateau
+        """
+        return (
+            self.x_rise_start + self.total_rise_time,
+            self.x_rise_start + self.total_rise_time + self.square_duration,
+        )
+
+    def get_crossing_time(self, edge: Literal["rise", "fall"], ratio: float) -> float:
+        """Get the theoretical crossing time for the specified edge and ratio.
+
+        Args:
+            edge: Which edge to calculate ("rise" or "fall")
+            ratio: Crossing ratio (0.0 to 1.0)
+
+        Returns:
+            Theoretical crossing time for the specified edge and ratio
+        """
+        if edge == "rise":
+            return super().get_crossing_time(edge, ratio)
+        if edge == "fall":
+            t_start_fall = (
+                self.x_rise_start + self.total_rise_time + self.square_duration
+            )
+            return t_start_fall + ratio * self.total_fall_time
+        raise ValueError("edge must be 'rise' or 'fall'")
+
+    def get_expected_features(
+        self, start_ratio: float = 0.1, stop_ratio: float = 0.9
+    ) -> ExpectedFeatures:
+        """Calculate expected pulse features for this signal.
+
+        Args:
+            start_ratio: Start ratio for rise time calculation
+            stop_ratio: Stop ratio for rise time calculation
+
+        Returns:
+            ExpectedFeatures dataclass with all expected values
+        """
+        features = super().get_expected_features(start_ratio, stop_ratio)
+        features.signal_shape = SignalShape.SQUARE
+        features.fall_time = (stop_ratio - start_ratio) * self.total_fall_time
+        features.fwhm = self.fwhm
+        return features
+
+    def get_feature_tolerances(self) -> FeatureTolerances:
+        """Get absolute tolerance values for square signal feature validation.
+
+        Returns:
+            FeatureTolerances dataclass with square-specific tolerance values
+        """
+        return FeatureTolerances(
+            x100=0.8,  # Looser tolerance for square signals
+        )
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"square_pulse(rise_time={self.total_rise_time:.3g},"
+            f"fall_time={self.total_fall_time:.3g},"
+            f"fwhm={self.fwhm:.3g},offset={self.offset:.3g},"
+            f"amp={self.amplitude:.3g})"
+        )
+
+    def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """Generate a synthetic square-like signal with configurable parameters.
+
+        Generates a synthetic square-like signal with configurable rise, plateau,
+        and fall times, and adds Gaussian noise.
+
+        Returns:
+            Tuple containing the time vector and noisy square signal.
+        """
+        # time vector
+        x = self.generate_x_data()
+
+        # Calculate high value from offset and amplitude
+        y_high = self.offset + self.amplitude
+
+        x_rise_end = self.x_rise_start + self.total_rise_time
+        x_start_fall = self.x_rise_start + self.total_rise_time + self.square_duration
+        # creating the signal
+        y = np.piecewise(
+            x,
+            [
+                x < self.x_rise_start,
+                (x >= self.x_rise_start) & (x < x_rise_end),
+                (x >= x_rise_end) & (x < x_start_fall),
+                (x >= x_start_fall) & (x < x_start_fall + self.total_fall_time),
+                x >= self.total_fall_time + x_start_fall,
+            ],
+            [
+                self.offset,
+                lambda t: (
+                    self.offset
+                    + (y_high - self.offset)
+                    * (t - self.x_rise_start)
+                    / self.total_rise_time
+                ),
+                y_high,
+                lambda t: y_high
+                - (y_high - self.offset) * (t - x_start_fall) / self.total_fall_time,
+                self.offset,
+            ],
+        )
+        rdg = np.random.default_rng(self.SEED)
+        noise = rdg.normal(0, self.noise_amplitude, size=len(y))
+        y_noisy = y + noise
+
+        return x, y_noisy
+
+
+register_signal_parameters_class(SignalTypes.SQUARE_PULSE, SquarePulseParam)
 
 
 class PolyParam(NewSignalParam):
@@ -1297,6 +1595,8 @@ class CustomSignalParam(NewSignalParam):
 
 
 register_signal_parameters_class(SignalTypes.CUSTOM, CustomSignalParam)
+
+
 check_all_signal_parameters_classes()
 
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-13 09:26+0200\n"
+"POT-Creation-Date: 2025-09-19 18:25+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -378,6 +378,12 @@ msgstr "Logistique"
 msgid "Pulse"
 msgstr "Impulsion"
 
+msgid "Step pulse"
+msgstr "Impulsion échelon"
+
+msgid "Square pulse"
+msgstr "Impulsion carrée"
+
 msgid "Polynomial"
 msgstr "Polynomial"
 
@@ -443,6 +449,33 @@ msgstr "Démarrer"
 
 msgid "End"
 msgstr "Fin"
+
+msgid "Start time"
+msgstr "Instant de début"
+
+msgid "End time"
+msgstr "Instant de fin"
+
+msgid "Number of points"
+msgstr "Nombre de points"
+
+msgid "Total rise time"
+msgstr "Temps de montée total"
+
+msgid "Rise start time"
+msgstr "Instant de début de montée"
+
+msgid "Initial value"
+msgstr "Valeur initiale"
+
+msgid "Noise amplitude"
+msgstr "Amplitude du bruit"
+
+msgid "Full Width at Half Maximum"
+msgstr "Largeur à mi-hauteur"
+
+msgid "Total fall time"
+msgstr "Temps de descente total"
 
 msgid "Operator"
 msgstr "Opérateur"
@@ -1089,9 +1122,6 @@ msgstr "Où ajouter le complément de zéros"
 msgid "Number of points to add"
 msgstr "Nombre de points à ajouter"
 
-msgid "Number of points"
-msgstr "Nombre de points"
-
 msgid "Counts"
 msgstr "Coups"
 
@@ -1136,6 +1166,54 @@ msgstr "y"
 
 msgid "Degree"
 msgstr "Degré"
+
+msgid "Signal shape"
+msgstr "Forme du signal"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Signal type: auto-detect, step, or square."
+msgstr "Type de signal : auto-détection, échelon ou carré."
+
+msgid "Start baseline min"
+msgstr "X min. de la ligne de base de départ"
+
+msgid "Lower X boundary for the start baseline"
+msgstr "Borne X inférieure pour la ligne de base de départ"
+
+msgid "Start baseline max"
+msgstr "X max. de la ligne de base de départ"
+
+msgid "Upper X boundary for the start baseline"
+msgstr "Borne X supérieure pour la ligne de base de départ"
+
+msgid "End baseline min"
+msgstr "X min. de la ligne de base de fin"
+
+msgid "Lower X boundary for the end baseline"
+msgstr "Borne X inférieure pour la ligne de base de fin"
+
+msgid "End baseline max"
+msgstr "X max. de la ligne de base de fin"
+
+msgid "Upper X boundary for the end baseline"
+msgstr "Borne X supérieure pour la ligne de base de fin"
+
+msgid "Start rise ratio"
+msgstr "% de début de montée"
+
+msgid "Fraction for rise start"
+msgstr "Fraction pour le début de la montée"
+
+msgid "Stop rise ratio"
+msgstr "% de fin de montée"
+
+msgid "Fraction for rise end"
+msgstr "Fraction pour la fin de la montée"
+
+msgid "Pulse features"
+msgstr "Caractéristiques de l'impulsion"
 
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
