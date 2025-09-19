@@ -28,7 +28,7 @@ from plotpy.plot import (
     PlotOptions,
     SyncPlotDialog,
 )
-from plotpy.styles import ShapeParam
+from plotpy.styles import LINESTYLES, ShapeParam
 
 from sigima.config import _
 from sigima.objects import ImageObj, SignalObj
@@ -36,6 +36,31 @@ from sigima.objects.image import CircularROI, PolygonalROI, RectangularROI
 from sigima.tests.helpers import get_default_test_name
 
 TEST_NB = {}
+
+#: Curve colors
+COLORS = (
+    "#1f77b4",  # muted blue
+    "#ff7f0e",  # safety orange
+    "#2ca02c",  # cooked asparagus green
+    "#d62728",  # brick red
+    "#9467bd",  # muted purple
+    "#8c564b",  # chestnut brown
+    "#e377c2",  # raspberry yogurt pink
+    "#7f7f7f",  # gray
+    "#bcbd22",  # curry yellow-green
+    "#17becf",  # blue-teal
+)
+
+
+def style_generator() -> Generator[tuple[str, str], None, None]:
+    """Cycling through curve styles"""
+    while True:
+        for linestyle in LINESTYLES.keys():
+            for color in COLORS:
+                yield (color, linestyle)
+
+
+make.style = style_generator()
 
 
 def get_name_title(name: str | None, title: str | None) -> tuple[str, str]:
@@ -243,34 +268,7 @@ def view_curve_items(
     if add_legend:
         plot.add_item(make.legend())
     exec_dialog(win)
-
-
-#: Curve colors
-COLORS = (
-    "#1f77b4",  # muted blue
-    "#ff7f0e",  # safety orange
-    "#2ca02c",  # cooked asparagus green
-    "#d62728",  # brick red
-    "#9467bd",  # muted purple
-    "#8c564b",  # chestnut brown
-    "#e377c2",  # raspberry yogurt pink
-    "#7f7f7f",  # gray
-    "#bcbd22",  # curry yellow-green
-    "#17becf",  # blue-teal
-)
-#: Curve line styles
-LINESTYLES = ("SolidLine", "DashLine", "DashDotLine", "DashDotDotLine")
-
-
-def style_generator() -> Generator[tuple[str, str], None, None]:
-    """Cycling through curve styles"""
-    while True:
-        for linestyle in LINESTYLES:
-            for color in COLORS:
-                yield (color, linestyle)
-
-
-STYLE = style_generator()
+    make.style = style_generator()  # Reset style generator for next call
 
 
 def view_curves(
@@ -297,8 +295,6 @@ def view_curves(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
     """
-    global STYLE  # pylint: disable=global-statement
-
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
     else:
@@ -324,16 +320,11 @@ def view_curves(
             data = data_or_obj
         else:
             raise TypeError(f"Unsupported data type: {type(data_or_obj)}")
-        color, linestyle = next(STYLE)
         if len(data) == 2:
             xdata, ydata = data
             item = make.mcurve(xdata, ydata)
         else:
             item = make.mcurve(data)
-        item.param.line.color = color
-        item.param.line.style = linestyle
-        item.param.symbol.marker = "NoSymbol"
-        item.param.update_item(item)
         if curve_title is not None:
             item.setTitle(curve_title)
         items.append(item)
@@ -346,9 +337,7 @@ def view_curves(
         xunit=xunit,
         yunit=yunit,
     )
-
-    # Reset style generator for next call
-    STYLE = style_generator()
+    make.style = style_generator()  # Reset style generator for next call
 
 
 def create_image_dialog(
