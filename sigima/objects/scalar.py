@@ -642,6 +642,9 @@ class GeometryResult:
         df = pd.DataFrame(self.coords, columns=self.headers)
         if self.roi_indices is not None:
             df.insert(0, "roi_index", self.roi_indices)
+        # For segments, add a length column
+        if self.kind is KindShape.SEGMENT:
+            df["length"] = self.segments_lengths()
         return df
 
     # -------- User-oriented methods --------
