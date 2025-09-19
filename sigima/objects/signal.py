@@ -264,13 +264,17 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         return SignalROI
 
     def copy(
-        self, title: str | None = None, dtype: np.dtype | None = None
+        self,
+        title: str | None = None,
+        dtype: np.dtype | None = None,
+        all_metadata: bool = False,
     ) -> SignalObj:
         """Copy object.
 
         Args:
             title: title
             dtype: data type
+            all_metadata: if True, copy all metadata, otherwise only basic metadata
 
         Returns:
             Copied object
@@ -283,7 +287,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         obj.yunit = self.yunit
         if dtype not in (None, float, complex, np.complex128):
             raise RuntimeError("Signal data only supports float64/complex128 dtype")
-        obj.metadata = base.deepcopy_metadata(self.metadata)
+        obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         obj.xydata = np.array(self.xydata, copy=True, dtype=dtype)
         return obj

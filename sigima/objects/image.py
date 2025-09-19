@@ -949,12 +949,18 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         x0, y0, x1, y1 = self.physical_to_indices(single_roi.get_bounding_box(self))
         return self.get_masked_view()[y0:y1, x0:x1]
 
-    def copy(self, title: str | None = None, dtype: np.dtype | None = None) -> ImageObj:
+    def copy(
+        self,
+        title: str | None = None,
+        dtype: np.dtype | None = None,
+        all_metadata: bool = False,
+    ) -> ImageObj:
         """Copy object.
 
         Args:
             title: title
             dtype: data type
+            all_metadata: if True, copy all metadata, otherwise only basic metadata
 
         Returns:
             Copied object
@@ -971,7 +977,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.y0 = self.y0
         obj.dx = self.dx
         obj.dy = self.dy
-        obj.metadata = base.deepcopy_metadata(self.metadata)
+        obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         if self.data is not None:
             obj.data = np.array(self.data, copy=True, dtype=dtype)
