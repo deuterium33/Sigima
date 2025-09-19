@@ -336,16 +336,24 @@ def binning(src: ImageObj, p: BinningParam) -> ImageObj:
 
 @computation_function()
 def transpose(src: ImageObj) -> ImageObj:
-    """Transpose image with :py:func:`numpy.transpose`
+    """Transpose image with :py:func:`numpy.transpose`.
 
     Args:
-        src: input image object
+        src: Input image object.
 
     Returns:
-        Output image object
+        Output image object.
     """
     dst = dst_1_to_1(src, "transpose")
     dst.data = np.transpose(src.data)
+    dst.xlabel = src.ylabel
+    dst.ylabel = src.xlabel
+    dst.xunit = src.yunit
+    dst.yunit = src.xunit
+    dst.x0 = src.y0
+    dst.y0 = src.x0
+    dst.dx = src.dy
+    dst.dy = src.dx
     transformer.transform_roi(dst, "transpose")
     return dst
 
