@@ -852,17 +852,21 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
 
 @computation_function()
 def transpose(src: SignalObj) -> SignalObj:
-    """Transpose signal (swap X and Y axes)
+    """Transpose signal (swap X and Y axes).
 
     Args:
-        src: source signal
+        src: Source signal.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     dst = dst_1_to_1(src, "transpose")
     x, y = src.get_data()
-    dst.set_xydata(y, x)
+    dst.set_xydata(y, x, src.dy, src.dx)
+    dst.xlabel = src.ylabel
+    dst.ylabel = src.xlabel
+    dst.xunit = src.yunit
+    dst.yunit = src.xunit
     return dst
 
 

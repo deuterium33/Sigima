@@ -264,13 +264,17 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         return SignalROI
 
     def copy(
-        self, title: str | None = None, dtype: np.dtype | None = None
+        self,
+        title: str | None = None,
+        dtype: np.dtype | None = None,
+        all_metadata: bool = False,
     ) -> SignalObj:
         """Copy object.
 
         Args:
             title: title
             dtype: data type
+            all_metadata: if True, copy all metadata, otherwise only basic metadata
 
         Returns:
             Copied object
@@ -283,7 +287,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         obj.yunit = self.yunit
         if dtype not in (None, float, complex, np.complex128):
             raise RuntimeError("Signal data only supports float64/complex128 dtype")
-        obj.metadata = base.deepcopy_metadata(self.metadata)
+        obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         obj.xydata = np.array(self.xydata, copy=True, dtype=dtype)
         return obj
@@ -690,7 +694,7 @@ class ZerosParam(NewSignalParam):
 register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
 
 
-class UniformDistribution1DParam(NewSignalParam, base.BaseUniformDistributionParam):
+class UniformDistribution1DParam(NewSignalParam, base.UniformDistributionParam):
     """Uniform-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -712,7 +716,7 @@ register_signal_parameters_class(
 )
 
 
-class NormalDistribution1DParam(NewSignalParam, base.BaseNormalDistributionParam):
+class NormalDistribution1DParam(NewSignalParam, base.NormalDistributionParam):
     """Normal-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
@@ -734,7 +738,7 @@ register_signal_parameters_class(
 )
 
 
-class PoissonDistribution1DParam(NewSignalParam, base.BasePoissonDistributionParam):
+class PoissonDistribution1DParam(NewSignalParam, base.PoissonDistributionParam):
     """Poisson-distribution signal parameters."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:

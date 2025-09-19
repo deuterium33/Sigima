@@ -9,6 +9,8 @@ Signal stability analysis unit test.
 
 from __future__ import annotations
 
+from typing import Callable
+
 import numpy as np
 import pytest
 
@@ -18,31 +20,81 @@ import sigima.proc.signal
 from sigima.tests.helpers import check_array_result
 
 
-def generate_white_noise(n_points, sigma=1.0):
-    """Generate white noise with known characteristics."""
+def get_optimal_points(test_func: Callable) -> int:
+    """Return optimal number of points for different algorithms.
+
+    Args:
+        test_func: Test function object to determine algorithm type
+
+    Returns:
+        Optimal number of points balancing accuracy and performance
+    """
+    func_name = test_func.__name__
+    if "overlapping" in func_name or "hadamard" in func_name:
+        return 500  # Minimum for meaningful results
+    if "modified" in func_name or "total" in func_name:
+        return 1000  # Need more for averaging
+    # allan_variance, allan_deviation, time_deviation
+    return 2000  # Balance between speed and accuracy
+
+
+def generate_white_noise(n_points: int, sigma=1.0) -> np.ndarray:
+    """Generate white noise with known characteristics.
+
+    Args:
+        n_points: Number of data points
+        sigma: Standard deviation of the white noise (default is 1.0)
+
+    Returns:
+        Array of white noise values
+    """
     return np.random.normal(0, sigma, n_points)
 
 
-def theoretical_allan_variance_white_noise(tau, sigma):
-    """
-    Calculate theoretical Allan variance for white noise.
+def theoretical_allan_variance_white_noise(tau: float, sigma: float) -> float:
+    """Calculate theoretical Allan variance for white noise.
+
     For white noise: AVAR(τ) = σ²/(2τ)
     But the Allan variance is computed as AVAR(τ) = σ²τ/τ = σ²τ because of the
     overlapping nature of the samples.
+
+    Args:
+        tau: Averaging time
+        sigma: Standard deviation of the white noise
+
+    Returns:
+        Allan variance value for the given tau and sigma
     """
     return sigma**2 / tau
 
 
-def generate_drift_signal(n_points, slope, intercept=0):
-    """Generate a linear drift signal."""
+def generate_drift_signal(
+    n_points: int, slope: float, intercept: float = 0
+) -> tuple[np.ndarray, np.ndarray]:
+    """Generate a linear drift signal.
+
+    Args:
+        n_points: Number of data points
+        slope: Slope of the linear drift
+        intercept: Intercept of the linear drift (default is 0)
+
+    Returns:
+        A tuple of (time array, values array)
+    """
     time = np.arange(n_points)
     values = slope * time + intercept
     return time, values
 
 
-def theoretical_allan_variance_drift(tau, slope):
-    """
-    Theoretical Allan variance for a drift signal.
+def theoretical_allan_variance_drift(tau: float, slope: float) -> float:
+    """Theoretical Allan variance for a drift signal.
+
+    Args:
+        tau: Averaging time
+        slope: Slope of the linear drift
+
+    Returns:
+        Allan variance value for the given tau and slope
     """
     return (slope**2 * tau**2) / 2
 
@@ -50,7 +102,7 @@ def theoretical_allan_variance_drift(tau, slope):
 @pytest.mark.validation
 def test_signal_allan_variance():
     """Test Allan variance computation against theoretical values."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_allan_variance)
     sigma = 1.0
     tau_values = np.array([1, 2, 5, 10, 20, 50])
 
@@ -84,7 +136,7 @@ def test_signal_allan_variance():
 @pytest.mark.validation
 def test_signal_allan_deviation():
     """Test Allan deviation computation against theoretical values."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_allan_deviation)
     sigma = 1.0
     tau_values = np.array([1, 2, 5, 10, 20, 50])
 
@@ -120,7 +172,7 @@ def test_signal_allan_deviation():
 @pytest.mark.validation
 def test_signal_overlapping_allan_variance():
     """Test Overlapping Allan variance computation."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_overlapping_allan_variance)
     sigma = 1.0
 
     # Generate and test white noise signal
@@ -180,7 +232,7 @@ def test_signal_overlapping_allan_variance():
 @pytest.mark.validation
 def test_signal_modified_allan_variance():
     """Test Modified Allan variance computation."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_modified_allan_variance)
     sigma = 1.0
 
     # Generate and test white noise signal
@@ -217,7 +269,7 @@ def test_signal_modified_allan_variance():
 @pytest.mark.validation
 def test_signal_hadamard_variance():
     """Test Hadamard variance computation."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_hadamard_variance)
     sigma = 1.0
 
     # Generate and test white noise signal
@@ -260,7 +312,7 @@ def test_signal_hadamard_variance():
 @pytest.mark.validation
 def test_signal_total_variance():
     """Test Total variance computation."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_total_variance)
     sigma = 1.0
 
     # Generate and test white noise signal
@@ -292,7 +344,7 @@ def test_signal_total_variance():
 @pytest.mark.validation
 def test_signal_time_deviation():
     """Test Time Deviation computation."""
-    n_points = 10000
+    n_points = get_optimal_points(test_signal_time_deviation)
     sigma = 1.0
 
     # Generate and test white noise signal

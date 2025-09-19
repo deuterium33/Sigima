@@ -32,7 +32,9 @@ ROI_KEY = "_roi_"
 
 
 def deepcopy_metadata(
-    metadata: dict[str, Any], special_keys: set[str] | None = None
+    metadata: dict[str, Any],
+    special_keys: set[str] | None = None,
+    all_metadata: bool = False,
 ) -> dict[str, Any]:
     """Deepcopy metadata, except keys starting with "_" (private keys)
     with the exception of "_roi_" and "_ann_" keys.
@@ -41,6 +43,7 @@ def deepcopy_metadata(
         metadata: Metadata dictionary to deepcopy.
         special_keys: Set of keys that should not be removed even if they
          start with "_".
+        all_metadata: if True, copy all metadata, including private keys
 
     Returns:
         A new dictionary with deepcopied metadata, excluding private keys
@@ -50,7 +53,7 @@ def deepcopy_metadata(
         special_keys = set([ROI_KEY])
     mdcopy = {}
     for key, value in metadata.items():
-        if not key.startswith("_") or key in special_keys:
+        if not key.startswith("_") or key in special_keys or all_metadata:
             mdcopy[key] = deepcopy(value)
     return mdcopy
 
@@ -94,7 +97,7 @@ class BaseRandomParam(BaseProcParam):
     seed = gds.IntItem(_("Seed"), default=1)
 
 
-class BaseUniformDistributionParam(BaseRandomParam):
+class UniformDistributionParam(BaseRandomParam):
     """Uniform-distribution signal/image parameters."""
 
     def apply_integer_range(self, vmin, vmax):
@@ -113,7 +116,7 @@ class BaseUniformDistributionParam(BaseRandomParam):
         return f"UniformRandom(vmin={self.vmin:g},vmax={self.vmax:g},seed={self.seed})"
 
 
-class BaseNormalDistributionParam(BaseRandomParam):
+class NormalDistributionParam(BaseRandomParam):
     """Normal-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_MU = 0.1
@@ -140,7 +143,7 @@ class BaseNormalDistributionParam(BaseRandomParam):
         return f"NormalRandom(μ={self.mu:g},σ={self.sigma:g},seed={self.seed})"
 
 
-class BasePoissonDistributionParam(BaseRandomParam):
+class PoissonDistributionParam(BaseRandomParam):
     """Base Poisson-distribution signal/image parameters."""
 
     DEFAULT_RELATIVE_LAMBDA = 0.1
@@ -256,12 +259,18 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         """
 
     @abc.abstractmethod
-    def copy(self, title: str | None = None, dtype: np.dtype | None = None) -> Self:
+    def copy(
+        self,
+        title: str | None = None,
+        dtype: np.dtype | None = None,
+        all_metadata: bool = False,
+    ) -> Self:
         """Copy object.
 
         Args:
             title: title
             dtype: data type
+            all_metadata: if True, copy all metadata, otherwise only basic metadata
 
         Returns:
             Copied object

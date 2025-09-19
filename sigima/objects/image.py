@@ -949,12 +949,18 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         x0, y0, x1, y1 = self.physical_to_indices(single_roi.get_bounding_box(self))
         return self.get_masked_view()[y0:y1, x0:x1]
 
-    def copy(self, title: str | None = None, dtype: np.dtype | None = None) -> ImageObj:
+    def copy(
+        self,
+        title: str | None = None,
+        dtype: np.dtype | None = None,
+        all_metadata: bool = False,
+    ) -> ImageObj:
         """Copy object.
 
         Args:
             title: title
             dtype: data type
+            all_metadata: if True, copy all metadata, otherwise only basic metadata
 
         Returns:
             Copied object
@@ -971,7 +977,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.y0 = self.y0
         obj.dx = self.dx
         obj.dy = self.dy
-        obj.metadata = base.deepcopy_metadata(self.metadata)
+        obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         if self.data is not None:
             obj.data = np.array(self.data, copy=True, dtype=dtype)
@@ -1128,20 +1134,21 @@ DEFAULT_TITLE = _("Untitled image")
 class NewImageParam(gds.DataSet):
     """New image dataset."""
 
-    hide_image_height = False
-    hide_image_dtype = False
-    hide_image_type = False
+    hide_height = False
+    hide_width = False
+    hide_dtype = False
+    hide_type = False
 
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     height = gds.IntItem(
         _("Height"), default=1024, help=_("Image height: number of rows"), min=1
-    ).set_prop("display", hide=gds.GetAttrProp("hide_image_height"))
+    ).set_prop("display", hide=gds.GetAttrProp("hide_height"))
     width = gds.IntItem(
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
-    )
+    ).set_prop("display", hide=gds.GetAttrProp("hide_width"))
     dtype = gds.ChoiceItem(
         _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
-    ).set_prop("display", hide=gds.GetAttrProp("hide_image_dtype"))
+    ).set_prop("display", hide=gds.GetAttrProp("hide_dtype"))
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -1253,7 +1260,7 @@ class Zeros2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 
 
-class UniformDistribution2DParam(NewImageParam, base.BaseUniformDistributionParam):
+class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1278,7 +1285,7 @@ register_image_parameters_class(
 )
 
 
-class NormalDistribution2DParam(NewImageParam, base.BaseNormalDistributionParam):
+class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
@@ -1303,7 +1310,7 @@ register_image_parameters_class(
 )
 
 
-class PoissonDistribution2DParam(base.BasePoissonDistributionParam, NewImageParam):
+class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
     """Poisson-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
