@@ -88,14 +88,14 @@ def test_table_result_init_valid() -> None:
     roi_indices = [0, 1]
     table = TableResult(
         title="Test Table",
-        names=["col1", "col2"],
+        headers=["col1", "col2"],
         labels=["Column 1", "Column 2"],
         data=data,
         roi_indices=roi_indices,
         attrs={"method": "test"},
     )
     assert table.title == "Test Table"
-    assert list(table.names) == ["col1", "col2"]
+    assert list(table.headers) == ["col1", "col2"]
     assert list(table.labels) == ["Column 1", "Column 2"]
     assert table.data == data
     assert table.roi_indices == roi_indices
@@ -105,20 +105,20 @@ def test_table_result_init_valid() -> None:
 def test_table_result_init_invalid_title() -> None:
     """Test TableResult initialization with invalid title."""
     with pytest.raises(ValueError, match="title must be a non-empty string"):
-        TableResult(title="", names=["col1"], data=[[1.0]])
+        TableResult(title="", headers=["col1"], data=[[1.0]])
 
 
 def test_table_result_init_invalid_names() -> None:
     """Test TableResult initialization with invalid names."""
     with pytest.raises(ValueError, match="names must be a sequence of strings"):
-        TableResult(title="Test", names=[1, 2], data=[[1.0, 2.0]])
+        TableResult(title="Test", headers=[1, 2], data=[[1.0, 2.0]])
 
 
 def test_table_result_init_invalid_data_shape() -> None:
     """Test TableResult initialization with invalid data shape."""
     with pytest.raises(ValueError, match="data must be a list of lists"):
         TableResult(
-            title="Test", names=["col1"], data=[1.0, 2.0]
+            title="Test", headers=["col1"], data=[1.0, 2.0]
         )  # 1D list instead of 2D
 
 
@@ -126,7 +126,7 @@ def test_table_result_init_invalid_data_columns() -> None:
     """Test TableResult initialization with mismatched data columns."""
     with pytest.raises(ValueError, match="data columns must match names length"):
         TableResult(
-            title="Test", names=["col1"], data=[[1.0, 2.0]]
+            title="Test", headers=["col1"], data=[[1.0, 2.0]]
         )  # 2 columns, 1 name
 
 
@@ -137,7 +137,7 @@ def test_table_result_init_invalid_roi_indices() -> None:
     ):
         TableResult(
             title="Test",
-            names=["col1"],
+            headers=["col1"],
             data=[[1.0], [2.0]],
             roi_indices=[0],  # 1 ROI index, 2 data rows
         )
@@ -148,7 +148,7 @@ def test_table_result_init_invalid_roi_indices_type() -> None:
     with pytest.raises(ValueError, match="roi_indices must be a list if provided"):
         TableResult(
             title="Test",
-            names=["col1"],
+            headers=["col1"],
             data=[[1.0]],
             roi_indices=[[0]],  # 2D list instead of 1D list
         )
@@ -159,7 +159,7 @@ def test_table_result_init_invalid_roi_indices_2d() -> None:
     with pytest.raises(ValueError, match="roi_indices must be a list if provided"):
         TableResult(
             title="Test",
-            names=["col1"],
+            headers=["col1"],
             data=[[1.0]],
             roi_indices=[[0]],  # 2D list instead of 1D
         )
@@ -171,7 +171,7 @@ def test_table_result_from_rows() -> None:
     roi_indices = [0, 1]
     table = TableResult.from_rows(
         title="Test Table",
-        names=["col1", "col2"],
+        headers=["col1", "col2"],
         labels=["Column 1", "Column 2"],
         rows=rows,
         roi_indices=roi_indices,
@@ -187,7 +187,7 @@ def test_table_result_to_dict() -> None:
     data = [[1.0, 2.0]]
     table = TableResult(
         title="Test",
-        names=["col1", "col2"],
+        headers=["col1", "col2"],
         labels=["Column 1", "Column 2"],
         data=data,
         roi_indices=[NO_ROI],
@@ -219,7 +219,7 @@ def test_table_result_from_dict() -> None:
     }
     table = TableResult.from_dict(data_dict)
     assert table.title == "Test"
-    assert list(table.names) == ["col1", "col2"]
+    assert list(table.headers) == ["col1", "col2"]
     assert table.data == [[1.0, 2.0]]
     np.testing.assert_array_equal(table.roi_indices, np.array([NO_ROI]))
     assert table.attrs == {"method": "test"}
@@ -228,7 +228,7 @@ def test_table_result_from_dict() -> None:
 def test_table_result_col() -> None:
     """Test TableResult.col method."""
     data = [[1.0, 2.0], [3.0, 4.0]]
-    table = TableResult(title="Test", names=["col1", "col2"], data=data)
+    table = TableResult(title="Test", headers=["col1", "col2"], data=data)
 
     col1 = table.col("col1")
     assert col1 == [1.0, 3.0]
@@ -244,7 +244,7 @@ def test_table_result_col() -> None:
 def test_table_result_getitem() -> None:
     """Test TableResult.__getitem__ method."""
     data = [[1.0, 2.0]]
-    table = TableResult(title="Test", names=["col1", "col2"], data=data)
+    table = TableResult(title="Test", headers=["col1", "col2"], data=data)
 
     col1 = table["col1"]
     assert col1 == [1.0]
@@ -252,7 +252,7 @@ def test_table_result_getitem() -> None:
 
 def test_table_result_contains() -> None:
     """Test TableResult.__contains__ method."""
-    table = TableResult(title="Test", names=["col1", "col2"], data=[[1.0, 2.0]])
+    table = TableResult(title="Test", headers=["col1", "col2"], data=[[1.0, 2.0]])
 
     assert "col1" in table
     assert "col2" in table
@@ -261,14 +261,14 @@ def test_table_result_contains() -> None:
 
 def test_table_result_len() -> None:
     """Test TableResult.__len__ method."""
-    table = TableResult(title="Test", names=["col1", "col2"], data=[[1.0, 2.0]])
+    table = TableResult(title="Test", headers=["col1", "col2"], data=[[1.0, 2.0]])
     assert len(table) == 2
 
 
 def test_table_result_value_single_row() -> None:
     """Test TableResult.value method with single row."""
     data = [[1.0, 2.0]]
-    table = TableResult(title="Test", names=["col1", "col2"], data=data)
+    table = TableResult(title="Test", headers=["col1", "col2"], data=data)
 
     assert table.value("col1") == 1.0
     assert table.value("col2") == 2.0
@@ -279,7 +279,7 @@ def test_table_result_value_with_roi() -> None:
     data = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
     roi_indices = [NO_ROI, 0, 1]
     table = TableResult(
-        title="Test", names=["col1", "col2"], data=data, roi_indices=roi_indices
+        title="Test", headers=["col1", "col2"], data=data, roi_indices=roi_indices
     )
 
     assert table.value("col1", roi=None) == 1.0  # NO_ROI row
@@ -295,7 +295,7 @@ def test_table_result_value_ambiguous_selection() -> None:
     """Test TableResult.value method with ambiguous selection."""
     # Multiple rows without ROI indices
     data = [[1.0], [2.0]]
-    table = TableResult(title="Test", names=["col1"], data=data)
+    table = TableResult(title="Test", headers=["col1"], data=data)
 
     with pytest.raises(
         ValueError, match="Ambiguous selection: multiple rows but no ROI indices"
@@ -308,7 +308,7 @@ def test_table_result_value_duplicate_roi() -> None:
     data = [[1.0], [2.0]]
     roi_indices = [0, 0]  # Duplicate ROI index
     table = TableResult(
-        title="Test", names=["col1"], data=data, roi_indices=roi_indices
+        title="Test", headers=["col1"], data=data, roi_indices=roi_indices
     )
 
     with pytest.raises(ValueError, match="Ambiguous selection: 2 rows for ROI=0"):
@@ -319,7 +319,7 @@ def test_table_result_as_dict_ambiguous_selection() -> None:
     """Test TableResult.as_dict method with ambiguous selection."""
     # Multiple rows without ROI indices
     data = [[1.0, 2.0], [3.0, 4.0]]
-    table = TableResult(title="Test", names=["col1", "col2"], data=data)
+    table = TableResult(title="Test", headers=["col1", "col2"], data=data)
 
     with pytest.raises(
         ValueError, match="Ambiguous selection: multiple rows but no ROI indices"
@@ -332,7 +332,7 @@ def test_table_result_as_dict_missing_roi() -> None:
     data = [[1.0, 2.0]]
     roi_indices = [0]
     table = TableResult(
-        title="Test", names=["col1", "col2"], data=data, roi_indices=roi_indices
+        title="Test", headers=["col1", "col2"], data=data, roi_indices=roi_indices
     )
 
     with pytest.raises(KeyError, match="No row for ROI=-1"):
@@ -344,7 +344,7 @@ def test_table_result_as_dict_duplicate_roi() -> None:
     data = [[1.0, 2.0], [3.0, 4.0]]
     roi_indices = [0, 0]  # Duplicate ROI index
     table = TableResult(
-        title="Test", names=["col1", "col2"], data=data, roi_indices=roi_indices
+        title="Test", headers=["col1", "col2"], data=data, roi_indices=roi_indices
     )
 
     with pytest.raises(ValueError, match="Ambiguous selection: 2 rows for ROI=0"):
@@ -354,7 +354,7 @@ def test_table_result_as_dict_duplicate_roi() -> None:
 def test_table_result_as_dict_single_row() -> None:
     """Test TableResult.as_dict method with single row."""
     data = [[1.0, 2.0]]
-    table = TableResult(title="Test", names=["col1", "col2"], data=data)
+    table = TableResult(title="Test", headers=["col1", "col2"], data=data)
 
     result = table.as_dict()
     expected = {"col1": 1.0, "col2": 2.0}
@@ -366,7 +366,7 @@ def test_table_result_as_dict_with_roi() -> None:
     data = [[1.0, 2.0], [3.0, 4.0]]
     roi_indices = [NO_ROI, 0]
     table = TableResult(
-        title="Test", names=["col1", "col2"], data=data, roi_indices=roi_indices
+        title="Test", headers=["col1", "col2"], data=data, roi_indices=roi_indices
     )
 
     # Test NO_ROI row
@@ -514,7 +514,7 @@ def test_table_result_builder_compute() -> None:
     result = builder.compute(mock_signal)
 
     assert result.title == "Test Table"
-    assert list(result.names) == ["mean", "sum"]
+    assert list(result.headers) == ["mean", "sum"]
     assert list(result.labels) == ["", ""]
     assert len(result.data) == 1 and len(result.data[0]) == 2
     assert result.data[0] == [2.5, 10.0]  # mean=2.5, sum=10.0
@@ -557,7 +557,7 @@ def test_table_result_builder_compute_with_roi() -> None:
     result = builder.compute(mock_signal)
 
     assert result.title == "Test Table"
-    assert list(result.names) == ["mean"]
+    assert list(result.headers) == ["mean"]
     assert len(result.data) == 3 and len(result.data[0]) == 1  # NO_ROI + 2 ROIs
     # NO_ROI: mean([1,2,3,4]) = 2.5, ROI 0: mean([1,2]) = 1.5, ROI 1: mean([3,4]) = 3.5
     assert [row[0] for row in result.data] == [2.5, 1.5, 3.5]
@@ -833,7 +833,7 @@ def test_calc_table_from_data_no_roi() -> None:
     result = calc_table_from_data("Test Calculation", data, funcs)
 
     assert result.title == "Test Calculation"
-    assert list(result.names) == ["mean", "sum", "max"]
+    assert list(result.headers) == ["mean", "sum", "max"]
     assert len(result.data) == 1 and len(result.data[0]) == 3
     assert result.data[0] == [2.5, 10.0, 4.0]
     np.testing.assert_array_equal(result.roi_indices, [NO_ROI])
@@ -851,7 +851,7 @@ def test_calc_table_from_data_with_roi() -> None:
     result = calc_table_from_data("Test ROI Calculation", data, funcs, roi_masks)
 
     assert result.title == "Test ROI Calculation"
-    assert list(result.names) == ["mean", "sum"]
+    assert list(result.headers) == ["mean", "sum"]
     assert len(result.data) == 2 and len(result.data[0]) == 2
     # Mask1: [1.0, 4.0] -> mean=2.5, sum=5.0
     # Mask2: [2.0, 3.0] -> mean=2.5, sum=5.0
@@ -864,17 +864,17 @@ def test_concat_tables_empty() -> None:
     """Test concat_tables with empty list."""
     result = concat_tables("Empty Concat", [])
     assert result.title == "Empty Concat"
-    assert len(result.names) == 0
+    assert len(result.headers) == 0
     assert len(result.data) == 0
 
 
 def test_concat_tables_single() -> None:
     """Test concat_tables with single table."""
-    table = TableResult(title="Single", names=["col1", "col2"], data=[[1.0, 2.0]])
+    table = TableResult(title="Single", headers=["col1", "col2"], data=[[1.0, 2.0]])
     result = concat_tables("Concat Single", [table])
 
     assert result.title == "Concat Single"
-    assert list(result.names) == ["col1", "col2"]
+    assert list(result.headers) == ["col1", "col2"]
     assert result.data == [[1.0, 2.0]]
 
 
@@ -882,13 +882,13 @@ def test_concat_tables_multiple() -> None:
     """Test concat_tables with multiple tables."""
     table1 = TableResult(
         title="Table1",
-        names=["col1", "col2"],
+        headers=["col1", "col2"],
         data=[[1.0, 2.0]],
         roi_indices=[0],
     )
     table2 = TableResult(
         title="Table2",
-        names=["col1", "col2"],
+        headers=["col1", "col2"],
         data=[[3.0, 4.0], [5.0, 6.0]],
         roi_indices=[1, 2],
     )
@@ -896,7 +896,7 @@ def test_concat_tables_multiple() -> None:
     result = concat_tables("Concatenated", [table1, table2])
 
     assert result.title == "Concatenated"
-    assert list(result.names) == ["col1", "col2"]
+    assert list(result.headers) == ["col1", "col2"]
     expected_data = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
     assert result.data == expected_data
     assert result.roi_indices == [0, 1, 2]
@@ -904,8 +904,8 @@ def test_concat_tables_multiple() -> None:
 
 def test_concat_tables_mismatched_names() -> None:
     """Test concat_tables with mismatched column names."""
-    table1 = TableResult(title="Table1", names=["col1", "col2"], data=[[1.0, 2.0]])
-    table2 = TableResult(title="Table2", names=["col3", "col4"], data=[[3.0, 4.0]])
+    table1 = TableResult(title="Table1", headers=["col1", "col2"], data=[[1.0, 2.0]])
+    table2 = TableResult(title="Table2", headers=["col3", "col4"], data=[[3.0, 4.0]])
 
     with pytest.raises(
         ValueError, match="All TableResult objects must share the same names"
@@ -915,7 +915,7 @@ def test_concat_tables_mismatched_names() -> None:
 
 def test_filter_table_by_roi_no_roi_indices() -> None:
     """Test filter_table_by_roi with table that has no ROI indices."""
-    table = TableResult(title="No ROI", names=["col1"], data=[[1.0], [2.0]])
+    table = TableResult(title="No ROI", headers=["col1"], data=[[1.0], [2.0]])
 
     # Filter for NO_ROI should keep all
     result_no_roi = filter_table_by_roi(table, None)
@@ -931,7 +931,7 @@ def test_filter_table_by_roi_with_roi_indices() -> None:
     data = [[1.0], [2.0], [3.0]]
     roi_indices = [NO_ROI, 0, 1]
     table = TableResult(
-        title="With ROI", names=["col1"], data=data, roi_indices=roi_indices
+        title="With ROI", headers=["col1"], data=data, roi_indices=roi_indices
     )
 
     # Filter for NO_ROI

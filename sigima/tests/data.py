@@ -994,8 +994,8 @@ def generate_table_results() -> Generator[TableResult, None, None]:
     """
     for index, (names, data) in enumerate(
         (
-            (["A", "B", "C", "D"], [["banana", 2.5, -30909, 1.0]]),
-            (["P1", "P2", "P3", "P4"], [["apple", 1.232325, -9, 0]]),
+            (["A", "B", "C", "D"], [[0, 2.5, -30909, 1.0]]),
+            (["P1", "P2", "P3", "P4"], [[1, 1.232325, -9, 0]]),
         )
     ):
         yield TableResult(f"TestProperties{index}", names, data=data)
