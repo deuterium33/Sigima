@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-16 15:53+0200\n"
+"POT-Creation-Date: 2025-09-20 19:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -339,6 +339,79 @@ msgstr "Elle est implémentée dans la fonction `sigima.proc.signal.frequency_fi
 
 msgid "Enhanced zero padding to support prepend and append. Change default strategy to next power of 2."
 msgstr "Amélioration du remplissage de zéros pour prendre en charge l'ajout au début et à la fin. Changement de la stratégie par défaut vers la prochaine puissance de 2."
+
+msgid "**Pulse analysis algorithms**: Comprehensive pulse feature extraction framework in `sigima.tools.signal.pulse` module:"
+msgstr "**Algorithmes d'analyse des impulsions**: Cadre complet d'extraction des caractéristiques des impulsions dans le module `sigima.tools.signal.pulse` :"
+
+msgid "**Core pulse analysis functions**: Complete set of algorithms for step and square pulse characterization:"
+msgstr "**Fonctions d'analyse des impulsions de base**: Ensemble complet d'algorithmes pour la caractérisation des impulsions en escalier et carrées :"
+
+msgid "`extract_pulse_features`: Main function for automated pulse feature extraction"
+msgstr "`extract_pulse_features`: Fonction principale pour l'extraction automatisée des caractéristiques des impulsions"
+
+msgid "`heuristically_recognize_shape`: Intelligent signal type detection (step, square, or other)"
+msgstr "`heuristically_recognize_shape`: Détection intelligente du type de signal (escalier, carré ou autre)"
+
+msgid "`detect_polarity`: Robust polarity detection using baseline analysis"
+msgstr "`detect_polarity`: Détection robuste de la polarité utilisant l'analyse de la ligne de base"
+
+msgid "**Advanced timing parameter extraction**: Precise measurement algorithms for:"
+msgstr "**Extraction avancée des paramètres temporels**: Algorithmes de mesure précis pour :"
+
+#, python-format
+msgid "Rise and fall time calculations with configurable start/stop ratios (e.g., 10%-90%)"
+msgstr "Calculs du temps de montée et de descente avec des rapports de début/fin configurables (par exemple, 10%-90%)"
+
+msgid "Timing parameters at specific fractions (x10, x50, x90, x100) of signal amplitude"
+msgstr "Paramètres temporels à des fractions spécifiques (x10, x50, x90, x100) de l'amplitude du signal"
+
+msgid "Full width at half maximum (FWHM) computation for square pulses"
+msgstr "Calcul de la largeur à mi-hauteur (FWHM) pour les impulsions carrées"
+
+msgid "Foot duration measurement for pulse characterization"
+msgstr "Mesure de la durée de l'impulsion pour la caractérisation des impulsions"
+
+msgid "**Baseline analysis capabilities**: Statistical methods for:"
+msgstr "**Capacités d'analyse de la ligne de base**: Méthodes statistiques pour :"
+
+msgid "Automatic baseline range detection from signal extremes"
+msgstr "Détection automatique de la plage de ligne de base à partir des extrêmes du signal"
+
+msgid "Robust baseline level estimation using mean values within ranges"
+msgstr "Estimation robuste du niveau de la ligne de base en utilisant les valeurs moyennes dans les plages"
+
+msgid "Start and end baseline characterization for differential analysis"
+msgstr "Caractérisation de la ligne de base de début et de fin pour l'analyse différentielle"
+
+msgid "**Signal validation and error handling**: Comprehensive input validation with:"
+msgstr "**Validation des signaux et gestion des erreurs**: Validation des entrées complète avec :"
+
+msgid "Data array consistency checks and NaN/infinity detection"
+msgstr "Vérifications de la cohérence des tableaux de données et détection des NaN/infinis"
+
+msgid "Signal length validation and range boundary verification"
+msgstr "Validation de la longueur du signal et vérification des limites de plage"
+
+msgid "Graceful error handling with descriptive exception messages"
+msgstr "Gestion des erreurs élégante avec des messages d'exception descriptifs"
+
+msgid "**PulseFeatures dataclass**: Structured result container with all extracted parameters:"
+msgstr "**Dataclass PulseFeatures**: Conteneur de résultats structuré avec tous les paramètres extraits :"
+
+msgid "Amplitude, polarity, and offset measurements"
+msgstr "Mesures d'amplitude, de polarité et de décalage"
+
+msgid "Timing parameters (rise_time, fall_time, fwhm, x10, x50, x90, x100)"
+msgstr "Paramètres temporels (rise_time, fall_time, fwhm, x10, x50, x90, x100)"
+
+msgid "Baseline ranges (xstartmin, xstartmax, xendmin, xendmax)"
+msgstr "Plages de ligne de base (xstartmin, xstartmax, xendmin, xendmax)"
+
+msgid "Signal shape classification and foot duration"
+msgstr "Classification de la forme du signal et durée de l'impulsion"
+
+msgid "Implementation leverages robust statistical methods and provides both high-level convenience functions and low-level building blocks for custom pulse analysis workflows."
+msgstr "L'implémentation s'appuie sur des méthodes statistiques robustes et fournit à la fois des fonctions de commodité de haut niveau et des blocs de construction de bas niveau pour des flux de travail d'analyse d'impulsions personnalisés."
 
 msgid "Comprehensive uncertainty propagation implementation:"
 msgstr "Mise en œuvre complète de la propagation des incertitudes :"

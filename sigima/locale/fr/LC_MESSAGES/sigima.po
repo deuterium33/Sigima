@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-19 18:25+0200\n"
+"POT-Creation-Date: 2025-09-20 19:40+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -459,17 +459,17 @@ msgstr "Instant de fin"
 msgid "Number of points"
 msgstr "Nombre de points"
 
-msgid "Total rise time"
-msgstr "Temps de montée total"
-
-msgid "Rise start time"
-msgstr "Instant de début de montée"
-
 msgid "Initial value"
 msgstr "Valeur initiale"
 
 msgid "Noise amplitude"
 msgstr "Amplitude du bruit"
+
+msgid "Rise start time"
+msgstr "Instant de début de montée"
+
+msgid "Total rise time"
+msgstr "Temps de montée total"
 
 msgid "Full Width at Half Maximum"
 msgstr "Largeur à mi-hauteur"
@@ -1307,3 +1307,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

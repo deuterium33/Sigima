@@ -131,6 +131,30 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * This feature allows to filter a signal in the frequency domain using an ideal ("brick wall") filter.
     * It is implemented in `sigima.proc.signal.frequency_filter`, along the other frequency domain filtering features (`Bessel`, `Butterworth`, etc.).
   * Enhanced zero padding to support prepend and append. Change default strategy to next power of 2.
+  * **Pulse analysis algorithms**: Comprehensive pulse feature extraction framework in `sigima.tools.signal.pulse` module:
+    * **Core pulse analysis functions**: Complete set of algorithms for step and square pulse characterization:
+      * `extract_pulse_features`: Main function for automated pulse feature extraction
+      * `heuristically_recognize_shape`: Intelligent signal type detection (step, square, or other)
+      * `detect_polarity`: Robust polarity detection using baseline analysis
+    * **Advanced timing parameter extraction**: Precise measurement algorithms for:
+      * Rise and fall time calculations with configurable start/stop ratios (e.g., 10%-90%)
+      * Timing parameters at specific fractions (x10, x50, x90, x100) of signal amplitude
+      * Full width at half maximum (FWHM) computation for square pulses
+      * Foot duration measurement for pulse characterization
+    * **Baseline analysis capabilities**: Statistical methods for:
+      * Automatic baseline range detection from signal extremes
+      * Robust baseline level estimation using mean values within ranges
+      * Start and end baseline characterization for differential analysis
+    * **Signal validation and error handling**: Comprehensive input validation with:
+      * Data array consistency checks and NaN/infinity detection
+      * Signal length validation and range boundary verification
+      * Graceful error handling with descriptive exception messages
+    * **PulseFeatures dataclass**: Structured result container with all extracted parameters:
+      * Amplitude, polarity, and offset measurements
+      * Timing parameters (rise_time, fall_time, fwhm, x10, x50, x90, x100)
+      * Baseline ranges (xstartmin, xstartmax, xendmin, xendmax)
+      * Signal shape classification and foot duration
+    * Implementation leverages robust statistical methods and provides both high-level convenience functions and low-level building blocks for custom pulse analysis workflows.
   * Comprehensive uncertainty propagation implementation:
     * Added mathematically correct uncertainty propagation to ~15 core signal processing functions.
     * Enhanced `Wrap1to1Func` class to handle uncertainty propagation for mathematical functions (`sqrt`, `log10`, `exp`, `clip`, `absolute`, `real`, `imag`).
