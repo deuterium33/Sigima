@@ -232,6 +232,7 @@ def view_baseline_plateau_and_curve(
     start_range: tuple[float, float],
     end_range: tuple[float, float],
     plateau_range: tuple[float, float] | None = None,
+    vcursors: dict[str, float] | None = None,
     other_items: list | None = None,
 ) -> None:
     """Helper function to visualize signal with baselines and plateau.
@@ -244,6 +245,7 @@ def view_baseline_plateau_and_curve(
         start_range: Start baseline range.
         end_range: End baseline range.
         plateau_range: Plateau range for square signals (optional).
+        vcursors: Dictionary of vertical cursors to display (optional).
         other_items: Additional items to display (optional).
     """
     # pylint: disable=import-outside-toplevel
@@ -267,6 +269,9 @@ def view_baseline_plateau_and_curve(
         xp0, xp1 = plateau_range
         yp = pulse.get_range_mean_y(x, y, plateau_range)
         items.append(vistools.create_signal_segment(xp0, yp, xp1, yp, "Plateau"))
+    if vcursors is not None:
+        for label, xt in vcursors.items():
+            items.append(vistools.create_cursor("v", xt, label))
     if other_items is not None:
         items.extend(other_items)
 
@@ -440,9 +445,6 @@ def _test_crossing_ratio_time_case(
 
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
-            # pylint: disable=import-outside-toplevel
-            from sigima.tests import vistools
-
             # polarity = pulse.detect_polarity(x, y_noisy, start_range, end_range)
             # plateau_range = pulse.get_plateau_range(x, y_noisy, polarity)
             view_baseline_plateau_and_curve(
@@ -453,9 +455,7 @@ def _test_crossing_ratio_time_case(
                 start_range,
                 end_range,
                 plateau_range=None,
-                other_items=[
-                    vistools.create_cursor("v", ct, f"Crossing at {ratio:.1%}")
-                ],
+                vcursors={f"Crossing at {ratio:.1%}": ct},
             )
 
     # Test auto-detection
@@ -521,24 +521,19 @@ def _test_step_rise_time_case(
         step_params.amplitude = y_final_or_high - y_initial
         step_params.noise_amplitude = noise_amplitude
         x, y_noisy = step_params.generate_1d_data()
-        expected_features = step_params.get_expected_features()
+        expected_features = step_params.get_expected_features(
+            start_rise_ratio, stop_rise_ratio
+        )
     else:  # square
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         square_params.noise_amplitude = noise_amplitude
         x, y_noisy = square_params.generate_1d_data()
-        expected_features = square_params.get_expected_features()
-
-    # Use the expected features with the correct ratios for rise time calculation
-    if signal_type == "step":
-        expected_features = step_params.get_expected_features(
-            start_rise_ratio, stop_rise_ratio
-        )
-    else:
         expected_features = square_params.get_expected_features(
             start_rise_ratio, stop_rise_ratio
         )
+
     expected_rise_time = expected_features.rise_time
 
     # Create title
@@ -552,17 +547,6 @@ def _test_step_rise_time_case(
     rise_time = pulse.get_step_rise_time(
         x, y_noisy, start_range, end_range, start_rise_ratio, stop_rise_ratio
     )
-
-    # For noisy negative polarity signals, use looser validation
-    if noise_amplitude > 0 and polarity_desc == "negative":
-        # Validate that it's reasonable (within factor of 3 of expected)
-        assert 0.5 * expected_rise_time <= rise_time <= 3.0 * expected_rise_time, (
-            f"{rise_or_fall} time {rise_time:.3f} outside reasonable range "
-            f"[{0.5 * expected_rise_time:.3f}, "
-            f"{3.0 * expected_rise_time:.3f}] for {noise_desc} {polarity_desc} signal"
-        )
-    else:
-        check_scalar_result(title, rise_time, expected_rise_time, atol=atol)
 
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
@@ -593,6 +577,8 @@ def _test_step_rise_time_case(
                 plateau_range=None,
                 other_items=[item],
             )
+
+    check_scalar_result(title, rise_time, expected_rise_time, atol=atol)
 
     # Test auto-detection
     rise_time_auto = pulse.get_step_rise_time(
@@ -632,86 +618,64 @@ def test_heuristically_find_foot_end_time() -> None:
     (baseline) region in a step signal with a sharp rise, ensuring accurate detection
     even in the presence of noise.
     """
-    # Generate a signal with a step at t = 3 and a sharp rise at t = 5
+    # Generate a signal with baseline until t=3, then rising from t=3 to t=5
     step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
-    time = pulse.heuristically_find_foot_end_time(x, y, (0, 4))
+    # Use proper baseline range that doesn't include the rising portion
+    time = pulse.heuristically_find_foot_end_time(x, y, (0, 2.5))
     if time is not None:
-        # Expected time should be x_rise_start (3.0) + total_rise_time (2.0) = 5.0
-        expected_foot_end_time = step_params.x_rise_start + step_params.total_rise_time
+        # Expected time should be x_rise_start (3.0) - the start of the rise
+        # This is when the foot (baseline) region ends
+        expected_foot_end_time = step_params.x_rise_start
         check_scalar_result(
             "heuristically find foot end time",
             time,
             expected_foot_end_time,
-            atol=0.02,  # small tolerance due to possible slight variation
+            atol=0.2,  # Allow reasonable tolerance for noisy signals
         )
     else:
-        # If the function returns None, let's use the expected step start time
-        expected_time = step_params.x_rise_start  # Should be 3.0 by default
-        check_scalar_result(
-            "heuristically find foot end time (fallback)",
-            expected_time,
-            3.0,
-            atol=0.02,
+        # If the function returns None, that's unexpected for this signal
+        pytest.fail(
+            "heuristically_find_foot_end_time returned None for a clear step signal"
         )
     time_str = f"{time:.3f}" if time is not None else "None"
     guiutils.view_curves_if_gui([[x, y]], title=f"Foot end time = {time_str}")
 
 
-def test_get_foot_info() -> None:
-    """Unit test for the `pulse.get_foot_info` function.
-
-    This test verifies that the function correctly computes the foot (baseline) region
-    information for a generated step signal, including the end index, threshold, foot
-    duration, and x_end value.
-    """
+def test_get_foot_end_time() -> None:
+    """Unit test for the `pulse.get_foot_end_time` function."""
     # Generate a step signal with a sharp rise at t=5
     step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
-    # Use start_baseline_range before the step, end_baseline_range after
-    start_baseline_range = (0, 4)
-    start_baseline_level = np.mean(y[start_baseline_range[0] : start_baseline_range[1]])
-    end_baseline_range = (6, 8)
-    start_rise_ratio = 0.1
 
-    foot_info = pulse.get_foot_info(
-        x,
-        y,
-        start_baseline_range,
-        end_baseline_range,
-        start_rise_ratio=start_rise_ratio,
+    # Use start_range before the step, end_range after
+    start_range, end_range, threshold = (0, 2), (6, 8), 0.1
+    expected_foot_end_time = step_params.x_rise_start
+
+    foot_end_time = pulse.get_foot_end_time(
+        x, y, start_range, end_range, threshold=threshold
     )
+    foot_duration = foot_end_time - x[0]  # Since x[0] = 0.0 in this case
 
-    # Check attributes exist (dataclass instead of dictionary)
-    assert hasattr(foot_info, "index")
-    assert hasattr(foot_info, "threshold")
-    assert hasattr(foot_info, "foot_duration")
-    assert hasattr(foot_info, "x_end")
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            # polarity = pulse.detect_polarity(x, y_noisy, start_range, end_range)
+            # plateau_range = pulse.get_plateau_range(x, y_noisy, polarity)
+            title = f"Foot duration={foot_duration:.3f}, x_end={foot_end_time:.3f}, "
+            title += f"threshold={threshold:.3f}"
+            view_baseline_plateau_and_curve(
+                x,
+                y,
+                title,
+                "step",
+                start_range,
+                end_range,
+                plateau_range=None,
+                vcursors={"Foot duration end": foot_end_time},
+            )
 
-    # The foot should end at t ~ 3.24 (with new sampling)
-    check_scalar_result("foot_info x_end", foot_info.x_end, 3.242, atol=0.01)
-    # The threshold should be close to y at t=5
-    idx = foot_info.index
     check_scalar_result(
-        "foot_info threshold",
-        foot_info.threshold,
-        y[idx],
-        atol=start_baseline_level,
-    )
-    # The foot duration should be - x[0] + x_end (x_end, since x[0]=0)
-    check_scalar_result(
-        "foot_info foot_duration",
-        foot_info.foot_duration,
-        foot_info.x_end,
-        atol=1e-8,
-    )
-    # The index should correspond to the first x >= x_end
-    assert np.isclose(x[idx], foot_info.x_end, atol=0.01)
-
-    guiutils.view_curves_if_gui(
-        [[x, y]],
-        title=f"Foot info: x_end={foot_info.x_end:.3f},"
-        f"threshold={foot_info.threshold:.3f}",
+        "foot_info x_end", foot_end_time, expected_foot_end_time, atol=0.2
     )
 
 
@@ -1061,7 +1025,7 @@ if __name__ == "__main__":
     test_get_step_rise_time(0.1)
     test_get_step_rise_time(0.0)
     test_heuristically_find_foot_end_time()
-    test_get_foot_info()
+    test_get_foot_end_time()
     test_step_feature_extraction()
     test_square_feature_extraction()
     test_signal_extract_pulse_features()

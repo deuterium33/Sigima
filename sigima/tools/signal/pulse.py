@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+import scipy.ndimage
 import scipy.optimize  # type: ignore
 import scipy.special
 
@@ -503,6 +504,104 @@ def find_crossing_at_ratio(
     return roots[0]
 
 
+def _get_step_rise_time_traditional(
+    x: np.ndarray,
+    y: np.ndarray,
+    start_range: tuple[float, float],
+    end_range: tuple[float, float],
+    start_rise_ratio: float,
+    stop_rise_ratio: float,
+) -> float | None:
+    """Internal function for traditional ratio-based rise time calculation.
+
+    This avoids recursion by providing the core traditional implementation.
+    """
+    # Find crossing times for both ratios
+    start_time = find_crossing_at_ratio(x, y, start_rise_ratio, start_range, end_range)
+    stop_time = find_crossing_at_ratio(x, y, stop_rise_ratio, start_range, end_range)
+
+    if start_time is None or stop_time is None:
+        return None
+
+    # Validate that start_time and stop_time are in correct order
+    if (stop_rise_ratio > start_rise_ratio and start_time >= stop_time) or (
+        stop_rise_ratio < start_rise_ratio and stop_time >= start_time
+    ):
+        return None
+
+    return abs(stop_time - start_time)
+
+
+def get_step_rise_time_estimated(
+    x: np.ndarray,
+    y: np.ndarray,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+    start_rise_ratio: float = 0.1,
+    stop_rise_ratio: float = 0.9,
+) -> float | None:
+    """Calculates rise time using heuristic foot detection and 50% crossing estimation.
+
+    This method uses a more robust approach:
+    1. Find the true start of the systematic rise (foot end time)
+    2. Find the 50% amplitude crossing
+    3. Estimate the full rise duration from these two points
+    4. Calculate the requested ratio-based rise time from the estimated parameters
+
+    Args:
+        x: 1D array of x values (e.g., time).
+        y: 1D array of y values corresponding to `x`.
+        start_range: Tuple defining the start plateau region (before the rise).
+        end_range: Tuple defining the end plateau region (after the rise).
+        start_rise_ratio: Fraction of the step height at which the rise starts.
+        stop_rise_ratio: Fraction of the step height at which the rise ends.
+
+    Returns:
+        The estimated rise time between the specified ratios.
+    """
+    if start_range is None:
+        start_range = get_start_range(x)
+    if end_range is None:
+        end_range = get_end_range(x)
+
+    # Step 1: Find the true start of the rise (foot end)
+    foot_end_time = heuristically_find_foot_end_time(x, y, start_range)
+    if foot_end_time is None:
+        # Fallback to traditional method if heuristic fails
+        return _get_step_rise_time_traditional(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        )
+
+    # Step 2: Find the 50% crossing point
+    t_50_percent = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
+    if t_50_percent is None:
+        # Fallback to traditional method if 50% crossing not found
+        return _get_step_rise_time_traditional(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        )
+
+    # Step 3: Estimate the full rise duration
+    # If we assume linear rise: t_50% = t_start + 0.5 * total_rise_time
+    # Therefore: total_rise_time = 2 * (t_50% - t_start)
+    estimated_total_rise_time = 2.0 * (t_50_percent - foot_end_time)
+
+    # Validate the estimation makes sense
+    if estimated_total_rise_time <= 0:
+        warnings.warn(
+            f"Invalid rise time estimation: foot_end ({foot_end_time:.3f}) >= "
+            f"50% crossing ({t_50_percent:.3f}). Using fallback method."
+        )
+        return _get_step_rise_time_traditional(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        )
+
+    # Step 4: Calculate ratio-based times from the estimated parameters
+    estimated_start_time = foot_end_time + start_rise_ratio * estimated_total_rise_time
+    estimated_stop_time = foot_end_time + stop_rise_ratio * estimated_total_rise_time
+
+    return estimated_stop_time - estimated_start_time
+
+
 def get_step_rise_time(
     x: np.ndarray,
     y: np.ndarray,
@@ -514,12 +613,14 @@ def get_step_rise_time(
     """Calculates the rise time of a step-like signal between two defined plateaus.
 
     The rise time is defined as the time it takes for the signal to increase from
-    a specified lower fraction (`start_rise_ratio`) to a higher fraction
-    (`stop_rise_ratio`) of the total amplitude change between two reference
-    regions (e.g., before and after the step transition).
+    start_rise_ratio to stop_rise_ratio of the total amplitude change.
 
-    This function uses `get_crossing_ratio_time` to find both the start and stop
-    times of the rise and returns their difference.
+    For rise time calculations (stop_rise_ratio > start_rise_ratio), this function
+    automatically uses an improved estimation method that combines heuristic foot
+    detection with 50% crossing analysis for better accuracy in noisy signals.
+
+    For fall time calculations (stop_rise_ratio < start_rise_ratio), it uses the
+    traditional ratio-based method.
 
     Args:
         x: 1D array of x values (e.g., time).
@@ -528,55 +629,100 @@ def get_step_rise_time(
         end_range: Tuple defining the end plateau region (after the rise).
         start_rise_ratio: Fraction of the step height at which the rise starts.
          Default is 0.1 (i.e., 10% of the step height).
-        stop_rise_ratio: Fraction from the top of the step to define the end
-         of the rise. Default is 0.9 (i.e., 90% of the step height).
+        stop_rise_ratio: Fraction of the step height at which the rise ends.
+         Default is 0.9 (i.e., 90% of the step height).
 
     Returns:
-        The rise time (difference between the stop and start of the step).
+        The rise time (difference between the stop and start ratio crossings).
     """
-    # start rise
-    start_time = find_crossing_at_ratio(x, y, start_rise_ratio, start_range, end_range)
+    if start_range is None:
+        start_range = get_start_range(x)
+    if end_range is None:
+        end_range = get_end_range(x)
 
-    # stop rise
-    stop_time = find_crossing_at_ratio(x, y, stop_rise_ratio, start_range, end_range)
-    if start_time is None or stop_time is None:
+    # For rise time calculations (stop > start), try traditional method first
+    # and use enhanced method only when needed for robustness
+    if stop_rise_ratio > start_rise_ratio:
+        # Check if we have a degenerate range (single point) - use traditional only
+        if start_range[0] == start_range[1]:
+            return _get_step_rise_time_traditional(
+                x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+            )
+
+        # Try traditional method first (better for clean signals)
+        traditional_result = _get_step_rise_time_traditional(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        )
+
+        if traditional_result is not None:
+            # Check if result seems reasonable - if not, try enhanced method
+            # Estimate signal quality by checking foot end detection reliability
+            foot_end_time = heuristically_find_foot_end_time(x, y, start_range)
+            if foot_end_time is not None:
+                # Compare traditional result with enhanced method
+                enhanced_result = get_step_rise_time_estimated(
+                    x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+                )
+
+                if enhanced_result is not None:
+                    # If results differ significantly, signal might be noisy
+                    max_result = max(traditional_result, enhanced_result)
+                    relative_diff = abs(traditional_result - enhanced_result)
+                    relative_diff /= max_result
+
+                    # Use enhanced method if significant discrepancy (indicating noise)
+                    if relative_diff > 0.3:  # 30% threshold
+                        return enhanced_result
+
+            return traditional_result
+
+        # If traditional method fails, try enhanced method
+        enhanced_result = get_step_rise_time_estimated(
+            x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        )
+        if enhanced_result is not None:
+            return enhanced_result
+
+    # Traditional method for fall time calculations or as fallback
+    result = _get_step_rise_time_traditional(
+        x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
+    )
+
+    if result is None:
         warnings.warn(
             "Could not determine start or stop time for the step rise. Returning None."
         )
-        return None
 
-    return stop_time - start_time
+    return result
 
 
 @check_1d_arrays(x_sorted=True)
 def heuristically_find_foot_end_time(
-    x: np.ndarray,
-    y: np.ndarray,
-    start_range: tuple[float, float],
-    z_score_threshold: float = 5,
+    x: np.ndarray, y: np.ndarray, start_range: tuple[float, float]
 ) -> float | None:
     """
-    Finds the first index in the input array where the value deviates significantly
-    from the running average of all previous values.
+    Finds the point where a step signal begins its systematic rise from baseline.
 
-    Uses an optimized approach with running statistics to avoid O(n²) complexity.
+    This function uses multiple strategies to detect the true start of a step
+    transition:
+    1. Trend analysis to identify sustained directional change
+    2. Moving window statistics to detect consistent deviations
+    3. Gradient analysis for backup detection
 
     Args:
         x: 1D array of x values (e.g., time).
         y: 1D array of y values corresponding to `x`.
         start_range: Tuple defining the lower plateau region (start of the step).
-        z_score_threshold: Number of standard deviations to use as the outlier
-         threshold.
 
     Returns:
-        The x-value of the first outlier, or None if no such value is found.
+        The x-value of the first systematic rise, or None if no such value is found.
 
     Raises:
         InvalidSignalError: If insufficient data is provided.
     """
-    if y.size < 10:
+    if y.size < 20:
         raise InvalidSignalError(
-            "Insufficient data for statistical analysis (need ≥10 points)"
+            "Insufficient data for statistical analysis (need ≥20 points)"
         )
 
     start_indices = np.nonzero(x >= start_range[1])[0]
@@ -584,105 +730,152 @@ def heuristically_find_foot_end_time(
         raise InvalidSignalError("No data points found after start_baseline_range")
 
     start_idx = start_indices[0]
-    start_idx = max(start_idx, 2)  # Ensure at least 2 points for statistics
 
-    # Initialize running statistics
-    running_sum = np.sum(y[:start_idx])
-    running_sum_sq = np.sum(y[:start_idx] ** 2)
-    n = start_idx
+    # Calculate baseline statistics from the start_range
+    baseline_mask = (x >= start_range[0]) & (x <= start_range[1])
+    if np.sum(baseline_mask) < 5:
+        raise InvalidSignalError("Insufficient baseline data")
 
-    for i in range(start_idx, y.size):
-        # Update running statistics with previous value
-        if i > start_idx:
-            prev_val = y[i - 1]
-            running_sum += prev_val
-            running_sum_sq += prev_val**2
-            n += 1
+    baseline_y = y[baseline_mask]
+    baseline_mean = np.mean(baseline_y)
+    baseline_std = np.std(baseline_y)
 
-        # Calculate mean and std efficiently
-        mean_prev = running_sum / n
-        variance = (running_sum_sq / n) - (mean_prev**2)
+    # Strategy 1: Look for consistent upward trend
+    # Use a moving window to detect sustained increase
+    window_size = max(5, len(y) // 100)  # Adaptive window size
 
-        if variance <= 0:
-            continue  # Skip if no variability
+    for i in range(start_idx, len(y) - window_size):
+        # Get a window of data points
+        window_y = y[i : i + window_size]
+        window_mean = np.mean(window_y)
 
-        std_prev = np.sqrt(variance)
+        # Check if this window is significantly above baseline
+        if window_mean > baseline_mean + 1.5 * baseline_std:
+            # Verify this is the start of a trend by checking if subsequent windows
+            # continue to be elevated
+            confirmation_windows = 0
+            for j in range(
+                i + window_size,
+                min(i + 3 * window_size, len(y) - window_size),
+                window_size,
+            ):
+                next_window_y = y[j : j + window_size]
+                next_window_mean = np.mean(next_window_y)
+                if next_window_mean >= window_mean:
+                    confirmation_windows += 1
 
-        # Check if current value is an outlier
-        if abs(y[i] - mean_prev) >= z_score_threshold * std_prev:
-            return x[i]
+            # If we have at least one confirming window, this looks like the start
+            if confirmation_windows >= 1:
+                return x[i]
 
-    return None  # No outlier found
+    # Strategy 2: Gradient-based detection with smoothing
+    # Smooth the signal to reduce noise effects
+    try:
+        y_smooth = scipy.ndimage.gaussian_filter1d(y, sigma=2.0)
+    except ImportError:
+        # Fallback: simple moving average
+        kernel_size = 5
+        y_smooth = np.convolve(y, np.ones(kernel_size) / kernel_size, mode="same")
+
+    dy = np.gradient(y_smooth, x)
+
+    # Find the region to search (after start_range)
+    search_mask = x >= start_range[1]
+    search_x = x[search_mask]
+    search_dy = dy[search_mask]
+
+    if len(search_dy) > 10:
+        # Look for sustained positive gradient
+        baseline_dy = dy[(x >= start_range[0]) & (x <= start_range[1])]
+        dy_baseline_std = np.std(baseline_dy) if len(baseline_dy) > 0 else 0.1
+
+        # Find first point where gradient is consistently above noise level
+        gradient_threshold = 3 * dy_baseline_std
+
+        for i in range(len(search_dy) - 3):
+            # Check if gradient is above threshold for several consecutive points
+            if np.all(search_dy[i : i + 3] > gradient_threshold):
+                return search_x[i]
+
+    # Strategy 3: Fall back to simple threshold above baseline
+    # Look for first point that's consistently above baseline + 2*std
+    threshold_y = baseline_mean + 2.0 * baseline_std
+
+    search_y = y[search_mask]
+    for i in range(len(search_y) - 2):
+        if np.all(search_y[i : i + 3] > threshold_y):
+            return search_x[i]
+
+    return None
 
 
-@dataclass
-class FootInfo:
-    """Information about the foot (flat region before rise) of a signal."""
-
-    index: int
-    threshold: float
-    foot_duration: float
-    x_end: float
-
-
-def get_foot_info(
+def get_foot_end_time(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float],
     end_range: tuple[float, float],
-    start_rise_ratio: float | None = None,
-    end_time: float | None = None,
-) -> FootInfo:
-    """
-    Detects the 'foot' of a rising signal: the region before the rise starts.
+    threshold: float | None = None,
+) -> float:
+    """Calculate the end time of the foot (initial flat region) of a pulse signal.
+
+    This function tries multiple approaches to find the end of the foot region:
+    1. Uses threshold crossing if threshold is provided
+    2. Uses heuristic detection as fallback
+    3. Validates results to ensure they make physical sense
 
     Args:
         x: 1D array of x values (e.g., time or position).
         y: 1D array of y values (same size as x).
         start_range: A range (min, max) representing the initial flat region ("foot").
         end_range: A range (min, max) representing the final high region after the rise.
-        start_rise_ratio: Fraction of the rise height to detect the start of the rise.
-        end_time: If provided, only consider data up to this x-value.
+        threshold: If provided, use this fractional amplitude (0-1) to determine the
+         end of the foot. If None, use heuristic detection.
 
     Returns:
-        FootInfo object containing foot analysis results.
+        The end time of the foot region.
 
     Raises:
         InvalidSignalError: If foot end time cannot be determined.
     """
-    if end_time is None:
-        if start_rise_ratio is not None:
-            try:
-                end_time = find_crossing_at_ratio(
-                    x, y, start_rise_ratio, start_range, end_range
-                )
-            except InvalidSignalError:
-                end_time = None
+    # Try heuristic detection first as it's often more reliable for step detection
+    heuristic_result = heuristically_find_foot_end_time(x, y, start_range)
 
-            if end_time is None:
-                try:
-                    end_time = heuristically_find_foot_end_time(x, y, start_range)
-                except InvalidSignalError as exc:
-                    raise InvalidSignalError(
-                        "Could not determine foot end time"
-                    ) from exc
-        else:
-            end_time = heuristically_find_foot_end_time(x, y, start_range)
+    # Try threshold method if requested
+    threshold_result = None
+    if threshold is not None:
+        try:
+            threshold_result = find_crossing_at_ratio(
+                x, y, threshold, start_range, end_range
+            )
+        except InvalidSignalError:
+            pass
 
-    if end_time is None:
-        raise InvalidSignalError("Could not determine foot end time")
+    # Validate and choose the best result
+    if heuristic_result is not None and threshold_result is not None:
+        # If both methods give results, prefer the one that's more reasonable
+        # For step signals, the heuristic should give a later (more accurate) time
+        # than a low threshold crossing
+        if threshold <= 0.2 and heuristic_result > threshold_result:
+            return heuristic_result
+        return threshold_result
+    if heuristic_result is not None:
+        return heuristic_result
+    if threshold_result is not None:
+        return threshold_result
 
-    indices = np.nonzero(x >= end_time)[0]
-    if len(indices) == 0:
-        raise InvalidSignalError("End time is beyond signal range")
+    # Last resort: look for the steepest part of the signal
+    dy = np.gradient(y, x)
+    search_mask = (x >= start_range[1]) & (x <= end_range[0])
+    if np.any(search_mask):
+        search_indices = np.where(search_mask)[0]
+        max_dy_idx = search_indices[np.argmax(dy[search_mask])]
+        # Move back to find the start of the steep region
+        for i in range(max_dy_idx, max(0, max_dy_idx - 50), -1):
+            if dy[i] <= dy[max_dy_idx] * 0.1:  # 10% of max gradient
+                return x[i]
+        return x[max_dy_idx]
 
-    idx = int(indices[0])
-    return FootInfo(
-        index=idx,
-        threshold=float(y[idx]),
-        foot_duration=float(end_time - x[0]),
-        x_end=float(end_time),
-    )
+    raise InvalidSignalError("Could not determine foot end time with any method")
 
 
 @check_1d_arrays(x_sorted=True)
@@ -982,7 +1175,7 @@ def extract_pulse_features(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
         x50 = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
-        foot_info = get_foot_info(x, y, start_range, end_range, start_rise_ratio)
+        foot_end_time = get_foot_end_time(x, y, start_range, end_range)
         fall_time = None
         fwhm_val = None
     else:  # is square
@@ -1001,20 +1194,29 @@ def extract_pulse_features(
             start_range,
             (x[ymax_idx], x[ymax_idx]),
         )
+        # For fall time calculation, we need a proper baseline range in the fall segment
+        # Use a small portion near the peak as baseline instead of degenerate range
+        x_fall = x[ymax_idx:]
+        if len(x_fall) > 10:  # Ensure we have enough points
+            # Use first 10% of the fall segment as baseline, but at least 2 points
+            baseline_points = max(2, len(x_fall) // 10)
+            fall_baseline_range = (x_fall[0], x_fall[baseline_points])
+        else:
+            # Fallback to a small range around the peak
+            fall_baseline_range = (x[ymax_idx], x[min(ymax_idx + 2, len(x) - 1)])
         fall_time = get_step_rise_time(
             x[ymax_idx:],
             y[ymax_idx:],
-            (x[ymax_idx], x[ymax_idx]),
+            fall_baseline_range,
             end_range,
             start_rise_ratio,
             stop_rise_ratio,
         )
-        foot_info = get_foot_info(
+        foot_end_time = get_foot_end_time(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
             start_range,
             (x[ymax_idx], x[ymax_idx]),
-            start_rise_ratio,
         )
         x1, _, x2, _ = fwhm(x, y, "zero-crossing")
         fwhm_val = x2 - x1  # full width at half maximum
@@ -1025,17 +1227,18 @@ def extract_pulse_features(
             fall_time = None
             rise_time = None
 
+    foot_duration = foot_end_time - x[0]
     if x50 is None:
         x100 = x[ymax_idx]
     else:
-        x100 = x50 + rise_time  # Rough estimate of x100
+        x100 = x50 + (x50 - x[0] - foot_duration)
 
     return PulseFeatures(
         signal_shape=signal_shape,
         polarity=polarity,
         amplitude=amplitude,
         offset=get_range_mean_y(x, y * polarity, start_range),
-        foot_duration=foot_info.foot_duration,
+        foot_duration=foot_duration,
         xstartmin=start_range[0],
         xstartmax=start_range[1],
         xendmin=end_range[0],
