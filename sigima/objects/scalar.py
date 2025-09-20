@@ -132,15 +132,21 @@ class ResultHtmlGenerator:
             display_labels = list(df.columns)
             df_t.index = display_labels
             text = f'<u><b style="color: blue">{result.title}</b></u>:'
-            html_kwargs = {"float_format": "%.3g", "border": 0}
+            html_kwargs = {"border": 0}
             html_kwargs.update(kwargs)
+            # Format numeric columns only, avoiding float_format on mixed data types
+            for col in df_t.select_dtypes(include=["number"]).columns:
+                df_t[col] = df_t[col].map(lambda x: f"{x:.3g}" if pd.notna(x) else x)
             text += df_t.to_html(**html_kwargs)
         else:
             # Standard horizontal layout
             df.index = row_headers
             text = f'<u><b style="color: blue">{result.title}</b></u>:'
-            html_kwargs = {"float_format": "%.3g", "border": 0}
+            html_kwargs = {"border": 0}
             html_kwargs.update(kwargs)
+            # Format numeric columns only, avoiding float_format on mixed data types
+            for col in df.select_dtypes(include=["number"]).columns:
+                df[col] = df[col].map(lambda x: f"{x:.3g}" if pd.notna(x) else x)
             text += df.to_html(**html_kwargs)
 
         return text
