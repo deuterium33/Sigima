@@ -66,6 +66,19 @@ if TYPE_CHECKING:
 NO_ROI: int = -1
 
 
+class TableKind(str, enum.Enum):
+    """Types of table results."""
+
+    STATISTICS = "statistics"
+    PULSE_FEATURES = "pulse_features"
+    CUSTOM = "custom"
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Return all table kind values."""
+        return [e.value for e in cls]
+
+
 class KindShape(str, enum.Enum):
     """Geometric shape types."""
 
@@ -89,6 +102,8 @@ class TableResult:
 
     Args:
         title: Human-readable title for this table of results.
+        kind: Type of table result (e.g., TableKind.PULSE_FEATURES,
+         TableKind.STATISTICS). Default is TableKind.CUSTOM.
         headers: Column names (one per metric).
         labels: Human-readable labels for each column (including units as
          formatted strings).
@@ -106,6 +121,7 @@ class TableResult:
     """
 
     title: str
+    kind: TableKind | str = TableKind.CUSTOM
     headers: Sequence[str] = dataclasses.field(default_factory=list)
     labels: Sequence[str] = dataclasses.field(default_factory=list)
     data: list[list] = dataclasses.field(default_factory=list)
@@ -114,6 +130,11 @@ class TableResult:
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""
+        if isinstance(self.kind, str):
+            try:
+                object.__setattr__(self, "kind", TableKind(self.kind))
+            except ValueError:
+                pass  # Allow custom string values that are not in the enum
         if not isinstance(self.title, str) or not self.title:
             raise ValueError("title must be a non-empty string")
         if not isinstance(self.headers, (list, tuple)) or not all(
@@ -149,6 +170,7 @@ class TableResult:
         rows: list[list],
         roi_indices: list[int] | None = None,
         *,
+        kind: TableKind | str = TableKind.CUSTOM,
         attrs: dict[str, object] | None = None,
     ) -> TableResult:
         """Create a TableResult from raw data.
@@ -161,6 +183,7 @@ class TableResult:
             rows: 2-D list of lists of shape (N, len(headers)) with values.
             roi_indices: Optional list (N,) mapping rows to ROI indices.
              Use NO_ROI (-1) for the "full image / no ROI" row.
+            kind: Type of table result (e.g., TableKind.PULSE_FEATURES).
             attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
         Returns:
@@ -168,6 +191,7 @@ class TableResult:
         """
         return cls(
             title,
+            kind,
             headers,
             labels,
             rows,
@@ -182,6 +206,7 @@ class TableResult:
         return {
             "schema": 1,
             "title": self.title,
+            "kind": self.kind.value if isinstance(self.kind, TableKind) else self.kind,
             "names": list(self.headers),
             "labels": list(self.labels),
             "data": self.data,
@@ -194,6 +219,7 @@ class TableResult:
         """Convert a dictionary to a TableResult."""
         return TableResult(
             title=d["title"],
+            kind=d.get("kind", TableKind.CUSTOM),
             headers=list(d["names"]),
             labels=list(d["labels"]),
             data=d["data"],
@@ -222,6 +248,7 @@ class TableResult:
         df,
         title: str,
         labels: list[str] = None,
+        kind: TableKind | str = TableKind.CUSTOM,
         attrs: dict = None,
     ) -> "TableResult":
         """
@@ -232,6 +259,7 @@ class TableResult:
                 for roi_indices.
             title: Title for the TableResult.
             labels: Optional list of labels for columns.
+            kind: Type of table result (e.g., TableKind.PULSE_FEATURES).
             attrs: Optional dictionary of attributes.
 
         Returns:
@@ -254,6 +282,7 @@ class TableResult:
             attrs = {}
         return cls(
             title=title,
+            kind=kind,
             headers=names,
             labels=labels,
             data=data,
@@ -359,16 +388,32 @@ class TableResult:
             row = self.data[matching_indices[0]]
         return {name: row[j] for j, name in enumerate(self.headers)}
 
+    # -------- Convenience methods for table type identification --------
+
+    def is_statistics(self) -> bool:
+        """Check if this is a statistics table."""
+        return self.kind == TableKind.STATISTICS
+
+    def is_pulse_features(self) -> bool:
+        """Check if this is a pulse features table."""
+        return self.kind == TableKind.PULSE_FEATURES
+
+    def is_custom(self) -> bool:
+        """Check if this is a custom table."""
+        return self.kind == TableKind.CUSTOM
+
 
 class TableResultBuilder:
     """Builder for TableResult with fluent interface.
 
     Args:
         title: The title of the table.
+        kind: The type of table result.
     """
 
-    def __init__(self, title: str) -> None:
+    def __init__(self, title: str, kind: TableKind | str = TableKind.CUSTOM) -> None:
         self.title = title
+        self.kind = kind
         self.columns: list[tuple[Callable, str, str]] = []
 
     def add_from_dataclass(self, parameters: object) -> None:
@@ -473,6 +518,7 @@ class TableResultBuilder:
             labels=labels,
             rows=rows,
             roi_indices=roi_idx,
+            kind=self.kind,
         )
 
 
@@ -733,6 +779,7 @@ def calc_table_from_data(
     data: np.ndarray,
     labeledfuncs: Mapping[str, Callable[[np.ndarray], float]],
     roi_masks: list[np.ndarray] | None = None,
+    kind: TableKind | str = TableKind.CUSTOM,
     attrs: dict[str, object] | None = None,
 ) -> TableResult:
     """Run scalar metrics on a full array or per-ROI masks and return a TableResult.
@@ -743,6 +790,7 @@ def calc_table_from_data(
         labeledfuncs: Mapping of {label: func}, where func(data_or_masked) -> float.
         roi_masks: Optional list of boolean masks (same shape as data). If provided,
          results are computed per mask; otherwise a single full-image row is returned.
+        kind: Type of table result (e.g., TableKind.PULSE_FEATURES).
         attrs: Optional algorithmic context.
 
     Returns:
@@ -762,6 +810,7 @@ def calc_table_from_data(
             roi_idx.append(i)
         return TableResult(
             title=title,
+            kind=kind,
             headers=names,
             data=rows,
             roi_indices=roi_idx,
@@ -772,6 +821,7 @@ def calc_table_from_data(
     row = [float(f(data)) for f in funcs]
     return TableResult(
         title=title,
+        kind=kind,
         headers=names,
         data=[row],
         roi_indices=[NO_ROI],
@@ -797,11 +847,14 @@ def concat_tables(title: str, items: Iterable[TableResult]) -> TableResult:
         return TableResult(title=title, headers=[], data=[])
     first = items[0]
     cols = list(first.headers)
+    kind = first.kind
     for it in items[1:]:
         if list(it.headers) != cols:
             raise ValueError(
                 "All TableResult objects must share the same names to concatenate"
             )
+        if it.kind != kind:
+            kind = TableKind.CUSTOM  # Default to CUSTOM if kinds don't match
     data = []
     for it in items:
         data.extend(it.data)
@@ -814,7 +867,7 @@ def concat_tables(title: str, items: Iterable[TableResult]) -> TableResult:
                 roi.extend([NO_ROI] * len(it.data))
     else:
         roi = None
-    return TableResult(title=title, headers=cols, data=data, roi_indices=roi)
+    return TableResult(title=title, kind=kind, headers=cols, data=data, roi_indices=roi)
 
 
 def filter_table_by_roi(res: TableResult, roi: int | None) -> TableResult:

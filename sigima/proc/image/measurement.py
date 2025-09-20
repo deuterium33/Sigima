@@ -36,6 +36,7 @@ from sigima.objects import (
     GeometryResult,
     ImageObj,
     SignalObj,
+    TableKind,
     TableResult,
     TableResultBuilder,
 )
@@ -136,7 +137,7 @@ def stats(obj: ImageObj) -> TableResult:
     Returns:
         Result properties
     """
-    builder = TableResultBuilder(_("Image statistics"))
+    builder = TableResultBuilder(_("Image statistics"), kind=TableKind.STATISTICS)
     builder.add(ma.min, "min", "min(z) = %g {.zunit}")
     builder.add(ma.max, "max", "max(z) = %g {.zunit}")
     builder.add(ma.mean, "mean", "<z> = %g {.zunit}")

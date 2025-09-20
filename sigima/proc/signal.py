@@ -45,6 +45,7 @@ from sigima.objects import (
     PoissonDistribution1DParam,
     ROI1DParam,
     SignalObj,
+    TableKind,
     TableResult,
     TableResultBuilder,
     UniformDistribution1DParam,
@@ -2941,7 +2942,7 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         start_rise_ratio=p.start_rise_ratio,
         stop_rise_ratio=p.stop_rise_ratio,
     )
-    builder = TableResultBuilder(_("Pulse features"))
+    builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
     builder.add_from_dataclass(features)
     return builder.compute(obj)
 
@@ -3099,7 +3100,7 @@ def stats(obj: SignalObj) -> TableResult:
     Returns:
         Result properties object
     """
-    table = TableResultBuilder(_("Signal statistics"))
+    table = TableResultBuilder(_("Signal statistics"), kind=TableKind.STATISTICS)
     table.add(lambda xy: np.nanmin(xy[1]), "min", "min(y) = %g {.yunit}")
     table.add(lambda xy: np.nanmax(xy[1]), "max", "max(y) = %g {.yunit}")
     table.add(lambda xy: np.nanmean(xy[1]), "mean", "<y> = %g {.yunit}")

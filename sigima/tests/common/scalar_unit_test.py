@@ -197,6 +197,7 @@ def test_table_result_to_dict() -> None:
     expected = {
         "schema": 1,
         "title": "Test",
+        "kind": "custom",
         "names": ["col1", "col2"],
         "labels": ["Column 1", "Column 2"],
         "data": [[1.0, 2.0]],
