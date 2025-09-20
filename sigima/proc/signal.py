@@ -2933,7 +2933,7 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         An object containing the pulse features.
     """
     x, y = obj.get_data()
-    features = pulse.extract_pulse_features(
+    pulse_features = pulse.extract_pulse_features(
         x,
         y,
         signal_shape=p.signal_shape,
@@ -2943,7 +2943,7 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         stop_ratio=p.stop_ratio,
     )
     builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
-    builder.add_from_dataclass(features)
+    builder.add_from_dataclass(pulse_features)
     return builder.compute(obj)
 
 

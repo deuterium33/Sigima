@@ -55,7 +55,7 @@ COLORS = (
 def style_generator() -> Generator[tuple[str, str], None, None]:
     """Cycling through curve styles"""
     while True:
-        for linestyle in LINESTYLES.keys():
+        for linestyle in LINESTYLES:
             for color in COLORS:
                 yield (color, linestyle)
 

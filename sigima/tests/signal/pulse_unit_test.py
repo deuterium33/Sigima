@@ -393,8 +393,6 @@ def test_get_amplitude() -> None:
 def _test_crossing_ratio_time_case(
     signal_type: Literal["step", "square"],
     polarity_desc: str,
-    y_initial: float,
-    y_final_or_high: float,
     start_range: tuple[float, float],
     end_range: tuple[float, float],
     ratio: float,
@@ -407,8 +405,6 @@ def _test_crossing_ratio_time_case(
     Args:
         signal_type: Signal shape type
         polarity_desc: Description of polarity ("positive" or "negative")
-        y_initial: Initial signal value
-        y_final_or_high: Final value (step) or high value (square)
         start_range: Start baseline range for crossing time calculation
         end_range: End baseline range for crossing time calculation
         ratio: Crossing ratio (0.0 to 1.0)
@@ -642,7 +638,7 @@ def _test_fall_time_case(
     square_params.amplitude = y_final_or_high - y_initial
     square_params.noise_amplitude = noise_amplitude
     x, y_noisy = square_params.generate_1d_data()
-    expected_features = square_params.get_expected_features(stop_ratio, start_ratio)
+    expected_features = square_params.get_expected_features(start_ratio, stop_ratio)
 
     # Create title
     noise_desc = "clean" if noise_amplitude == 0 else "noisy"

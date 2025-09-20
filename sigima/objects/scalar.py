@@ -129,7 +129,7 @@ class ResultHtmlGenerator:
             df_t.columns = [row_headers[0] if row_headers[0] else "Value"]
             df_t.index.name = "Item"
             # Get labels for the transposed view
-            display_labels = [header for header in df.columns]
+            display_labels = list(df.columns)
             df_t.index = display_labels
             text = f'<u><b style="color: blue">{result.title}</b></u>:'
             html_kwargs = {"float_format": "%.3g", "border": 0}
@@ -643,7 +643,7 @@ class TableResultBuilder:
                     if "{" in label:
                         label.format(obj)
                     if "%" in label:
-                        label % 1.234  # Test formatting with a dummy value
+                        label % 1.234  # pylint: disable=pointless-statement
                 except (KeyError, TypeError, ValueError) as exc:
                     raise ValueError(f"Label '{label}' is not valid") from exc
 

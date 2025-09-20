@@ -1438,7 +1438,7 @@ class SquarePulseParam(BasePulseParam):
         """
         features = super().get_expected_features(start_ratio, stop_ratio)
         features.signal_shape = SignalShape.SQUARE
-        features.fall_time = (stop_ratio - start_ratio) * self.total_fall_time
+        features.fall_time = np.abs(stop_ratio - start_ratio) * self.total_fall_time
         features.fwhm = self.fwhm
         return features
 
