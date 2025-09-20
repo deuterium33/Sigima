@@ -544,7 +544,7 @@ def _test_step_rise_time_case(
     )
 
     # Test with explicit ranges
-    rise_time = pulse.get_step_rise_time(
+    rise_time = pulse.get_rise_time(
         x, y_noisy, start_range, end_range, start_rise_ratio, stop_rise_ratio
     )
 
@@ -581,7 +581,7 @@ def _test_step_rise_time_case(
     check_scalar_result(title, rise_time, expected_rise_time, atol=atol)
 
     # Test auto-detection
-    rise_time_auto = pulse.get_step_rise_time(
+    rise_time_auto = pulse.get_rise_time(
         x, y_noisy, start_rise_ratio=start_rise_ratio, stop_rise_ratio=stop_rise_ratio
     )
     check_scalar_result(
@@ -591,7 +591,7 @@ def _test_step_rise_time_case(
 
 @pytest.mark.parametrize("noise_amplitude", [0.1, 0.0])
 def test_get_step_rise_time(noise_amplitude: float) -> None:
-    """Unit test for the `pulse.get_step_rise_time` function.
+    """Unit test for the `pulse.get_rise_time` function.
 
     This test verifies the correct calculation of the rise time for step signals with
     both positive and negative polarity using theoretical calculations based on
@@ -611,8 +611,8 @@ def test_get_step_rise_time(noise_amplitude: float) -> None:
     tsrtc("step", "negative", 5.0, 2.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
 
 
-def test_heuristically_find_foot_end_time() -> None:
-    """Unit test for the `pulse.heuristically_find_foot_end_time` function.
+def test_heuristically_find_rise_start_time() -> None:
+    """Unit test for the `pulse.heuristically_find_rise_start_time` function.
 
     This test verifies that the function correctly identifies the end time of the foot
     (baseline) region in a step signal with a sharp rise, ensuring accurate detection
@@ -622,7 +622,7 @@ def test_heuristically_find_foot_end_time() -> None:
     step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
     # Use proper baseline range that doesn't include the rising portion
-    time = pulse.heuristically_find_foot_end_time(x, y, (0, 2.5))
+    time = pulse.heuristically_find_rise_start_time(x, y, (0, 2.5))
     if time is not None:
         # Expected time should be x_rise_start (3.0) - the start of the rise
         # This is when the foot (baseline) region ends
@@ -636,13 +636,13 @@ def test_heuristically_find_foot_end_time() -> None:
     else:
         # If the function returns None, that's unexpected for this signal
         pytest.fail(
-            "heuristically_find_foot_end_time returned None for a clear step signal"
+            "heuristically_find_rise_start_time returned None for a clear step signal"
         )
     time_str = f"{time:.3f}" if time is not None else "None"
-    guiutils.view_curves_if_gui([[x, y]], title=f"Foot end time = {time_str}")
+    guiutils.view_curves_if_gui([[x, y]], title=f"Rise start time = {time_str}")
 
 
-def test_get_foot_end_time() -> None:
+def test_get_rise_start_time() -> None:
     """Unit test for the `pulse.get_rise_start_time ` function."""
     # Generate a step signal with a sharp rise at t=5
     step_params = create_test_step_params()
@@ -650,7 +650,6 @@ def test_get_foot_end_time() -> None:
 
     # Use start_range before the step, end_range after
     start_range, end_range, threshold = (0, 2), (6, 8), 0.1
-    expected_foot_end_time = step_params.x_rise_start
 
     x0 = pulse.get_rise_start_time(x, y, start_range, end_range, threshold=threshold)
     foot_duration = x0 - x[0]  # Since x[0] = 0.0 in this case
@@ -672,7 +671,7 @@ def test_get_foot_end_time() -> None:
                 vcursors={"Foot duration end": x0},
             )
 
-    check_scalar_result("foot_info x_end", x0, expected_foot_end_time, atol=0.2)
+    check_scalar_result("foot_info x_end", x0, step_params.x_rise_start, atol=0.2)
 
 
 def view_pulse_features(
@@ -1020,8 +1019,8 @@ if __name__ == "__main__":
     test_get_crossing_ratio_time(0.8)
     test_get_step_rise_time(0.1)
     test_get_step_rise_time(0.0)
-    test_heuristically_find_foot_end_time()
-    test_get_foot_end_time()
+    test_heuristically_find_rise_start_time()
+    test_get_rise_start_time()
     test_step_feature_extraction()
     test_square_feature_extraction()
     test_signal_extract_pulse_features()

@@ -504,7 +504,7 @@ def find_crossing_at_ratio(
     return roots[0]
 
 
-def _get_step_rise_time_traditional(
+def _get_rise_time_traditional(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float],
@@ -532,7 +532,7 @@ def _get_step_rise_time_traditional(
     return abs(stop_time - start_time)
 
 
-def get_step_rise_time_estimated(
+def get_rise_time_estimated(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float] | None = None,
@@ -565,10 +565,10 @@ def get_step_rise_time_estimated(
         end_range = get_end_range(x)
 
     # Step 1: Find the true start of the rise (foot end)
-    foot_end_time = heuristically_find_foot_end_time(x, y, start_range)
+    foot_end_time = heuristically_find_rise_start_time(x, y, start_range)
     if foot_end_time is None:
         # Fallback to traditional method if heuristic fails
-        return _get_step_rise_time_traditional(
+        return _get_rise_time_traditional(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
 
@@ -576,7 +576,7 @@ def get_step_rise_time_estimated(
     t_50_percent = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
     if t_50_percent is None:
         # Fallback to traditional method if 50% crossing not found
-        return _get_step_rise_time_traditional(
+        return _get_rise_time_traditional(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
 
@@ -591,7 +591,7 @@ def get_step_rise_time_estimated(
             f"Invalid rise time estimation: foot_end ({foot_end_time:.3f}) >= "
             f"50% crossing ({t_50_percent:.3f}). Using fallback method."
         )
-        return _get_step_rise_time_traditional(
+        return _get_rise_time_traditional(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
 
@@ -602,7 +602,7 @@ def get_step_rise_time_estimated(
     return estimated_stop_time - estimated_start_time
 
 
-def get_step_rise_time(
+def get_rise_time(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float] | None = None,
@@ -645,22 +645,22 @@ def get_step_rise_time(
     if stop_rise_ratio > start_rise_ratio:
         # Check if we have a degenerate range (single point) - use traditional only
         if start_range[0] == start_range[1]:
-            return _get_step_rise_time_traditional(
+            return _get_rise_time_traditional(
                 x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
             )
 
         # Try traditional method first (better for clean signals)
-        traditional_result = _get_step_rise_time_traditional(
+        traditional_result = _get_rise_time_traditional(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
 
         if traditional_result is not None:
             # Check if result seems reasonable - if not, try enhanced method
             # Estimate signal quality by checking foot end detection reliability
-            foot_end_time = heuristically_find_foot_end_time(x, y, start_range)
+            foot_end_time = heuristically_find_rise_start_time(x, y, start_range)
             if foot_end_time is not None:
                 # Compare traditional result with enhanced method
-                enhanced_result = get_step_rise_time_estimated(
+                enhanced_result = get_rise_time_estimated(
                     x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
                 )
 
@@ -677,14 +677,14 @@ def get_step_rise_time(
             return traditional_result
 
         # If traditional method fails, try enhanced method
-        enhanced_result = get_step_rise_time_estimated(
+        enhanced_result = get_rise_time_estimated(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
         if enhanced_result is not None:
             return enhanced_result
 
     # Traditional method for fall time calculations or as fallback
-    result = _get_step_rise_time_traditional(
+    result = _get_rise_time_traditional(
         x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
     )
 
@@ -696,12 +696,60 @@ def get_step_rise_time(
     return result
 
 
+def get_fall_time(
+    x: np.ndarray,
+    y: np.ndarray,
+    end_range: tuple[float, float],
+    start_fall_ratio: float = 0.9,
+    stop_fall_ratio: float = 0.1,
+) -> float | None:
+    """Calculates the fall time of a step-like signal between two defined plateaus.
+
+    The fall time is defined as the time it takes for the signal to decrease from
+    start_fall_ratio to stop_fall_ratio of the total amplitude change.
+
+    This function internally reverses the signal and applies the rise time calculation
+    to determine the fall time.
+
+    Args:
+        x: 1D array of x values (e.g., time).
+        y: 1D array of y values corresponding to `x`.
+        end_range: Tuple defining the end plateau region (after the fall).
+        start_fall_ratio: Fraction of the step height at which the fall starts.
+         Default is 0.9 (i.e., 90% of the step height).
+        stop_fall_ratio: Fraction of the step height at which the fall ends.
+         Default is 0.1 (i.e., 10% of the step height).
+
+    Returns:
+        The fall time (difference between the stop and start ratio crossings).
+    """
+    ymax_idx = np.argmax(y)
+    # For fall time calculation, we need a proper baseline range in the fall segment
+    # Use a small portion near the peak as baseline instead of degenerate range
+    x_fall = x[ymax_idx:]
+    if len(x_fall) > 10:  # Ensure we have enough points
+        # Use first 10% of the fall segment as baseline, but at least 2 points
+        baseline_points = max(2, len(x_fall) // 10)
+        fall_baseline_range = (x_fall[0], x_fall[baseline_points])
+    else:
+        # Fallback to a small range around the peak
+        fall_baseline_range = (x[ymax_idx], x[min(ymax_idx + 2, len(x) - 1)])
+    fall_time = get_rise_time(
+        x[ymax_idx:],
+        y[ymax_idx:],
+        fall_baseline_range,
+        end_range,
+        start_fall_ratio,
+        stop_fall_ratio,
+    )
+    return fall_time
+
+
 @check_1d_arrays(x_sorted=True)
-def heuristically_find_foot_end_time(
+def heuristically_find_rise_start_time(
     x: np.ndarray, y: np.ndarray, start_range: tuple[float, float]
 ) -> float | None:
-    """
-    Finds the point where a step signal begins its systematic rise from baseline.
+    """Finds the point where a step signal begins its systematic rise from baseline.
 
     This function uses multiple strategies to detect the true start of a step
     transition:
@@ -838,7 +886,7 @@ def get_rise_start_time(
         InvalidSignalError: If rise start time cannot be determined.
     """
     # Try heuristic detection first as it's often more reliable for step detection
-    heuristic_result = heuristically_find_foot_end_time(x, y, start_range)
+    heuristic_result = heuristically_find_rise_start_time(x, y, start_range)
 
     # Try threshold method if requested
     threshold_result = None
@@ -1172,7 +1220,7 @@ def extract_pulse_features(
     ymax_idx = np.argmax(y)
 
     if signal_shape == SignalShape.STEP:
-        rise_time = get_step_rise_time(
+        rise_time = get_rise_time(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
         x0 = get_rise_start_time(x, y, start_range, end_range)
@@ -1180,7 +1228,7 @@ def extract_pulse_features(
         fall_time = None
         fwhm_val = None
     else:  # is square
-        rise_time = get_step_rise_time(
+        rise_time = get_rise_time(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
             start_range,
@@ -1195,24 +1243,7 @@ def extract_pulse_features(
             start_range,
             (x[ymax_idx], x[ymax_idx]),
         )
-        # For fall time calculation, we need a proper baseline range in the fall segment
-        # Use a small portion near the peak as baseline instead of degenerate range
-        x_fall = x[ymax_idx:]
-        if len(x_fall) > 10:  # Ensure we have enough points
-            # Use first 10% of the fall segment as baseline, but at least 2 points
-            baseline_points = max(2, len(x_fall) // 10)
-            fall_baseline_range = (x_fall[0], x_fall[baseline_points])
-        else:
-            # Fallback to a small range around the peak
-            fall_baseline_range = (x[ymax_idx], x[min(ymax_idx + 2, len(x) - 1)])
-        fall_time = get_step_rise_time(
-            x[ymax_idx:],
-            y[ymax_idx:],
-            fall_baseline_range,
-            end_range,
-            start_rise_ratio,
-            stop_rise_ratio,
-        )
+        fall_time = get_fall_time(x, y, end_range, stop_rise_ratio, start_rise_ratio)
         x0 = get_rise_start_time(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
