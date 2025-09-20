@@ -51,9 +51,9 @@ Conventions regarding ROI and geometry are as follows:
 
 from __future__ import annotations
 
+import dataclasses
 import enum
 import inspect
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
@@ -176,7 +176,7 @@ class KindShape(str, enum.Enum):
         return [e.value for e in cls]
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class TableResult:
     """Table of scalar results, optionally per-ROI.
 
@@ -199,11 +199,11 @@ class TableResult:
     """
 
     title: str
-    headers: Sequence[str] = field(default_factory=list)
-    labels: Sequence[str] = field(default_factory=list)
-    data: list[list] = field(default_factory=list)
+    headers: Sequence[str] = dataclasses.field(default_factory=list)
+    labels: Sequence[str] = dataclasses.field(default_factory=list)
+    data: list[list] = dataclasses.field(default_factory=list)
     roi_indices: list[int] | None = None
-    attrs: dict[str, object] = field(default_factory=dict)
+    attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""
@@ -599,7 +599,7 @@ class TableResultBuilder:
         )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class GeometryResult:
     """Geometric outputs, optionally per-ROI.
 
@@ -653,7 +653,7 @@ class GeometryResult:
     kind: KindShape
     coords: np.ndarray
     roi_indices: np.ndarray | None = None
-    attrs: dict[str, object] = field(default_factory=dict)
+    attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate fields after initialization."""
