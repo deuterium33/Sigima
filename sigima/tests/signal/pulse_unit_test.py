@@ -380,10 +380,10 @@ def test_get_amplitude() -> None:
     """
     tac = _test_amplitude_case
     # Step signals
-    # tac("step", "positive", 0.0, 5.0, (0.0, 2.0), (6.0, 8.0))
-    # tac("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0))
+    tac("step", "positive", 0.0, 5.0, (0.0, 2.0), (6.0, 8.0))
+    tac("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0))
     # Square signals with plateau
-    # tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
+    tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
     tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
     # Square signals without plateau
     tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
@@ -481,15 +481,15 @@ def test_get_crossing_ratio_time(ratio: float) -> None:
     tcrtc("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0), ratio)
 
 
-def _test_step_rise_time_case(
+def _test_rise_time_case(
     signal_type: Literal["step", "square"],
     polarity_desc: Literal["positive", "negative"],
     y_initial: float,
     y_final_or_high: float,
     start_range: tuple[float, float],
     end_range: tuple[float, float],
-    start_rise_ratio: float,
-    stop_rise_ratio: float,
+    start_ratio: float,
+    stop_ratio: float,
     noise_amplitude: float = 0.1,
     atol: float = 0.1,
     rtol: float = 0.1,
@@ -503,8 +503,8 @@ def _test_step_rise_time_case(
         y_final_or_high: Final value (step) or high value (square)
         start_range: Start baseline range for rise time calculation
         end_range: End baseline range for rise time calculation
-        start_rise_ratio: Starting amplitude ratio for rise time measurement
-        stop_rise_ratio: Stopping amplitude ratio (e.g., 0.8 for 80%)
+        start_ratio: Starting amplitude ratio for rise time measurement
+        stop_ratio: Stopping amplitude ratio (e.g., 0.8 for 80%)
         noise_amplitude: Noise level for signal generation
         atol: Absolute tolerance for rise time comparison
         rtol: Relative tolerance for auto-detection comparison
@@ -521,20 +521,14 @@ def _test_step_rise_time_case(
         step_params.amplitude = y_final_or_high - y_initial
         step_params.noise_amplitude = noise_amplitude
         x, y_noisy = step_params.generate_1d_data()
-        expected_features = step_params.get_expected_features(
-            start_rise_ratio, stop_rise_ratio
-        )
+        expected_features = step_params.get_expected_features(start_ratio, stop_ratio)
     else:  # square
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         square_params.noise_amplitude = noise_amplitude
         x, y_noisy = square_params.generate_1d_data()
-        expected_features = square_params.get_expected_features(
-            start_rise_ratio, stop_rise_ratio
-        )
-
-    expected_rise_time = expected_features.rise_time
+        expected_features = square_params.get_expected_features(start_ratio, stop_ratio)
 
     # Create title
     noise_desc = "clean" if noise_amplitude == 0 else "noisy"
@@ -545,7 +539,7 @@ def _test_step_rise_time_case(
 
     # Test with explicit ranges
     rise_time = pulse.get_rise_time(
-        x, y_noisy, start_range, end_range, start_rise_ratio, stop_rise_ratio
+        x, y_noisy, start_ratio, stop_ratio, start_range, end_range
     )
 
     with guiutils.lazy_qt_app_context() as qt_app:
@@ -554,17 +548,17 @@ def _test_step_rise_time_case(
             from sigima.tests import vistools
 
             ct1 = pulse.find_crossing_at_ratio(
-                x, y_noisy, start_rise_ratio, start_range, end_range
+                x, y_noisy, start_ratio, start_range, end_range
             )
             ct2 = pulse.find_crossing_at_ratio(
-                x, y_noisy, stop_rise_ratio, start_range, end_range
+                x, y_noisy, stop_ratio, start_range, end_range
             )
             item = vistools.create_range(
                 "h",
                 ct1,
                 ct2,
-                f"{rise_or_fall} time {start_rise_ratio:.0%}-"
-                f"{stop_rise_ratio:.0%} = {rise_time:.3f}",
+                f"{rise_or_fall} time {start_ratio:.0%}-"
+                f"{stop_ratio:.0%} = {rise_time:.3f}",
             )
 
             view_baseline_plateau_and_curve(
@@ -578,19 +572,19 @@ def _test_step_rise_time_case(
                 other_items=[item],
             )
 
-    check_scalar_result(title, rise_time, expected_rise_time, atol=atol)
+    check_scalar_result(title, rise_time, expected_features.rise_time, atol=atol)
 
     # Test auto-detection
     rise_time_auto = pulse.get_rise_time(
-        x, y_noisy, start_rise_ratio=start_rise_ratio, stop_rise_ratio=stop_rise_ratio
+        x, y_noisy, start_ratio=start_ratio, stop_ratio=stop_ratio
     )
     check_scalar_result(
-        f"{title} (auto)", rise_time_auto, expected_rise_time, rtol=rtol
+        f"{title} (auto)", rise_time_auto, expected_features.rise_time, rtol=rtol
     )
 
 
 @pytest.mark.parametrize("noise_amplitude", [0.1, 0.0])
-def test_get_step_rise_time(noise_amplitude: float) -> None:
+def test_get_rise_time(noise_amplitude: float) -> None:
     """Unit test for the `pulse.get_rise_time` function.
 
     This test verifies the correct calculation of the rise time for step signals with
@@ -601,14 +595,125 @@ def test_get_step_rise_time(noise_amplitude: float) -> None:
         - Step signal with positive polarity (20%-80% rise time).
         - Step signal with negative polarity (20%-80% rise time).
     """
-    tsrtc = _test_step_rise_time_case
+    trtc = _test_rise_time_case
     # Standard 20%-80% rise time parameters
     start_ratio, stop_ratio = 0.2, 0.8
 
     # Step signals with positive polarity
     na = noise_amplitude
-    tsrtc("step", "positive", 0.0, 5.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
-    tsrtc("step", "negative", 5.0, 2.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
+    trtc("step", "positive", 0.0, 5.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
+    trtc("step", "negative", 5.0, 2.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
+
+
+def _test_fall_time_case(
+    polarity_desc: Literal["positive", "negative"],
+    y_initial: float,
+    y_final_or_high: float,
+    start_range: tuple[float, float],
+    end_range: tuple[float, float],
+    plateau_range: tuple[float, float],
+    start_ratio: float,
+    stop_ratio: float,
+    noise_amplitude: float = 0.1,
+    atol: float = 0.1,
+    rtol: float = 0.1,
+) -> None:
+    """Helper function to test step fall time for different signal configurations.
+
+    Args:
+        polarity_desc: Description of polarity
+        y_initial: Initial signal value
+        y_final_or_high: Final value (step) or high value (square)
+        start_range: Start baseline range for fall time calculation
+        end_range: End baseline range for fall time calculation
+        plateau_range: Plateau range for square signals
+        start_ratio: Starting amplitude ratio for fall time measurement
+        stop_ratio: Stopping amplitude ratio (e.g., 0.8 for 80%)
+        noise_amplitude: Noise level for signal generation
+        atol: Absolute tolerance for fall time comparison
+        rtol: Relative tolerance for auto-detection comparison
+    """
+    if noise_amplitude == 0.0:
+        atol /= 10.0  # Tighter check for clean signals
+
+    # Generate signal and calculate expected fall time
+    square_params = create_test_square_params()
+    square_params.offset = y_initial
+    square_params.amplitude = y_final_or_high - y_initial
+    square_params.noise_amplitude = noise_amplitude
+    x, y_noisy = square_params.generate_1d_data()
+    expected_features = square_params.get_expected_features(stop_ratio, start_ratio)
+
+    # Create title
+    noise_desc = "clean" if noise_amplitude == 0 else "noisy"
+    title = f"Square, {polarity_desc} polarity | Get fall time ({noise_desc})"
+
+    # Using the same denoise algorithm as in `extract_pulse_features`
+    y_noisy = filtering.denoise_preserve_shape(y_noisy)[0]
+
+    # Test with explicit ranges
+    fall_time = pulse.get_fall_time(
+        x, y_noisy, start_ratio, stop_ratio, plateau_range, end_range
+    )
+
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            # pylint: disable=import-outside-toplevel
+            from sigima.tests import vistools
+
+            ct1 = pulse.find_crossing_at_ratio(
+                x, y_noisy[::-1], start_ratio, start_range, end_range
+            )
+            ct1 = x[-1] - ct1  # Adjust for reversed x
+            ct2 = pulse.find_crossing_at_ratio(
+                x, y_noisy[::-1], stop_ratio, start_range, end_range
+            )
+            ct2 = x[-1] - ct2  # Adjust for reversed x
+            item = vistools.create_range(
+                "h",
+                ct1,
+                ct2,
+                f"Fall time {start_ratio:.0%}-{stop_ratio:.0%} = {fall_time:.3f}",
+            )
+
+            view_baseline_plateau_and_curve(
+                x,
+                y_noisy,
+                f"{title}: {fall_time:.3f}",
+                "square",
+                start_range,
+                end_range,
+                plateau_range=plateau_range,
+                other_items=[item],
+            )
+
+    check_scalar_result(
+        f"Get fall time ({noise_desc})",
+        fall_time,
+        expected_features.fall_time,
+        atol=atol,
+        rtol=rtol,
+    )
+
+
+@pytest.mark.parametrize("noise_amplitude", [0.1, 0.0])
+def test_get_fall_time(noise_amplitude: float) -> None:
+    """Unit test for the `pulse.get_fall_time` function.
+
+    This test verifies the correct calculation of the fall time for step signals with
+    both positive and negative polarity using theoretical calculations based on
+    signal generation parameters.
+
+    Test cases (including noisy and clean signals):
+        - Square signal with positive polarity (20%-80% fall time).
+        - Square signal with negative polarity (20%-80% fall time).
+    """
+    tftc = _test_fall_time_case
+
+    # Square signals with plateau
+    na = noise_amplitude
+    tftc("positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5), 0.8, 0.2, na)
+    tftc("negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5), 0.8, 0.2, na)
 
 
 def test_heuristically_find_rise_start_time() -> None:
@@ -949,12 +1054,12 @@ def test_signal_extract_pulse_features() -> None:
     p_step.xstartmax = 3.0
     p_step.xendmin = 6.0
     p_step.xendmax = 8.0
-    p_step.start_rise_ratio = 0.1
-    p_step.stop_rise_ratio = 0.9
+    p_step.start_ratio = 0.1
+    p_step.stop_ratio = 0.9
 
     # Calculate expected step features using the DataSet method
     expected_step = step_params.get_expected_features(
-        p_step.start_rise_ratio, p_step.stop_rise_ratio
+        p_step.start_ratio, p_step.stop_ratio
     )
     tolerances_step = step_params.get_feature_tolerances()
 
@@ -982,12 +1087,12 @@ def test_signal_extract_pulse_features() -> None:
     p_square.xstartmax = 2.5
     p_square.xendmin = 15
     p_square.xendmax = 17
-    p_square.start_rise_ratio = 0.1
-    p_square.stop_rise_ratio = 0.9
+    p_square.start_ratio = 0.1
+    p_square.stop_ratio = 0.9
 
     # Calculate expected square features using the DataSet method
     expected_square = square_params.get_expected_features(
-        p_square.start_rise_ratio, p_square.stop_rise_ratio
+        p_square.start_ratio, p_square.stop_ratio
     )
 
     # Extract and validate square features
@@ -1011,14 +1116,16 @@ def test_signal_extract_pulse_features() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_heuristically_recognize_shape()
-    test_detect_polarity()
-    test_get_amplitude()
-    test_get_crossing_ratio_time(0.2)
-    test_get_crossing_ratio_time(0.5)
-    test_get_crossing_ratio_time(0.8)
-    test_get_step_rise_time(0.1)
-    test_get_step_rise_time(0.0)
+    # test_heuristically_recognize_shape()
+    # test_detect_polarity()
+    # test_get_amplitude()
+    # test_get_crossing_ratio_time(0.2)
+    # test_get_crossing_ratio_time(0.5)
+    # test_get_crossing_ratio_time(0.8)
+    # test_get_rise_time(0.1)
+    # test_get_rise_time(0.0)
+    test_get_fall_time(0.1)
+    test_get_fall_time(0.0)
     test_heuristically_find_rise_start_time()
     test_get_rise_start_time()
     test_step_feature_extraction()

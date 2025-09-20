@@ -2900,14 +2900,14 @@ class PulseFeaturesParam(gds.DataSet):
         default=1.0,
         help=_("Upper X boundary for the end baseline"),
     )
-    start_rise_ratio = gds.FloatItem(
+    start_ratio = gds.FloatItem(
         _("Start rise ratio"),
         default=0.1,
         min=0.0,
         max=1.0,
         help=_("Fraction for rise start"),
     )
-    stop_rise_ratio = gds.FloatItem(
+    stop_ratio = gds.FloatItem(
         _("Stop rise ratio"),
         default=0.9,
         min=0.0,
@@ -2939,8 +2939,8 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         signal_shape=p.signal_shape,
         start_range=[p.xstartmin, p.xstartmax],
         end_range=[p.xendmin, p.xendmax],
-        start_rise_ratio=p.start_rise_ratio,
-        stop_rise_ratio=p.stop_rise_ratio,
+        start_ratio=p.start_ratio,
+        stop_ratio=p.stop_ratio,
     )
     builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
     builder.add_from_dataclass(features)
