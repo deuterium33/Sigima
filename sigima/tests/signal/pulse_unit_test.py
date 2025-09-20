@@ -393,6 +393,8 @@ def test_get_amplitude() -> None:
 def _test_crossing_ratio_time_case(
     signal_type: Literal["step", "square"],
     polarity_desc: str,
+    y_initial: float,
+    y_final_or_high: float,
     start_range: tuple[float, float],
     end_range: tuple[float, float],
     ratio: float,
@@ -405,6 +407,8 @@ def _test_crossing_ratio_time_case(
     Args:
         signal_type: Signal shape type
         polarity_desc: Description of polarity ("positive" or "negative")
+        y_initial: Initial signal value
+        y_final_or_high: Final value (step) or high value (square)
         start_range: Start baseline range for crossing time calculation
         end_range: End baseline range for crossing time calculation
         ratio: Crossing ratio (0.0 to 1.0)
@@ -415,11 +419,15 @@ def _test_crossing_ratio_time_case(
     # Generate signal and calculate expected crossing time
     if signal_type == "step":
         step_params = create_test_step_params()
+        step_params.offset = y_initial
+        step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
         # Calculate crossing time for the specific ratio
         expected_ct = step_params.get_crossing_time("rise", ratio)
     else:  # square
         square_params = create_test_square_params()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
         # For square signals, calculate crossing time based on edge and ratio
         expected_ct = square_params.get_crossing_time(edge, ratio)
