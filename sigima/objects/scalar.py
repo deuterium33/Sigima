@@ -66,6 +66,99 @@ if TYPE_CHECKING:
 NO_ROI: int = -1
 
 
+class ResultHtmlGenerator:
+    """Utility class for generating HTML from result objects using composition."""
+
+    @staticmethod
+    def generate_html(
+        result: TableResult | GeometryResult,
+        obj: SignalObj | ImageObj,
+        visible_headers: list[str] = None,
+        transpose_single_row: bool = True,
+        **kwargs,
+    ) -> str:
+        """Generate HTML from a result object.
+
+        Args:
+            result: The result object (TableResult or GeometryResult)
+            obj: SignalObj or ImageObj for ROI title extraction
+            visible_headers: Optional list of headers to show (filters columns)
+            transpose_single_row: If True, transpose the table when there's only one row
+            **kwargs: Additional arguments passed to DataFrame.to_html()
+
+        Returns:
+            HTML representation of the result
+        """
+        df = result.to_dataframe()
+
+        # Filter visible headers if specified
+        if visible_headers is not None:
+            available_headers = [h for h in visible_headers if h in df.columns]
+            if "roi_index" in df.columns:
+                df = df[["roi_index"] + available_headers]
+            else:
+                df = df[available_headers]
+
+        # Remove roi_index column for display
+        if "roi_index" in df.columns:
+            roi_indices = df["roi_index"].tolist()
+            df = df.drop(columns=["roi_index"])
+        else:
+            roi_indices = None
+
+        # Create row headers
+        row_headers = ResultHtmlGenerator._get_row_headers(result, roi_indices, obj)
+
+        # Transpose if single row and flag is set
+        if transpose_single_row and len(df) == 1:
+            # Transpose the dataframe
+            df_t = df.T
+            df_t.columns = [row_headers[0] if row_headers[0] else "Value"]
+            df_t.index.name = "Item"
+            # Get labels for the transposed view
+            display_labels = [header for header in df.columns]
+            df_t.index = display_labels
+            text = f'<u><b style="color: blue">{result.title}</b></u>:'
+            html_kwargs = {"float_format": "%.3g", "border": 0}
+            html_kwargs.update(kwargs)
+            text += df_t.to_html(**html_kwargs)
+        else:
+            # Standard horizontal layout
+            df.index = row_headers
+            text = f'<u><b style="color: blue">{result.title}</b></u>:'
+            html_kwargs = {"float_format": "%.3g", "border": 0}
+            html_kwargs.update(kwargs)
+            text += df.to_html(**html_kwargs)
+
+        return text
+
+    @staticmethod
+    def _get_row_headers(
+        result: TableResult | GeometryResult,
+        roi_indices: list[int] | None,
+        obj: SignalObj | ImageObj,
+    ) -> list[str]:
+        """Create row headers from ROI indices."""
+        row_headers = []
+        if roi_indices is not None:
+            for roi_idx in roi_indices:
+                if roi_idx == NO_ROI:
+                    header = ""
+                else:
+                    header = f"ROI {roi_idx}"
+                    # Try to get ROI title from object if available
+                    if obj.roi is not None:
+                        header = obj.roi.get_single_roi_title(roi_idx)
+                row_headers.append(header)
+        else:
+            # Need to get DataFrame to know the number of rows
+            df = result.to_dataframe()
+            if "roi_index" in df.columns:
+                df = df.drop(columns=["roi_index"])
+            row_headers = [""] * len(df)
+        return row_headers
+
+
 class KindShape(str, enum.Enum):
     """Geometric shape types."""
 
@@ -216,6 +309,48 @@ class TableResult:
             df.insert(0, "roi_index", self.roi_indices)
         return df
 
+    def get_display_preferences(self) -> dict[str, bool]:
+        """Get display preferences for metrics.
+
+        Returns:
+            Dictionary mapping header names to visibility (True=visible, False=hidden).
+            By default, all metrics are visible unless specified in attrs.
+        """
+        prefs = {}
+        hidden_metrics = self.attrs.get("hidden_metrics", set())
+        if isinstance(hidden_metrics, (list, tuple)):
+            hidden_metrics = set(hidden_metrics)
+
+        for header in self.headers:
+            prefs[header] = header not in hidden_metrics
+        return prefs
+
+    def set_display_preferences(self, preferences: dict[str, bool]) -> None:
+        """Set display preferences for metrics.
+
+        Args:
+            preferences: Dictionary mapping header names to visibility
+                        (True=visible, False=hidden)
+        """
+        hidden_metrics = {
+            header
+            for header, visible in preferences.items()
+            if not visible and header in self.headers
+        }
+        if hidden_metrics:
+            self.attrs["hidden_metrics"] = list(hidden_metrics)
+        elif "hidden_metrics" in self.attrs:
+            del self.attrs["hidden_metrics"]
+
+    def get_visible_headers(self) -> list[str]:
+        """Get list of currently visible headers based on display preferences.
+
+        Returns:
+            List of header names that should be displayed
+        """
+        prefs = self.get_display_preferences()
+        return [header for header in self.headers if prefs.get(header, True)]
+
     @classmethod
     def from_dataframe(
         cls,
@@ -358,6 +493,28 @@ class TableResult:
                 )
             row = self.data[matching_indices[0]]
         return {name: row[j] for j, name in enumerate(self.headers)}
+
+    def to_html(
+        self,
+        obj: SignalObj | ImageObj,
+        visible_headers: list[str] | None = None,
+        transpose_single_row: bool = True,
+        **kwargs,
+    ) -> str:
+        """Convert the result to HTML format.
+
+        Args:
+            obj: SignalObj or ImageObj for ROI title extraction
+            visible_headers: Optional list of headers to show (filters columns)
+            transpose_single_row: If True, transpose when there's only one row
+            **kwargs: Additional arguments passed to DataFrame.to_html()
+
+        Returns:
+            HTML representation of the result
+        """
+        return ResultHtmlGenerator.generate_html(
+            self, obj, visible_headers, transpose_single_row, **kwargs
+        )
 
 
 class TableResultBuilder:
@@ -647,6 +804,48 @@ class GeometryResult:
             df["length"] = self.segments_lengths()
         return df
 
+    def get_display_preferences(self) -> dict[str, bool]:
+        """Get display preferences for coordinate headers.
+
+        Returns:
+            Dictionary mapping header names to visibility (True=visible, False=hidden).
+            By default, all coordinates are visible unless specified in attrs.
+        """
+        prefs = {}
+        hidden_coords = self.attrs.get("hidden_coords", set())
+        if isinstance(hidden_coords, (list, tuple)):
+            hidden_coords = set(hidden_coords)
+
+        for header in self.headers:
+            prefs[header] = header not in hidden_coords
+        return prefs
+
+    def set_display_preferences(self, preferences: dict[str, bool]) -> None:
+        """Set display preferences for coordinate headers.
+
+        Args:
+            preferences: Dictionary mapping header names to visibility
+                        (True=visible, False=hidden)
+        """
+        hidden_coords = {
+            header
+            for header, visible in preferences.items()
+            if not visible and header in self.headers
+        }
+        if hidden_coords:
+            self.attrs["hidden_coords"] = list(hidden_coords)
+        elif "hidden_coords" in self.attrs:
+            del self.attrs["hidden_coords"]
+
+    def get_visible_headers(self) -> list[str]:
+        """Get list of currently visible headers based on display preferences.
+
+        Returns:
+            List of header names that should be displayed
+        """
+        prefs = self.get_display_preferences()
+        return [header for header in self.headers if prefs.get(header, True)]
+
     # -------- User-oriented methods --------
 
     def __len__(self) -> int:
@@ -687,6 +886,28 @@ class GeometryResult:
         if self.kind is not KindShape.ELLIPSE:
             raise ValueError("ellipse_axes_angles requires kind='ellipse'")
         return self.coords[:, 2], self.coords[:, 3], self.coords[:, 4]
+
+    def to_html(
+        self,
+        obj=None,
+        visible_headers: list[str] = None,
+        transpose_single_row: bool = True,
+        **kwargs,
+    ) -> str:
+        """Convert the result to HTML format.
+
+        Args:
+            obj: Optional SignalObj or ImageObj for ROI title extraction
+            visible_headers: Optional list of headers to show (filters columns)
+            transpose_single_row: If True, transpose when there's only one row
+            **kwargs: Additional arguments passed to DataFrame.to_html()
+
+        Returns:
+            HTML representation of the result
+        """
+        return ResultHtmlGenerator.generate_html(
+            self, obj, visible_headers, transpose_single_row, **kwargs
+        )
 
 
 # ===========================
