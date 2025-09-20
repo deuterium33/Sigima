@@ -1213,7 +1213,7 @@ msgid "Fraction for rise end"
 msgstr "Fraction pour la fin de la montée"
 
 msgid "Pulse features"
-msgstr "Caractéristiques de l'impulsion"
+msgstr "Caractéristiques"
 
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
