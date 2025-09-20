@@ -195,6 +195,8 @@ def test_create_signal_from_param() -> None:
         (sigima.objects.LinearChirpParam, "linear_chirp"),
         (sigima.objects.StepParam, "step"),
         (sigima.objects.PulseParam, "pulse"),
+        (sigima.objects.SquarePulseParam, "square_pulse"),
+        (sigima.objects.StepPulseParam, "step_pulse"),
         (sigima.objects.PolyParam, "polynomial"),
         # Noise and random signals
         (sigima.objects.NormalDistribution1DParam, "normal_noise"),
