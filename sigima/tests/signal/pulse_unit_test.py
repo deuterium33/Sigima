@@ -643,7 +643,7 @@ def test_heuristically_find_foot_end_time() -> None:
 
 
 def test_get_foot_end_time() -> None:
-    """Unit test for the `pulse.get_foot_end_time` function."""
+    """Unit test for the `pulse.get_rise_start_time ` function."""
     # Generate a step signal with a sharp rise at t=5
     step_params = create_test_step_params()
     x, y = step_params.generate_1d_data()
@@ -652,16 +652,14 @@ def test_get_foot_end_time() -> None:
     start_range, end_range, threshold = (0, 2), (6, 8), 0.1
     expected_foot_end_time = step_params.x_rise_start
 
-    foot_end_time = pulse.get_foot_end_time(
-        x, y, start_range, end_range, threshold=threshold
-    )
-    foot_duration = foot_end_time - x[0]  # Since x[0] = 0.0 in this case
+    x0 = pulse.get_rise_start_time(x, y, start_range, end_range, threshold=threshold)
+    foot_duration = x0 - x[0]  # Since x[0] = 0.0 in this case
 
     with guiutils.lazy_qt_app_context() as qt_app:
         if qt_app is not None:
             # polarity = pulse.detect_polarity(x, y_noisy, start_range, end_range)
             # plateau_range = pulse.get_plateau_range(x, y_noisy, polarity)
-            title = f"Foot duration={foot_duration:.3f}, x_end={foot_end_time:.3f}, "
+            title = f"Foot duration={foot_duration:.3f}, x_end={x0:.3f}, "
             title += f"threshold={threshold:.3f}"
             view_baseline_plateau_and_curve(
                 x,
@@ -671,12 +669,10 @@ def test_get_foot_end_time() -> None:
                 start_range,
                 end_range,
                 plateau_range=None,
-                vcursors={"Foot duration end": foot_end_time},
+                vcursors={"Foot duration end": x0},
             )
 
-    check_scalar_result(
-        "foot_info x_end", foot_end_time, expected_foot_end_time, atol=0.2
-    )
+    check_scalar_result("foot_info x_end", x0, expected_foot_end_time, atol=0.2)
 
 
 def view_pulse_features(

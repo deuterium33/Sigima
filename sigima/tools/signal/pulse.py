@@ -809,16 +809,16 @@ def heuristically_find_foot_end_time(
     return None
 
 
-def get_foot_end_time(
+def get_rise_start_time(
     x: np.ndarray,
     y: np.ndarray,
     start_range: tuple[float, float],
     end_range: tuple[float, float],
     threshold: float | None = None,
 ) -> float:
-    """Calculate the end time of the foot (initial flat region) of a pulse signal.
+    """Find the rise start time of a step signal using multiple strategies.
 
-    This function tries multiple approaches to find the end of the foot region:
+    This function tries multiple approaches to find the rise start time:
     1. Uses threshold crossing if threshold is provided
     2. Uses heuristic detection as fallback
     3. Validates results to ensure they make physical sense
@@ -832,10 +832,10 @@ def get_foot_end_time(
          end of the foot. If None, use heuristic detection.
 
     Returns:
-        The end time of the foot region.
+        The rise start time (foot end time).
 
     Raises:
-        InvalidSignalError: If foot end time cannot be determined.
+        InvalidSignalError: If rise start time cannot be determined.
     """
     # Try heuristic detection first as it's often more reliable for step detection
     heuristic_result = heuristically_find_foot_end_time(x, y, start_range)
@@ -875,7 +875,7 @@ def get_foot_end_time(
                 return x[i]
         return x[max_dy_idx]
 
-    raise InvalidSignalError("Could not determine foot end time with any method")
+    raise InvalidSignalError("Could not determine rise start time with any method")
 
 
 @check_1d_arrays(x_sorted=True)
@@ -1122,6 +1122,7 @@ class PulseFeatures:
     rise_time: float | None = None
     fall_time: float | None = None
     fwhm: float | None = None
+    x0: float | None = None
     x50: float | None = None
     x100: float | None = None
 
@@ -1174,8 +1175,8 @@ def extract_pulse_features(
         rise_time = get_step_rise_time(
             x, y, start_range, end_range, start_rise_ratio, stop_rise_ratio
         )
+        x0 = get_rise_start_time(x, y, start_range, end_range)
         x50 = find_crossing_at_ratio(x, y, 0.5, start_range, end_range)
-        foot_end_time = get_foot_end_time(x, y, start_range, end_range)
         fall_time = None
         fwhm_val = None
     else:  # is square
@@ -1212,7 +1213,7 @@ def extract_pulse_features(
             start_rise_ratio,
             stop_rise_ratio,
         )
-        foot_end_time = get_foot_end_time(
+        x0 = get_rise_start_time(
             x[0 : ymax_idx + 1],
             y[0 : ymax_idx + 1],
             start_range,
@@ -1227,18 +1228,17 @@ def extract_pulse_features(
             fall_time = None
             rise_time = None
 
-    foot_duration = foot_end_time - x[0]
     if x50 is None:
         x100 = x[ymax_idx]
     else:
-        x100 = x50 + (x50 - x[0] - foot_duration)
+        x100 = x50 + (x50 - x0)
 
     return PulseFeatures(
         signal_shape=signal_shape,
         polarity=polarity,
         amplitude=amplitude,
         offset=get_range_mean_y(x, y * polarity, start_range),
-        foot_duration=foot_duration,
+        foot_duration=x0 - x[0],
         xstartmin=start_range[0],
         xstartmax=start_range[1],
         xendmin=end_range[0],
@@ -1248,6 +1248,7 @@ def extract_pulse_features(
         rise_time=rise_time,
         fall_time=fall_time,
         fwhm=fwhm_val,
+        x0=x0,
         x50=x50,
         x100=x100,
     )
