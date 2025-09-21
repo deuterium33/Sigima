@@ -67,4 +67,31 @@ introspection of computation functions:
 .. autofunction:: sigima.proc.decorator.is_computation_function
 .. autofunction:: sigima.proc.decorator.get_computation_metadata
 .. autofunction:: sigima.proc.decorator.find_computation_functions
+
+Title Formatting System
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The title formatting system provides configurable title generation for computation
+results, enabling different applications (Sigima standalone vs DataLab integration)
+to use different title formatting strategies:
+
+.. automodule:: sigima.proc.title_formatting
+   :members:
 """
+
+# Import title formatting components for easy access
+from sigima.proc.title_formatting import (
+    PlaceholderTitleFormatter,
+    SimpleTitleFormatter,
+    TitleFormatter,
+    get_default_title_formatter,
+    set_default_title_formatter,
+)
+
+__all__ = [
+    "TitleFormatter",
+    "SimpleTitleFormatter",
+    "PlaceholderTitleFormatter",
+    "get_default_title_formatter",
+    "set_default_title_formatter",
+]

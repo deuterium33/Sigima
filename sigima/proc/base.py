@@ -20,6 +20,7 @@ import numpy as np
 from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
 from sigima.enums import AngleUnit, FilterMode, MathOperator, NormalizationMethod
+from sigima.proc.title_formatting import get_default_title_formatter
 
 # NOTE: This module is a shared utilities library that defines common parameter classes
 # used by multiple other modules (signal processing, image processing, etc.).
@@ -223,23 +224,16 @@ def dst_1_to_1(src: Obj, name: str, suffix: str | None = None) -> Obj:
 
     Args:
         src: source signal or image object
-        name: name of the function. If provided, the title of the result object
-         will be `{name}({{0}})|{suffix})`, unless the name is a single
-         character, in which case the title will be `{{0}}{name}{suffix}`
-         where `name` is an operator and `suffix` is the other term of the operation.
+        name: name of the function. The title format depends on the configured
+         title formatter (SimpleTitleFormatter creates readable titles,
+         PlaceholderTitleFormatter creates DataLab-compatible placeholder titles).
         suffix: suffix to add to the title. Optional.
 
     Returns:
         Result signal or image object
     """
-    if len(name) == 1:  # This is an operator
-        title = f"{{0}}{name}"
-    else:
-        title = f"{name}({{0}})"
-        if suffix:  # suffix may be None or an empty string
-            title += "|"
-    if suffix:  # suffix may be None or an empty string
-        title += suffix
+    formatter = get_default_title_formatter()
+    title = formatter.format_1_to_1_title(name, suffix)
     dst = src.copy(title=title)
     return cast(Obj, dst)
 
@@ -257,7 +251,9 @@ def dst_n_to_1(src_list: list[Obj], name: str, suffix: str | None = None) -> Obj
 
     Args:
         src_list: list of input signal or image objects
-        name: name of the processing function
+        name: name of the processing function. The title format depends on the
+         configured title formatter (SimpleTitleFormatter creates readable titles,
+         PlaceholderTitleFormatter creates DataLab-compatible placeholder titles).
         suffix: suffix to add to the title
 
     Returns:
@@ -269,9 +265,10 @@ def dst_n_to_1(src_list: list[Obj], name: str, suffix: str | None = None) -> Obj
     all_imgs = all(isinstance(obj, ImageObj) for obj in src_list)
     if not (all_sigs or all_imgs):
         raise ValueError("src_list must be a list of SignalObj or ImageObj objects")
-    title = f"{name}(" + ", ".join(f"{{{i}}}" for i in range(len(src_list))) + ")"
-    if suffix:  # suffix may be None or an empty string
-        title += "|" + suffix
+
+    formatter = get_default_title_formatter()
+    title = formatter.format_n_to_1_title(name, len(src_list), suffix)
+
     if any(np.issubdtype(obj.data.dtype, complex) for obj in src_list):
         dst_dtype = complex
     else:
@@ -309,17 +306,16 @@ def dst_2_to_1(src1: Obj, src2: Obj, name: str, suffix: str | None = None) -> Ob
     Args:
         src1: input signal or image object
         src2: input signal or image object
-        name: name of the processing function
+        name: name of the processing function. The title format depends on the
+         configured title formatter (SimpleTitleFormatter creates readable titles,
+         PlaceholderTitleFormatter creates DataLab-compatible placeholder titles).
+        suffix: suffix to add to the title
 
     Returns:
         Output signal or image object
     """
-    if len(name) == 1:  # This is an operator
-        title = f"{{0}}{name}{{1}}"
-    else:
-        title = f"{name}({{0}}, {{1}})"
-    if suffix is not None:
-        title += "|" + suffix
+    formatter = get_default_title_formatter()
+    title = formatter.format_2_to_1_title(name, suffix)
     dst = src1.copy(title=title)
     return dst
 
@@ -338,7 +334,9 @@ def new_signal_result(
 
     Args:
         src: input signal or image object
-        name: name of the processing function
+        name: name of the processing function. The title format depends on the
+         configured title formatter (SimpleTitleFormatter creates readable titles,
+         PlaceholderTitleFormatter creates DataLab-compatible placeholder titles).
         suffix: suffix to add to the title
         units: units of the output signal
         labels: labels of the output signal
@@ -346,7 +344,8 @@ def new_signal_result(
     Returns:
         Output signal object
     """
-    title = f"{name}({{0}})"
+    formatter = get_default_title_formatter()
+    title = formatter.format_1_to_1_title(name, suffix)
     dst = create_signal(title=title, units=units, labels=labels)
     if suffix is not None:
         dst.title += "|" + suffix

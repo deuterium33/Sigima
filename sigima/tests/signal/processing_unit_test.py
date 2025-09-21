@@ -628,7 +628,7 @@ def test_signal_apply_window() -> None:
     assert np.array_equal(dst.x, src.x), "X-axis should be preserved after windowing"
 
     # Verify the signal object metadata is properly set
-    assert "apply_window" in dst.title, (
+    assert "Apply Window" in dst.title, (
         "Result title should indicate windowing operation"
     )
 
