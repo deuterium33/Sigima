@@ -299,7 +299,7 @@ def deconvolve(
            - ``wiener`` (recommended): ``H*(f) / (|H|^2 + reg * |D|^2)``, with
              ``|D|^2 = (2 sin(ω/2))^2`` (1st-derivative prior).
            - ``fft``: bare inverse ``1/H(f)`` (unstable; only for noise-free data).
-         Optionally clamp ``|G(f)| ≤ gain_max`` and lock DC gain.
+           - Optionally clamp ``|G(f)| ≤ gain_max`` and lock DC gain.
       4) IFFT, then extract the central unpadded segment (``len == len(y)``).
       5) Optionally auto-scale the result to correct amplitude bias from regularization.
 
@@ -316,7 +316,7 @@ def deconvolve(
         auto_scale: If True, auto-correct amplitude scaling after deconvolution.
 
     Returns:
-        Deconvolved signal (np.ndarray) with the same length as y, x-aligned.
+        Deconvolved signal with the same length as y, x-aligned.
     """
     if x.ndim != 1 or y.ndim != 1 or h.ndim != 1:
         raise ValueError("`x`, `y`, and `h` must be 1D arrays.")

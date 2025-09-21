@@ -38,7 +38,7 @@ Filtering Functions
 Curve Fitting Models
 ^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: sigima.tools.signal.pulse
+.. automodule:: sigima.tools.signal.fitting
    :members:
 
 Fourier Analysis Algorithms

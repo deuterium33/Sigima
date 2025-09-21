@@ -1157,7 +1157,7 @@ def evaluate_fit(x: np.ndarray, **fit_params) -> np.ndarray:
 
     Args:
         x: X values to evaluate at
-        **fit_params: Fit parameters (any of the *Params dataclasses)
+        **fit_params: Fit parameters (any of the ``*Params`` dataclasses)
 
     Returns:
         Y values computed from the fit function
