@@ -1016,9 +1016,9 @@ def full_width_at_ratio(
 
     Notes:
         - The function normalizes the signal based on the detected amplitude and
-        polarity.
+          polarity.
         - The crossing times are computed using `features.find_first_x_at_y_value`
-        function.
+          function.
     """
     amplitude = get_amplitude(x, y, start_range, end_range)
 

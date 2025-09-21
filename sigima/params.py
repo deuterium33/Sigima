@@ -321,6 +321,7 @@ __all__ = [
 
 from sigima.io.convenience import SaveToDirectoryParam
 from sigima.proc.base import (
+    AngleUnitParam,
     ArithmeticParam,
     ClipParam,
     ConstantParam,
@@ -376,7 +377,6 @@ from sigima.proc.image import (
 from sigima.proc.signal import (
     AbscissaParam,
     AllanVarianceParam,
-    AngleUnitParam,
     BandPassFilterParam,
     BandStopFilterParam,
     DataTypeSParam,

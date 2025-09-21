@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-20 19:40+0200\n"
+"POT-Creation-Date: 2025-09-21 17:50+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -63,9 +63,6 @@ msgstr "Flat Top"
 
 msgid "Gaussian"
 msgstr "Gaussienne"
-
-msgid "Linear"
-msgstr "Linéaire"
 
 msgid "Spline"
 msgstr "Spline"
@@ -198,9 +195,6 @@ msgstr "Coin supérieur gauche"
 msgid "Center coordinates"
 msgstr "Coordonnées du centre"
 
-msgid "Radius"
-msgstr "Rayon"
-
 msgid "Coordinates"
 msgstr "Coordonnées"
 
@@ -228,17 +222,8 @@ msgstr "Titre de l'image"
 msgid "Untitled"
 msgstr "Sans titre"
 
-msgid "X-axis"
-msgstr "Axe des X"
-
 msgid "Title"
 msgstr "Titre"
-
-msgid "Unit"
-msgstr "Unité"
-
-msgid "Y-axis"
-msgstr "Axe des Y"
 
 msgid "Z-axis"
 msgstr "Axe des Z"
@@ -360,17 +345,11 @@ msgstr "Dent de scie"
 msgid "Triangle"
 msgstr "Triangle"
 
-msgid "Square"
-msgstr "Carré"
-
 msgid "Cardinal sine"
 msgstr "Sinus cardinal"
 
 msgid "Linear chirp"
 msgstr "Modulation linéaire de fréquence"
-
-msgid "Step"
-msgstr "Echelon"
 
 msgid "Logistic"
 msgstr "Logistique"
@@ -417,9 +396,6 @@ msgstr "Température"
 msgid "Offset"
 msgstr "Décalage"
 
-msgid "Frequency"
-msgstr "Fréquence"
-
 msgid "Phase"
 msgstr "Phase"
 
@@ -456,9 +432,6 @@ msgstr "Instant de début"
 msgid "End time"
 msgstr "Instant de fin"
 
-msgid "Number of points"
-msgstr "Nombre de points"
-
 msgid "Initial value"
 msgstr "Valeur initiale"
 
@@ -482,9 +455,6 @@ msgstr "Opérateur"
 
 msgid "Factor"
 msgstr "Facteur"
-
-msgid "Constant"
-msgstr "Constante"
 
 msgid "Operation"
 msgstr "Opération"
@@ -516,9 +486,6 @@ msgstr ""
 msgid "Size of the moving window"
 msgstr "Taille de la fenêtre glissante"
 
-msgid "Mode"
-msgstr "Mode"
-
 msgid "Lower clipping value"
 msgstr "Borne inférieure d'écrêtage"
 
@@ -537,11 +504,11 @@ msgstr "Limite inférieure"
 msgid "Upper limit"
 msgstr "Limite supérieure"
 
-msgid "Shift"
-msgstr "Décalage"
-
 msgid "Shift zero frequency to center"
 msgstr "Décaler la fréquence nulle au centre"
+
+msgid "Shift"
+msgstr "Décalage"
 
 msgid "Output in decibel (dB)"
 msgstr "Sortie en décibels (dB)"
@@ -1065,6 +1032,51 @@ msgstr "Supérieur à"
 msgid "Less than"
 msgstr "Inférieur à"
 
+msgid "Decibel"
+msgstr ""
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Number"
+msgstr "Nombre"
+
+msgid "Sigma of the 2D Gaussian"
+msgstr "Sigma de la gaussienne 2D"
+
+msgid "Amplitude of the 2D Gaussian"
+msgstr "Amplitude de la gaussienne 2D"
+
+msgid "Mean of the Gaussian distribution"
+msgstr "Moyenne de la distribution gaussienne"
+
+msgid "Standard deviation of the Gaussian distribution"
+msgstr "Ecart-type de la distribution gaussienne"
+
+msgid "Attenuation"
+msgstr "Atténuation"
+
+msgid "X<sub>center</sub>"
+msgstr "X<sub>centre</sub>"
+
+msgid "Y<sub>center</sub>"
+msgstr "Y<sub>centre</sub>"
+
+msgid "Thickness"
+msgstr "Epaisseur"
+
+msgid "Intensity"
+msgstr "Intensité"
+
+msgid "Number of rows"
+msgstr "Nombre de lignes"
+
+msgid "Number of columns"
+msgstr "Nombre de colonnes"
+
+msgid "Centroid"
+msgstr "Barycentre"
+
 msgid "Destination data type"
 msgstr "Type de données de destination"
 
@@ -1079,6 +1091,12 @@ msgstr "Seuil"
 
 msgid "Minimum distance"
 msgstr "Distance minimale"
+
+msgid "X-axis"
+msgstr "Axe des X"
+
+msgid "Y-axis"
+msgstr "Axe des Y"
 
 msgid "Calibrate"
 msgstr "Étalonner"
@@ -1122,6 +1140,12 @@ msgstr "Où ajouter le complément de zéros"
 msgid "Number of points to add"
 msgstr "Nombre de points à ajouter"
 
+msgid "Number of points"
+msgstr "Nombre de points"
+
+msgid "Frequency"
+msgstr "Fréquence"
+
 msgid "Counts"
 msgstr "Coups"
 
@@ -1140,6 +1164,15 @@ msgstr "X<sub>min</sub>"
 msgid "X<sub>max</sub>"
 msgstr "X<sub>max</sub>"
 
+msgid "Mode"
+msgstr "Mode"
+
+msgid "Linear"
+msgstr "Linéaire"
+
+msgid "Constant"
+msgstr "Constante"
+
 msgid "Detrending method"
 msgstr "Méthode d'élimation de la tendance"
 
@@ -1154,6 +1187,9 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
+
+msgid "Radius"
+msgstr "Rayon"
 
 msgid "Angle"
 msgstr "Angle"
@@ -1172,6 +1208,12 @@ msgstr "Forme du signal"
 
 msgid "Auto"
 msgstr "Auto"
+
+msgid "Step"
+msgstr "Echelon"
+
+msgid "Square"
+msgstr "Carré"
 
 msgid "Signal type: auto-detect, step, or square."
 msgstr "Type de signal : auto-détection, échelon ou carré."
@@ -1245,6 +1287,9 @@ msgstr "Statistiques du signal"
 msgid "Full scale"
 msgstr "Pleine échelle"
 
+msgid "Unit"
+msgstr "Unité"
+
 msgid "Unit for SINAD"
 msgstr "Unité pour SINAD"
 
@@ -1265,46 +1310,4 @@ msgstr "Contraste"
 
 msgid "X at min/max"
 msgstr "X à min/max"
-
-msgid "Size"
-msgstr "Taille"
-
-msgid "Number"
-msgstr "Nombre"
-
-msgid "Sigma of the 2D Gaussian"
-msgstr "Sigma de la gaussienne 2D"
-
-msgid "Amplitude of the 2D Gaussian"
-msgstr "Amplitude de la gaussienne 2D"
-
-msgid "Mean of the Gaussian distribution"
-msgstr "Moyenne de la distribution gaussienne"
-
-msgid "Standard deviation of the Gaussian distribution"
-msgstr "Ecart-type de la distribution gaussienne"
-
-msgid "Attenuation"
-msgstr "Atténuation"
-
-msgid "X<sub>center</sub>"
-msgstr "X<sub>centre</sub>"
-
-msgid "Y<sub>center</sub>"
-msgstr "Y<sub>centre</sub>"
-
-msgid "Thickness"
-msgstr "Epaisseur"
-
-msgid "Intensity"
-msgstr "Intensité"
-
-msgid "Number of rows"
-msgstr "Nombre de lignes"
-
-msgid "Number of columns"
-msgstr "Nombre de colonnes"
-
-msgid "Centroid"
-msgstr "Barycentre"
 

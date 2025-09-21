@@ -154,6 +154,15 @@ class NormalizationMethod(Enum):
     RMS = _("RMS")
 
 
+class FilterType(Enum):
+    """Filter types"""
+
+    LOWPASS = "lowpass"
+    HIGHPASS = "highpass"
+    BANDPASS = "bandpass"
+    BANDSTOP = "bandstop"
+
+
 class FrequencyFilterMethod(Enum):
     """Frequency filter methods for signal processing."""
 

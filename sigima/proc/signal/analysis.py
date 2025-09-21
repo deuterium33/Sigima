@@ -1,0 +1,187 @@
+# -*- coding: utf-8 -*-
+# Licensed under the terms of the BSD 3-Clause
+# (see sigima/LICENSE for details)
+
+"""
+General analysis functions
+==========================
+
+This module provides general analysis functions for signal objects:
+
+- Histogram computation
+- Other analysis operations
+
+.. note::
+
+    Most operations use standard NumPy/SciPy functions or custom analysis routines.
+"""
+
+from __future__ import annotations
+
+import guidata.dataset as gds
+import numpy as np
+
+from sigima.config import _
+from sigima.objects import (
+    SignalObj,
+    TableKind,
+    TableResult,
+    TableResultBuilder,
+)
+from sigima.proc.base import HistogramParam, new_signal_result
+from sigima.proc.decorator import computation_function
+from sigima.tools.signal import dynamic, features, pulse
+
+
+@computation_function()
+def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
+    """Compute histogram with :py:func:`numpy.histogram`
+
+    Args:
+        src: source signal
+        p: parameters
+
+    Returns:
+        Result signal object
+    """
+    data = src.get_masked_view().compressed()
+    suffix = p.get_suffix(data)  # Also updates p.lower and p.upper
+
+    # Compute histogram:
+    y, bin_edges = np.histogram(data, bins=p.bins, range=(p.lower, p.upper))
+    x = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+    # Note: we use the `new_signal_result` function to create the result signal object
+    # because the `dst_1_to_1` would copy the source signal, which is not what we want
+    # here (we want a brand new signal object).
+    dst = new_signal_result(
+        src,
+        "histogram",
+        suffix=suffix,
+        units=(src.yunit, ""),
+        labels=(src.ylabel, _("Counts")),
+    )
+    dst.set_xydata(x, y)
+    dst.set_metadata_option("shade", 0.5)
+    dst.set_metadata_option("curvestyle", "Steps")
+    return dst
+
+
+class PulseFeaturesParam(gds.DataSet):
+    """Pulse features parameters."""
+
+    signal_shape = gds.ChoiceItem(
+        _("Signal shape"),
+        [
+            (None, _("Auto")),
+            ("step", _("Step")),
+            ("square", _("Square")),
+        ],
+        default=None,
+        help=_("Signal type: auto-detect, step, or square."),
+    )
+    xstartmin = gds.FloatItem(
+        _("Start baseline min"),
+        default=0.0,
+        help=_("Lower X boundary for the start baseline"),
+    )
+    xstartmax = gds.FloatItem(
+        _("Start baseline max"),
+        default=0.0,
+        help=_("Upper X boundary for the start baseline"),
+    )
+    xendmin = gds.FloatItem(
+        _("End baseline min"),
+        default=1.0,
+        help=_("Lower X boundary for the end baseline"),
+    )
+    xendmax = gds.FloatItem(
+        _("End baseline max"),
+        default=1.0,
+        help=_("Upper X boundary for the end baseline"),
+    )
+    start_ratio = gds.FloatItem(
+        _("Start rise ratio"),
+        default=0.1,
+        min=0.0,
+        max=1.0,
+        help=_("Fraction for rise start"),
+    )
+    stop_ratio = gds.FloatItem(
+        _("Stop rise ratio"),
+        default=0.9,
+        min=0.0,
+        max=1.0,
+        help=_("Fraction for rise end"),
+    )
+
+
+@computation_function()
+def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult:
+    """Extract pulse features.
+
+    Args:
+        obj: The signal object from which to extract features.
+        p: The pulse features parameters.
+
+    Returns:
+        An object containing the pulse features.
+    """
+    x, y = obj.get_data()
+    pulse_features = pulse.extract_pulse_features(
+        x,
+        y,
+        signal_shape=p.signal_shape,
+        start_range=[p.xstartmin, p.xstartmax],
+        end_range=[p.xendmin, p.xendmax],
+        start_ratio=p.start_ratio,
+        stop_ratio=p.stop_ratio,
+    )
+    builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
+    builder.add_from_dataclass(pulse_features)
+    return builder.compute(obj)
+
+
+@computation_function()
+def sampling_rate_period(obj: SignalObj) -> TableResult:
+    """Compute sampling rate and period
+    using the following functions:
+
+    - fs: :py:func:`sigima.tools.signal.dynamic.sampling_rate`
+    - T: :py:func:`sigima.tools.signal.dynamic.sampling_period`
+
+    Args:
+        obj: source signal
+
+    Returns:
+        Result properties with sampling rate and period
+    """
+    table = TableResultBuilder(_("Sampling rate and period"))
+    table.add(lambda xy: dynamic.sampling_rate(xy[0]), "fs", "fs = %g")
+    table.add(lambda xy: dynamic.sampling_period(xy[0]), "T", "T = %g {.xunit}")
+    return table.compute(obj)
+
+
+@computation_function()
+def contrast(obj: SignalObj) -> TableResult:
+    """Compute contrast with :py:func:`sigima.tools.signal.misc.contrast`"""
+    table = TableResultBuilder(_("Contrast"))
+    table.add(lambda xy: features.contrast(xy[1]), "contrast")
+    return table.compute(obj)
+
+
+@computation_function()
+def x_at_minmax(obj: SignalObj) -> TableResult:
+    """
+    Compute the smallest argument at the minima and the smallest argument at the maxima.
+
+    Args:
+        obj: The signal object.
+
+    Returns:
+        An object containing the x-values at the minima and the maxima.
+    """
+    table = TableResultBuilder(_("X at min/max"))
+    table.add(lambda xy: xy[0][np.argmin(xy[1])], "X@Ymin", "X@Ymin = %g {.xunit}")
+    table.add(lambda xy: xy[0][np.argmax(xy[1])], "X@Ymax", "X@Ymax = %g {.xunit}")
+    return table.compute(obj)

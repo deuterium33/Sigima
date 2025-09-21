@@ -1,0 +1,257 @@
+# -*- coding: utf-8 -*-
+#
+# Licensed under the terms of the BSD 3-Clause
+# (see sigima/LICENSE for details)
+
+"""
+Curve fitting operations
+========================
+
+This module provides curve fitting operations for signal objects:
+
+- Linear and polynomial fits
+- Gaussian, Lorentzian, and Voigt fits
+- Exponential and CDF fits
+
+.. note::
+
+    Most operations use functions from :mod:`sigima.tools.signal.fitting` for
+    actual computations.
+"""
+
+from __future__ import annotations
+
+from typing import Callable
+
+import guidata.dataset as gds
+import numpy as np
+
+from sigima.config import _
+from sigima.objects import SignalObj
+from sigima.proc.decorator import computation_function
+from sigima.tools.signal import fitting
+
+from .base import dst_1_to_1
+
+
+def __generic_fit(
+    src: SignalObj,
+    fitfunc: Callable[[np.ndarray, np.ndarray], tuple[np.ndarray, dict[str, float]]],
+) -> SignalObj:
+    """Generic fitting function.
+
+    Args:
+        src: source signal
+        fitfunc: fitting function
+
+    Returns:
+        Fitting result signal object
+    """
+    dst = dst_1_to_1(src, fitfunc.__name__)
+    x = src.x[~src.get_masked_view().mask]
+    y = src.get_masked_view().compressed()
+
+    fitted_y, fit_params = fitfunc(x, y)
+    dst.set_xydata(x, fitted_y)
+    dst.metadata["fit_params"] = fit_params
+    return dst
+
+
+@computation_function()
+def linear_fit(src: SignalObj) -> SignalObj:
+    """Compute linear fit with :py:func:`numpy.polyfit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.linear_fit)
+
+
+class PolynomialFitParam(gds.DataSet):
+    """Polynomial fitting parameters"""
+
+    degree = gds.IntItem(_("Degree"), 3, min=1, max=10, slider=True)
+
+
+@computation_function()
+def polynomial_fit(src: SignalObj, p: PolynomialFitParam) -> SignalObj:
+    """Compute polynomial fit with :py:func:`numpy.polyfit`
+
+    Args:
+        src: source signal
+        p: polynomial fitting parameters
+
+    Returns:
+        Result signal object
+    """
+    if p.degree < 1:
+        raise ValueError("The polynomial degree must be at least 1.")
+    return __generic_fit(src, lambda x, y: fitting.polynomial_fit(x, y, p.degree))
+
+
+@computation_function()
+def gaussian_fit(src: SignalObj) -> SignalObj:
+    """Compute Gaussian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.gaussian_fit)
+
+
+@computation_function()
+def lorentzian_fit(src: SignalObj) -> SignalObj:
+    """Compute Lorentzian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.lorentzian_fit)
+
+
+@computation_function()
+def voigt_fit(src: SignalObj) -> SignalObj:
+    """Compute Voigt fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.voigt_fit)
+
+
+@computation_function()
+def exponential_fit(src: SignalObj) -> SignalObj:
+    """Compute exponential fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.exponential_fit)
+
+
+@computation_function()
+def cdf_fit(src: SignalObj) -> SignalObj:
+    """Compute CDF fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.cdf_fit)
+
+
+@computation_function()
+def planckian_fit(src: SignalObj) -> SignalObj:
+    """Compute Planckian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.planckian_fit)
+
+
+@computation_function()
+def twohalfgaussian_fit(src: SignalObj) -> SignalObj:
+    """Compute two-half-Gaussian fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.twohalfgaussian_fit)
+
+
+@computation_function()
+def sigmoid_fit(src: SignalObj) -> SignalObj:
+    """Compute sigmoid fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.sigmoid_fit)
+
+
+@computation_function()
+def doubleexponential_fit(src: SignalObj) -> SignalObj:
+    """Compute double-exponential fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.doubleexponential_fit)
+
+
+@computation_function()
+def sinusoidal_fit(src: SignalObj) -> SignalObj:
+    """Compute sinusoidal fit with :py:func:`scipy.optimize.curve_fit`
+
+    Args:
+        src: source signal
+
+    Returns:
+        Result signal object
+    """
+    return __generic_fit(src, fitting.sinusoidal_fit)
+
+
+def extract_fit_params(signal: SignalObj) -> dict[str, float | str]:
+    """Extract fit parameters from a fitted signal.
+
+    Args:
+        signal: Signal object containing fit metadata
+
+    Returns:
+        Fit parameters
+    """
+    if "fit_params" not in signal.metadata:
+        raise ValueError("Signal does not contain fit parameters")
+    fit_params_dict: dict[str, float | str] = signal.metadata["fit_params"]
+    assert "fit_type" in fit_params_dict, "No valid fit parameters found"
+    return fit_params_dict
+
+
+def evaluate_fit(signal_template: SignalObj, **fit_params) -> SignalObj:
+    """Evaluate fit function to create a new signal.
+
+    Args:
+        signal_template: Template signal to copy x-axis and metadata from
+        **fit_params: Fit parameters
+
+    Returns:
+        New signal with evaluated fit
+    """
+    x = signal_template.x
+    y = fitting.evaluate_fit(x, **fit_params)
+
+    result = signal_template.copy()
+    result.y = y
+    result.title = f"Fitted {fit_params['fit_type']}"
+    return result

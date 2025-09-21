@@ -293,25 +293,25 @@ def deconvolve(
     """Deconvolve a 1D signal with frequency-dependent regularization and DC lock.
 
     Strategy:
-      1) Pad y with the same geometry as the 'convolve' step (x-uniform grid).
-      2) Build OTF H(f) from the centered PSF h.
+      1) Pad y with the same geometry as the ``convolve`` step (x-uniform grid).
+      2) Build OTF ``H(f)`` from the centered PSF ``h``.
       3) Compute inverse filter:
-           - 'wiener' (recommended): H*(f) / (|H|^2 + reg * |D|^2), with
-             |D|^2 = (2 sin(ω/2))^2 (1st-derivative prior).
-           - 'fft': bare inverse 1/H(f) (unstable; only for noise-free data).
-         Optionally clamp |G(f)| ≤ gain_max and lock DC gain.
-      4) IFFT, then extract the central unpadded segment (len == len(y)).
+           - ``wiener`` (recommended): ``H*(f) / (|H|^2 + reg * |D|^2)``, with
+             ``|D|^2 = (2 sin(ω/2))^2`` (1st-derivative prior).
+           - ``fft``: bare inverse ``1/H(f)`` (unstable; only for noise-free data).
+         Optionally clamp ``|G(f)| ≤ gain_max`` and lock DC gain.
+      4) IFFT, then extract the central unpadded segment (``len == len(y)``).
       5) Optionally auto-scale the result to correct amplitude bias from regularization.
 
     Args:
         x: Strictly increasing, uniformly spaced axis (same length as y).
-        y: Observed signal (result of y_true ⊛ h, plus noise).
+        y: Observed signal (result of ``y_true ⊛ h``, plus noise).
         h: Centered convolution kernel (PSF).
         boundary: Padding mode (should match your convolution).
-        normalize_kernel: If True, normalize h to preserve DC.
-        method: "wiener" (regularized inverse) or "fft" (bare inverse).
+        normalize_kernel: If True, normalize ``h`` to preserve DC.
+        method: ``"wiener"`` (regularized inverse) or ``"fft"`` (bare inverse).
         reg: Regularization strength for the derivative prior.
-        gain_max: Optional clamp on |G(f)| to avoid wild amplification.
+        gain_max: Optional clamp on ``|G(f)|`` to avoid wild amplification.
         dc_lock: If True, enforce exact DC gain (preserve mean/plateau).
         auto_scale: If True, auto-correct amplitude scaling after deconvolution.
 

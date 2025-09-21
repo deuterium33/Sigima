@@ -136,7 +136,7 @@ class SimpleTitleFormatter:
     def resolve_placeholder_title(
         self,
         title: str,
-        source_objects: list[BaseObj],
+        source_objects: list[BaseObj],  # pylint: disable=unused-argument
     ) -> str:
         """For simple formatter, just return the title as-is."""
         return title
@@ -223,5 +223,5 @@ def set_default_title_formatter(formatter: TitleFormatter) -> None:
     Args:
         formatter: Title formatter to use as default
     """
-    global _default_title_formatter
+    global _default_title_formatter  # pylint: disable=global-statement
     _default_title_formatter = formatter

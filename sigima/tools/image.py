@@ -252,7 +252,7 @@ def deconvolve(
         data: Input image (2D array).
         kernel: Point Spread Function (PSF), centered.
         reg: Regularization parameter (if >0, Wiener/Tikhonov inverse:
-         H* / (|H|^2 + reg)).
+         ``H* / (|H|^2 + reg))``.
         boundary: Padding mode ('edge' for constant plateau,
          'reflect' for symmetric mirror).
 
