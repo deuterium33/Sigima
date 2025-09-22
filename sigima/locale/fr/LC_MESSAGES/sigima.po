@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-22 16:49+0200\n"
+"POT-Creation-Date: 2025-09-22 17:03+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -222,6 +222,9 @@ msgstr "Taille des pixels"
 msgid "Extent"
 msgstr "Bornes"
 
+msgid "Titles / Units"
+msgstr "Titres / Unités"
+
 msgid "Image title"
 msgstr "Titre de l'image"
 
@@ -338,9 +341,6 @@ msgstr "Données et métadonnées"
 
 msgid "Signal title"
 msgstr "Titre du signal"
-
-msgid "Titles and units"
-msgstr "Titres et unités"
 
 msgid "Lorentzian"
 msgstr "Lorentzienne"
@@ -1125,14 +1125,14 @@ msgstr "Borne X supérieure pour la ligne de base de fin"
 msgid "Rise/Fall time"
 msgstr "Temps de montée/descente"
 
+msgid "5% - 95% (High precision)"
+msgstr "5% - 95% (haute précision)"
+
 msgid "10% - 90% (IEEE standard)"
 msgstr "10% - 90% (norme IEEE)"
 
 msgid "20% - 80% (Noisy signals)"
 msgstr "20% - 80% (signaux bruités)"
-
-msgid "5% - 95% (High precision)"
-msgstr "5% - 95% (haute précision)"
 
 msgid "25% - 75% (Alternative)"
 msgstr "25% - 75% (alternative)"

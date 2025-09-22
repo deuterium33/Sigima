@@ -858,7 +858,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     _e_boundaries = gds.EndGroup(_("Extent"))
     _e_dxdyg = gds.EndGroup(f"{_('Origin')} / {_('Pixel spacing')}")
 
-    _unitsg = gds.BeginGroup(f"{_('Titles')} / {_('Units')}")
+    _unitsg = gds.BeginGroup(_("Titles / Units"))
     title = gds.StringItem(_("Image title"), default=_("Untitled"))
     _tabs_u = gds.BeginTabGroup("units")
     _unitsx = gds.BeginGroup(_("X-axis"))
@@ -874,7 +874,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     zunit = gds.StringItem(_("Unit"), default="")
     _e_unitsz = gds.EndGroup(_("Z-axis"))
     _e_tabs_u = gds.EndTabGroup("units")
-    _e_unitsg = gds.EndGroup(f"{_('Titles')} / {_('Units')}")
+    _e_unitsg = gds.EndGroup(_("Titles / Units"))
 
     _scalesg = gds.BeginGroup(_("Scales"))
     _prop_autoscale = gds.GetAttrProp("autoscale")

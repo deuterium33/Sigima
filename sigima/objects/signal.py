@@ -206,7 +206,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     )  # Annotations as a serialized JSON string  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data and metadata"))
 
-    _unitsg = gds.BeginGroup(_("Titles and units"))
+    _unitsg = gds.BeginGroup(_("Titles / Units"))
     title = gds.StringItem(_("Signal title"), default=_("Untitled"))
     _tabs_u = gds.BeginTabGroup("units")
     _unitsx = gds.BeginGroup(_("X-axis"))
@@ -218,7 +218,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     yunit = gds.StringItem(_("Unit"), default="")
     _e_unitsy = gds.EndGroup(_("Y-axis"))
     _e_tabs_u = gds.EndTabGroup("units")
-    _e_unitsg = gds.EndGroup(_("Titles and units"))
+    _e_unitsg = gds.EndGroup(_("Titles / Units"))
 
     _scalesg = gds.BeginGroup(_("Scales"))
     _prop_autoscale = gds.GetAttrProp("autoscale")
