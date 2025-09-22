@@ -1058,12 +1058,12 @@ def test_signal_extract_pulse_features() -> None:
     p_step.xstartmax = 3.0
     p_step.xendmin = 6.0
     p_step.xendmax = 8.0
-    p_step.start_ratio = 0.1
-    p_step.stop_ratio = 0.9
+    p_step.reference_levels = (10, 90)
 
     # Calculate expected step features using the DataSet method
+    start_ratio, stop_ratio = p_step.reference_levels
     expected_step = step_params.get_expected_features(
-        p_step.start_ratio, p_step.stop_ratio
+        start_ratio / 100.0, stop_ratio / 100.0
     )
     tolerances_step = step_params.get_feature_tolerances()
 
@@ -1091,12 +1091,12 @@ def test_signal_extract_pulse_features() -> None:
     p_square.xstartmax = 2.5
     p_square.xendmin = 15
     p_square.xendmax = 17
-    p_square.start_ratio = 0.1
-    p_square.stop_ratio = 0.9
+    p_square.reference_levels = (10, 90)
 
     # Calculate expected square features using the DataSet method
+    start_ratio, stop_ratio = p_square.reference_levels
     expected_square = square_params.get_expected_features(
-        p_square.start_ratio, p_square.stop_ratio
+        start_ratio / 100.0, stop_ratio / 100.0
     )
 
     # Extract and validate square features

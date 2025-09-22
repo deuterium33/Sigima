@@ -634,7 +634,15 @@ def get_rise_time(
 
     Returns:
         The rise time (difference between the stop and start ratio crossings).
+
+    Raises:
+        ValueError: If ratios are not between 0 and 1.
     """
+    if start_ratio < 0.0 or start_ratio > 1.0:
+        raise ValueError("start_ratio must be between 0 and 1")
+    if stop_ratio < 0.0 or stop_ratio > 1.0:
+        raise ValueError("stop_ratio must be between 0 and 1")
+
     if start_range is None:
         start_range = get_start_range(x)
     if end_range is None:
@@ -728,7 +736,18 @@ def get_fall_time(
 
     Returns:
         The fall time (difference between the stop and start ratio crossings).
+
+    Raises:
+        ValueError: If start_ratio is not greater than stop_ratio or if ratios are
+         not between 0 and 1.
     """
+    if start_ratio < 0.0 or start_ratio > 1.0:
+        raise ValueError("start_ratio must be between 0 and 1")
+    if stop_ratio < 0.0 or stop_ratio > 1.0:
+        raise ValueError("stop_ratio must be between 0 and 1")
+    if start_ratio <= stop_ratio:
+        raise ValueError("For fall time, start_ratio must be greater than stop_ratio")
+
     if plateau_range is None:
         ymax_idx = np.argmax(y)
     else:
@@ -1219,7 +1238,17 @@ def extract_pulse_features(
 
     Returns:
         Pulse features.
+
+    Raises:
+        ValueError: If input parameters are invalid.
     """
+    if start_ratio > 1.0 or start_ratio < 0.0:
+        raise ValueError("start_ratio must be between 0 and 1")
+    if stop_ratio > 1.0 or stop_ratio < 0.0:
+        raise ValueError("stop_ratio must be between 0 and 1")
+    if start_ratio >= stop_ratio:
+        raise ValueError("start_ratio must be less than stop_ratio")
+
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
     if not isinstance(signal_shape, SignalShape):

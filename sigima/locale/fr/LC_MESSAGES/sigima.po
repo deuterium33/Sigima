@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-21 17:50+0200\n"
+"POT-Creation-Date: 2025-09-22 16:49+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -63,6 +63,9 @@ msgstr "Flat Top"
 
 msgid "Gaussian"
 msgstr "Gaussienne"
+
+msgid "Linear"
+msgstr "Linéaire"
 
 msgid "Spline"
 msgstr "Spline"
@@ -195,6 +198,9 @@ msgstr "Coin supérieur gauche"
 msgid "Center coordinates"
 msgstr "Coordonnées du centre"
 
+msgid "Radius"
+msgstr "Rayon"
+
 msgid "Coordinates"
 msgstr "Coordonnées"
 
@@ -222,8 +228,17 @@ msgstr "Titre de l'image"
 msgid "Untitled"
 msgstr "Sans titre"
 
+msgid "X-axis"
+msgstr "Axe des X"
+
 msgid "Title"
 msgstr "Titre"
+
+msgid "Unit"
+msgstr "Unité"
+
+msgid "Y-axis"
+msgstr "Axe des Y"
 
 msgid "Z-axis"
 msgstr "Axe des Z"
@@ -345,11 +360,17 @@ msgstr "Dent de scie"
 msgid "Triangle"
 msgstr "Triangle"
 
+msgid "Square"
+msgstr "Carré"
+
 msgid "Cardinal sine"
 msgstr "Sinus cardinal"
 
 msgid "Linear chirp"
 msgstr "Modulation linéaire de fréquence"
+
+msgid "Step"
+msgstr "Echelon"
 
 msgid "Logistic"
 msgstr "Logistique"
@@ -396,6 +417,9 @@ msgstr "Température"
 msgid "Offset"
 msgstr "Décalage"
 
+msgid "Frequency"
+msgstr "Fréquence"
+
 msgid "Phase"
 msgstr "Phase"
 
@@ -432,6 +456,9 @@ msgstr "Instant de début"
 msgid "End time"
 msgstr "Instant de fin"
 
+msgid "Number of points"
+msgstr "Nombre de points"
+
 msgid "Initial value"
 msgstr "Valeur initiale"
 
@@ -455,6 +482,9 @@ msgstr "Opérateur"
 
 msgid "Factor"
 msgstr "Facteur"
+
+msgid "Constant"
+msgstr "Constante"
 
 msgid "Operation"
 msgstr "Opération"
@@ -486,6 +516,9 @@ msgstr ""
 msgid "Size of the moving window"
 msgstr "Taille de la fenêtre glissante"
 
+msgid "Mode"
+msgstr "Mode"
+
 msgid "Lower clipping value"
 msgstr "Borne inférieure d'écrêtage"
 
@@ -504,11 +537,11 @@ msgstr "Limite inférieure"
 msgid "Upper limit"
 msgstr "Limite supérieure"
 
-msgid "Shift zero frequency to center"
-msgstr "Décaler la fréquence nulle au centre"
-
 msgid "Shift"
 msgstr "Décalage"
+
+msgid "Shift zero frequency to center"
+msgstr "Décaler la fréquence nulle au centre"
 
 msgid "Output in decibel (dB)"
 msgstr "Sortie en décibels (dB)"
@@ -780,6 +813,15 @@ msgstr "Écrêtage limite"
 msgid "Clipping limit (higher values give more contrast)."
 msgstr "Valeur d'écrêtage (plus la valeur est élevée, plus le contraste est important)."
 
+msgid "Threshold"
+msgstr "Seuil"
+
+msgid "Counts"
+msgstr "Coups"
+
+msgid "Calibrate"
+msgstr "Étalonner"
+
 msgid "increasing"
 msgstr "croissant"
 
@@ -942,6 +984,9 @@ msgstr "Nombre de pixels (Y)"
 msgid "Number of adjacent pixels to be combined together along Y-axis."
 msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
 
+msgid "Output image data type."
+msgstr "Type de données de l'image générée."
+
 msgid "Change pixel size"
 msgstr "Modifier la taille des pixels"
 
@@ -978,8 +1023,17 @@ msgstr "Largeur de l'image de sortie en pixels"
 msgid "Output image height in pixels"
 msgstr "Hauteur de l'image de sortie en pixels."
 
+msgid "Interpolation method"
+msgstr "Méthode d'interpolation"
+
+msgid "Fill value"
+msgstr "Valeur de remplissage"
+
 msgid "Value to use for points outside the input image domain. If None, uses NaN for extrapolation."
 msgstr "Valeur à utiliser pour les points en dehors du domaine de l'image d'origine. Si aucune valeur n'est fournie, alors NaN est utilisé pour l'extrapolation."
+
+msgid "Destination data type"
+msgstr "Type de données de destination"
 
 msgid "Image statistics"
 msgstr "Statistiques de l'image"
@@ -1011,6 +1065,9 @@ msgstr "Valeur de remplissage en dehors des bornes de l'image (en mode constant)
 msgid "Wavelet"
 msgstr "Ondelette"
 
+msgid "Method"
+msgstr "Méthode"
+
 msgid "Manual"
 msgstr "Manuel"
 
@@ -1032,8 +1089,189 @@ msgstr "Supérieur à"
 msgid "Less than"
 msgstr "Inférieur à"
 
-msgid "Decibel"
-msgstr ""
+msgid "Signal shape"
+msgstr "Forme du signal"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Signal type: auto-detect, step, or square."
+msgstr "Type de signal : auto-détection, échelon ou carré."
+
+msgid "Start baseline min"
+msgstr "X min. de la ligne de base de départ"
+
+msgid "Lower X boundary for the start baseline"
+msgstr "Borne X inférieure pour la ligne de base de départ"
+
+msgid "Start baseline max"
+msgstr "X max. de la ligne de base de départ"
+
+msgid "Upper X boundary for the start baseline"
+msgstr "Borne X supérieure pour la ligne de base de départ"
+
+msgid "End baseline min"
+msgstr "X min. de la ligne de base de fin"
+
+msgid "Lower X boundary for the end baseline"
+msgstr "Borne X inférieure pour la ligne de base de fin"
+
+msgid "End baseline max"
+msgstr "X max. de la ligne de base de fin"
+
+msgid "Upper X boundary for the end baseline"
+msgstr "Borne X supérieure pour la ligne de base de fin"
+
+msgid "Rise/Fall time"
+msgstr "Temps de montée/descente"
+
+msgid "10% - 90% (IEEE standard)"
+msgstr "10% - 90% (norme IEEE)"
+
+msgid "20% - 80% (Noisy signals)"
+msgstr "20% - 80% (signaux bruités)"
+
+msgid "5% - 95% (High precision)"
+msgstr "5% - 95% (haute précision)"
+
+msgid "25% - 75% (Alternative)"
+msgstr "25% - 75% (alternative)"
+
+#, python-format
+msgid "Reference levels for rise/fall time measurement. 10%-90% is the IEEE standard for digital signal analysis."
+msgstr "Niveaux de référence pour la mesure du temps de montée/descente. 10%-90% est la norme IEEE pour l'analyse des signaux numériques."
+
+msgid "Pulse features"
+msgstr "Caractéristiques"
+
+msgid "Sampling rate and period"
+msgstr "Taux d'échantillonnage et période"
+
+msgid "Contrast"
+msgstr "Contraste"
+
+msgid "X at min/max"
+msgstr "X à min/max"
+
+msgid "Minimum distance"
+msgstr "Distance minimale"
+
+msgid "Zero-crossing"
+msgstr "Passage par zéro"
+
+msgid "Gaussian fit"
+msgstr "Ajustement gaussien"
+
+msgid "Lorentzian fit"
+msgstr "Ajustement lorentzien"
+
+msgid "Voigt fit"
+msgstr "Ajustement Voigt"
+
+msgid "Lower X boundary (empty for no limit, i.e. start of the signal)"
+msgstr "Borne X inférieure (vide pour aucune limite, c'est-à-dire le début du signal)"
+
+msgid "Upper X boundary (empty for no limit, i.e. end of the signal)"
+msgstr "Borne X supérieure (vide pour aucune limite, c'est-à-dire la fin du signal)"
+
+msgid "Ordinate"
+msgstr "Coordonnées"
+
+msgid "Abscissa"
+msgstr "Abscisse"
+
+msgid "Signal statistics"
+msgstr "Statistiques du signal"
+
+msgid "Full scale"
+msgstr "Pleine échelle"
+
+msgid "Unit for SINAD"
+msgstr "Unité pour SINAD"
+
+msgid "Number of harmonics"
+msgstr "Nombre d'harmoniques"
+
+msgid "Number of harmonics to consider for THD"
+msgstr "Nombre d'harmoniques à considérer pour le THD"
+
+msgid "Dynamic parameters"
+msgstr "Paramètres dynamiques"
+
+msgid "Filter method"
+msgstr "Méthode de filtrage"
+
+msgid "Filter order"
+msgstr "Ordre du filtre"
+
+msgid "Low cutoff frequency"
+msgstr "Fréquence de coupure basse"
+
+msgid "High cutoff frequency"
+msgstr "Fréquence de coupure haute"
+
+msgid "Passband ripple"
+msgstr "Ondulation de la bande passante"
+
+msgid "Stopband attenuation"
+msgstr "Atténuation de la bande d'arrêt"
+
+msgid "Zero padding"
+msgstr "Complément de zéros"
+
+msgid "Minimum FFT points number"
+msgstr "Nombre minimum de points FFT"
+
+msgid "Cutoff frequency"
+msgstr "Fréquence de coupure"
+
+msgid "Degree"
+msgstr "Degré"
+
+msgid "Strategy"
+msgstr "Stratégie"
+
+msgid "Location"
+msgstr "Emplacement"
+
+msgid "Where to add the padding"
+msgstr "Où ajouter le complément de zéros"
+
+msgid "Number of points to add"
+msgstr "Nombre de points à ajouter"
+
+msgid "Power"
+msgstr "Puissance"
+
+msgid "Angle"
+msgstr "Angle"
+
+msgid "x"
+msgstr "x"
+
+msgid "y"
+msgstr "y"
+
+msgid "Value to use for points outside the interpolation domain (used only with linear, cubic and pchip methods)."
+msgstr "Valeur à utiliser pour les points en dehors du domaine d'interpolation (utilisé uniquement avec les méthodes linéaire, cubique et pchip)."
+
+msgid "X<sub>min</sub>"
+msgstr "X<sub>min</sub>"
+
+msgid "X<sub>max</sub>"
+msgstr "X<sub>max</sub>"
+
+msgid "Detrending method"
+msgstr "Méthode d'élimation de la tendance"
+
+msgid "Shape parameter of the Tukey windowing function"
+msgstr "Paramètre de forme de la fonction de fenêtrage de Tukey"
+
+msgid "Shape parameter of the Kaiser windowing function"
+msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
+
+msgid "Shape parameter of the Gaussian windowing function"
+msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
 
 msgid "Size"
 msgstr "Taille"
@@ -1076,237 +1314,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-
-msgid "Destination data type"
-msgstr "Type de données de destination"
-
-msgid "Output image data type."
-msgstr "Type de données de l'image générée."
-
-msgid "Power"
-msgstr "Puissance"
-
-msgid "Threshold"
-msgstr "Seuil"
-
-msgid "Minimum distance"
-msgstr "Distance minimale"
-
-msgid "X-axis"
-msgstr "Axe des X"
-
-msgid "Y-axis"
-msgstr "Axe des Y"
-
-msgid "Calibrate"
-msgstr "Étalonner"
-
-msgid "Filter method"
-msgstr "Méthode de filtrage"
-
-msgid "Filter order"
-msgstr "Ordre du filtre"
-
-msgid "Low cutoff frequency"
-msgstr "Fréquence de coupure basse"
-
-msgid "High cutoff frequency"
-msgstr "Fréquence de coupure haute"
-
-msgid "Passband ripple"
-msgstr "Ondulation de la bande passante"
-
-msgid "Stopband attenuation"
-msgstr "Atténuation de la bande d'arrêt"
-
-msgid "Zero padding"
-msgstr "Complément de zéros"
-
-msgid "Minimum FFT points number"
-msgstr "Nombre minimum de points FFT"
-
-msgid "Cutoff frequency"
-msgstr "Fréquence de coupure"
-
-msgid "Strategy"
-msgstr "Stratégie"
-
-msgid "Location"
-msgstr "Emplacement"
-
-msgid "Where to add the padding"
-msgstr "Où ajouter le complément de zéros"
-
-msgid "Number of points to add"
-msgstr "Nombre de points à ajouter"
-
-msgid "Number of points"
-msgstr "Nombre de points"
-
-msgid "Frequency"
-msgstr "Fréquence"
-
-msgid "Counts"
-msgstr "Coups"
-
-msgid "Interpolation method"
-msgstr "Méthode d'interpolation"
-
-msgid "Fill value"
-msgstr "Valeur de remplissage"
-
-msgid "Value to use for points outside the interpolation domain (used only with linear, cubic and pchip methods)."
-msgstr "Valeur à utiliser pour les points en dehors du domaine d'interpolation (utilisé uniquement avec les méthodes linéaire, cubique et pchip)."
-
-msgid "X<sub>min</sub>"
-msgstr "X<sub>min</sub>"
-
-msgid "X<sub>max</sub>"
-msgstr "X<sub>max</sub>"
-
-msgid "Mode"
-msgstr "Mode"
-
-msgid "Linear"
-msgstr "Linéaire"
-
-msgid "Constant"
-msgstr "Constante"
-
-msgid "Detrending method"
-msgstr "Méthode d'élimation de la tendance"
-
-msgid "Method"
-msgstr "Méthode"
-
-msgid "Shape parameter of the Tukey windowing function"
-msgstr "Paramètre de forme de la fonction de fenêtrage de Tukey"
-
-msgid "Shape parameter of the Kaiser windowing function"
-msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
-
-msgid "Shape parameter of the Gaussian windowing function"
-msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
-
-msgid "Radius"
-msgstr "Rayon"
-
-msgid "Angle"
-msgstr "Angle"
-
-msgid "x"
-msgstr "x"
-
-msgid "y"
-msgstr "y"
-
-msgid "Degree"
-msgstr "Degré"
-
-msgid "Signal shape"
-msgstr "Forme du signal"
-
-msgid "Auto"
-msgstr "Auto"
-
-msgid "Step"
-msgstr "Echelon"
-
-msgid "Square"
-msgstr "Carré"
-
-msgid "Signal type: auto-detect, step, or square."
-msgstr "Type de signal : auto-détection, échelon ou carré."
-
-msgid "Start baseline min"
-msgstr "X min. de la ligne de base de départ"
-
-msgid "Lower X boundary for the start baseline"
-msgstr "Borne X inférieure pour la ligne de base de départ"
-
-msgid "Start baseline max"
-msgstr "X max. de la ligne de base de départ"
-
-msgid "Upper X boundary for the start baseline"
-msgstr "Borne X supérieure pour la ligne de base de départ"
-
-msgid "End baseline min"
-msgstr "X min. de la ligne de base de fin"
-
-msgid "Lower X boundary for the end baseline"
-msgstr "Borne X inférieure pour la ligne de base de fin"
-
-msgid "End baseline max"
-msgstr "X max. de la ligne de base de fin"
-
-msgid "Upper X boundary for the end baseline"
-msgstr "Borne X supérieure pour la ligne de base de fin"
-
-msgid "Lower reference level"
-msgstr "Niveau de référence bas"
-
-msgid "Fraction for rise start"
-msgstr "Fraction pour le début de la montée"
-
-msgid "Upper reference level"
-msgstr "Niveau de référence haut"
-
-msgid "Fraction for rise end"
-msgstr "Fraction pour la fin de la montée"
-
-msgid "Pulse features"
-msgstr "Caractéristiques"
-
-msgid "Zero-crossing"
-msgstr "Passage par zéro"
-
-msgid "Gaussian fit"
-msgstr "Ajustement gaussien"
-
-msgid "Lorentzian fit"
-msgstr "Ajustement lorentzien"
-
-msgid "Voigt fit"
-msgstr "Ajustement Voigt"
-
-msgid "Lower X boundary (empty for no limit, i.e. start of the signal)"
-msgstr "Borne X inférieure (vide pour aucune limite, c'est-à-dire le début du signal)"
-
-msgid "Upper X boundary (empty for no limit, i.e. end of the signal)"
-msgstr "Borne X supérieure (vide pour aucune limite, c'est-à-dire la fin du signal)"
-
-msgid "Ordinate"
-msgstr "Coordonnées"
-
-msgid "Abscissa"
-msgstr "Abscisse"
-
-msgid "Signal statistics"
-msgstr "Statistiques du signal"
-
-msgid "Full scale"
-msgstr "Pleine échelle"
-
-msgid "Unit"
-msgstr "Unité"
-
-msgid "Unit for SINAD"
-msgstr "Unité pour SINAD"
-
-msgid "Number of harmonics"
-msgstr "Nombre d'harmoniques"
-
-msgid "Number of harmonics to consider for THD"
-msgstr "Nombre d'harmoniques à considérer pour le THD"
-
-msgid "Dynamic parameters"
-msgstr "Paramètres dynamiques"
-
-msgid "Sampling rate and period"
-msgstr "Taux d'échantillonnage et période"
-
-msgid "Contrast"
-msgstr "Contraste"
-
-msgid "X at min/max"
-msgstr "X à min/max"

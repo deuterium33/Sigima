@@ -100,19 +100,19 @@ class PulseFeaturesParam(gds.DataSet):
         default=1.0,
         help=_("Upper X boundary for the end baseline"),
     )
-    start_ratio = gds.FloatItem(
-        _("Lower reference level"),
-        default=0.1,
-        min=0.0,
-        max=1.0,
-        help=_("Fraction for rise start"),
-    )
-    stop_ratio = gds.FloatItem(
-        _("Upper reference level"),
-        default=0.9,
-        min=0.0,
-        max=1.0,
-        help=_("Fraction for rise end"),
+    reference_levels = gds.ChoiceItem(
+        _("Rise/Fall time"),
+        [
+            ((5, 95), _("5% - 95% (High precision)")),
+            ((10, 90), _("10% - 90% (IEEE standard)")),
+            ((20, 80), _("20% - 80% (Noisy signals)")),
+            ((25, 75), _("25% - 75% (Alternative)")),
+        ],
+        default=(10, 90),
+        help=_(
+            "Reference levels for rise/fall time measurement. "
+            "10%-90% is the IEEE standard for digital signal analysis."
+        ),
     )
 
 
@@ -128,14 +128,15 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         An object containing the pulse features.
     """
     x, y = obj.get_data()
+    start_ratio, stop_ratio = p.reference_levels
     pulse_features = pulse.extract_pulse_features(
         x,
         y,
         signal_shape=p.signal_shape,
         start_range=[p.xstartmin, p.xstartmax],
         end_range=[p.xendmin, p.xendmax],
-        start_ratio=p.start_ratio,
-        stop_ratio=p.stop_ratio,
+        start_ratio=start_ratio / 100.0,
+        stop_ratio=stop_ratio / 100.0,
     )
     builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
     builder.add_from_dataclass(pulse_features)
