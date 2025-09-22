@@ -101,14 +101,14 @@ class PulseFeaturesParam(gds.DataSet):
         help=_("Upper X boundary for the end baseline"),
     )
     start_ratio = gds.FloatItem(
-        _("Start rise ratio"),
+        _("Lower reference level"),
         default=0.1,
         min=0.0,
         max=1.0,
         help=_("Fraction for rise start"),
     )
     stop_ratio = gds.FloatItem(
-        _("Stop rise ratio"),
+        _("Upper reference level"),
         default=0.9,
         min=0.0,
         max=1.0,

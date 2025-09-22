@@ -1242,14 +1242,14 @@ msgstr "X max. de la ligne de base de fin"
 msgid "Upper X boundary for the end baseline"
 msgstr "Borne X supérieure pour la ligne de base de fin"
 
-msgid "Start rise ratio"
-msgstr "% de début de montée"
+msgid "Lower reference level"
+msgstr "Niveau de référence bas"
 
 msgid "Fraction for rise start"
 msgstr "Fraction pour le début de la montée"
 
-msgid "Stop rise ratio"
-msgstr "% de fin de montée"
+msgid "Upper reference level"
+msgstr "Niveau de référence haut"
 
 msgid "Fraction for rise end"
 msgstr "Fraction pour la fin de la montée"
@@ -1310,4 +1310,3 @@ msgstr "Contraste"
 
 msgid "X at min/max"
 msgstr "X à min/max"
-
