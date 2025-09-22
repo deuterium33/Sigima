@@ -156,7 +156,7 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
 
     def get_suffix(self) -> str:
         """Get suffix text representation for ROI extraction"""
-        if re.match(base.GENERIC_ROI_TITLE_REGEXP, self.title):
+        if re.match(base.GENERIC_ROI_TITLE_REGEXP, self.title) or not self.title:
             if self.geometry == "rectangle":
                 return f"x0={self.x0},y0={self.y0},dx={self.dx},dy={self.dy}"
             if self.geometry == "circle":
