@@ -109,7 +109,7 @@ def threshold(src: ImageObj, p: ThresholdParam) -> ImageObj:
         func = getattr(filters, f"threshold_{p.method}")
         args = [] if p.method in ("li", "mean") else [p.bins]
         value = func(src.data, *args)
-    suffix += f", op={p.operation}"
+    suffix += f", op='{p.operation}'"
     dst = dst_1_to_1(src, "threshold", suffix)
     data = src.data > value if p.operation == ">" else src.data < value
     dst.data = skimage.util.img_as_ubyte(data)
