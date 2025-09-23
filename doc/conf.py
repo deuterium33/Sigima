@@ -121,9 +121,31 @@ extensions = [
     "sphinx_design",
     "sphinx_copybutton",
     "guidata.dataset.autodoc",
+    "sphinx_gallery.gen_gallery",
 ]
 templates_path = ["_templates"]
 exclude_patterns = []
+
+# -- Sphinx-Gallery configuration --------------------------------------------
+# Add the doc directory to sys.path so Sphinx-Gallery can import plotpy_scraper
+doc_dir = os.path.dirname(__file__)
+sys.path.insert(0, doc_dir)
+
+sphinx_gallery_conf = {
+    "examples_dirs": "examples",  # Path to example scripts
+    "gallery_dirs": "auto_examples",  # Output directory for gallery
+    "filename_pattern": "plot_",  # Pattern for example files
+    "image_scrapers": [
+        "plotpy_scraper.plotpy_scraper"
+    ],  # Use string reference to avoid pickling issues
+    "reset_modules": [],  # Reset modules between examples
+    "remove_config_comments": False,
+    "expected_failing_examples": [],
+    "plot_gallery": True,
+    "download_all_examples": False,
+    "show_memory": False,
+    "run_stale_examples": False,  # Force run all examples
+}
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"

@@ -557,7 +557,7 @@
                 "build/doc",
                 "-b",
                 "html",
-                "-W",
+                // "-W",
             ],
             "options": {
                 "cwd": "${workspaceFolder}",

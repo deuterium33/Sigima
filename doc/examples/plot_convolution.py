@@ -1,53 +1,58 @@
 """
-Convolution and Deconvolution Tutorial
-======================================
+Convolution and Deconvolution with Sigima
+=========================================
 
-This tutorial demonstrates the image convolution and deconvolution features
+This example demonstrates the image convolution and deconvolution features
 available in Sigima, showing various kernels and their effects on images.
 Each section builds upon the previous one to create a comprehensive
 understanding of convolution operations.
 
-Usage:
-    python convolution_example.py [--screenshot] [--unattended]
+The example shows:
 
-    The script supports standard execenv command line options for automated execution.
+* Creating test images and kernels
+* Basic convolution with Gaussian kernel
+* Identity convolution (preserving original image)
+* Deconvolution operations
+* Effects of different kernel parameters
+* Custom edge detection and sharpening kernels
 
-Created on September 23, 2025
-
-@author: DataLab Platform Developers
+This tutorial uses PlotPy for visualization, providing interactive plots
+that allow you to explore the convolution results in detail.
 """
 
-# %% Importing necessary modules
+# %%
+# Importing necessary modules
+# ---------------------------
+# We'll start by importing all the required modules for image processing
+# and visualization.
 
 import numpy as np
 import scipy.signal as sps
-from guidata import qapplication
 
-# Sigima objects and functions
 from sigima.objects import create_image, create_image_from_param
 from sigima.objects.image import Gauss2DParam, Zeros2DParam
 from sigima.proc.image.mathops import convolution, deconvolution
 from sigima.tests.vistools import view_images_side_by_side
 
-# Create a QApplication instance
-app = qapplication()
-
-# %% Step 1: Creating test images and kernels
+# %%
+# Creating test images and kernels
+# --------------------------------
+# We start by creating a test image and various convolution kernels.
 
 # Set the fixed image size for this tutorial
 size = 128
 
-# Generate a test square image with a rectangle in the center:
+# Generate a test square image with a rectangle in the center
 data = np.zeros((size, size), dtype=np.float64)
 data[size // 5 : 2 * size // 5, size // 7 : 5 * size // 7] = 1.0
 original_image = create_image("Original Rectangle", data)
 
-# Generate a Gaussian kernel:
+# Generate a Gaussian kernel
 gparam = Gauss2DParam.create(height=31, width=31, sigma=2.0)
 gaussian_kernel = create_image_from_param(gparam)
 gaussian_kernel.title = "Gaussian Kernel (σ=2.0)"
 
-# Generate an identity kernel (impulse response):
+# Generate an identity kernel (impulse response)
 identity_size = 15
 identity_kernel = create_image_from_param(
     Zeros2DParam.create(height=identity_size, width=identity_size)
@@ -56,11 +61,23 @@ identity_kernel.data[identity_size // 2, identity_size // 2] = 1.0
 identity_kernel.title = "Identity Kernel"
 
 print("✓ Test images and kernels created successfully!")
+print("This example demonstrates convolution and deconvolution with Sigima.")
 print(f"Original image shape: {original_image.data.shape}")
 print(f"Gaussian kernel shape: {gaussian_kernel.data.shape}")
 print(f"Identity kernel shape: {identity_kernel.data.shape}")
 
-# %% Step 2: Basic convolution with Gaussian kernel
+# Display the original image and kernels
+view_images_side_by_side(
+    [original_image, gaussian_kernel, identity_kernel],
+    ["Original Image", "Gaussian Kernel (σ=2.0)", "Identity Kernel"],
+    title="Test Images and Kernels",
+)
+
+# %%
+# Basic convolution with Gaussian kernel
+# --------------------------------------
+# Now we'll perform convolution with the Gaussian kernel and compare
+# the result with scipy's implementation to verify correctness.
 
 # Perform convolution with Gaussian kernel
 convolved_gauss = convolution(original_image, gaussian_kernel)
@@ -74,14 +91,18 @@ print("\n✓ Convolution completed!")
 max_diff = np.max(np.abs(convolved_gauss.data - expected_result))
 print(f"Max difference from scipy: {max_diff:.2e}")
 
-# Visualize the results
+# Visualize the convolution process
 view_images_side_by_side(
     [original_image, gaussian_kernel, convolved_gauss],
     ["Original Image", "Gaussian Kernel (σ=2.0)", "Convolved Result"],
     title="Gaussian Convolution Example",
 )
 
-# %% Step 3: Identity convolution (should preserve original image)
+# %%
+# Identity convolution
+# --------------------
+# Identity convolution should preserve the original image exactly.
+# This demonstrates that our convolution implementation is working correctly.
 
 # Perform convolution with identity kernel
 convolved_identity = convolution(original_image, identity_kernel)
@@ -96,10 +117,14 @@ print(f"Max difference from original: {difference:.2e}")
 view_images_side_by_side(
     [original_image, identity_kernel, convolved_identity],
     ["Original Image", "Identity Kernel", "Convolved with Identity"],
-    title="Identity Convolution Example",
+    "Identity Convolution Example",
 )
 
-# %% Step 4: Deconvolution with identity kernel
+# %%
+# Deconvolution with identity kernel
+# ----------------------------------
+# Deconvolution is the inverse operation of convolution. We'll start
+# with a simple case using the identity kernel.
 
 # Start with the convolved image and deconvolve using identity kernel
 deconvolved_identity = deconvolution(convolved_identity, identity_kernel)
@@ -117,18 +142,22 @@ view_images_side_by_side(
     title="Identity Deconvolution Example",
 )
 
-# %% Step 5: Advanced deconvolution with Gaussian kernel
+# %%
+# Advanced deconvolution with Gaussian kernel
+# -------------------------------------------
+# Now we'll try deconvolution with a Gaussian kernel, which is more
+# challenging and demonstrates the limitations of deconvolution.
 
-# Create a Gaussian kernel with smaller sigma for better deconvolution:
+# Create a Gaussian kernel with smaller sigma for better deconvolution
 gparam.sigma = 1.5
 deconv_gaussian = create_image_from_param(gparam)
 deconv_gaussian.title = "Gaussian Kernel (σ=1.5)"
 
-# Convolve the original image with this kernel:
+# Convolve the original image with this kernel
 large_convolved = convolution(original_image, deconv_gaussian)
 large_convolved.title = "Convolved Image"
 
-# Attempt deconvolution to recover the original:
+# Attempt deconvolution to recover the original
 large_deconvolved = deconvolution(large_convolved, deconv_gaussian)
 large_deconvolved.title = "Deconvolved Result"
 
@@ -145,9 +174,13 @@ view_images_side_by_side(
     title="Gaussian Deconvolution Example",
 )
 
-# %% Step 6: Exploring different kernel sizes and sigmas
+# %%
+# Exploring different kernel parameters
+# -------------------------------------
+# Different sigma values in Gaussian kernels produce different blurring effects.
+# Let's compare several sigma values side by side.
 
-# Create kernels with different sigma parameters:
+# Create kernels with different sigma parameters
 gparam.sigma = 0.8
 small_sigma = create_image_from_param(gparam)
 gparam.sigma = 2.0
@@ -155,37 +188,42 @@ medium_sigma = create_image_from_param(gparam)
 gparam.sigma = 4.0
 large_sigma = create_image_from_param(gparam)
 
-# Convolve the original image with each kernel:
+# Convolve the original image with each kernel
 conv_small = convolution(original_image, small_sigma)
 conv_medium = convolution(original_image, medium_sigma)
 conv_large = convolution(original_image, large_sigma)
 
 print("\n✓ Multiple kernel comparison completed!")
 
-# Show the effect of different sigma values
+# Show the effect of different sigma values on kernels
 view_images_side_by_side(
     [small_sigma, medium_sigma, large_sigma],
     ["Kernel σ=0.8", "Kernel σ=2.0", "Kernel σ=4.0"],
     title="Gaussian Kernels with Different Sigma Values",
 )
 
+# Show the effect of different sigma values on convolution results
 view_images_side_by_side(
     [conv_small, conv_medium, conv_large],
     ["Convolved σ=0.8", "Convolved σ=2.0", "Convolved σ=4.0"],
     title="Convolution Results with Different Sigma Values",
 )
 
-# %% Step 7: Creating custom kernels
+# %%
+# Custom convolution kernels
+# --------------------------
+# Besides Gaussian kernels, we can create custom kernels for specific
+# image processing tasks like edge detection and sharpening.
 
-# Edge detection kernel (Sobel-like):
+# Edge detection kernel (Sobel-like)
 edge_data = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float64)
 edge_kernel = create_image("Edge Detection Kernel", edge_data)
 
-# Sharpening kernel:
+# Sharpening kernel
 sharpen_data = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float64)
 sharpen_kernel = create_image("Sharpening Kernel", sharpen_data)
 
-# Apply custom kernels to the original image:
+# Apply custom kernels to the original image
 edge_result = convolution(original_image, edge_kernel)
 edge_result.title = "Edge Detection"
 
@@ -194,20 +232,25 @@ sharpen_result.title = "Sharpened"
 
 print("\n✓ Custom kernel convolutions completed!")
 
-# Visualize custom kernel results
+# Visualize custom kernels
 view_images_side_by_side(
     [edge_kernel, sharpen_kernel],
     ["Edge Detection Kernel", "Sharpening Kernel"],
     title="Custom Convolution Kernels",
 )
 
+# Visualize custom kernel results
 view_images_side_by_side(
     [original_image, edge_result, sharpen_result],
     ["Original", "Edge Detection", "Sharpened"],
     title="Custom Kernel Convolution Results",
 )
 
-# %% Summary and conclusions
+# %%
+# Summary and conclusions
+# -----------------------
+# This tutorial demonstrated the key concepts of convolution and deconvolution
+# in image processing using Sigima.
 
 print("\n" + "=" * 60)
 print("CONVOLUTION TUTORIAL SUMMARY")
@@ -225,7 +268,7 @@ print("• Deconvolution can recover original features (with limitations)")
 print("• Custom kernels enable specialized image processing effects")
 
 # Final comparison showing the complete pipeline
-view_images_side_by_side(
+dialog10 = view_images_side_by_side(
     [original_image, gaussian_kernel, convolved_gauss, large_deconvolved],
     ["Original", "Gaussian Kernel", "Convolved", "Deconvolved"],
     title="Complete Convolution-Deconvolution Pipeline",

@@ -6,11 +6,12 @@ Visualization tools for `sigima` interactive tests (based on PlotPy)
 
 from __future__ import annotations
 
+import os
 from typing import Generator, Literal
 
 import numpy as np
 import plotpy.tools
-from guidata.qthelpers import exec_dialog
+from guidata.qthelpers import exec_dialog as guidata_exec_dialog
 from plotpy.builder import make
 from plotpy.items import (
     AnnotatedPolygon,
@@ -29,11 +30,38 @@ from plotpy.plot import (
     SyncPlotDialog,
 )
 from plotpy.styles import LINESTYLES, ShapeParam
+from qtpy import QtWidgets as QW
 
 from sigima.config import _
 from sigima.objects import ImageObj, SignalObj
 from sigima.objects.image import CircularROI, PolygonalROI, RectangularROI
 from sigima.tests.helpers import get_default_test_name
+
+QAPP: QW.QApplication | None = None
+
+WIDGETS: list[QW.QWidget] = []
+
+
+def ensure_qapp() -> QW.QApplication:
+    """Ensure that a QApplication instance exists."""
+    global QAPP
+    if QAPP is None:
+        QAPP = QW.QApplication.instance()
+        if QAPP is None:
+            QAPP = QW.QApplication([])  # type: ignore[assignment]
+    return QAPP
+
+
+def exec_dialog(dlg: QW.QDialog) -> None:
+    """Execute a dialog, supporting Sphinx-Gallery scraping."""
+    global WIDGETS
+    gallery_building = os.getenv("SPHINX_GALLERY_BUILDING")
+    if gallery_building:
+        dlg.show()
+        WIDGETS.append(dlg)
+    else:
+        guidata_exec_dialog(dlg)
+
 
 TEST_NB = {}
 
@@ -278,6 +306,7 @@ def view_curve_items(
         add_legend: Whether to add a legend to the plot, default is True
         object_name: Object name for the dialog (for screenshot functionality)
     """
+    ensure_qapp()
     win = create_curve_dialog(
         name=name, title=title, xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
     )
@@ -317,6 +346,7 @@ def view_curves(
         yunit: Unit for the y-axis, or None for no unit
         object_name: Object name for the dialog (for screenshot functionality)
     """
+    ensure_qapp()
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
     else:
@@ -392,6 +422,7 @@ def create_image_dialog(
     Returns:
         A `PlotDialog` instance configured for image plotting
     """
+    ensure_qapp()
     name, title = get_name_title(name, title)
     win = PlotDialog(
         edit=False,
@@ -453,6 +484,7 @@ def view_image_items(
          default is False
         object_name: Object name for the dialog (for screenshot functionality)
     """
+    ensure_qapp()
     win = create_image_dialog(
         name=name,
         title=title,
@@ -498,6 +530,7 @@ def view_images(
         zunit: Unit for the z-axis (color scale), or None for no unit
         object_name: Object name for the dialog (for screenshot functionality)
     """
+    ensure_qapp()
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
     else:
@@ -575,6 +608,7 @@ def view_curves_and_images(
         zunit: Unit for the z-axis (color scale), or None for no unit
         object_name: Object name for the dialog (for screenshot functionality)
     """
+    ensure_qapp()
     if isinstance(data_or_objs, (tuple, list)):
         objs = data_or_objs
     else:
@@ -649,6 +683,7 @@ def view_images_side_by_side(
         title: Title of the dialog, or None for a default title
         object_name: Object name for the dialog widget (used for screenshot filename)
     """
+    ensure_qapp()
     # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
     dlg = SyncPlotDialog(title=title)
