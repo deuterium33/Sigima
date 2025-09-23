@@ -237,6 +237,23 @@ def create_label(text: str) -> LabelItem:
     return item
 
 
+def get_object_name_from_title(title: str, fallback: str) -> str:
+    """Generate a valid object name from a title string
+
+    Args:
+        title: The title string to convert
+        fallback: Fallback name to use if title is empty or invalid
+
+    Returns:
+        A valid object name derived from the title or the fallback name
+    """
+    if title:
+        obj_name = "".join(c if c.isalnum() else "_" for c in title)
+        if obj_name:
+            return obj_name
+    return fallback
+
+
 def view_curve_items(
     items: list[CurveItem],
     name: str | None = None,
@@ -246,6 +263,7 @@ def view_curve_items(
     xunit: str | None = None,
     yunit: str | None = None,
     add_legend: bool = True,
+    object_name: str = "",
 ) -> None:
     """Create a curve dialog and plot items
 
@@ -258,10 +276,12 @@ def view_curve_items(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
         add_legend: Whether to add a legend to the plot, default is True
+        object_name: Object name for the dialog (for screenshot functionality)
     """
     win = create_curve_dialog(
         name=name, title=title, xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
     )
+    win.setObjectName(object_name or get_object_name_from_title(title, "curve_dialog"))
     plot = win.get_plot()
     for item in items:
         plot.add_item(item)
@@ -282,6 +302,7 @@ def view_curves(
     ylabel: str | None = None,
     xunit: str | None = None,
     yunit: str | None = None,
+    object_name: str = "",
 ) -> None:
     """Create a curve dialog and plot curves
 
@@ -294,6 +315,7 @@ def view_curves(
         ylabel: Label for the y-axis, or None for no label
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
+        object_name: Object name for the dialog (for screenshot functionality)
     """
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
@@ -336,6 +358,7 @@ def view_curves(
         ylabel=ylabel,
         xunit=xunit,
         yunit=yunit,
+        object_name=object_name,
     )
     make.style = style_generator()  # Reset style generator for next call
 
@@ -350,6 +373,7 @@ def create_image_dialog(
     yunit: str | None = None,
     zunit: str | None = None,
     size: tuple[int, int] | None = None,
+    object_name: str = "",
 ) -> PlotDialog:
     """Create Image Dialog
 
@@ -363,6 +387,7 @@ def create_image_dialog(
         yunit: Unit for the y-axis, or None for no unit
         zunit: Unit for the z-axis (color scale), or None for no unit
         size: Size of the dialog as a tuple (width, height), or None for default size
+        object_name: Object name for the dialog (for screenshot functionality)
 
     Returns:
         A `PlotDialog` instance configured for image plotting
@@ -383,7 +408,7 @@ def create_image_dialog(
         ),
         size=(800, 600) if size is None else size,
     )
-    win.setObjectName(name)
+    win.setObjectName(object_name or name)
     for toolklass in (
         plotpy.tools.LabelTool,
         plotpy.tools.VCursorTool,
@@ -410,6 +435,7 @@ def view_image_items(
     yunit: str | None = None,
     zunit: str | None = None,
     show_itemlist: bool = False,
+    object_name: str = "",
 ) -> None:
     """Create an image dialog and show items
 
@@ -425,6 +451,7 @@ def view_image_items(
         zunit: Unit for the z-axis (color scale), or None for no unit
         show_itemlist: Whether to show the item list panel in the dialog,
          default is False
+        object_name: Object name for the dialog (for screenshot functionality)
     """
     win = create_image_dialog(
         name=name,
@@ -435,6 +462,7 @@ def view_image_items(
         xunit=xunit,
         yunit=yunit,
         zunit=zunit,
+        object_name=object_name,
     )
     if show_itemlist:
         win.manager.get_itemlist_panel().show()
@@ -454,6 +482,7 @@ def view_images(
     xunit: str | None = None,
     yunit: str | None = None,
     zunit: str | None = None,
+    object_name: str = "",
 ) -> None:
     """Create an image dialog and show images
 
@@ -467,6 +496,7 @@ def view_images(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
         zunit: Unit for the z-axis (color scale), or None for no unit
+        object_name: Object name for the dialog (for screenshot functionality)
     """
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
@@ -515,6 +545,7 @@ def view_images(
         xunit=xunit,
         yunit=yunit,
         zunit=zunit,
+        object_name=object_name,
     )
 
 
@@ -528,6 +559,7 @@ def view_curves_and_images(
     xunit: str | None = None,
     yunit: str | None = None,
     zunit: str | None = None,
+    object_name: str = "",
 ) -> None:
     """View signals, then images in two successive dialogs
 
@@ -541,6 +573,7 @@ def view_curves_and_images(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
         zunit: Unit for the z-axis (color scale), or None for no unit
+        object_name: Object name for the dialog (for screenshot functionality)
     """
     if isinstance(data_or_objs, (tuple, list)):
         objs = data_or_objs
@@ -556,6 +589,7 @@ def view_curves_and_images(
             ylabel=ylabel,
             xunit=xunit,
             yunit=yunit,
+            object_name=f"{object_name}_curves",
         )
     ima_objs = [obj for obj in objs if isinstance(obj, (ImageObj, np.ndarray))]
     if ima_objs:
@@ -569,6 +603,7 @@ def view_curves_and_images(
             xunit=xunit,
             yunit=yunit,
             zunit=zunit,
+            object_name=f"{object_name}_images",
         )
 
 
@@ -601,6 +636,7 @@ def view_images_side_by_side(
     rows: int | None = None,
     maximized: bool = False,
     title: str | None = None,
+    object_name: str = "",
 ) -> None:
     """Show sequence of images
 
@@ -611,10 +647,14 @@ def view_images_side_by_side(
         rows: Fixed number of rows in the grid, or None to compute automatically
         maximized: Whether to show the dialog maximized, default is False
         title: Title of the dialog, or None for a default title
+        object_name: Object name for the dialog widget (used for screenshot filename)
     """
     # pylint: disable=too-many-nested-blocks
     rows, cols = __compute_grid(len(images), fixed_num_rows=rows, max_cols=4)
     dlg = SyncPlotDialog(title=title)
+    dlg.setObjectName(
+        object_name or get_object_name_from_title(title, "images_side_by_side")
+    )
     for idx, (img, imtitle) in enumerate(zip(images, titles)):
         row = idx // cols
         col = idx % cols
