@@ -46,8 +46,10 @@ class SigimaExecEnv:
 
     UNATTENDED_ARG = "unattended"
     VERBOSE_ARG = "verbose"
+    SCREENSHOT_ARG = "screenshot"
     UNATTENDED_ENV = GuiDataExecEnv.UNATTENDED_ENV
     VERBOSE_ENV = GuiDataExecEnv.VERBOSE_ENV
+    SCREENSHOT_ENV = GuiDataExecEnv.SCREENSHOT_ENV
 
     def __init__(self):
         # Check if "pytest" is in the command line arguments:
@@ -121,6 +123,16 @@ class SigimaExecEnv:
         self.__set_mode(self.UNATTENDED_ENV, value)
 
     @property
+    def screenshot(self):
+        """Get screenshot value"""
+        return self.__get_mode(self.SCREENSHOT_ENV)
+
+    @screenshot.setter
+    def screenshot(self, value):
+        """Set screenshot value"""
+        self.__set_mode(self.SCREENSHOT_ENV, value)
+
+    @property
     def verbose(self):
         """Get verbosity level"""
         env_val = os.environ.get(self.VERBOSE_ENV)
@@ -143,6 +155,12 @@ class SigimaExecEnv:
             default=None,
         )
         parser.add_argument(
+            "--" + self.SCREENSHOT_ARG,
+            action="store_true",
+            help="automatic screenshots",
+            default=None,
+        )
+        parser.add_argument(
             "--" + self.VERBOSE_ARG,
             choices=[lvl.value for lvl in VerbosityLevels],
             required=False,
@@ -154,7 +172,7 @@ class SigimaExecEnv:
 
     def set_env_from_args(self, args):
         """Set appropriate environment variables"""
-        for argname in (self.UNATTENDED_ARG, self.VERBOSE_ARG):
+        for argname in (self.UNATTENDED_ARG, self.SCREENSHOT_ARG, self.VERBOSE_ARG):
             argvalue = getattr(args, argname)
             if argvalue is not None:
                 setattr(self, argname, argvalue)
@@ -201,6 +219,7 @@ class SigimaExecEnv:
     def context(
         self,
         unattended=None,
+        screenshot=None,
         verbose=None,
     ) -> Generator[None, None, None]:
         """Return a context manager that sets some execenv properties at enter,
@@ -210,13 +229,18 @@ class SigimaExecEnv:
 
         Args:
             unattended: whether to run in unattended mode
+            screenshot: whether to take screenshots
             verbose: verbosity level
 
         .. note::
             If a passed value is None, the corresponding property is not changed.
         """
         old_values = self.to_dict()
-        new_values = {"unattended": unattended, "verbose": verbose}
+        new_values = {
+            "unattended": unattended,
+            "screenshot": screenshot,
+            "verbose": verbose,
+        }
         for key, value in new_values.items():
             if value is not None:
                 setattr(self, key, value)
