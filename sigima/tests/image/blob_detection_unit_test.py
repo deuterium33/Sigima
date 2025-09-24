@@ -17,6 +17,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.image
+from sigima.tests import guiutils
 from sigima.tests.env import execenv
 
 CV2_AVAILABLE = importlib.util.find_spec("cv2") is not None
@@ -137,6 +138,12 @@ def test_image_blob_dog():
         exclude_border=True,
     )
     result = sigima.proc.image.blob_dog(obj, param)
+    guiutils.view_images_if_gui(
+        obj,
+        title="DoG multi blob detection test image",
+        results=[result],
+        colormap="gray",
+    )
     if result is not None and len(result.coords) > 0:
         detected_count = len(result.coords)
         expected_count = len(expected_coords)
@@ -297,6 +304,7 @@ def test_blob_detection_consistency():
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
     test_image_blob_dog()
     test_image_blob_doh()
     test_image_blob_log()

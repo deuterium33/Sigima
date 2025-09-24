@@ -14,7 +14,12 @@ import plotpy.tools
 from guidata.qthelpers import exec_dialog as guidata_exec_dialog
 from plotpy.builder import make
 from plotpy.items import (
+    AnnotatedCircle,
+    AnnotatedEllipse,
+    AnnotatedPoint,
     AnnotatedPolygon,
+    AnnotatedRectangle,
+    AnnotatedSegment,
     AnnotatedXRange,
     AnnotatedYRange,
     CurveItem,
@@ -33,9 +38,17 @@ from plotpy.styles import LINESTYLES, ShapeParam
 from qtpy import QtWidgets as QW
 
 from sigima.config import _
-from sigima.objects import ImageObj, SignalObj
-from sigima.objects.image import CircularROI, PolygonalROI, RectangularROI
+from sigima.objects import (
+    CircularROI,
+    GeometryResult,
+    ImageObj,
+    KindShape,
+    PolygonalROI,
+    RectangularROI,
+    SignalObj,
+)
 from sigima.tests.helpers import get_default_test_name
+from sigima.tools import coordinates
 
 QAPP: QW.QApplication | None = None
 
@@ -270,6 +283,108 @@ def create_label(text: str) -> LabelItem:
     """
     item = make.label(text, "TL", (0, 0), "TL")
     return item
+
+
+def __make_marker_item(x0: float, y0: float, fmt: str, title: str) -> Marker:
+    """Make marker item
+
+    Args:
+        x0: x coordinate
+        y0: y coordinate
+        fmt: numeric format (e.g. '%.3f')
+        title: title of the marker
+    """
+    if np.isnan(x0):
+        mstyle = "-"
+
+        def label(x, y):  # pylint: disable=unused-argument
+            return (title + ": " + fmt) % y
+
+    elif np.isnan(y0):
+        mstyle = "|"
+
+        def label(x, y):  # pylint: disable=unused-argument
+            return (title + ": " + fmt) % x
+
+    else:
+        mstyle = "+"
+        txt = title + ": (" + fmt + ", " + fmt + ")"
+
+        def label(x, y):
+            return txt % (x, y)
+
+    return make.marker(
+        position=(x0, y0),
+        markerstyle=mstyle,
+        label_cb=label,
+        linestyle="DashLine",
+        color="yellow",
+    )
+
+
+def create_items_from_geometry_result(
+    result: GeometryResult,
+) -> list[
+    AnnotatedPoint
+    | Marker
+    | AnnotatedRectangle
+    | AnnotatedCircle
+    | AnnotatedSegment
+    | AnnotatedEllipse
+    | AnnotatedPolygon
+]:
+    """Create a plot item from a GeometryResult object
+
+    Args:
+        result: The GeometryResult object to convert
+
+    Returns:
+        A list of plot items corresponding to the geometry result
+    """
+    items = []
+    for coords in result.coords:
+        title = result.title or ""
+        if result.kind is KindShape.POINT:
+            x0, y0 = coords
+            item = AnnotatedPoint(x0, y0)
+            sparam: ShapeParam = item.shape.shapeparam
+            sparam.symbol.marker = "Ellipse"
+            sparam.symbol.size = 6
+            sparam.sel_symbol.marker = "Ellipse"
+            sparam.sel_symbol.size = 6
+            aparam = item.annotationparam
+            aparam.title = title
+            sparam.update_item(item.shape)
+            aparam.update_item(item)
+        elif result.kind is KindShape.MARKER:
+            x0, y0 = coords
+            item = __make_marker_item(x0, y0, "%.3f", title)
+        elif result.kind is KindShape.RECTANGLE:
+            x0, y0, dx, dy = coords
+            item = make.annotated_rectangle(x0, y0, x0 + dx, y0 + dy, title=title)
+        elif result.kind is KindShape.CIRCLE:
+            xc, yc, r = coords
+            x0, y0, x1, y1 = coordinates.circle_to_diameter(xc, yc, r)
+            item = make.annotated_circle(x0, y0, x1, y1, title=title)
+        elif result.kind is KindShape.SEGMENT:
+            x0, y0, x1, y1 = coords
+            item = make.annotated_segment(x0, y0, x1, y1, title=title)
+        elif result.kind is KindShape.ELLIPSE:
+            xc, yc, a, b, t = coords
+            coords = coordinates.ellipse_to_diameters(xc, yc, a, b, t)
+            x0, y0, x1, y1, x2, y2, x3, y3 = coords
+            item = make.annotated_ellipse(x0, y0, x1, y1, x2, y2, x3, y3, title=title)
+        elif result.kind is KindShape.POLYGON:
+            x, y = coords[::2], coords[1::2]
+            item = make.polygon(x, y, title=title, closed=False)
+        else:
+            raise TypeError(f"Unsupported GeometryResult type: {type(result)}")
+        item.set_movable(False)
+        item.set_resizable(False)
+        item.set_selectable(False)
+        items.append(item)
+
+    return items
 
 
 def get_object_name_from_title(title: str, fallback: str) -> str:
@@ -521,7 +636,9 @@ def view_images(
     xunit: str | None = None,
     yunit: str | None = None,
     zunit: str | None = None,
+    results: list[GeometryResult] | GeometryResult | None = None,
     object_name: str = "",
+    **kwargs,
 ) -> None:
     """Create an image dialog and show images
 
@@ -535,13 +652,18 @@ def view_images(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
         zunit: Unit for the z-axis (color scale), or None for no unit
+        results: Single `GeometryResult` or list of these to overlay on images, or None
+         if no overlay is needed.
         object_name: Object name for the dialog (for screenshot functionality)
+        **kwargs: Additional keyword arguments to pass to `make.image()`
     """
     ensure_qapp()
     if isinstance(data_or_objs, (tuple, list)):
         datalist = data_or_objs
     else:
         datalist = [data_or_objs]
+    imparameters = IMAGE_PARAMETERS.copy()
+    imparameters.update(kwargs)
     items = []
     image_title: str | None = None
     for data_or_obj in datalist:
@@ -570,10 +692,17 @@ def view_images(
         if np.issubdtype(data.dtype, np.complexfloating):
             re_title = f"Re({image_title})" if image_title is not None else "Real"
             im_title = f"Im({image_title})" if image_title is not None else "Imaginary"
-            items.append(make.image(data.real, title=re_title, **IMAGE_PARAMETERS))
-            items.append(make.image(data.imag, title=im_title, **IMAGE_PARAMETERS))
+            items.append(make.image(data.real, title=re_title, **imparameters))
+            items.append(make.image(data.imag, title=im_title, **imparameters))
         else:
-            items.append(make.image(data, title=image_title, **IMAGE_PARAMETERS))
+            items.append(make.image(data, title=image_title, **imparameters))
+    if results is not None:
+        if isinstance(results, GeometryResult):
+            results = [results]
+        if not isinstance(results, (list, tuple)):
+            raise TypeError(f"Unsupported results type: {type(results)}")
+        for res in results:
+            items.extend(create_items_from_geometry_result(res))
     view_image_items(
         items,
         name=name,
@@ -676,7 +805,9 @@ def view_images_side_by_side(
     rows: int | None = None,
     maximized: bool = False,
     title: str | None = None,
+    results: list[GeometryResult] | GeometryResult | None = None,
     object_name: str = "",
+    **kwargs,
 ) -> None:
     """Show sequence of images
 
@@ -687,7 +818,10 @@ def view_images_side_by_side(
         rows: Fixed number of rows in the grid, or None to compute automatically
         maximized: Whether to show the dialog maximized, default is False
         title: Title of the dialog, or None for a default title
+        results: Single `GeometryResult` or list of these to overlay on images, or None
+         if no overlay is needed.
         object_name: Object name for the dialog widget (used for screenshot filename)
+        **kwargs: Additional keyword arguments to pass to `make.maskedimage()`
     """
     ensure_qapp()
     # pylint: disable=too-many-nested-blocks
@@ -696,7 +830,13 @@ def view_images_side_by_side(
     dlg.setObjectName(
         object_name or get_object_name_from_title(title, "images_side_by_side")
     )
-    for idx, (img, imtitle) in enumerate(zip(images, titles)):
+    imparameters = IMAGE_PARAMETERS.copy()
+    imparameters.update(kwargs)
+    if not isinstance(results, (list, tuple)):
+        results = [results] * len(images)
+    elif len(results) != len(images):
+        raise ValueError("Length of results must match length of images")
+    for idx, (img, result, imtitle) in enumerate(zip(images, results, titles)):
         row = idx // cols
         col = idx % cols
         plot = BasePlot(options=BasePlotOptions(title=imtitle))
@@ -714,7 +854,7 @@ def view_images_side_by_side(
             else:
                 raise TypeError(f"Unsupported image type: {type(img)}")
             item = make.maskedimage(
-                data, mask, title=imtitle, show_mask=True, **IMAGE_PARAMETERS
+                data, mask, title=imtitle, show_mask=True, **imparameters
             )
             if isinstance(img, ImageObj):
                 x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
@@ -744,6 +884,12 @@ def view_images_side_by_side(
         plot.add_item(item)
         for other_item in other_items:
             plot.add_item(other_item)
+        if result is not None:
+            if not isinstance(result, GeometryResult):
+                raise TypeError(f"Unsupported results type: {type(result)}")
+            overlay_items = create_items_from_geometry_result(result)
+            for overlay_item in overlay_items:
+                plot.add_item(overlay_item)
         dlg.add_plot(row, col, plot, sync=share_axes)
     dlg.finalize_configuration()
     if maximized:
