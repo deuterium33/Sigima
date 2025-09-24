@@ -11,7 +11,7 @@ import guidata.config as gcfg
 from docutils import nodes
 from docutils.parsers.rst import Directive
 from docutils.statemachine import StringList
-from guidata.utils.qt_scraper import get_qt_scraper_config
+from guidata.utils import qt_scraper
 
 
 class OptionsTableDirective(Directive):
@@ -129,11 +129,16 @@ exclude_patterns = []
 
 # -- Sphinx-Gallery configuration --------------------------------------------
 # Using guidata's generic Qt scraper for capturing all Qt widgets
-sphinx_gallery_conf = get_qt_scraper_config()
+# Configure to use the last widget as thumbnail for a complete pipeline view
+qt_scraper.set_qt_scraper_config(
+    thumbnail_source="last", hide_toolbars=True, capture_inside_layout=True
+)
+sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf()
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"
 html_title = project
+html_logo = "images/Sigima-Banner.svg"
 html_favicon = "_static/favicon.ico"
 html_show_sourcelink = False
 templates_path = ["_templates"]
@@ -145,8 +150,6 @@ html_theme_options = {
     "show_toc_level": 2,
     "github_url": "https://github.com/DataLab-Platform/Sigima/",
     "logo": {
-        "image_light": "images/Sigima-Banner.svg",
-        "image_dark": "images/Sigima-Banner.svg",
         "text": f"v{sigima.__version__}",
     },
     "icon_links": [
