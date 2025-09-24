@@ -133,7 +133,7 @@ exclude_patterns = []
 qt_scraper.set_qt_scraper_config(
     thumbnail_source="last", hide_toolbars=True, capture_inside_layout=True
 )
-sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf()
+sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(filename_pattern="")
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"
