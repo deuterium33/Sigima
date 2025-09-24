@@ -65,6 +65,13 @@ def exec_dialog(dlg: QW.QDialog) -> None:
 
 TEST_NB = {}
 
+# Default image parameters
+IMAGE_PARAMETERS = {
+    "interpolation": "nearest",
+    "eliminate_outliers": 0.1,
+    "colormap": "viridis",
+}
+
 #: Curve colors
 COLORS = (
     "#1f77b4",  # muted blue
@@ -560,14 +567,13 @@ def view_images(
             raise TypeError(f"Unsupported data type: {type(data_or_obj)}")
         # Display real and imaginary parts of complex images.
         assert data is not None
-        kwargs = {"interpolation": "nearest", "eliminate_outliers": 0.1}
         if np.issubdtype(data.dtype, np.complexfloating):
             re_title = f"Re({image_title})" if image_title is not None else "Real"
             im_title = f"Im({image_title})" if image_title is not None else "Imaginary"
-            items.append(make.image(data.real, title=re_title, **kwargs))
-            items.append(make.image(data.imag, title=im_title, **kwargs))
+            items.append(make.image(data.real, title=re_title, **IMAGE_PARAMETERS))
+            items.append(make.image(data.imag, title=im_title, **IMAGE_PARAMETERS))
         else:
-            items.append(make.image(data, title=image_title, **kwargs))
+            items.append(make.image(data, title=image_title, **IMAGE_PARAMETERS))
     view_image_items(
         items,
         name=name,
@@ -708,13 +714,7 @@ def view_images_side_by_side(
             else:
                 raise TypeError(f"Unsupported image type: {type(img)}")
             item = make.maskedimage(
-                data,
-                mask,
-                title=imtitle,
-                interpolation="nearest",
-                colormap="viridis",
-                eliminate_outliers=0.1,
-                show_mask=True,
+                data, mask, title=imtitle, show_mask=True, **IMAGE_PARAMETERS
             )
             if isinstance(img, ImageObj):
                 x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
