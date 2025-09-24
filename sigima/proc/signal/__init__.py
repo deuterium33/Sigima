@@ -6,66 +6,77 @@ Basic signal processing
 
 .. automodule:: sigima.proc.signal.base
    :members:
+   :no-index:
 
 Arithmetic
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.arithmetic
     :members:
+    :no-index:
 
 Mathematical Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.mathops
     :members:
+    :no-index:
 
 Extraction
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.extraction
     :members:
+    :no-index:
 
 Filtering
 ~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.filtering
     :members:
+    :no-index:
 
 Processing
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.processing
     :members:
+    :no-index:
 
 Fourier
 ~~~~~~~
 
 .. automodule:: sigima.proc.signal.fourier
     :members:
+    :no-index:
 
 Fitting
 ~~~~~~~
 
 .. automodule:: sigima.proc.signal.fitting
     :members:
+    :no-index:
 
 Features
 ~~~~~~~~
 
 .. automodule:: sigima.proc.signal.features
     :members:
+    :no-index:
 
 Stability
 ~~~~~~~~~
 
 .. automodule:: sigima.proc.signal.stability
     :members:
+    :no-index:
 
 Analysis
 ~~~~~~~~
 
 .. automodule:: sigima.proc.signal.analysis
     :members:
+    :no-index:
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
