@@ -11,6 +11,7 @@ import guidata.config as gcfg
 from docutils import nodes
 from docutils.parsers.rst import Directive
 from docutils.statemachine import StringList
+from guidata.utils.qt_scraper import get_qt_scraper_config
 
 
 class OptionsTableDirective(Directive):
@@ -127,25 +128,8 @@ templates_path = ["_templates"]
 exclude_patterns = []
 
 # -- Sphinx-Gallery configuration --------------------------------------------
-# Add the doc directory to sys.path so Sphinx-Gallery can import plotpy_scraper
-doc_dir = os.path.dirname(__file__)
-sys.path.insert(0, doc_dir)
-
-sphinx_gallery_conf = {
-    "examples_dirs": "examples",  # Path to example scripts
-    "gallery_dirs": "auto_examples",  # Output directory for gallery
-    "filename_pattern": "plot_",  # Pattern for example files
-    "image_scrapers": [
-        "plotpy_scraper.plotpy_scraper"
-    ],  # Use string reference to avoid pickling issues
-    "reset_modules": [],  # Reset modules between examples
-    "remove_config_comments": False,
-    "expected_failing_examples": [],
-    "plot_gallery": True,
-    "download_all_examples": False,
-    "show_memory": False,
-    "run_stale_examples": False,  # Force run all examples
-}
+# Using guidata's generic Qt scraper for capturing all Qt widgets
+sphinx_gallery_conf = get_qt_scraper_config()
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"
