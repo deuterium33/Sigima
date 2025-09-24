@@ -133,7 +133,6 @@ sphinx_gallery_conf = get_qt_scraper_config()
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"
-html_logo = "images/Sigima-Banner.svg"
 html_title = project
 html_favicon = "_static/favicon.ico"
 html_show_sourcelink = False
@@ -146,6 +145,8 @@ html_theme_options = {
     "show_toc_level": 2,
     "github_url": "https://github.com/DataLab-Platform/Sigima/",
     "logo": {
+        "image_light": "images/Sigima-Banner.svg",
+        "image_dark": "images/Sigima-Banner.svg",
         "text": f"v{sigima.__version__}",
     },
     "icon_links": [
