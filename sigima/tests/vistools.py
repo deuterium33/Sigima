@@ -20,6 +20,7 @@ from plotpy.items import (
     AnnotatedPolygon,
     AnnotatedRectangle,
     AnnotatedSegment,
+    AnnotatedShape,
     AnnotatedXRange,
     AnnotatedYRange,
     CurveItem,
@@ -382,6 +383,18 @@ def create_items_from_geometry_result(
         item.set_movable(False)
         item.set_resizable(False)
         item.set_selectable(False)
+
+        if isinstance(item, AnnotatedShape):
+            shapeparam: ShapeParam = item.shape.shapeparam
+            shapeparam.line.width = 2
+            shapeparam.update_item(item.shape)
+            item.annotationparam.show_computations = False
+            item.annotationparam.show_label = bool(title)
+            item.annotationparam.update_item(item)
+            if isinstance(item, AnnotatedSegment):
+                item.label.labelparam.anchor = "T"
+                item.label.labelparam.update_item(item.label)
+
         items.append(item)
 
     return items
