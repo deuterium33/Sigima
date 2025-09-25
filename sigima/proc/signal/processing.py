@@ -69,16 +69,15 @@ class InterpolationParam(gds.DataSet, title=_("Interpolation")):
 
 @computation_function()
 def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> SignalObj:
-    """Interpolate data with
-    :py:func:`sigima.tools.signal.interpolation.interpolate`
+    """Interpolate data with :py:func:`sigima.tools.signal.interpolation.interpolate`.
 
     Args:
-        src1: source signal 1
-        src2: source signal 2
-        p: parameters
+        src1: Source signal to interpolate.
+        src2: Signal with new x-axis.
+        p: Parameters.
 
     Returns:
-        Result signal object
+        Result signal object.
     """
     suffix = f"method={p.method}"
     if p.fill_value is not None and p.method in (
