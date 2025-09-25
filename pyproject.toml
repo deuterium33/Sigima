@@ -102,6 +102,13 @@ version = { attr = "sigima.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "sigima --import-mode=importlib"
+filterwarnings = [
+    # Ignore specific deprecation warnings from external libraries
+    "ignore::DeprecationWarning:pandas.*",
+    "ignore::DeprecationWarning:scipy.*",
+    # Ignore specific user warnings from Sigima (expected behavior)
+    "ignore:Multiple crossing points found. Returning last.:UserWarning:sigima.*",
+]
 
 [tool.ruff]
 exclude = [".git", ".vscode", "build", "dist", "*.ipynb"]
