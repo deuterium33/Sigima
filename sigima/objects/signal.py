@@ -1546,7 +1546,9 @@ register_signal_parameters_class(SignalTypes.POLYNOMIAL, PolyParam)
 class CustomSignalParam(NewSignalParam):
     """Parameters for custom signal (e.g. manually defined experimental data)"""
 
-    size = gds.IntItem(_("N<sub>points</sub>")).set_prop("display", active=False)
+    size = gds.IntItem(_("N<sub>points</sub>"), default=10).set_prop(
+        "display", active=False
+    )
     xmin = gds.FloatItem("x<sub>min</sub>", default=0.0).set_prop(
         "display", active=False
     )
