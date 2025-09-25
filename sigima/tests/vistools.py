@@ -27,6 +27,7 @@ from plotpy.items import (
     ImageItem,
     LabelItem,
     Marker,
+    MaskedImageItem,
 )
 from plotpy.plot import (
     BasePlot,
@@ -46,6 +47,7 @@ from sigima.objects import (
     KindShape,
     PolygonalROI,
     RectangularROI,
+    SegmentROI,
     SignalObj,
 )
 from sigima.tests.helpers import get_default_test_name
@@ -323,7 +325,121 @@ def __make_marker_item(x0: float, y0: float, fmt: str, title: str) -> Marker:
     )
 
 
-def create_items_from_geometry_result(
+def create_curve_item(
+    obj: SignalObj | tuple[np.ndarray, np.ndarray], title: str | None = None
+) -> CurveItem:
+    """Create a curve item from a SignalObj or (xdata, ydata) tuple
+
+    Args:
+        obj: Signal object or tuple of (xdata, ydata)
+        title: Title for the curve item
+
+    Returns:
+        A `CurveItem` representing the signal data
+    """
+    if isinstance(obj, (tuple, list)):
+        xdata, ydata = obj
+        title = title or ""
+    else:
+        assert obj.xydata is not None
+        xdata, ydata = obj.xydata
+        title = obj.title or title or ""
+    item = make.mcurve(xdata, ydata)
+    item.setTitle(title)
+    return item
+
+
+def create_curve_roi_items(obj: SignalObj) -> list[AnnotatedXRange]:
+    """Create signal ROI items from a SignalObj
+
+    Args:
+        obj: Signal object
+
+    Returns:
+        A list of `AnnotatedXRange` items representing the ROIs
+    """
+    items = []
+    if obj.roi is not None and not obj.roi.is_empty():
+        for single_roi in obj.roi:
+            assert isinstance(single_roi, SegmentROI)
+            x0, x1 = single_roi.get_physical_coords(obj)
+            roi_item = make.annotated_xrange(x0, x1, single_roi.title)
+            roi_item.label.labelparam.anchor = "T"
+            roi_item.label.labelparam.xc = 20
+            roi_item.label.labelparam.update_item(roi_item.label)
+            # roi_item.set_style("plot", "shape/drag")
+            roi_item.set_movable(False)
+            roi_item.set_resizable(False)
+            roi_item.set_selectable(False)
+            items.append(roi_item)
+    return items
+
+
+def create_image_item(
+    obj: ImageObj | np.ndarray, title: str | None = None, **kwargs
+) -> MaskedImageItem:
+    """Create an image item from an ImageObj
+
+    Args:
+        obj: Image object or 2D numpy array
+        title: Title for the image item
+        **kwargs: Additional parameters for image display
+         (e.g., interpolation, colormap)
+
+    Returns:
+        A `MaskedImageItem` representing the image
+    """
+    if isinstance(obj, ImageObj):
+        data = obj.data
+        mask = obj.maskdata
+        title = obj.title or title or ""
+    elif isinstance(obj, np.ndarray):
+        data = obj
+        mask = np.zeros_like(data, dtype=bool)
+        title = title or ""
+    else:
+        raise TypeError(f"Unsupported image type: {type(obj)}")
+    imparameters = IMAGE_PARAMETERS.copy()
+    imparameters.update(kwargs)
+    item = make.maskedimage(data, mask, title=title, show_mask=True, **imparameters)
+    if isinstance(obj, ImageObj):
+        x0, y0, dx, dy = obj.x0, obj.y0, obj.dx, obj.dy
+        item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
+        item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
+        item.param.update_item(item)
+    return item
+
+
+def create_image_roi_items(obj: ImageObj) -> list[AnnotatedShape]:
+    """Create image ROI items from an ImageObj
+
+    Args:
+        obj: Image object
+
+    Returns:
+        A list of `AnnotatedShape` items representing the ROIs
+    """
+    items = []
+    if obj.roi is not None and not obj.roi.is_empty():
+        for single_roi in obj.roi:
+            if isinstance(single_roi, RectangularROI):
+                x0, y0, x1, y1 = single_roi.get_bounding_box(obj)
+                roi_item = make.annotated_rectangle(x0, y0, x1, y1, single_roi.title)
+            elif isinstance(single_roi, CircularROI):
+                x0, y0, x1, y1 = single_roi.get_bounding_box(obj)
+                roi_item = make.annotated_circle(x0, y0, x1, y1, single_roi.title)
+            elif isinstance(single_roi, PolygonalROI):
+                coords = single_roi.get_physical_coords(obj)
+                points = np.array(coords).reshape(-1, 2)
+                roi_item = AnnotatedPolygon(points)
+                roi_item.annotationparam.title = single_roi.title
+                roi_item.set_style("plot", "shape/drag")
+                roi_item.annotationparam.update_item(roi_item)
+            items.append(roi_item)
+    return items
+
+
+def create_plot_items_from_geometry(
     result: GeometryResult,
 ) -> list[
     AnnotatedPoint
@@ -334,7 +450,7 @@ def create_items_from_geometry_result(
     | AnnotatedEllipse
     | AnnotatedPolygon
 ]:
-    """Create a plot item from a GeometryResult object
+    """Create plot items from a GeometryResult object
 
     Args:
         result: The GeometryResult object to convert
@@ -487,33 +603,15 @@ def view_curves(
     else:
         datalist = [data_or_objs]
     items = []
-    curve_title: str | None = None
     for data_or_obj in datalist:
         if isinstance(data_or_obj, SignalObj):
-            data = data_or_obj.xydata
-            if data_or_obj.title:
-                curve_title = data_or_obj.title
-            if data_or_obj.xlabel and xlabel is None:
-                xlabel = data_or_obj.xlabel
-            if data_or_obj.ylabel and ylabel is None:
-                ylabel = data_or_obj.ylabel
-            if data_or_obj.xunit and xunit is None:
-                xunit = data_or_obj.xunit
-            if data_or_obj.yunit and yunit is None:
-                yunit = data_or_obj.yunit
-        elif isinstance(data_or_obj, np.ndarray):
-            data = data_or_obj
-        elif isinstance(data_or_obj, (tuple, list)) and len(data_or_obj) == 2:
-            data = data_or_obj
-        else:
-            raise TypeError(f"Unsupported data type: {type(data_or_obj)}")
-        if len(data) == 2:
-            xdata, ydata = data
-            item = make.mcurve(xdata, ydata)
-        else:
-            item = make.mcurve(data)
-        if curve_title is not None:
-            item.setTitle(curve_title)
+            xlabel = xlabel or data_or_obj.xlabel or ""
+            ylabel = ylabel or data_or_obj.ylabel or ""
+            xunit = xunit or data_or_obj.xunit or ""
+            yunit = yunit or data_or_obj.yunit or ""
+        item = create_curve_item(data_or_obj)
+        if isinstance(data_or_obj, SignalObj):
+            items.extend(create_curve_roi_items(data_or_obj))
         items.append(item)
     view_curve_items(
         items,
@@ -668,7 +766,7 @@ def view_images(
         results: Single `GeometryResult` or list of these to overlay on images, or None
          if no overlay is needed.
         object_name: Object name for the dialog (for screenshot functionality)
-        **kwargs: Additional keyword arguments to pass to `make.image()`
+        **kwargs: Additional keyword arguments to pass to `make.maskedimage()`
     """
     ensure_qapp()
     if isinstance(data_or_objs, (tuple, list)):
@@ -705,17 +803,19 @@ def view_images(
         if np.issubdtype(data.dtype, np.complexfloating):
             re_title = f"Re({image_title})" if image_title is not None else "Real"
             im_title = f"Im({image_title})" if image_title is not None else "Imaginary"
-            items.append(make.image(data.real, title=re_title, **imparameters))
-            items.append(make.image(data.imag, title=im_title, **imparameters))
+            items.append(create_image_item(data.real, title=re_title, **imparameters))
+            items.append(create_image_item(data.imag, title=im_title, **imparameters))
         else:
-            items.append(make.image(data, title=image_title, **imparameters))
+            items.append(create_image_item(data, title=image_title, **imparameters))
+        if isinstance(data_or_obj, ImageObj):
+            items.extend(create_image_roi_items(data_or_obj))
     if results is not None:
         if isinstance(results, GeometryResult):
             results = [results]
         if not isinstance(results, (list, tuple)):
             raise TypeError(f"Unsupported results type: {type(results)}")
         for res in results:
-            items.extend(create_items_from_geometry_result(res))
+            items.extend(create_plot_items_from_geometry(res))
     view_image_items(
         items,
         name=name,
@@ -854,53 +954,19 @@ def view_images_side_by_side(
         col = idx % cols
         plot = BasePlot(options=BasePlotOptions(title=imtitle))
         other_items = []
-        if isinstance(img, ImageItem):
+        if isinstance(img, (MaskedImageItem, ImageItem)):
             item = img
         else:
+            item = create_image_item(img, title=imtitle, **imparameters)
             if isinstance(img, ImageObj):
-                data = img.data
-                mask = img.maskdata
-                imtitle = img.title or imtitle
-            elif isinstance(img, np.ndarray):
-                data = img
-                mask = np.zeros_like(data, dtype=bool)
-            else:
-                raise TypeError(f"Unsupported image type: {type(img)}")
-            item = make.maskedimage(
-                data, mask, title=imtitle, show_mask=True, **imparameters
-            )
-            if isinstance(img, ImageObj):
-                x0, y0, dx, dy = img.x0, img.y0, img.dx, img.dy
-                item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
-                item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
-                item.param.update_item(item)
-                if img.roi is not None and not img.roi.is_empty():
-                    for single_roi in img.roi:
-                        if isinstance(single_roi, RectangularROI):
-                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
-                            roi_item = make.annotated_rectangle(
-                                x0, y0, x1, y1, single_roi.title
-                            )
-                        elif isinstance(single_roi, CircularROI):
-                            x0, y0, x1, y1 = single_roi.get_bounding_box(img)
-                            roi_item = make.annotated_circle(
-                                x0, y0, x1, y1, single_roi.title
-                            )
-                        elif isinstance(single_roi, PolygonalROI):
-                            coords = single_roi.get_physical_coords(img)
-                            points = np.array(coords).reshape(-1, 2)
-                            roi_item = AnnotatedPolygon(points)
-                            roi_item.annotationparam.title = single_roi.title
-                            roi_item.set_style("plot", "shape/drag")
-                            roi_item.annotationparam.update_item(roi_item)
-                        other_items.append(roi_item)
+                other_items.extend(create_image_roi_items(img))
         plot.add_item(item)
         for other_item in other_items:
             plot.add_item(other_item)
         if result is not None:
             if not isinstance(result, GeometryResult):
                 raise TypeError(f"Unsupported results type: {type(result)}")
-            overlay_items = create_items_from_geometry_result(result)
+            overlay_items = create_plot_items_from_geometry(result)
             for overlay_item in overlay_items:
                 plot.add_item(overlay_item)
         dlg.add_plot(row, col, plot, sync=share_axes)
