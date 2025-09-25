@@ -160,7 +160,7 @@ class BaseBlobParam(gds.DataSet):
 
     min_sigma = gds.FloatItem(
         "σ<sub>min</sub>",
-        default=1.0,
+        default=10.0,
         unit="pixels",
         min=0,
         nonzero=True,
