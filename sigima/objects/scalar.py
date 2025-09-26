@@ -178,23 +178,6 @@ class ResultHtmlGenerator:
         return row_headers
 
 
-class KindShape(str, enum.Enum):
-    """Geometric shape types."""
-
-    POINT = "point"
-    SEGMENT = "segment"
-    CIRCLE = "circle"
-    ELLIPSE = "ellipse"
-    RECTANGLE = "rectangle"
-    POLYGON = "polygon"
-    MARKER = "marker"
-
-    @classmethod
-    def values(cls) -> list[str]:
-        """Return all shape type values."""
-        return [e.value for e in cls]
-
-
 @dataclasses.dataclass(frozen=True)
 class TableResult:
     """Table of scalar results, optionally per-ROI.
@@ -685,6 +668,23 @@ class TableResultBuilder:
         )
 
 
+class KindShape(str, enum.Enum):
+    """Geometric shape types."""
+
+    POINT = "point"
+    SEGMENT = "segment"
+    CIRCLE = "circle"
+    ELLIPSE = "ellipse"
+    RECTANGLE = "rectangle"
+    POLYGON = "polygon"
+    MARKER = "marker"
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Return all shape type values."""
+        return [e.value for e in cls]
+
+
 @dataclasses.dataclass(frozen=True)
 class GeometryResult:
     """Geometric outputs, optionally per-ROI.
@@ -886,7 +886,7 @@ class GeometryResult:
         if self.roi_indices is not None:
             df.insert(0, "roi_index", self.roi_indices)
         # For segments, add a length column
-        if self.kind is KindShape.SEGMENT:
+        if self.kind == KindShape.SEGMENT:
             df["length"] = self.segments_lengths()
         return df
 
@@ -955,7 +955,7 @@ class GeometryResult:
     # Optional convenience for common kinds:
     def segments_lengths(self) -> np.ndarray:
         """For kind='segment': return vector of segment lengths."""
-        if self.kind is not KindShape.SEGMENT:
+        if self.kind != KindShape.SEGMENT:
             raise ValueError("segments_lengths requires kind='segment'")
         dx = self.coords[:, 2] - self.coords[:, 0]
         dy = self.coords[:, 3] - self.coords[:, 1]
@@ -963,13 +963,13 @@ class GeometryResult:
 
     def circles_radii(self) -> np.ndarray:
         """For kind='circle': return radii."""
-        if self.kind is not KindShape.CIRCLE:
+        if self.kind != KindShape.CIRCLE:
             raise ValueError("circles_radii requires kind='circle'")
         return self.coords[:, 2]
 
     def ellipse_axes_angles(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """For kind='ellipse': return (a, b, theta)."""
-        if self.kind is not KindShape.ELLIPSE:
+        if self.kind != KindShape.ELLIPSE:
             raise ValueError("ellipse_axes_angles requires kind='ellipse'")
         return self.coords[:, 2], self.coords[:, 3], self.coords[:, 4]
 
