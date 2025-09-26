@@ -625,7 +625,7 @@ def create_2dstep_image(p: NewImageParam | None = None) -> ImageObj:
     p = __set_default_size_dtype(p)
     p.title = "Test image (2D step)" if p.title is None else p.title
     obj = create_image_from_param(p)
-    obj.data = create_2d_steps_data(p.height, p.height // 10, p.dtype.value)
+    obj.data = create_2d_steps_data(p.height, p.height // 10, p.dtype.to_numpy_dtype())
     return obj
 
 
@@ -723,16 +723,15 @@ def create_sincos_image(p: NewImageParam | None = None) -> ImageObj:
     """
     p = __set_default_size_dtype(p)
     p.title = "Test image (sin(x)+cos(y))" if p.title is None else p.title
-    dtype = p.dtype.value
     x, y = np.meshgrid(np.linspace(0, 10, p.width), np.linspace(0, 10, p.height))
     raw_data = 0.5 * (np.sin(x) + np.cos(y)) + 0.5
     obj = create_image_from_param(p)
-    if np.issubdtype(dtype, np.floating):
+    if np.issubdtype(p.dtype.to_numpy_dtype(), np.floating):
         obj.data = raw_data
         return obj
-    dmin = np.iinfo(dtype).min * 0.95
-    dmax = np.iinfo(dtype).max * 0.95
-    obj.data = np.array(raw_data * (dmax - dmin) + dmin, dtype=dtype)
+    dmin = np.iinfo(p.dtype.to_numpy_dtype()).min * 0.95
+    dmax = np.iinfo(p.dtype.to_numpy_dtype()).max * 0.95
+    obj.data = np.array(raw_data * (dmax - dmin) + dmin, dtype=p.dtype.to_numpy_dtype())
     return obj
 
 
@@ -769,17 +768,15 @@ def create_noisy_gaussian_image(
     """
     p = __set_default_size_dtype(p)
     p.title = "Test image (noisy 2D Gaussian)" if p.title is None else p.title
-    dtype = p.dtype.value
-    size = p.width
     obj = create_image_from_param(p)
     if center is None:
         # Default center
         x0, y0 = 2.0, 3.0
     else:
         x0, y0 = center
-    obj.data = create_2d_gaussian(size, dtype=dtype, x0=x0, y0=y0)
+    obj.data = create_2d_gaussian(p.width, dtype=p.dtype.to_numpy_dtype(), x0=x0, y0=y0)
     if level:
-        obj.data += create_2d_random(size, dtype, level)
+        obj.data += create_2d_random(p.width, p.dtype.to_numpy_dtype(), level)
     if add_annotations:
         add_annotations_from_file(obj, get_test_fnames("annotations.json")[0])
     return obj
@@ -878,13 +875,13 @@ def create_multigaussian_image(p: NewImageParam | None = None) -> ImageObj:
     """
     p = __set_default_size_dtype(p)
     p.title = "Test image (multi-2D-gaussian)" if p.title is None else p.title
-    dtype = p.dtype.value
-    size = p.width
     obj = create_image_from_param(p)
     obj.data = (
-        create_2d_gaussian(size, dtype, x0=0.5, y0=3.0)
-        + create_2d_gaussian(size, dtype, x0=-1.0, y0=-1.0, sigma=1.0)
-        + create_2d_gaussian(size, dtype, x0=7.0, y0=8.0)
+        create_2d_gaussian(p.width, p.dtype.to_numpy_dtype(), x0=0.5, y0=3.0)
+        + create_2d_gaussian(
+            p.width, p.dtype.to_numpy_dtype(), x0=-1.0, y0=-1.0, sigma=1.0
+        )
+        + create_2d_gaussian(p.width, p.dtype.to_numpy_dtype(), x0=7.0, y0=8.0)
     )
     return obj
 

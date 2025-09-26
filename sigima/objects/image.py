@@ -1082,13 +1082,36 @@ def create_image(
     return image
 
 
-class ImageDatatypes(enum.Enum):
+class ImageDatatypes(gds.LabeledEnum):
     """Image data types"""
 
     @classmethod
-    def from_dtype(cls: type[ImageDatatypes], dtype: np.dtype) -> str:
-        """Return member from NumPy dtype"""
-        return getattr(cls, str(dtype).upper(), cls.UINT8)
+    def from_numpy_dtype(
+        cls: type[ImageDatatypes], dtype: np.dtype
+    ) -> "ImageDatatypes":
+        """Return ImageDatatypes member from NumPy dtype
+
+        Args:
+            dtype: NumPy dtype object
+
+        Returns:
+            Corresponding ImageDatatypes member
+        """
+        dtype_str = str(dtype)
+        for member in cls:
+            if member.value == dtype_str:
+                return member
+        return cls.UINT8  # Default fallback
+
+    def to_numpy_dtype(self) -> np.dtype:
+        """Return the corresponding NumPy dtype object.
+
+        This is the symmetrical counterpart to from_numpy_dtype().
+
+        Returns:
+            NumPy dtype object that can be used directly with numpy functions.
+        """
+        return np.dtype(self.value)
 
     @classmethod
     def check(cls: type[ImageDatatypes]) -> None:
@@ -1154,17 +1177,16 @@ class NewImageParam(gds.DataSet):
         """Generate a title based on current parameters."""
         return ""
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array
         """
-        return np.zeros(shape, dtype=dtype)
+        return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
 
 
 IMAGE_TYPE_PARAM_CLASSES = {}
@@ -1244,17 +1266,16 @@ def create_image_parameters(
 class Zeros2DParam(NewImageParam):
     """Image parameters for a 2D image filled with zeros"""
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array
         """
-        return np.zeros(shape, dtype=dtype)
+        return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
@@ -1263,12 +1284,11 @@ register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
 class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
     """Uniform-distribution image parameters."""
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array
@@ -1277,7 +1297,7 @@ class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
         assert self.vmin is not None
         assert self.vmax is not None
         data = scale_data_to_min_max(rng.random(shape), self.vmin, self.vmax)
-        return data.astype(dtype)
+        return data.astype(self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(
@@ -1288,12 +1308,11 @@ register_image_parameters_class(
 class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
     """Normal-distribution image parameters."""
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array.
@@ -1302,7 +1321,7 @@ class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
         assert self.mu is not None
         assert self.sigma is not None
         data: np.ndarray = rng.normal(self.mu, self.sigma, shape)
-        return data.astype(dtype)
+        return data.astype(self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(
@@ -1313,12 +1332,11 @@ register_image_parameters_class(
 class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
     """Poisson-distribution image parameters."""
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array.
@@ -1326,7 +1344,7 @@ class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
         rng = np.random.default_rng(self.seed)
         assert self.lam is not None
         data: np.ndarray = rng.poisson(lam=self.lam, size=shape)
-        return data.astype(dtype)
+        return data.astype(self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(
@@ -1358,19 +1376,18 @@ class Gauss2DParam(NewImageParam):
             f"σ={self.sigma:g}),x0={self.x0:g},y0={self.y0:g})"
         )
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array
         """
         if self.a is None:
             try:
-                self.a = np.iinfo(dtype).max / 2.0
+                self.a = np.iinfo(self.dtype.to_numpy_dtype()).max / 2.0
             except ValueError:
                 self.a = 10.0
         x, y = np.meshgrid(
@@ -1381,7 +1398,7 @@ class Gauss2DParam(NewImageParam):
             -((np.sqrt((x - self.x0) ** 2 + (y - self.y0) ** 2) - self.mu) ** 2)
             / (2.0 * self.sigma**2)
         )
-        return np.array(data, dtype=dtype)
+        return np.array(data, dtype=self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(ImageTypes.GAUSS, Gauss2DParam)
@@ -1414,12 +1431,11 @@ class Ramp2DParam(NewImageParam):
             f" + {self.b:g} (y - {self.y0:g}) + {self.c:g}"
         )
 
-    def generate_2d_data(self, shape: tuple[int, int], dtype: np.dtype) -> np.ndarray:
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
 
         Args:
             shape: Tuple (height, width) for the output array.
-            dtype: NumPy data type for the output array.
 
         Returns:
             2D data array
@@ -1428,7 +1444,7 @@ class Ramp2DParam(NewImageParam):
         y = np.linspace(self.ymin, self.ymax, shape[0])
         xx, yy = np.meshgrid(x, y)
         data = self.a * (xx - self.x0) + self.b * (yy - self.y0) + self.c
-        return np.array(data, dtype=dtype)
+        return np.array(data, dtype=self.dtype.to_numpy_dtype())
 
 
 register_image_parameters_class(ImageTypes.RAMP, Ramp2DParam)
@@ -1474,8 +1490,7 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
     if incr_img_nb:
         title = f"{title} {get_next_image_number()}"
     shape = (param.height, param.width)
-    dtype = param.dtype.value
-    data = param.generate_2d_data(shape, dtype)
+    data = param.generate_2d_data(shape)
     gen_title = param.generate_title()
     if gen_title:
         title = gen_title if param.title == DEFAULT_TITLE else param.title
