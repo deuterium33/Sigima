@@ -6,17 +6,19 @@ from __future__ import annotations
 
 from enum import Enum
 
+import guidata.dataset as gds
+
 from sigima.config import _
 
 
-class AngleUnit(Enum):
+class AngleUnit(gds.LabeledEnum):
     """Angle units."""
 
     RADIAN = "rad"
     DEGREE = "°"
 
 
-class BinningOperation(Enum):
+class BinningOperation(gds.LabeledEnum):
     """Binning operations for image processing."""
 
     SUM = "sum"
@@ -26,15 +28,15 @@ class BinningOperation(Enum):
     MAX = "max"
 
 
-class ContourShape(Enum):
+class ContourShape(gds.LabeledEnum):
     """Contour shapes for image processing."""
 
-    ELLIPSE = _("Ellipse")
-    CIRCLE = _("Circle")
-    POLYGON = _("Polygon")
+    ELLIPSE = "ellipse", _("Ellipse")
+    CIRCLE = "circle", _("Circle")
+    POLYGON = "polygon", _("Polygon")
 
 
-class BorderMode(Enum):
+class BorderMode(gds.LabeledEnum):
     """Border modes for filtering and image processing."""
 
     CONSTANT = "constant"
@@ -44,7 +46,7 @@ class BorderMode(Enum):
     MIRROR = "mirror"
 
 
-class MathOperator(Enum):
+class MathOperator(gds.LabeledEnum):
     """Mathematical operators for data operations."""
 
     ADD = "+"
@@ -53,7 +55,7 @@ class MathOperator(Enum):
     DIVIDE = "/"
 
 
-class FilterMode(Enum):
+class FilterMode(gds.LabeledEnum):
     """Filter modes for signal and image processing."""
 
     REFLECT = "reflect"
@@ -63,7 +65,7 @@ class FilterMode(Enum):
     WRAP = "wrap"
 
 
-class WaveletMode(Enum):
+class WaveletMode(gds.LabeledEnum):
     """Wavelet transform modes."""
 
     CONSTANT = "constant"
@@ -73,21 +75,21 @@ class WaveletMode(Enum):
     WRAP = "wrap"
 
 
-class ThresholdMethod(Enum):
+class ThresholdMethod(gds.LabeledEnum):
     """Thresholding methods for wavelet denoising."""
 
     SOFT = "soft"
     HARD = "hard"
 
 
-class ShrinkageMethod(Enum):
+class ShrinkageMethod(gds.LabeledEnum):
     """Shrinkage methods for wavelet denoising."""
 
     BAYES_SHRINK = "BayesShrink"
     VISU_SHRINK = "VisuShrink"
 
 
-class PadLocation(Enum):
+class PadLocation(gds.LabeledEnum):
     """Padding location for signal processing."""
 
     APPEND = "append"
@@ -95,83 +97,83 @@ class PadLocation(Enum):
     BOTH = "both"
 
 
-class PowerUnit(Enum):
+class PowerUnit(gds.LabeledEnum):
     """Power spectral density units."""
 
     DBC = "dBc"
     DBFS = "dBFS"
 
 
-class WindowingMethod(Enum):
+class WindowingMethod(gds.LabeledEnum):
     """Windowing methods enumeration."""
 
-    BARTHANN = "Barthann"
-    BARTLETT = "Bartlett"
-    BLACKMAN = "Blackman"
-    BLACKMAN_HARRIS = "Blackman-Harris"
-    BOHMAN = "Bohman"
-    BOXCAR = "Boxcar"
-    COSINE = _("Cosine")
-    EXPONENTIAL = _("Exponential")
-    FLAT_TOP = _("Flat Top")
-    GAUSSIAN = _("Gaussian")
-    HAMMING = "Hamming"
-    HANN = "Hann"
-    KAISER = "Kaiser"
-    LANCZOS = "Lanczos"
-    NUTTALL = "Nuttall"
-    PARZEN = "Parzen"
-    TAYLOR = "Taylor"
-    TUKEY = "Tukey"
+    BARTHANN = "barthann", "Barthann"
+    BARTLETT = "bartlett", "Bartlett"
+    BLACKMAN = "blackman", "Blackman"
+    BLACKMAN_HARRIS = "blackman_harris", "Blackman-Harris"
+    BOHMAN = "bohman", "Bohman"
+    BOXCAR = "boxcar", "Boxcar"
+    COSINE = "cosine", _("Cosine")
+    EXPONENTIAL = "exponential", _("Exponential")
+    FLAT_TOP = "flat_top", _("Flat Top")
+    GAUSSIAN = "gaussian", _("Gaussian")
+    HAMMING = "hamming", "Hamming"
+    HANN = "hann", "Hann"
+    KAISER = "kaiser", "Kaiser"
+    LANCZOS = "lanczos", "Lanczos"
+    NUTTALL = "nuttall", "Nuttall"
+    PARZEN = "parzen", "Parzen"
+    TAYLOR = "taylor", "Taylor"
+    TUKEY = "tukey", "Tukey"
 
 
-class Interpolation1DMethod(Enum):
+class Interpolation1DMethod(gds.LabeledEnum):
     """Methods for 1D interpolation and resampling."""
 
-    LINEAR = _("Linear")
-    SPLINE = _("Spline")
-    QUADRATIC = _("Quadratic")
-    CUBIC = _("Cubic")
-    BARYCENTRIC = _("Barycentric")
-    PCHIP = _("PCHIP")
+    LINEAR = "linear", _("Linear")
+    SPLINE = "spline", _("Spline")
+    QUADRATIC = "quadratic", _("Quadratic")
+    CUBIC = "cubic", _("Cubic")
+    BARYCENTRIC = "barycentric", _("Barycentric")
+    PCHIP = "pchip", _("PCHIP")
 
 
-class Interpolation2DMethod(Enum):
+class Interpolation2DMethod(gds.LabeledEnum):
     """Methods for 2D interpolation and resampling."""
 
-    NEAREST = _("Nearest")
-    LINEAR = _("Linear")
-    CUBIC = _("Cubic")
+    NEAREST = "nearest", _("Nearest")
+    LINEAR = "linear", _("Linear")
+    CUBIC = "cubic", _("Cubic")
 
 
-class NormalizationMethod(Enum):
+class NormalizationMethod(gds.LabeledEnum):
     """Normalization methods for signal processing."""
 
-    MAXIMUM = _("Maximum")
-    AMPLITUDE = _("Amplitude")
-    AREA = _("Area")
-    ENERGY = _("Energy")
-    RMS = _("RMS")
+    MAXIMUM = "maximum", _("Maximum")
+    AMPLITUDE = "amplitude", _("Amplitude")
+    AREA = "area", _("Area")
+    ENERGY = "energy", _("Energy")
+    RMS = "rms", _("RMS")
 
 
-class FilterType(Enum):
+class FilterType(gds.LabeledEnum):
     """Filter types"""
 
-    LOWPASS = "lowpass"
-    HIGHPASS = "highpass"
-    BANDPASS = "bandpass"
-    BANDSTOP = "bandstop"
+    LOWPASS = "lowpass", "lowpass"
+    HIGHPASS = "highpass", "highpass"
+    BANDPASS = "bandpass", "bandpass"
+    BANDSTOP = "bandstop", "bandstop"
 
 
-class FrequencyFilterMethod(Enum):
+class FrequencyFilterMethod(gds.LabeledEnum):
     """Frequency filter methods for signal processing."""
 
-    BESSEL = "Bessel"
-    BRICKWALL = _("Brickwall")
-    BUTTERWORTH = "Butterworth"
-    CHEBYSHEV1 = "Chebyshev I"
-    CHEBYSHEV2 = "Chebyshev II"
-    ELLIPTIC = _("Elliptic")
+    BESSEL = "bessel", "Bessel"
+    BRICKWALL = "brickwall", _("Brickwall")
+    BUTTERWORTH = "butterworth", "Butterworth"
+    CHEBYSHEV1 = "chebyshev1", "Chebyshev I"
+    CHEBYSHEV2 = "chebyshev2", "Chebyshev II"
+    ELLIPTIC = "elliptic", _("Elliptic")
 
 
 class SignalShape(str, Enum):
