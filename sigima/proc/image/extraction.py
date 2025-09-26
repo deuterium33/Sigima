@@ -27,7 +27,6 @@ intensity along defined paths.
 
 from __future__ import annotations
 
-import enum
 from typing import Callable
 
 import guidata.dataset as gds
@@ -118,11 +117,11 @@ def extract_roi(src: ImageObj, p: ROI2DParam) -> ImageObj:
     return dst
 
 
-class Direction(enum.Enum):
+class Direction(gds.LabeledEnum):
     """Direction choice"""
 
-    INCREASING = _("increasing")
-    DECREASING = _("decreasing")
+    INCREASING = "increasing", _("increasing")
+    DECREASING = "decreasing", _("decreasing")
 
 
 class ROIGridParam(gds.DataSet):
