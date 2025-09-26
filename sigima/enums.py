@@ -4,8 +4,6 @@
 
 from __future__ import annotations
 
-from enum import Enum
-
 import guidata.dataset as gds
 
 from sigima.config import _
@@ -176,26 +174,8 @@ class FrequencyFilterMethod(gds.LabeledEnum):
     ELLIPTIC = "elliptic", _("Elliptic")
 
 
-class SignalShape(str, Enum):
-    """Enum for signal shapes.
-
-    WARNING: This enum inherits from str and uses raw string values (not translated).
-    This is intentional and differs from other enums in this module for the following
-    reasons:
-
-    - SignalShape values are used for data serialization (JSON, database storage)
-    - Values must be language-independent and stable across translations
-    - The str inheritance enables automatic JSON serialization without manual conversion
-    - For UI display, use a separate translation mechanism rather than enum values
-
-    Compare with other enums (ContourShape, WindowingMethod, etc.) that use _("...")
-    for translated values since they are primarily for user interface display.
-
-    Example usage:
-        shape = SignalShape.STEP
-        json_data = {"shape": shape}  # Serializes as {"shape": "step"}
-        # For display: implement a separate display_name property or translation
-    """
+class SignalShape(gds.LabeledEnum):
+    """Signal shapes."""
 
     STEP = "step"
     SQUARE = "square"
