@@ -336,13 +336,13 @@ def arithmetic(src1: SignalObj, src2: SignalObj, p: ArithmeticParam) -> SignalOb
     dst = src1.copy(title=title)
     a = ConstantParam.create(value=p.factor)
     b = ConstantParam.create(value=p.constant)
-    if p.operator is MathOperator.ADD:
+    if p.operator == MathOperator.ADD:
         dst = addition_constant(product_constant(addition([src1, src2]), a), b)
-    elif p.operator is MathOperator.SUBTRACT:
+    elif p.operator == MathOperator.SUBTRACT:
         dst = addition_constant(product_constant(difference(src1, src2), a), b)
-    elif p.operator is MathOperator.MULTIPLY:
+    elif p.operator == MathOperator.MULTIPLY:
         dst = addition_constant(product_constant(product([src1, src2]), a), b)
-    elif p.operator is MathOperator.DIVIDE:
+    elif p.operator == MathOperator.DIVIDE:
         dst = addition_constant(product_constant(product([src1, inverse(src2)]), a), b)
     # Eventually convert to initial data type
     if p.restore_dtype:

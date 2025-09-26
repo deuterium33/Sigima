@@ -249,13 +249,13 @@ def test_image_arithmetic() -> None:
                     ima3 = sigima.proc.image.arithmetic(ima1, ima2, p)
                     if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
                         exp = np.ones_like(ima1.data) * b
-                    elif o is MathOperator.ADD:
+                    elif o == MathOperator.ADD:
                         exp = np.add(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o is MathOperator.MULTIPLY:
+                    elif o == MathOperator.MULTIPLY:
                         exp = np.multiply(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o is MathOperator.SUBTRACT:
+                    elif o == MathOperator.SUBTRACT:
                         exp = np.subtract(ima1.data, ima2.data, dtype=float) * a + b
-                    elif o is MathOperator.DIVIDE:
+                    elif o == MathOperator.DIVIDE:
                         exp = np.divide(ima1.data, ima2.data, dtype=float) * a + b
                     if p.restore_dtype:
                         if np.issubdtype(dtype1, np.integer):

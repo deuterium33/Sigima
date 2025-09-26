@@ -265,13 +265,13 @@ def arithmetic(src1: ImageObj, src2: ImageObj, p: ArithmeticParam) -> ImageObj:
     # Apply operator
     if o in (MathOperator.MULTIPLY, MathOperator.DIVIDE) and a == 0.0:
         dst.data = np.ones_like(src1.data) * b
-    elif o is MathOperator.ADD:
+    elif o == MathOperator.ADD:
         dst.data = np.add(src1.data, src2.data, dtype=float) * a + b
-    elif o is MathOperator.SUBTRACT:
+    elif o == MathOperator.SUBTRACT:
         dst.data = np.subtract(src1.data, src2.data, dtype=float) * a + b
-    elif o is MathOperator.MULTIPLY:
+    elif o == MathOperator.MULTIPLY:
         dst.data = np.multiply(src1.data, src2.data, dtype=float) * a + b
-    elif o is MathOperator.DIVIDE:
+    elif o == MathOperator.DIVIDE:
         dst.data = np.divide(src1.data, src2.data, dtype=float) * a + b
     # Eventually convert to initial data type
     if p.restore_dtype:

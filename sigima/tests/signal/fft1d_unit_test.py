@@ -55,7 +55,7 @@ def test_signal_zero_padding() -> None:
         n = param.n
         exp_len2 = len1 + n
         assert s2.y.size == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
-        if location is PadLocation.APPEND:
+        if location == PadLocation.APPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -70,7 +70,7 @@ def test_signal_zero_padding() -> None:
             check_array_result(
                 f"{location.value}: Check padded y-data", s2.y[len1:], np.zeros(n)
             )
-        elif location is PadLocation.PREPEND:
+        elif location == PadLocation.PREPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -85,7 +85,7 @@ def test_signal_zero_padding() -> None:
             check_array_result(
                 f"{location.value}: Check padded y-data", s2.y[:n], np.zeros(n)
             )
-        elif location is PadLocation.BOTH:
+        elif location == PadLocation.BOTH:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,

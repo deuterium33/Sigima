@@ -461,7 +461,7 @@ def create_plot_items_from_geometry(
     items = []
     for coords in result.coords:
         title = result.title or ""
-        if result.kind is KindShape.POINT:
+        if result.kind == KindShape.POINT:
             x0, y0 = coords
             item = AnnotatedPoint(x0, y0)
             sparam: ShapeParam = item.shape.shapeparam
@@ -473,25 +473,25 @@ def create_plot_items_from_geometry(
             aparam.title = title
             sparam.update_item(item.shape)
             aparam.update_item(item)
-        elif result.kind is KindShape.MARKER:
+        elif result.kind == KindShape.MARKER:
             x0, y0 = coords
             item = __make_marker_item(x0, y0, "%.3f", title)
-        elif result.kind is KindShape.RECTANGLE:
+        elif result.kind == KindShape.RECTANGLE:
             x0, y0, dx, dy = coords
             item = make.annotated_rectangle(x0, y0, x0 + dx, y0 + dy, title=title)
-        elif result.kind is KindShape.CIRCLE:
+        elif result.kind == KindShape.CIRCLE:
             xc, yc, r = coords
             x0, y0, x1, y1 = coordinates.circle_to_diameter(xc, yc, r)
             item = make.annotated_circle(x0, y0, x1, y1, title=title)
-        elif result.kind is KindShape.SEGMENT:
+        elif result.kind == KindShape.SEGMENT:
             x0, y0, x1, y1 = coords
             item = make.annotated_segment(x0, y0, x1, y1, title=title)
-        elif result.kind is KindShape.ELLIPSE:
+        elif result.kind == KindShape.ELLIPSE:
             xc, yc, a, b, t = coords
             coords = coordinates.ellipse_to_diameters(xc, yc, a, b, t)
             x0, y0, x1, y1, x2, y2, x3, y3 = coords
             item = make.annotated_ellipse(x0, y0, x1, y1, x2, y2, x3, y3, title=title)
-        elif result.kind is KindShape.POLYGON:
+        elif result.kind == KindShape.POLYGON:
             x, y = coords[::2], coords[1::2]
             item = make.polygon(x, y, title=title, closed=False)
         else:

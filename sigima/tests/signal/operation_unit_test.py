@@ -402,13 +402,13 @@ def test_signal_arithmetic() -> None:
             for constant in (0.0, 1.0, 2.0):
                 p.constant = constant
                 s3 = sigima.proc.signal.arithmetic(s1, s2, p)
-                if operator is MathOperator.ADD:
+                if operator == MathOperator.ADD:
                     exp = s1.y + s2.y
-                elif operator is MathOperator.MULTIPLY:
+                elif operator == MathOperator.MULTIPLY:
                     exp = s1.y * s2.y
-                elif operator is MathOperator.SUBTRACT:
+                elif operator == MathOperator.SUBTRACT:
                     exp = s1.y - s2.y
-                elif operator is MathOperator.DIVIDE:
+                elif operator == MathOperator.DIVIDE:
                     exp = s1.y / s2.y
                 else:
                     raise ValueError(f"Unknown operator {operator}")

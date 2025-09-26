@@ -526,7 +526,7 @@ def __iterate_image_datatypes(
         param = create_image_parameters(
             itype, idtype=idtype, width=data_size, height=data_size
         )
-        if itype == ImageTypes.RAMP and idtype is not ImageDatatypes.FLOAT64:
+        if itype == ImageTypes.RAMP and idtype != ImageDatatypes.FLOAT64:
             continue  # Testing only float64 for ramp
         if itype == ImageTypes.UNIFORM_DISTRIBUTION:
             assert isinstance(param, UniformDistribution2DParam)
