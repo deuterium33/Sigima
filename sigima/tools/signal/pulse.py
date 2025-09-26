@@ -1251,8 +1251,8 @@ def extract_pulse_features(
 
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
-    if not isinstance(signal_shape, SignalShape):
-        raise ValueError("signal_shape must be an instance of SignalShape Enum")
+    if not isinstance(signal_shape, (SignalShape, str)):
+        raise ValueError("Invalid signal_shape")
 
     if denoise:
         y = filtering.denoise_preserve_shape(y)[0]
