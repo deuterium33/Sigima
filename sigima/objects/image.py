@@ -12,7 +12,6 @@ Image object and related classes
 from __future__ import annotations
 
 import abc
-import enum
 import re
 from collections.abc import ByteString, Mapping, Sequence
 from typing import Any, Literal, Type
@@ -1134,21 +1133,21 @@ class ImageDatatypes(gds.LabeledEnum):
 ImageDatatypes.check()
 
 
-class ImageTypes(enum.Enum):
+class ImageTypes(gds.LabeledEnum):
     """Image types."""
 
     #: Image filled with zeros
-    ZEROS = _("Zeros")
+    ZEROS = "zeros", _("Zeros")
     #: Image filled with random data (normal distribution)
-    NORMAL_DISTRIBUTION = _("Normal distribution")
+    NORMAL_DISTRIBUTION = "normal_distribution", _("Normal distribution")
     #: Image filled with random data (Poisson distribution)
-    POISSON_DISTRIBUTION = _("Poisson distribution")
+    POISSON_DISTRIBUTION = "poisson_distribution", _("Poisson distribution")
     #: Image filled with random data (uniform distribution)
-    UNIFORM_DISTRIBUTION = _("Uniform distribution")
+    UNIFORM_DISTRIBUTION = "uniform_distribution", _("Uniform distribution")
     #: 2D Gaussian image
-    GAUSS = _("Gaussian")
+    GAUSS = "gauss", _("Gaussian")
     #: Bilinear form image
-    RAMP = _("2D ramp")
+    RAMP = "ramp", _("2D ramp")
 
 
 DEFAULT_TITLE = _("Untitled image")

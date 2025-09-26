@@ -518,55 +518,55 @@ def create_signal(
     return signal
 
 
-class SignalTypes(enum.Enum):
+class SignalTypes(gds.LabeledEnum):
     """Signal types"""
 
     #: Signal filled with zeros
-    ZEROS = _("Zeros")
+    ZEROS = "zeros", _("Zeros")
     #: Random signal (normal distribution)
-    NORMAL_DISTRIBUTION = _("Normal distribution")
+    NORMAL_DISTRIBUTION = "normal_distribution", _("Normal distribution")
     #: Random signal (Poisson distribution)
-    POISSON_DISTRIBUTION = _("Poisson distribution")
+    POISSON_DISTRIBUTION = "poisson_distribution", _("Poisson distribution")
     #: Random signal (uniform distribution)
-    UNIFORM_DISTRIBUTION = _("Uniform distribution")
+    UNIFORM_DISTRIBUTION = "uniform_distribution", _("Uniform distribution")
     #: Gaussian function
-    GAUSS = _("Gaussian")
+    GAUSS = "gauss", _("Gaussian")
     #: Lorentzian function
-    LORENTZ = _("Lorentzian")
+    LORENTZ = "lorentz", _("Lorentzian")
     #: Voigt function
-    VOIGT = "Voigt"
+    VOIGT = "voigt", _("Voigt")
     #: Planck function
-    PLANCK = _("Blackbody (Planck)")
+    PLANCK = "planck", _("Blackbody (Planck)")
     #: Sinusoid
-    SINUS = _("Sinus")
+    SINUS = "sinus", _("Sinus")
     #: Cosinusoid
-    COSINUS = _("Cosinus")
+    COSINUS = "cosinus", _("Cosinus")
     #: Sawtooth function
-    SAWTOOTH = _("Sawtooth")
+    SAWTOOTH = "sawtooth", _("Sawtooth")
     #: Triangle function
-    TRIANGLE = _("Triangle")
+    TRIANGLE = "triangle", _("Triangle")
     #: Square function
-    SQUARE = _("Square")
+    SQUARE = "square", _("Square")
     #: Cardinal sine
-    SINC = _("Cardinal sine")
+    SINC = "sinc", _("Cardinal sine")
     #: Linear chirp
-    LINEARCHIRP = _("Linear chirp")
+    LINEARCHIRP = "linearchirp", _("Linear chirp")
     #: Step function
-    STEP = _("Step")
+    STEP = "step", _("Step")
     #: Exponential function
-    EXPONENTIAL = _("Exponential")
+    EXPONENTIAL = "exponential", _("Exponential")
     #: Logistic function
-    LOGISTIC = _("Logistic")
+    LOGISTIC = "logistic", _("Logistic")
     #: Pulse function
-    PULSE = _("Pulse")
+    PULSE = "pulse", _("Pulse")
     #: Step pulse function (with configurable rise time)
-    STEP_PULSE = _("Step pulse")
+    STEP_PULSE = "step_pulse", _("Step pulse")
     #: Square pulse function (with configurable rise/fall times)
-    SQUARE_PULSE = _("Square pulse")
+    SQUARE_PULSE = "square_pulse", _("Square pulse")
     #: Polynomial function
-    POLYNOMIAL = _("Polynomial")
+    POLYNOMIAL = "polynomial", _("Polynomial")
     #: Custom function
-    CUSTOM = _("Custom")
+    CUSTOM = "custom", _("Custom")
 
 
 DEFAULT_TITLE = _("Untitled signal")
