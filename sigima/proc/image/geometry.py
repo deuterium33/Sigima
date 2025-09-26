@@ -136,14 +136,13 @@ def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
     Returns:
         Output image object
     """
-    mode = p.mode.value
-    dst = dst_1_to_1(src, "rotate", f"α={p.angle:.3f}°, mode='{mode}'")
+    dst = dst_1_to_1(src, "rotate", f"α={p.angle:.3f}°, mode='{p.mode}'")
     dst.data = spi.rotate(
         src.data,
         p.angle,
         reshape=p.reshape,
         order=p.order,
-        mode=mode,
+        mode=p.mode,
         cval=p.cval,
         prefilter=p.prefilter,
     )
@@ -254,7 +253,7 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
     Returns:
         Output image object
     """
-    mode = p.mode.value
+    mode = p.mode
     dst = dst_1_to_1(src, "resize", f"zoom={p.zoom:.3f}")
     dst.data = spi.zoom(
         src.data,
@@ -314,7 +313,7 @@ def binning(src: ImageObj, p: BinningParam) -> ImageObj:
     Returns:
         Output image object
     """
-    operation = p.operation.value
+    operation = p.operation
     dst = dst_1_to_1(
         src,
         "binning",

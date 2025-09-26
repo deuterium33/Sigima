@@ -143,7 +143,7 @@ def phase(src: ImageObj, p: PhaseParam) -> ImageObj:
     if p.unit == AngleUnit.DEGREE:
         argument = np.rad2deg(argument)
     dst.data = argument
-    dst.zunit = p.unit.value
+    dst.zunit = p.unit
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -168,7 +168,7 @@ def complex_from_magnitude_phase(
     """
     dst = dst_2_to_1(src1, src2, "mag_phase")
     assert p.unit is not None
-    dst.data = coordinates.polar_to_complex(src1.data, src2.data, unit=p.unit.value)
+    dst.data = coordinates.polar_to_complex(src1.data, src2.data, unit=p.unit)
     return dst
 
 

@@ -142,7 +142,7 @@ def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
     if p.unit == AngleUnit.DEGREE:
         argument = np.rad2deg(argument)
     dst.set_xydata(x, argument, src.dx, None)
-    dst.yunit = p.unit.value
+    dst.yunit = p.unit
     restore_data_outside_roi(dst, src)
     return dst
 
@@ -205,7 +205,7 @@ def complex_from_magnitude_phase(
         src1.y = np.maximum(src1.y, 0.0)
     dst = dst_2_to_1(src1, src2, "mag_phase")
     assert p.unit is not None
-    y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit.value)
+    y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit)
     dst.set_xydata(src1.x, y, src1.x, None)
     return dst
 
@@ -377,11 +377,11 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
         )
     dst = dst_1_to_1(src, "Polar coordinates", f"unit={p.unit}")
     x, y = src.get_data()
-    r, theta = coordinates.to_polar(x, y, p.unit.value)
+    r, theta = coordinates.to_polar(x, y, p.unit)
     dst.set_xydata(r, theta)
     dst.xlabel = _("Radius")
     dst.ylabel = _("Angle")
-    dst.yunit = p.unit.value
+    dst.yunit = p.unit
     return dst
 
 
@@ -412,7 +412,7 @@ def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     if np.any(r < 0.0):
         warnings.warn("Negative radius values are not allowed. They will be set to 0.")
         r = np.maximum(r, 0.0)
-    x, y = coordinates.to_cartesian(r, theta, p.unit.value)
+    x, y = coordinates.to_cartesian(r, theta, p.unit)
     dst.set_xydata(x, y)
     dst.xlabel = _("x")
     dst.ylabel = _("y")

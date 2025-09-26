@@ -125,13 +125,12 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
     Returns:
         Output image object.
     """
-    mode = p.mode.value
     dst = dst_1_to_1(
         src,
         "canny",
         f"sigma={p.sigma}, low_threshold={p.low_threshold}, "
         f"high_threshold={p.high_threshold}, use_quantiles={p.use_quantiles}, "
-        f"mode={mode}, cval={p.cval}",
+        f"mode={p.mode}, cval={p.cval}",
     )
     dst.data = img_as_ubyte(
         feature.canny(
@@ -140,7 +139,7 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
             low_threshold=p.low_threshold,
             high_threshold=p.high_threshold,
             use_quantiles=p.use_quantiles,
-            mode=mode,
+            mode=p.mode,
             cval=p.cval,
         )
     )

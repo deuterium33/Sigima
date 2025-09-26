@@ -74,7 +74,7 @@ def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(
-        spi.uniform_filter, size=p.n, mode=p.mode.value, func_name="moving_average"
+        spi.uniform_filter, size=p.n, mode=p.mode, func_name="moving_average"
     )(src)
 
 
@@ -90,7 +90,7 @@ def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
         Result signal object
     """
     return Wrap1to1Func(
-        spi.median_filter, size=p.n, mode=p.mode.value, func_name="moving_median"
+        spi.median_filter, size=p.n, mode=p.mode, func_name="moving_median"
     )(src)
 
 

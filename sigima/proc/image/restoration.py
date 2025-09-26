@@ -147,11 +147,10 @@ def denoise_bilateral(src: ImageObj, p: DenoiseBilateralParam) -> ImageObj:
     Returns:
         Output image object
     """
-    mode = p.mode.value
     return Wrap1to1Func(
         restoration.denoise_bilateral,
         sigma_spatial=p.sigma_spatial,
-        mode=mode,
+        mode=p.mode,
         cval=p.cval,
     )(src)
 
@@ -181,10 +180,8 @@ def denoise_wavelet(src: ImageObj, p: DenoiseWaveletParam) -> ImageObj:
     Returns:
         Output image object
     """
-    mode = p.mode.value
-    method = p.method.value
     return Wrap1to1Func(
-        restoration.denoise_wavelet, wavelet=p.wavelet, mode=mode, method=method
+        restoration.denoise_wavelet, wavelet=p.wavelet, mode=p.mode, method=p.method
     )(src)
 
 
