@@ -79,9 +79,8 @@ def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> Sign
     Returns:
         Result signal object
     """
-    method: Interpolation1DMethod = p.method
-    suffix = f"method={method.value}"
-    if p.fill_value is not None and method in (
+    suffix = f"method={p.method}"
+    if p.fill_value is not None and p.method in (
         Interpolation1DMethod.LINEAR,
         Interpolation1DMethod.CUBIC,
         Interpolation1DMethod.PCHIP,
@@ -90,7 +89,7 @@ def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> Sign
     dst = dst_2_to_1(src1, src2, "interpolate", suffix)
     x1, y1 = src1.get_data()
     xnew, _y2 = src2.get_data()
-    ynew = interpolation.interpolate(x1, y1, xnew, method, p.fill_value)
+    ynew = interpolation.interpolate(x1, y1, xnew, p.method, p.fill_value)
     dst.set_xydata(xnew, ynew)
     return dst
 
