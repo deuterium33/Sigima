@@ -17,6 +17,14 @@ import pytest
 
 import sigima
 
+# Check if plotpy is available
+try:
+    import plotpy  # noqa: F401
+
+    PLOTPY_AVAILABLE = True
+except ImportError:
+    PLOTPY_AVAILABLE = False
+
 
 def get_example_dir() -> Path:
     """Get the path to the examples directory."""
@@ -45,6 +53,7 @@ def test_examples_directory_exists() -> None:
     assert len(python_files) > 0, "doc/examples should contain at least one Python file"
 
 
+@pytest.mark.skipif(not PLOTPY_AVAILABLE, reason="PlotPy not installed")
 @pytest.mark.parametrize("example_file", get_example_files())
 def test_example_execution(example_file: Path) -> None:
     """Test that each example file can be executed without errors."""
