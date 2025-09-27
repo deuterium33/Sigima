@@ -38,7 +38,10 @@ jobs:
         pip install .
         if [ "${{ github.ref_name }}" = "develop" ]; then
            pip uninstall -y guidata
-           pip install git+https://github.com/PlotPyStack/guidata.git@develop
+           cd ..
+           git clone --depth 1 --branch develop https://github.com/PlotPyStack/guidata.git
+           cd Sigima
+           pip install -e ../guidata
         fi
     - name: Lint with Ruff
       run: ruff check --output-format=github sigima
