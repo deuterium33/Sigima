@@ -854,12 +854,7 @@ def heuristically_find_rise_start_time(
 
     # Strategy 2: Gradient-based detection with smoothing
     # Smooth the signal to reduce noise effects
-    try:
-        y_smooth = scipy.ndimage.gaussian_filter1d(y, sigma=2.0)
-    except ImportError:
-        # Fallback: simple moving average
-        kernel_size = 5
-        y_smooth = np.convolve(y, np.ones(kernel_size) / kernel_size, mode="same")
+    y_smooth = scipy.ndimage.gaussian_filter1d(y, sigma=2.0)
 
     dy = np.gradient(y_smooth, x)
 
