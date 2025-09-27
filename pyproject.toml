@@ -58,6 +58,7 @@ opencv = ["opencv-python-headless >= 4.8.1.78"]
 dev = ["build", "babel","ruff", "pylint", "Coverage", "pre-commit"]
 doc = [
     "sphinx",
+    "sphinx-gallery",
     "sphinx_intl",
     "myst_parser",
     "sphinx_design",
