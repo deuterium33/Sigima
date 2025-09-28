@@ -19,7 +19,7 @@ import sigima
 
 # Check if plotpy is available
 try:
-    import plotpy  # noqa: F401
+    import plotpy  # pylint: disable=unused-import  # noqa: F401
 
     PLOTPY_AVAILABLE = True
 except ImportError:

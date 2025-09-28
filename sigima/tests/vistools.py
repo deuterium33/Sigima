@@ -60,7 +60,7 @@ WIDGETS: list[QW.QWidget] = []
 
 def ensure_qapp() -> QW.QApplication:
     """Ensure that a QApplication instance exists."""
-    global QAPP
+    global QAPP  # pylint: disable=global-statement
     if QAPP is None:
         QAPP = QW.QApplication.instance()
         if QAPP is None:
@@ -70,7 +70,7 @@ def ensure_qapp() -> QW.QApplication:
 
 def exec_dialog(dlg: QW.QDialog) -> None:
     """Execute a dialog, supporting Sphinx-Gallery scraping."""
-    global WIDGETS
+    global WIDGETS  # pylint: disable=global-statement,global-variable-not-assigned
     gallery_building = os.getenv("SPHINX_GALLERY_BUILDING")
     if gallery_building:
         dlg.show()
