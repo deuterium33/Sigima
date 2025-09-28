@@ -94,8 +94,7 @@ class BaseCoordinates(abc.ABC):
             )
 
     def transform_affine(self, matrix: np.ndarray) -> None:
-        """
-        Apply a 2D affine transformation to the coordinates inplace.
+        """Apply a 2D affine transformation to the coordinates inplace.
 
         Args:
             matrix: 3x3 affine transformation matrix.
@@ -112,9 +111,8 @@ class BaseCoordinates(abc.ABC):
             out = (homo @ matrix.T)[:, :2].reshape(-1)
             self.data[:2] = out
 
-    def copy(self) -> "BaseCoordinates":
-        """
-        Return a copy of the coordinate object.
+    def copy(self) -> BaseCoordinates:
+        """Return a copy of the coordinate object.
 
         Returns:
             BaseCoordinates: A new object with the same data.
@@ -122,8 +120,7 @@ class BaseCoordinates(abc.ABC):
         return self.__class__(self.data.copy())
 
     def rotate(self, angle: float, center: tuple[float, float] = (0, 0)) -> None:
-        """
-        Rotate coordinates by a given angle around a center inplace.
+        """Rotate coordinates by a given angle around a center inplace.
 
         Args:
             angle: Rotation angle in radians (counterclockwise).
@@ -138,8 +135,7 @@ class BaseCoordinates(abc.ABC):
         self.transform_affine(matrix)
 
     def translate(self, dx: float, dy: float) -> None:
-        """
-        Translate coordinates by (dx, dy) inplace.
+        """Translate coordinates by (dx, dy) inplace.
 
         Args:
             dx: Translation along x-axis.
@@ -149,8 +145,7 @@ class BaseCoordinates(abc.ABC):
         self.transform_affine(matrix)
 
     def fliph(self, cx: float = 0.0) -> None:
-        """
-        Flip coordinates horizontally around a vertical line x=cx inplace.
+        """Flip coordinates horizontally around a vertical line x=cx inplace.
 
         Args:
             cx: x-coordinate of the vertical axis. Defaults to 0.0.
@@ -159,8 +154,7 @@ class BaseCoordinates(abc.ABC):
         self.transform_affine(matrix)
 
     def flipv(self, cy: float = 0.0) -> None:
-        """
-        Flip coordinates vertically around a horizontal line y=cy inplace.
+        """Flip coordinates vertically around a horizontal line y=cy inplace.
 
         Args:
             cy: y-coordinate of the horizontal axis. Defaults to 0.0.
@@ -169,16 +163,12 @@ class BaseCoordinates(abc.ABC):
         self.transform_affine(matrix)
 
     def transpose(self) -> None:
-        """
-        Transpose coordinates (swap x and y) inplace.
-
-        """
+        """Transpose coordinates (swap x and y) inplace."""
         matrix = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]], float)
         self.transform_affine(matrix)
 
     def scale(self, sx: float, sy: float, center: tuple[float, float] = (0, 0)) -> None:
-        """
-        Scale coordinates by (sx, sy) around a center inplace.
+        """Scale coordinates by (sx, sy) around a center inplace.
 
         Args:
             sx: Scaling factor along x-axis.
@@ -251,8 +241,7 @@ class RectangleCoordinates(BaseCoordinates):
         self.data[:] = [x_min, y_min, x_max - x_min, y_max - y_min]
 
     def rotate(self, angle: float, center: tuple[float, float] = (0, 0)) -> None:
-        """
-        Rotate rectangle by a given angle around a center.
+        """Rotate rectangle by a given angle around a center.
 
         For rectangles, rotation may change the bounding box, so we transform
         all corners and compute the new axis-aligned bounding rectangle.

@@ -1,26 +1,22 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Scalar results
-==============
+Table results
+=============
 
-Scalar results are compute-friendly result containers for scalar tables and geometric
-outputs.
+Table results are compute-friendly result containers for scalar table outputs.
 
-Overview
---------
-
-This module defines two pure data classes:
+This module defines the `TableResult` class and related utilities:
 
 - `TableResult`: table of scalar metrics
-- `GeometryResult`: geometric outputs (points, segments, circles, ...)
+- `TableResultBuilder`: builder for TableResult with fluent interface
+- Utility functions for table operations (concatenation, filtering, etc.)
 
 Each result object is a simple data container with no behavior or methods:
 
 - It contains the result of a 1-to-0 processing function
   (e.g. `sigima.proc.signal.fwhm()`), i.e. a computation function that takes a signal
-  or image object (`SignalObj` or `ImageObj`) as input and produces a scalar output
-  (`TableResult` or `GeometryResult`).
+  or image object (`SignalObj` or `ImageObj`) as input and produces a scalar output.
 
 - The result may consist of multiple rows, each corresponding to a different ROI.
 
@@ -32,21 +28,10 @@ Each result object is a simple data container with no behavior or methods:
 Conventions
 -----------
 
-Conventions regarding ROI and geometry are as follows:
+Conventions regarding ROI indexing:
 
-- ROI indexing:
-
-  - `NO_ROI = -1` sentinel is used for "full image / no ROI" rows.
-  - Per-ROI rows use non-negative indices (0-based).
-
-- Geometry coordinates (physical units):
-
-  - `"point"` / `"marker"`: `[x, y]`
-  - `"segment"`: `[x0, y0, x1, y1]`
-  - `"rectangle"`: `[x0, y0, width, height]`
-  - `"circle"`: `[x0, y0, radius]`
-  - `"ellipse"`: `[x0, y0, a, b, theta]`   # theta in radians
-  - `"polygon"`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)
+- `NO_ROI = -1` sentinel is used for "full image / no ROI" rows.
+- Per-ROI rows use non-negative indices (0-based).
 """
 
 from __future__ import annotations
@@ -61,6 +46,7 @@ import pandas as pd
 
 if TYPE_CHECKING:
     from sigima.objects import ImageObj, SignalObj
+    from sigima.objects.scalar.geometry import GeometryResult
 
 # Sentinel value for "full signal/image / no ROI" rows in result tables
 NO_ROI: int = -1
@@ -84,7 +70,7 @@ class ResultHtmlGenerator:
 
     @staticmethod
     def generate_html(
-        result: TableResult | GeometryResult,
+        result: TableResult | "GeometryResult",
         obj: SignalObj | ImageObj,
         visible_headers: list[str] = None,
         transpose_single_row: bool = True,
@@ -153,7 +139,7 @@ class ResultHtmlGenerator:
 
     @staticmethod
     def _get_row_headers(
-        result: TableResult | GeometryResult,
+        result: TableResult | "GeometryResult",
         roi_indices: list[int] | None,
         obj: SignalObj | ImageObj,
     ) -> list[str]:
@@ -374,9 +360,8 @@ class TableResult:
         labels: list[str] = None,
         kind: TableKind | str = TableKind.CUSTOM,
         attrs: dict = None,
-    ) -> "TableResult":
-        """
-        Create a TableResult from a pandas DataFrame.
+    ) -> TableResult:
+        """Create a TableResult from a pandas DataFrame.
 
         Args:
             df: pandas DataFrame. If 'roi_index' column is present, it is used
@@ -668,336 +653,8 @@ class TableResultBuilder:
         )
 
 
-class KindShape(str, enum.Enum):
-    """Geometric shape types."""
-
-    POINT = "point"
-    SEGMENT = "segment"
-    CIRCLE = "circle"
-    ELLIPSE = "ellipse"
-    RECTANGLE = "rectangle"
-    POLYGON = "polygon"
-    MARKER = "marker"
-
-    @classmethod
-    def values(cls) -> list[str]:
-        """Return all shape type values."""
-        return [e.value for e in cls]
-
-
-@dataclasses.dataclass(frozen=True)
-class GeometryResult:
-    """Geometric outputs, optionally per-ROI.
-
-    Args:
-        title: Human-readable title for this geometric output set.
-        kind: Shape kind (`KindShape` member or its string value).
-        coords: 2-D array (N, K) with coordinates per row. K depends on `kind`
-         and may be NaN-padded (e.g., for polygons).
-        roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
-         Use NO_ROI (-1) for the "full signal/image / no ROI" row.
-        attrs: Optional algorithmic context (e.g. thresholds, method variant).
-
-    Raises:
-        ValueError: If dimensions are inconsistent or fields are invalid.
-
-    .. important::
-        **Coordinate System**: GeometryResult coordinates are stored in **physical
-        units** (e.g., mm, µm), not pixel coordinates. The conversion from pixel to
-        physical coordinates is performed automatically when creating GeometryResult
-        objects from image measurements using
-        :func:`~sigima.proc.image.base.compute_geometry_from_obj`.
-
-        This ensures that geometric measurements are:
-
-        * **Scale-independent**: Results remain valid when images are resized
-        * **Physically meaningful**: Measurements have real-world significance
-        * **Consistent**: Same geometric features yield same results across different
-          images
-
-    .. note::
-
-        Coordinate conventions are as follows:
-
-        - `KindShape.POINT`: `[x, y]`
-        - `KindShape.SEGMENT`: `[x0, y0, x1, y1]`
-        - `KindShape.RECTANGLE`: `[x0, y0, width, height]`
-        - `KindShape.CIRCLE`: `[x0, y0, radius]`
-        - `KindShape.ELLIPSE`: `[x0, y0, a, b, theta]`   # theta in radians
-        - `KindShape.POLYGON`: `[x0, y0, x1, y1, ..., xn, yn]`  (rows may be NaN-padded)
-
-        All coordinate values and dimensions (width, height, radius, semi-axes) are
-        expressed in the image's physical units as defined by the image calibration.
-
-    See Also:
-        :func:`~sigima.proc.image.base.compute_geometry_from_obj`: Function that
-        creates GeometryResult objects with automatic coordinate conversion from
-        pixel to physical units.
-    """
-
-    title: str
-    kind: KindShape
-    coords: np.ndarray
-    roi_indices: np.ndarray | None = None
-    attrs: dict[str, object] = dataclasses.field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        """Validate fields after initialization."""
-        # --- kind validation/coercion (smooth migration) ---
-        k = object.__getattribute__(self, "kind")
-        if isinstance(k, str):
-            try:
-                k = KindShape(k)  # coerce "ellipse" -> KindShape.ELLIPSE
-            except ValueError as exc:
-                raise ValueError(f"Unsupported geometry kind: {k!r}") from exc
-            object.__setattr__(self, "kind", k)
-        elif not isinstance(k, KindShape):
-            raise ValueError("kind must be a KindShape or its string value")
-        if not isinstance(self.title, str) or not self.title:
-            raise ValueError("title must be a non-empty string")
-        if not isinstance(self.coords, np.ndarray) or self.coords.ndim != 2:
-            raise ValueError("coords must be a 2-D numpy array")
-        if k == KindShape.POINT and self.coords.shape[1] != 2:
-            raise ValueError("coords for 'point' must be (N,2)")
-        if k == KindShape.SEGMENT and self.coords.shape[1] != 4:
-            raise ValueError("coords for 'segment' must be (N,4)")
-        if k == KindShape.CIRCLE and self.coords.shape[1] != 3:
-            raise ValueError("coords for 'circle' must be (N,3)")
-        if k == KindShape.ELLIPSE and self.coords.shape[1] != 5:
-            raise ValueError("coords for 'ellipse' must be (N,5)")
-        if k == KindShape.RECTANGLE and self.coords.shape[1] != 4:
-            raise ValueError("coords for 'rectangle' must be (N,4)")
-        if k == KindShape.POLYGON and self.coords.shape[1] % 2 != 0:
-            raise ValueError("coords for 'polygon' must be (N,2M) for M vertices")
-        if self.roi_indices is not None:
-            if (
-                not isinstance(self.roi_indices, np.ndarray)
-                or self.roi_indices.ndim != 1
-            ):
-                raise ValueError("roi_indices must be a 1-D numpy array if provided")
-            if len(self.roi_indices) != len(self.coords):
-                raise ValueError("roi_indices length must match number of coord rows")
-
-    # -------- Factory methods --------
-
-    @classmethod
-    def from_coords(
-        cls,
-        title: str,
-        kind: KindShape,
-        coords: np.ndarray,
-        roi_indices: np.ndarray | None = None,
-        *,
-        attrs: dict[str, object] | None = None,
-    ) -> GeometryResult:
-        """Create a GeometryResult from raw data.
-
-        Args:
-            title: Human-readable title for this geometric output.
-            kind: Shape kind (e.g. "point", "segment").
-            coords: 2-D array (N, K) with coordinates per row.
-            roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
-            attrs: Optional algorithmic context (e.g. thresholds, method variant).
-
-        Returns:
-            A GeometryResult instance.
-        """
-        return cls(
-            title,
-            kind,
-            np.asarray(coords, float),
-            None if roi_indices is None else np.asarray(roi_indices, int),
-            {} if attrs is None else dict(attrs),
-        )
-
-    # -------- JSON-friendly (de)serialization (no DataLab metadata coupling) -----
-
-    def to_dict(self) -> dict:
-        """Convert the GeometryResult to a dictionary."""
-        return {
-            "schema": 1,
-            "title": self.title,
-            "kind": self.kind.value,
-            "coords": self.coords.tolist(),
-            "roi_indices": None
-            if self.roi_indices is None
-            else self.roi_indices.tolist(),
-            "attrs": dict(self.attrs) if self.attrs else {},
-        }
-
-    @staticmethod
-    def from_dict(d: dict) -> GeometryResult:
-        """Convert a dictionary to a GeometryResult."""
-        return GeometryResult(
-            title=d["title"],
-            kind=KindShape(d["kind"]),
-            coords=np.asarray(d["coords"], dtype=float),
-            roi_indices=None
-            if d.get("roi_indices") is None
-            else np.asarray(d["roi_indices"], dtype=int),
-            attrs=dict(d.get("attrs", {})),
-        )
-
-    # -------- Pandas DataFrame interop --------
-
-    @property
-    def headers(self) -> list[str]:
-        """Get column headers for the coordinates.
-
-        Returns:
-            List of column headers
-        """
-        # Create headers based on the shape type
-        kind = self.kind.value
-
-        # Define headers based on shape type
-        headers_map = {
-            "point": ["x", "y"],
-            "marker": ["x", "y"],
-            "segment": ["x0", "y0", "x1", "y1"],
-            "rectangle": ["x0", "y0", "x1", "y1"],
-            "circle": ["x", "y", "r"],
-            "ellipse": ["x", "y", "a", "b", "θ"],
-        }
-
-        if kind in headers_map:
-            return headers_map[kind]
-
-        num_coords = self.coords.shape[1]
-
-        if kind == "polygon":
-            headers = []
-            for i in range(0, num_coords, 2):
-                headers.extend([f"x{i // 2}", f"y{i // 2}"])
-            return headers[:num_coords]
-
-        # Generic headers for unknown shapes
-        return [f"coord_{i}" for i in range(num_coords)]
-
-    def to_dataframe(self):
-        """
-        Convert the GeometryResult to a pandas DataFrame.
-
-        Returns:
-            pd.DataFrame: DataFrame with columns as in coords, and
-            optional 'roi_index' column.
-        """
-        df = pd.DataFrame(self.coords, columns=self.headers)
-        if self.roi_indices is not None:
-            df.insert(0, "roi_index", self.roi_indices)
-        # For segments, add a length column
-        if self.kind == KindShape.SEGMENT:
-            df["length"] = self.segments_lengths()
-        return df
-
-    def get_display_preferences(self) -> dict[str, bool]:
-        """Get display preferences for coordinate headers.
-
-        Returns:
-            Dictionary mapping header names to visibility (True=visible, False=hidden).
-            By default, all coordinates are visible unless specified in attrs.
-        """
-        prefs = {}
-        hidden_coords = self.attrs.get("hidden_coords", set())
-        if isinstance(hidden_coords, (list, tuple)):
-            hidden_coords = set(hidden_coords)
-
-        for header in self.headers:
-            prefs[header] = header not in hidden_coords
-        return prefs
-
-    def set_display_preferences(self, preferences: dict[str, bool]) -> None:
-        """Set display preferences for coordinate headers.
-
-        Args:
-            preferences: Dictionary mapping header names to visibility
-                        (True=visible, False=hidden)
-        """
-        hidden_coords = {
-            header
-            for header, visible in preferences.items()
-            if not visible and header in self.headers
-        }
-        if hidden_coords:
-            self.attrs["hidden_coords"] = list(hidden_coords)
-        elif "hidden_coords" in self.attrs:
-            del self.attrs["hidden_coords"]
-
-    def get_visible_headers(self) -> list[str]:
-        """Get list of currently visible headers based on display preferences.
-
-        Returns:
-            List of header names that should be displayed
-        """
-        prefs = self.get_display_preferences()
-        return [header for header in self.headers if prefs.get(header, True)]
-
-    # -------- User-oriented methods --------
-
-    def __len__(self) -> int:
-        """Return the number of coordinates (rows) in the result."""
-        return self.coords.shape[0]
-
-    def rows(self, roi: int | None = None) -> np.ndarray:
-        """Return coords for all rows (this ROI or full-image row).
-
-        Args:
-            roi: Optional ROI index to filter rows.
-
-        Returns:
-            2-D array of shape (M, K) with coordinates for the selected rows.
-        """
-        if self.roi_indices is None:
-            return self.coords
-        target = NO_ROI if roi is None else int(roi)
-        return self.coords[self.roi_indices == target]
-
-    # Optional convenience for common kinds:
-    def segments_lengths(self) -> np.ndarray:
-        """For kind='segment': return vector of segment lengths."""
-        if self.kind != KindShape.SEGMENT:
-            raise ValueError("segments_lengths requires kind='segment'")
-        dx = self.coords[:, 2] - self.coords[:, 0]
-        dy = self.coords[:, 3] - self.coords[:, 1]
-        return np.sqrt(dx * dx + dy * dy)
-
-    def circles_radii(self) -> np.ndarray:
-        """For kind='circle': return radii."""
-        if self.kind != KindShape.CIRCLE:
-            raise ValueError("circles_radii requires kind='circle'")
-        return self.coords[:, 2]
-
-    def ellipse_axes_angles(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """For kind='ellipse': return (a, b, theta)."""
-        if self.kind != KindShape.ELLIPSE:
-            raise ValueError("ellipse_axes_angles requires kind='ellipse'")
-        return self.coords[:, 2], self.coords[:, 3], self.coords[:, 4]
-
-    def to_html(
-        self,
-        obj=None,
-        visible_headers: list[str] = None,
-        transpose_single_row: bool = True,
-        **kwargs,
-    ) -> str:
-        """Convert the result to HTML format.
-
-        Args:
-            obj: Optional SignalObj or ImageObj for ROI title extraction
-            visible_headers: Optional list of headers to show (filters columns)
-            transpose_single_row: If True, transpose when there's only one row
-            **kwargs: Additional arguments passed to DataFrame.to_html()
-
-        Returns:
-            HTML representation of the result
-        """
-        return ResultHtmlGenerator.generate_html(
-            self, obj, visible_headers, transpose_single_row, **kwargs
-        )
-
-
 # ===========================
-# Small, compute-side helpers
+# Table utility functions
 # ===========================
 
 
@@ -1054,9 +711,6 @@ def calc_table_from_data(
         roi_indices=[NO_ROI],
         attrs={} if attrs is None else dict(attrs),
     )
-
-
-# ---- Concatenation & filtering utilities (pure NumPy, no pandas) ----
 
 
 def concat_tables(title: str, items: Iterable[TableResult]) -> TableResult:
@@ -1131,89 +785,5 @@ def filter_table_by_roi(res: TableResult, roi: int | None) -> TableResult:
         headers=list(res.headers),
         data=filtered_data,
         roi_indices=filtered_indices,
-        attrs=dict(res.attrs),
-    )
-
-
-def concat_geometries(
-    title: str,
-    items: Iterable[GeometryResult],
-    *,
-    kind: KindShape | None = None,
-) -> GeometryResult:
-    """Concatenate multiple GeometryResult objects of the same kind.
-
-    Args:
-        title: Title for the concatenated result.
-        items: Iterable of GeometryResult objects to concatenate.
-        kind: Optional kind label for the concatenated result.
-
-    Returns:
-        GeometryResult with concatenated data and updated metadata.
-    """
-    items = list(items)
-    if not items:
-        return GeometryResult(
-            title=title, kind=KindShape.POINT, coords=np.zeros((0, 2), float)
-        )
-    k = kind if kind is not None else items[0].kind
-    for it in items:
-        if it.kind != k:
-            raise ValueError(
-                "All GeometryResult objects must share the same kind to concatenate"
-            )
-    max_k = max(it.coords.shape[1] for it in items) if items else 0
-    # right-pad with NaNs to match width
-    padded = []
-    for it in items:
-        c = it.coords
-        if c.shape[1] < max_k:
-            pad = np.full((c.shape[0], max_k - c.shape[1]), np.nan, dtype=float)
-            c = np.hstack([c, pad])
-        padded.append(c)
-    coords = np.vstack(padded) if padded else np.zeros((0, max_k))
-    if any(it.roi_indices is not None for it in items):
-        parts = [
-            (
-                it.roi_indices
-                if it.roi_indices is not None
-                else np.full((len(it.coords),), NO_ROI, int)
-            )
-            for it in items
-        ]
-        roi = np.concatenate(parts) if len(parts) else None
-    else:
-        roi = None
-    return GeometryResult(title=title, kind=k, coords=coords, roi_indices=roi)
-
-
-def filter_geometry_by_roi(res: GeometryResult, roi: int | None) -> GeometryResult:
-    """Filter shapes by ROI index. If roi is None, keeps NO_ROI rows.
-
-    Args:
-        res: The GeometryResult to filter.
-        roi: The ROI index to filter by, or None to keep all.
-
-    Returns:
-        A filtered GeometryResult.
-    """
-    if res.roi_indices is None:
-        keep_all = roi in (None, NO_ROI)
-        coords = res.coords if keep_all else np.zeros((0, res.coords.shape[1]))
-        indices = None if keep_all else np.zeros((0,), int)
-        return GeometryResult(
-            title=res.title,
-            kind=res.kind,
-            coords=coords,
-            roi_indices=indices,
-            attrs=dict(res.attrs),
-        )
-    target = NO_ROI if roi is None else int(roi)
-    mask = res.roi_indices == target
-    return GeometryResult(
-        title=res.title,
-        kind=res.kind,
-        coords=res.coords[mask],
-        roi_indices=res.roi_indices[mask],
         attrs=dict(res.attrs),
     )

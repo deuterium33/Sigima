@@ -1,0 +1,483 @@
+# Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
+
+"""
+Image creation utilities
+========================
+
+This module provides functions and parameter classes for creating new images.
+
+The module includes:
+
+- `create_image`: Factory function for creating ImageObj instances
+- `ImageDatatypes`: Enumeration of supported image data types
+- `ImageTypes`: Enumeration of supported image generation types
+- `NewImageParam` and subclasses: Parameter classes for image generation
+- Factory functions and registration utilities
+
+These utilities support creating images from various sources:
+- Raw NumPy arrays
+- Synthetic data (zeros, random distributions, analytical functions)
+- Parameterized image generation
+"""
+
+# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+# pylint: disable=duplicate-code
+
+from __future__ import annotations
+
+from typing import Type
+
+import guidata.dataset as gds
+import numpy as np
+
+from sigima.config import _
+from sigima.objects import base
+from sigima.objects.image.object import ImageObj
+from sigima.tools.image import scale_data_to_min_max
+
+
+def create_image(
+    title: str,
+    data: np.ndarray | None = None,
+    metadata: dict | None = None,
+    units: tuple | None = None,
+    labels: tuple | None = None,
+) -> ImageObj:
+    """Create a new Image object
+
+    Args:
+        title: image title
+        data: image data
+        metadata: image metadata
+        units: X, Y, Z units (tuple of strings)
+        labels: X, Y, Z labels (tuple of strings)
+
+    Returns:
+        Image object
+    """
+    assert isinstance(title, str)
+    assert data is None or isinstance(data, np.ndarray)
+    image = ImageObj(title=title)
+    image.title = title
+    image.data = data
+    if units is not None:
+        image.xunit, image.yunit, image.zunit = units
+    if labels is not None:
+        image.xlabel, image.ylabel, image.zlabel = labels
+    if metadata is not None:
+        image.metadata.update(metadata)
+    return image
+
+
+class ImageDatatypes(gds.LabeledEnum):
+    """Image data types"""
+
+    @classmethod
+    def from_numpy_dtype(cls: type[ImageDatatypes], dtype: np.dtype) -> ImageDatatypes:
+        """Return ImageDatatypes member from NumPy dtype
+
+        Args:
+            dtype: NumPy dtype object
+
+        Returns:
+            Corresponding ImageDatatypes member
+        """
+        dtype_str = str(dtype)
+        for member in cls:
+            if member.value == dtype_str:
+                return member
+        return cls.UINT8  # Default fallback
+
+    def to_numpy_dtype(self) -> np.dtype:
+        """Return the corresponding NumPy dtype object.
+
+        This is the symmetrical counterpart to from_numpy_dtype().
+
+        Returns:
+            NumPy dtype object that can be used directly with numpy functions.
+        """
+        return np.dtype(self.value)
+
+    @classmethod
+    def check(cls: type[ImageDatatypes]) -> None:
+        """Check if data types are valid"""
+        for member in cls:
+            assert hasattr(np, member.value)
+
+    #: Unsigned integer number stored with 8 bits
+    UINT8 = "uint8"
+    #: Unsigned integer number stored with 16 bits
+    UINT16 = "uint16"
+    #: Signed integer number stored with 16 bits
+    INT16 = "int16"
+    #: Float number stored with 32 bits
+    FLOAT32 = "float32"
+    #: Float number stored with 64 bits
+    FLOAT64 = "float64"
+
+
+ImageDatatypes.check()
+
+
+class ImageTypes(gds.LabeledEnum):
+    """Image types."""
+
+    #: Image filled with zeros
+    ZEROS = "zeros", _("Zeros")
+    #: Image filled with random data (normal distribution)
+    NORMAL_DISTRIBUTION = "normal_distribution", _("Normal distribution")
+    #: Image filled with random data (Poisson distribution)
+    POISSON_DISTRIBUTION = "poisson_distribution", _("Poisson distribution")
+    #: Image filled with random data (uniform distribution)
+    UNIFORM_DISTRIBUTION = "uniform_distribution", _("Uniform distribution")
+    #: 2D Gaussian image
+    GAUSS = "gauss", _("Gaussian")
+    #: Bilinear form image
+    RAMP = "ramp", _("2D ramp")
+
+
+DEFAULT_TITLE = _("Untitled image")
+
+
+class NewImageParam(gds.DataSet):
+    """New image dataset."""
+
+    hide_height = False
+    hide_width = False
+    hide_dtype = False
+    hide_type = False
+
+    title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
+    height = gds.IntItem(
+        _("Height"), default=1024, help=_("Image height: number of rows"), min=1
+    ).set_prop("display", hide=gds.GetAttrProp("hide_height"))
+    width = gds.IntItem(
+        _("Width"), default=1024, help=_("Image width: number of columns"), min=1
+    ).set_prop("display", hide=gds.GetAttrProp("hide_width"))
+    dtype = gds.ChoiceItem(
+        _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
+    ).set_prop("display", hide=gds.GetAttrProp("hide_dtype"))
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return ""
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
+
+
+IMAGE_TYPE_PARAM_CLASSES = {}
+
+
+def register_image_parameters_class(itype: ImageTypes, param_class) -> None:
+    """Register a parameters class for a given image type.
+
+    Args:
+        itype: image type
+        param_class: parameters class
+    """
+    IMAGE_TYPE_PARAM_CLASSES[itype] = param_class
+
+
+def __get_image_parameters_class(itype: ImageTypes) -> Type[NewImageParam]:
+    """Get parameters class for a given image type.
+
+    Args:
+        itype: image type
+
+    Returns:
+        Parameters class
+
+    Raises:
+        ValueError: if no parameters class is registered for the given image type
+    """
+    try:
+        return IMAGE_TYPE_PARAM_CLASSES[itype]
+    except KeyError as exc:
+        raise ValueError(
+            f"Image type {itype} has no parameters class registered"
+        ) from exc
+
+
+def check_all_image_parameters_classes() -> None:
+    """Check all registered parameters classes."""
+    for itype, param_class in IMAGE_TYPE_PARAM_CLASSES.items():
+        assert __get_image_parameters_class(itype) is param_class
+
+
+def create_image_parameters(
+    itype: ImageTypes,
+    title: str | None = None,
+    height: int | None = None,
+    width: int | None = None,
+    idtype: ImageDatatypes | None = None,
+    **kwargs: dict,
+) -> NewImageParam:
+    """Create parameters for a given image type.
+
+    Args:
+        itype: image type
+        title: image title
+        height: image height (number of rows)
+        width: image width (number of columns)
+        idtype: image data type (`ImageDatatypes` member)
+        **kwargs: additional parameters (specific to the image type)
+
+    Returns:
+        Parameters object for the given image type
+    """
+    pclass = __get_image_parameters_class(itype)
+    p = pclass.create(**kwargs)
+    if title is not None:
+        p.title = title
+    if height is not None:
+        p.height = height
+    if width is not None:
+        p.width = width
+    if idtype is not None:
+        assert isinstance(idtype, ImageDatatypes)
+        p.dtype = idtype
+    return p
+
+
+class Zeros2DParam(NewImageParam):
+    """Image parameters for a 2D image filled with zeros"""
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
+
+
+class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
+    """Uniform-distribution image parameters."""
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        rng = np.random.default_rng(self.seed)
+        assert self.vmin is not None
+        assert self.vmax is not None
+        data = scale_data_to_min_max(rng.random(shape), self.vmin, self.vmax)
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(
+    ImageTypes.UNIFORM_DISTRIBUTION, UniformDistribution2DParam
+)
+
+
+class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
+    """Normal-distribution image parameters."""
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array.
+        """
+        rng = np.random.default_rng(self.seed)
+        assert self.mu is not None
+        assert self.sigma is not None
+        data: np.ndarray = rng.normal(self.mu, self.sigma, shape)
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(
+    ImageTypes.NORMAL_DISTRIBUTION, NormalDistribution2DParam
+)
+
+
+class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
+    """Poisson-distribution image parameters."""
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array.
+        """
+        rng = np.random.default_rng(self.seed)
+        assert self.lam is not None
+        data: np.ndarray = rng.poisson(lam=self.lam, size=shape)
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(
+    ImageTypes.POISSON_DISTRIBUTION, PoissonDistribution2DParam
+)
+
+
+class Gauss2DParam(NewImageParam):
+    """2D Gaussian parameters
+
+    z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup>
+    + (y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))
+    """
+
+    a = gds.FloatItem("A", default=None, check=False)
+    xmin = gds.FloatItem("Xmin", default=-10.0).set_pos(col=1)
+    sigma = gds.FloatItem("σ", default=1.0)
+    xmax = gds.FloatItem("Xmax", default=10.0).set_pos(col=1)
+    mu = gds.FloatItem("μ", default=0.0)
+    ymin = gds.FloatItem("Ymin", default=-10.0).set_pos(col=1)
+    x0 = gds.FloatItem("X0", default=0.0)
+    ymax = gds.FloatItem("Ymax", default=10.0).set_pos(col=1)
+    y0 = gds.FloatItem("Y0", default=0.0).set_pos(col=0, colspan=1)
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"Gauss(a={self.a:g},μ={self.mu:g},"
+            f"σ={self.sigma:g}),x0={self.x0:g},y0={self.y0:g})"
+        )
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        if self.a is None:
+            try:
+                self.a = np.iinfo(self.dtype.to_numpy_dtype()).max / 2.0
+            except ValueError:
+                self.a = 10.0
+        x, y = np.meshgrid(
+            np.linspace(self.xmin, self.xmax, shape[1]),
+            np.linspace(self.ymin, self.ymax, shape[0]),
+        )
+        data = self.a * np.exp(
+            -((np.sqrt((x - self.x0) ** 2 + (y - self.y0) ** 2) - self.mu) ** 2)
+            / (2.0 * self.sigma**2)
+        )
+        return np.array(data, dtype=self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.GAUSS, Gauss2DParam)
+
+
+class Ramp2DParam(NewImageParam):
+    """Define the parameters of a 2D ramp (planar ramp).
+
+    z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c
+    """
+
+    _g0_begin = gds.BeginGroup(_("Coefficients"))
+    a = gds.FloatItem(_("a"), default=1.0).set_pos(col=0)
+    b = gds.FloatItem(_("b"), default=1.0).set_pos(col=1)
+    c = gds.FloatItem(_("c"), default=0.0).set_pos(colspan=1)
+    x0 = gds.FloatItem(_("x<sub>0</sub>"), default=0.0).set_pos(col=0)
+    y0 = gds.FloatItem(_("y<sub>0</sub>"), default=0.0).set_pos(col=1)
+    _g0_end = gds.EndGroup(_(""))
+    _g1_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem(_("x<sub>min</sub>"), default=-1.0).set_pos(col=0)
+    xmax = gds.FloatItem(_("x<sub>max</sub>"), default=1.0).set_pos(col=1)
+    ymin = gds.FloatItem(_("y<sub>min</sub>"), default=-1.0).set_pos(col=0)
+    ymax = gds.FloatItem(_("y<sub>max</sub>"), default=1.0).set_pos(col=1)
+    _g1_end = gds.EndGroup(_(""))
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return (
+            f"z = {self.a:g} (x - {self.x0:g})"
+            f" + {self.b:g} (y - {self.y0:g}) + {self.c:g}"
+        )
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        x = np.linspace(self.xmin, self.xmax, shape[1])
+        y = np.linspace(self.ymin, self.ymax, shape[0])
+        xx, yy = np.meshgrid(x, y)
+        data = self.a * (xx - self.x0) + self.b * (yy - self.y0) + self.c
+        return np.array(data, dtype=self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.RAMP, Ramp2DParam)
+check_all_image_parameters_classes()
+
+IMG_NB = 0
+
+
+def get_next_image_number():
+    """Get the next image number.
+
+    This function is used to keep track of the number of signals created.
+    It is typically used to generate unique titles for new signals.
+
+    Returns:
+        int: new image number
+    """
+    global IMG_NB  # pylint: disable=global-statement
+    IMG_NB += 1
+    return IMG_NB
+
+
+def create_image_from_param(param: NewImageParam) -> ImageObj:
+    """Create a new Image object from parameters.
+
+    Args:
+        param: new image parameters
+
+    Returns:
+        Image object
+
+    Raises:
+        NotImplementedError: if the image type is not supported
+    """
+    if param.height is None:
+        param.height = 1024
+    if param.width is None:
+        param.width = 1024
+    if param.dtype is None:
+        param.dtype = ImageDatatypes.UINT16
+    incr_img_nb = not param.title
+    title = param.title = param.title or DEFAULT_TITLE
+    if incr_img_nb:
+        title = f"{title} {get_next_image_number()}"
+    shape = (param.height, param.width)
+    data = param.generate_2d_data(shape)
+    gen_title = param.generate_title()
+    if gen_title:
+        title = gen_title if param.title == DEFAULT_TITLE else param.title
+    image = create_image(title, data)
+    return image
