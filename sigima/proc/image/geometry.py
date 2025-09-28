@@ -32,9 +32,8 @@ import guidata.dataset as gds
 import numpy as np
 import scipy.ndimage as spi
 
-import sigima.tools.image
 from sigima.config import _
-from sigima.enums import BinningOperation, BorderMode, Interpolation2DMethod
+from sigima.enums import BorderMode, Interpolation2DMethod
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
@@ -57,8 +56,6 @@ __all__ = [
     "resize",
     "Resampling2DParam",
     "resampling",
-    "BinningParam",
-    "binning",
     "transpose",
 ]
 
@@ -265,71 +262,6 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
     )
     if dst.dx is not None and dst.dy is not None:
         dst.dx, dst.dy = dst.dx / p.zoom, dst.dy / p.zoom
-    return dst
-
-
-class BinningParam(gds.DataSet):
-    """Binning parameters."""
-
-    sx = gds.IntItem(
-        _("Cluster size (X)"),
-        default=2,
-        min=2,
-        help=_("Number of adjacent pixels to be combined together along X-axis."),
-    )
-    sy = gds.IntItem(
-        _("Cluster size (Y)"),
-        default=2,
-        min=2,
-        help=_("Number of adjacent pixels to be combined together along Y-axis."),
-    )
-    operation = gds.ChoiceItem(
-        _("Operation"), BinningOperation, default=BinningOperation.SUM
-    )
-    dtypes = ["dtype"] + ImageObj.get_valid_dtypenames()
-    dtype_str = gds.ChoiceItem(
-        _("Data type"),
-        list(zip(dtypes, dtypes)),
-        help=_("Output image data type."),
-    )
-    change_pixel_size = gds.BoolItem(
-        _("Change pixel size"),
-        default=True,
-        help=_(
-            "If checked, pixel size is updated according to binning factors. "
-            "Users who prefer to work with pixel coordinates may want to uncheck this."
-        ),
-    )
-
-
-@computation_function()
-def binning(src: ImageObj, p: BinningParam) -> ImageObj:
-    """Binning function on data with :py:func:`sigima.tools.image.binning`
-
-    Args:
-        src: input image object
-        param: parameters
-
-    Returns:
-        Output image object
-    """
-    operation = p.operation
-    dst = dst_1_to_1(
-        src,
-        "binning",
-        f"{p.sx}x{p.sy},{operation},change_pixel_size={p.change_pixel_size}",
-    )
-    dst.data = sigima.tools.image.binning(
-        src.data,
-        sx=p.sx,
-        sy=p.sy,
-        operation=operation,
-        dtype=None if p.dtype_str == "dtype" else p.dtype_str,
-    )
-    if p.change_pixel_size:
-        if src.dx is not None and src.dy is not None:
-            dst.dx = src.dx * p.sx
-            dst.dy = src.dy * p.sy
     return dst
 
 

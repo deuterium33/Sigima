@@ -49,6 +49,12 @@ Exposure correction
 .. automodule:: sigima.proc.image.exposure
     :members:
 
+Preprocessing
+~~~~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.preprocessing
+    :members:
+
 Restoration
 ~~~~~~~~~~~
 
@@ -160,6 +166,7 @@ from sigima.proc.image.exposure import (
     EqualizeAdaptHistParam,
     EqualizeHistParam,
     FlatFieldParam,
+    NormalizeParam,
     RescaleIntensityParam,
     XYZCalibrateParam,
     adjust_gamma,
@@ -201,21 +208,17 @@ from sigima.proc.image.filtering import (
     wiener,
 )
 from sigima.proc.image.fourier import (
-    ZeroPadding2DParam,
     fft,
     ifft,
     magnitude_spectrum,
     phase_spectrum,
     psd,
-    zero_padding,
 )
 from sigima.proc.image.geometry import (
-    BinningParam,
     Resampling2DParam,
     ResizeParam,
     RotateParam,
     TranslateParam,
-    binning,
     fliph,
     flipv,
     resampling,
@@ -263,6 +266,12 @@ from sigima.proc.image.noise import (
     add_gaussian_noise,
     add_poisson_noise,
     add_uniform_noise,
+)
+from sigima.proc.image.preprocessing import (
+    BinningParam,
+    ZeroPadding2DParam,
+    binning,
+    zero_padding,
 )
 from sigima.proc.image.restoration import (
     DenoiseBilateralParam,
@@ -350,6 +359,7 @@ __all__ = [
     "equalize_hist",
     "flatfield",
     "histogram",
+    "NormalizeParam",
     "normalize",
     "offset_correction",
     "rescale_intensity",

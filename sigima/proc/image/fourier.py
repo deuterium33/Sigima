@@ -28,9 +28,6 @@ analysis in images.
 
 from __future__ import annotations
 
-import guidata.dataset as gds
-import numpy as np
-
 import sigima.tools.image
 from sigima.config import _
 from sigima.objects.image import ImageObj
@@ -43,86 +40,12 @@ from sigima.proc.image.base import Wrap1to1Func
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "ZeroPadding2DParam",
-    "zero_padding",
     "fft",
     "ifft",
     "magnitude_spectrum",
     "phase_spectrum",
     "psd",
 ]
-
-
-class ZeroPadding2DParam(gds.DataSet):
-    """Zero padding parameters for 2D images"""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.__obj: ImageObj | None = None
-
-    def update_from_obj(self, obj: ImageObj) -> None:
-        """Update parameters from image"""
-        self.__obj = obj
-        self.choice_callback(None, self.strategy)
-
-    def choice_callback(self, item, value):  # pylint: disable=unused-argument
-        """Callback to update padding values"""
-        if self.__obj is None:
-            return
-        rows, cols = self.__obj.data.shape
-        if value == "next_pow2":
-            self.rows = 2 ** int(np.ceil(np.log2(rows))) - rows
-            self.cols = 2 ** int(np.ceil(np.log2(cols))) - cols
-        elif value == "multiple_of_64":
-            self.rows = (64 - rows % 64) if rows % 64 != 0 else 0
-            self.cols = (64 - cols % 64) if cols % 64 != 0 else 0
-
-    strategies = ("next_pow2", "multiple_of_64", "custom")
-    _prop = gds.GetAttrProp("strategy")
-    strategy = gds.ChoiceItem(
-        _("Padding strategy"), zip(strategies, strategies), default=strategies[-1]
-    ).set_prop("display", store=_prop, callback=choice_callback)
-
-    _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
-    rows = gds.IntItem(_("Rows to add"), min=0, default=0).set_prop(
-        "display", active=_func_prop
-    )
-    cols = gds.IntItem(_("Columns to add"), min=0, default=0).set_prop(
-        "display", active=_func_prop
-    )
-
-    positions = ("bottom-right", "center")
-    position = gds.ChoiceItem(
-        _("Padding position"), zip(positions, positions), default=positions[0]
-    )
-
-
-@computation_function()
-def zero_padding(src: ImageObj, p: ZeroPadding2DParam) -> ImageObj:
-    """
-    Compute zero padding for an image using `sigima.tools.image.zero_padding`.
-
-    Args:
-        src: source image object
-        p: parameters
-
-    Returns:
-        New padded image object
-    """
-    if p.strategy == "custom":
-        suffix = f"rows={p.rows}, cols={p.cols}"
-    else:
-        suffix = f"strategy={p.strategy}"
-    suffix += f", position={p.position}"
-    dst = dst_1_to_1(src, "zero_padding", suffix)
-    result = sigima.tools.image.zero_padding(
-        src.data,
-        rows=p.rows,
-        cols=p.cols,
-        position=p.position,
-    )
-    dst.data = result
-    return dst
 
 
 @computation_function()
