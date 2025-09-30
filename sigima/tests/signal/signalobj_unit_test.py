@@ -34,7 +34,7 @@ def preprocess_signal_parameters(param: sigima.objects.NewSignalParam) -> None:
     Args:
         param: The signal parameters to preprocess.
     """
-    # TODO: [P4] Add specific preprocessing for signal parameters if needed
+    # Add here specific preprocessing for signal parameters if needed
 
 
 def postprocess_signal_object(
