@@ -115,6 +115,11 @@ class PulseFeaturesParam(gds.DataSet):
         ),
     )
 
+    def update_from_obj(self, obj: SignalObj) -> None:
+        """Update parameters from a signal object."""
+        self.xstartmin, self.xstartmax = pulse.get_start_range(obj.x)
+        self.xendmin, self.xendmax = pulse.get_end_range(obj.x)
+
 
 @computation_function()
 def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult:
