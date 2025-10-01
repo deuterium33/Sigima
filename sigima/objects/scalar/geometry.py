@@ -246,7 +246,7 @@ class GeometryResult:
             "point": ["x", "y"],
             "marker": ["x", "y"],
             "segment": ["x0", "y0", "x1", "y1"],
-            "rectangle": ["x0", "y0", "x1", "y1"],
+            "rectangle": ["x", "y", "width", "height"],
             "circle": ["x", "y", "r"],
             "ellipse": ["x", "y", "a", "b", "θ"],
         }
