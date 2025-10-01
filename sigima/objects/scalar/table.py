@@ -39,6 +39,7 @@ from __future__ import annotations
 import dataclasses
 import enum
 import inspect
+import os
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
@@ -173,8 +174,6 @@ class TableResult:
         kind: Type of table result (e.g., TableKind.PULSE_FEATURES,
          TableKind.STATISTICS). Default is TableKind.CUSTOM.
         headers: Column names (one per metric).
-        labels: Human-readable labels for each column (including units as
-         formatted strings).
         data: 2-D list of shape (N, len(headers)) with scalar values.
         roi_indices: Optional list (N,) mapping rows to ROI indices.
          Use NO_ROI (-1) for the "full image / no ROI" row.
@@ -191,7 +190,6 @@ class TableResult:
     title: str
     kind: TableKind | str = TableKind.CUSTOM
     headers: Sequence[str] = dataclasses.field(default_factory=list)
-    labels: Sequence[str] = dataclasses.field(default_factory=list)
     data: list[list] = dataclasses.field(default_factory=list)
     roi_indices: list[int] | None = None
     attrs: dict[str, object] = dataclasses.field(default_factory=dict)
@@ -209,10 +207,6 @@ class TableResult:
             isinstance(c, str) for c in self.headers
         ):
             raise ValueError("names must be a sequence of strings")
-        if not isinstance(self.labels, (list, tuple)) or not all(
-            isinstance(c, str) for c in self.labels
-        ):
-            raise ValueError("labels must be a sequence of strings")
         if not isinstance(self.data, list):
             raise ValueError("data must be a list of lists")
         if self.data and not isinstance(self.data[0], list):
@@ -227,6 +221,14 @@ class TableResult:
             if len(self.roi_indices) != len(self.data):
                 raise ValueError("roi_indices length must match number of data rows")
 
+    def __str__(self) -> str:
+        """Return a string representation of the TableResult."""
+        df = self.to_dataframe()
+        text = f"TableResult(title={self.title}, kind={self.kind}, shape={df.shape})"
+        text += os.linesep * 2
+        text += str(df)
+        return text
+
     # -------- Factory methods --------
 
     @classmethod
@@ -234,7 +236,6 @@ class TableResult:
         cls,
         title: str,
         headers: Sequence[str],
-        labels: Sequence[str],
         rows: list[list],
         roi_indices: list[int] | None = None,
         *,
@@ -246,8 +247,6 @@ class TableResult:
         Args:
             title: Human-readable title for this table of results.
             headers: Column names (one per metric).
-            labels: Human-readable labels for each column (including units as
-             formatted strings).
             rows: 2-D list of lists of shape (N, len(headers)) with values.
             roi_indices: Optional list (N,) mapping rows to ROI indices.
              Use NO_ROI (-1) for the "full image / no ROI" row.
@@ -261,7 +260,6 @@ class TableResult:
             title,
             kind,
             headers,
-            labels,
             rows,
             roi_indices,
             {} if attrs is None else dict(attrs),
@@ -276,7 +274,6 @@ class TableResult:
             "title": self.title,
             "kind": self.kind.value if isinstance(self.kind, TableKind) else self.kind,
             "names": list(self.headers),
-            "labels": list(self.labels),
             "data": self.data,
             "roi_indices": self.roi_indices,
             "attrs": dict(self.attrs) if self.attrs else {},
@@ -289,7 +286,6 @@ class TableResult:
             title=d["title"],
             kind=d.get("kind", TableKind.CUSTOM),
             headers=list(d["names"]),
-            labels=list(d["labels"]),
             data=d["data"],
             roi_indices=d.get("roi_indices"),
             attrs=dict(d.get("attrs", {})),
@@ -357,7 +353,6 @@ class TableResult:
         cls,
         df,
         title: str,
-        labels: list[str] = None,
         kind: TableKind | str = TableKind.CUSTOM,
         attrs: dict = None,
     ) -> TableResult:
@@ -367,7 +362,6 @@ class TableResult:
             df: pandas DataFrame. If 'roi_index' column is present, it is used
                 for roi_indices.
             title: Title for the TableResult.
-            labels: Optional list of labels for columns.
             kind: Type of table result (e.g., TableKind.PULSE_FEATURES).
             attrs: Optional dictionary of attributes.
 
@@ -385,15 +379,12 @@ class TableResult:
             roi_indices = None
             names = cols
             data = df.values.tolist()
-        if labels is None:
-            labels = names
         if attrs is None:
             attrs = {}
         return cls(
             title=title,
             kind=kind,
             headers=names,
-            labels=labels,
             data=data,
             roi_indices=roi_indices,
             attrs=attrs,
@@ -545,7 +536,7 @@ class TableResultBuilder:
     def __init__(self, title: str, kind: TableKind | str = TableKind.CUSTOM) -> None:
         self.title = title
         self.kind = kind
-        self.columns: list[tuple[Callable, str, str]] = []
+        self.columns: list[tuple[Callable, str]] = []
 
     def add_from_dataclass(self, parameters: object) -> None:
         """Add columns from a dataclass's float/int fields.
@@ -556,28 +547,17 @@ class TableResultBuilder:
         for field in dataclasses.fields(parameters):
             key = field.name
             value = getattr(parameters, key)
-            if isinstance(value, (int, float, np.floating, np.integer)):
-                fmt = f"{key} = %g"
-            elif isinstance(value, enum.Enum):
-                value = value.value
-                fmt = f"{key} = %s"
-            elif isinstance(value, str):
-                fmt = f"{key} = %s"
-            else:
-                continue
-            self.add(lambda xy, v=value: v, key, fmt)
+            if isinstance(value, (int, float, np.floating, np.integer, enum.Enum, str)):
+                self.add(lambda xy, v=value: v, key)
 
-    def add(self, func: Callable, name: str, label: str = "") -> None:
+    def add(self, func: Callable, name: str) -> None:
         """Add a column to the table.
 
         Args:
             func: The function to compute the column values.
             name: The name of the column.
-            label: The human-readable label for the column (including units).
-             Default is an empty string.
         """
         assert isinstance(name, str) and name, "Column name must be a non-empty string"
-        assert isinstance(label, str), "Column label must be a string"
         assert isinstance(func, Callable), "Column function must be callable"
         # Check function signature:
         sig = inspect.signature(func)
@@ -597,7 +577,7 @@ class TableResultBuilder:
             "int",
         ):
             raise ValueError(f"Column function '{name}' must return a float or int")
-        self.columns.append((name, label, func))
+        self.columns.append((name, func))
 
     def compute(self, obj: SignalObj | ImageObj) -> TableResult:
         """Extract data from the image or signal object and compute the table.
@@ -608,29 +588,16 @@ class TableResultBuilder:
         Returns:
             A TableResult object containing the extracted data.
         """
-        names = [name for name, _, _ in self.columns]
-        labels = [label for _, label, _ in self.columns]
-        for label in labels:
-            if label != "" and ("{" in label or "%" in label):
-                # Check if formatting works for labels with format specifiers
-                try:
-                    if "{" in label:
-                        label.format(obj)
-                    if "%" in label:
-                        label % 1.234  # pylint: disable=pointless-statement
-                except (KeyError, TypeError, ValueError) as exc:
-                    raise ValueError(f"Label '{label}' is not valid") from exc
-
+        names = [name for name, _ in self.columns]
         roi_indices = list(obj.iterate_roi_indices())
         if roi_indices[0] is not None:
             roi_indices.insert(0, None)
-
         rows = []
         roi_idx = []
         for i_roi in roi_indices:
             data = obj.get_data(i_roi)
             row_data = []
-            for _name, _label, func in self.columns:
+            for _name, func in self.columns:
                 value = func(data)
                 try:
                     value = float(value)
@@ -642,11 +609,9 @@ class TableResultBuilder:
                 row_data.append(value)
             rows.append(row_data)
             roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
-
         return TableResult.from_rows(
             title=self.title,
             headers=names,
-            labels=labels,
             rows=rows,
             roi_indices=roi_idx,
             kind=self.kind,

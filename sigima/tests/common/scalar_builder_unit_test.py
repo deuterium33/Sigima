@@ -24,9 +24,9 @@ def test_table_result_builder_basic() -> None:
     sig = create_dummy_signal()
 
     builder = TableResultBuilder("Signal Stats")
-    builder.add(ma.min, "min", "min(z) = %g")
-    builder.add(ma.max, "max", "max(z) = %g")
-    builder.add(ma.mean, "mean", "<z> = %g")
+    builder.add(ma.min, "min")
+    builder.add(ma.max, "max")
+    builder.add(ma.mean, "mean")
 
     table = builder.compute(sig)
 

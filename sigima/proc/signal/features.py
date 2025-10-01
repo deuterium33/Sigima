@@ -181,11 +181,7 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
          An object containing the x-value.
     """
     table = TableResultBuilder(f"x|y={p.y}")
-    table.add(
-        lambda xy: _find_first_x_at_y_value(xy, p.y),
-        "x@y",
-        "x = %g {.xunit}",
-    )
+    table.add(lambda xy: _find_first_x_at_y_value(xy, p.y), "x@y")
     return table.compute(obj)
 
 
@@ -208,11 +204,7 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
          An object containing the y-value.
     """
     table = TableResultBuilder(f"y|x={p.x}")
-    table.add(
-        lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x),
-        "y@x",
-        "y = %g {.yunit}",
-    )
+    table.add(lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x), "y@x")
     return table.compute(obj)
 
 
@@ -227,19 +219,15 @@ def stats(obj: SignalObj) -> TableResult:
         Result properties object
     """
     table = TableResultBuilder(_("Signal statistics"), kind=TableKind.STATISTICS)
-    table.add(lambda xy: np.nanmin(xy[1]), "min", "min(y) = %g {.yunit}")
-    table.add(lambda xy: np.nanmax(xy[1]), "max", "max(y) = %g {.yunit}")
-    table.add(lambda xy: np.nanmean(xy[1]), "mean", "<y> = %g {.yunit}")
-    table.add(lambda xy: np.nanmedian(xy[1]), "median", "median(y) = %g {.yunit}")
-    table.add(lambda xy: np.nanstd(xy[1]), "std", "σ(y) = %g {.yunit}")
-    table.add(lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]), "snr", "<y>/σ(y) = %g")
-    table.add(
-        lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]),
-        "ptp",
-        "peak-to-peak(y) = %g {.yunit}",
-    )
-    table.add(lambda xy: np.nansum(xy[1]), "sum", "Σ(y) = %g {.yunit}")
-    table.add(lambda xy: spt.trapezoid(xy[1], xy[0]), "trapz", "∫ydx = %g {.yunit}")
+    table.add(lambda xy: np.nanmin(xy[1]), "min")
+    table.add(lambda xy: np.nanmax(xy[1]), "max")
+    table.add(lambda xy: np.nanmean(xy[1]), "mean")
+    table.add(lambda xy: np.nanmedian(xy[1]), "median")
+    table.add(lambda xy: np.nanstd(xy[1]), "std")
+    table.add(lambda xy: np.nanmean(xy[1]) / np.nanstd(xy[1]), "snr")
+    table.add(lambda xy: np.nanmax(xy[1]) - np.nanmin(xy[1]), "ptp")
+    table.add(lambda xy: np.nansum(xy[1]), "sum")
+    table.add(lambda xy: spt.trapezoid(xy[1], xy[0]), "trapz")
     return table.compute(obj)
 
 
@@ -310,22 +298,13 @@ def dynamic_parameters(src: SignalObj, p: DynamicParam) -> TableResult:
         Result properties with ENOB, SNR, SINAD, THD, SFDR
     """
     unit: PowerUnit = p.unit
-    dsfx = f" = %g {unit.value}"
     table = TableResultBuilder(_("Dynamic parameters"))
     table.add(lambda xy: dynamic.sinus_frequency(xy[0], xy[1]), "freq")
+    table.add(lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale), "enob")
+    table.add(lambda xy: dynamic.snr(xy[0], xy[1], unit), "snr")
+    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], unit), "sinad")
     table.add(
-        lambda xy: dynamic.enob(xy[0], xy[1], p.full_scale), "enob", "ENOB = %.1f bits"
+        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, unit, p.nb_harm), "thd"
     )
-    table.add(lambda xy: dynamic.snr(xy[0], xy[1], unit), "snr", "SNR" + dsfx)
-    table.add(lambda xy: dynamic.sinad(xy[0], xy[1], unit), "sinad", "SINAD" + dsfx)
-    table.add(
-        lambda xy: dynamic.thd(xy[0], xy[1], p.full_scale, unit, p.nb_harm),
-        "thd",
-        "THD" + dsfx,
-    )
-    table.add(
-        lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, unit),
-        "sfdr",
-        "SFDR" + dsfx,
-    )
+    table.add(lambda xy: dynamic.sfdr(xy[0], xy[1], p.full_scale, unit), "sfdr")
     return table.compute(src)

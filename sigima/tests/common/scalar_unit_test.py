@@ -89,14 +89,12 @@ def test_table_result_init_valid() -> None:
     table = TableResult(
         title="Test Table",
         headers=["col1", "col2"],
-        labels=["Column 1", "Column 2"],
         data=data,
         roi_indices=roi_indices,
         attrs={"method": "test"},
     )
     assert table.title == "Test Table"
     assert list(table.headers) == ["col1", "col2"]
-    assert list(table.labels) == ["Column 1", "Column 2"]
     assert table.data == data
     assert table.roi_indices == roi_indices
     assert table.attrs == {"method": "test"}
@@ -172,7 +170,6 @@ def test_table_result_from_rows() -> None:
     table = TableResult.from_rows(
         title="Test Table",
         headers=["col1", "col2"],
-        labels=["Column 1", "Column 2"],
         rows=rows,
         roi_indices=roi_indices,
         attrs={"method": "test"},
@@ -188,7 +185,6 @@ def test_table_result_to_dict() -> None:
     table = TableResult(
         title="Test",
         headers=["col1", "col2"],
-        labels=["Column 1", "Column 2"],
         data=data,
         roi_indices=[NO_ROI],
         attrs={"method": "test"},
@@ -199,7 +195,6 @@ def test_table_result_to_dict() -> None:
         "title": "Test",
         "kind": "custom",
         "names": ["col1", "col2"],
-        "labels": ["Column 1", "Column 2"],
         "data": [[1.0, 2.0]],
         "roi_indices": [NO_ROI],
         "attrs": {"method": "test"},
@@ -213,7 +208,6 @@ def test_table_result_from_dict() -> None:
         "schema": 1,
         "title": "Test",
         "names": ["col1", "col2"],
-        "labels": ["Column 1", "Column 2"],
         "data": [[1.0, 2.0]],
         "roi_indices": [NO_ROI],
         "attrs": {"method": "test"},
@@ -414,12 +408,11 @@ def test_table_result_builder_add_valid_function() -> None:
     def mean_func(data: np.ndarray) -> float:
         return float(np.mean(data))
 
-    builder.add(mean_func, "mean", "Mean Value")
+    builder.add(mean_func, "mean")
     assert len(builder.columns) == 1
     assert builder.columns[0][0] == "mean"
-    assert builder.columns[0][1] == "Mean Value"
     # pylint: disable=comparison-with-callable
-    assert builder.columns[0][2] == mean_func
+    assert builder.columns[0][1] == mean_func
 
 
 def test_table_result_builder_add_invalid_name() -> None:
@@ -431,23 +424,11 @@ def test_table_result_builder_add_invalid_name() -> None:
 
     # Test empty name
     with pytest.raises(AssertionError):
-        builder.add(dummy_func, "", "Label")
+        builder.add(dummy_func, "")
 
     # Test non-string name
     with pytest.raises(AssertionError):
-        builder.add(dummy_func, 123, "Label")
-
-
-def test_table_result_builder_add_invalid_label() -> None:
-    """Test adding function with invalid label."""
-    builder = TableResultBuilder("Test Table")
-
-    def dummy_func(data: np.ndarray) -> float:  # pylint: disable=unused-argument
-        return 1.0
-
-    # Test non-string label
-    with pytest.raises(AssertionError):
-        builder.add(dummy_func, "name", 123)
+        builder.add(dummy_func, 123)
 
 
 def test_table_result_builder_add_invalid_function() -> None:
@@ -455,7 +436,7 @@ def test_table_result_builder_add_invalid_function() -> None:
     builder = TableResultBuilder("Test Table")
 
     with pytest.raises(AssertionError):
-        builder.add("not_a_function", "name", "label")
+        builder.add("not_a_function", "name")
 
 
 def test_table_result_builder_add_function_no_params() -> None:
@@ -466,7 +447,7 @@ def test_table_result_builder_add_function_no_params() -> None:
         return 1.0
 
     with pytest.raises(ValueError, match="must accept at least one argument"):
-        builder.add(no_params_func, "name", "label")
+        builder.add(no_params_func, "name")
 
 
 def test_table_result_builder_add_function_wrong_annotation() -> None:
@@ -478,7 +459,7 @@ def test_table_result_builder_add_function_wrong_annotation() -> None:
         return 1.0
 
     with pytest.raises(ValueError, match="must accept a np.ndarray"):
-        builder.add(wrong_annotation_func, "name", "label")
+        builder.add(wrong_annotation_func, "name")
 
 
 def test_table_result_builder_add_function_wrong_return_annotation() -> None:
@@ -490,7 +471,7 @@ def test_table_result_builder_add_function_wrong_return_annotation() -> None:
         return "test"
 
     with pytest.raises(ValueError, match="must return a float or int"):
-        builder.add(wrong_return_func, "name", "label")
+        builder.add(wrong_return_func, "name")
 
 
 def test_table_result_builder_compute() -> None:
@@ -504,8 +485,8 @@ def test_table_result_builder_compute() -> None:
     def sum_func(data: np.ndarray) -> float:
         return float(np.sum(data))
 
-    builder.add(mean_func, "mean", "")
-    builder.add(sum_func, "sum", "")
+    builder.add(mean_func, "mean")
+    builder.add(sum_func, "sum")
 
     # Create mock signal object
     test_data = np.array([1.0, 2.0, 3.0, 4.0])
@@ -516,7 +497,6 @@ def test_table_result_builder_compute() -> None:
 
     assert result.title == "Test Table"
     assert list(result.headers) == ["mean", "sum"]
-    assert list(result.labels) == ["", ""]
     assert len(result.data) == 1 and len(result.data[0]) == 2
     assert result.data[0] == [2.5, 10.0]  # mean=2.5, sum=10.0
     np.testing.assert_array_equal(result.roi_indices, [NO_ROI])
@@ -530,7 +510,7 @@ def test_table_result_builder_compute_with_roi() -> None:
     def mean_func(data: np.ndarray) -> float:
         return float(np.mean(data))
 
-    builder.add(mean_func, "mean", "")
+    builder.add(mean_func, "mean")
 
     # Create mock signal object with ROI
     class MockSignalObjWithROI:

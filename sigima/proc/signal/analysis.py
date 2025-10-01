@@ -163,8 +163,8 @@ def sampling_rate_period(obj: SignalObj) -> TableResult:
         Result properties with sampling rate and period
     """
     table = TableResultBuilder(_("Sampling rate and period"))
-    table.add(lambda xy: dynamic.sampling_rate(xy[0]), "fs", "fs = %g")
-    table.add(lambda xy: dynamic.sampling_period(xy[0]), "T", "T = %g {.xunit}")
+    table.add(lambda xy: dynamic.sampling_rate(xy[0]), "fs")
+    table.add(lambda xy: dynamic.sampling_period(xy[0]), "T")
     return table.compute(obj)
 
 
@@ -188,6 +188,6 @@ def x_at_minmax(obj: SignalObj) -> TableResult:
         An object containing the x-values at the minima and the maxima.
     """
     table = TableResultBuilder(_("X at min/max"))
-    table.add(lambda xy: xy[0][np.argmin(xy[1])], "X@Ymin", "X@Ymin = %g {.xunit}")
-    table.add(lambda xy: xy[0][np.argmax(xy[1])], "X@Ymax", "X@Ymax = %g {.xunit}")
+    table.add(lambda xy: xy[0][np.argmin(xy[1])], "X@Ymin")
+    table.add(lambda xy: xy[0][np.argmax(xy[1])], "X@Ymax")
     return table.compute(obj)

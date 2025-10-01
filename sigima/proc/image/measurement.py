@@ -138,14 +138,14 @@ def stats(obj: ImageObj) -> TableResult:
         Result properties
     """
     builder = TableResultBuilder(_("Image statistics"), kind=TableKind.STATISTICS)
-    builder.add(ma.min, "min", "min(z) = %g {.zunit}")
-    builder.add(ma.max, "max", "max(z) = %g {.zunit}")
-    builder.add(ma.mean, "mean", "<z> = %g {.zunit}")
-    builder.add(ma.median, "median", "median(z) = %g {.zunit}")
-    builder.add(ma.std, "std", "σ(z) = %g {.zunit}")
-    builder.add(__calc_snr_without_warning, "snr", "<z>/σ(z) = %g")
-    builder.add(ma.ptp, "ptp", "peak-to-peak(z) = %g {.zunit}")
-    builder.add(ma.sum, "sum", "Σ(z) = %g {.zunit}")
+    builder.add(ma.min, "min")
+    builder.add(ma.max, "max")
+    builder.add(ma.mean, "mean")
+    builder.add(ma.median, "median")
+    builder.add(ma.std, "std")
+    builder.add(__calc_snr_without_warning, "snr")
+    builder.add(ma.ptp, "ptp")
+    builder.add(ma.sum, "sum")
     return builder.compute(obj)
 
 
