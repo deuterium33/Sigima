@@ -183,7 +183,7 @@ class TestTableResultSerialization:
         expected = {
             "schema": 1,
             "title": "Test Table",
-            "kind": "custom",
+            "kind": "results",
             "names": ["col1", "col2"],
             "data": [[1.0, 2.0], [3.0, 4.0]],
             "roi_indices": [0, 1],
@@ -195,7 +195,7 @@ class TestTableResultSerialization:
         """Test TableResult.from_dict deserialization."""
         data = {
             "title": "Test Table",
-            "kind": "custom",
+            "kind": "results",
             "names": ["col1", "col2"],
             "data": [[1.0, 2.0], [3.0, 4.0]],
             "roi_indices": [0, 1],

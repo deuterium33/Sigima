@@ -173,6 +173,16 @@ class GeometryResult:
             if len(self.roi_indices) != len(self.coords):
                 raise ValueError("roi_indices length must match number of coord rows")
 
+    @property
+    def name(self) -> str:
+        """Get the unique identifier name for this geometry result.
+
+        Returns:
+            The string value of the kind attribute, which serves as a unique
+             name identifier for this geometry result type.
+        """
+        return self.kind.value
+
     # -------- Factory methods --------
 
     @classmethod

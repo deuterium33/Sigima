@@ -61,7 +61,7 @@ class TableKind(str, enum.Enum):
 
     STATISTICS = "statistics"
     PULSE_FEATURES = "pulse_features"
-    CUSTOM = "custom"
+    CUSTOM = "results"
 
     @classmethod
     def values(cls) -> list[str]:
@@ -124,6 +124,16 @@ class TableResult:
                 raise ValueError("roi_indices must be a list if provided")
             if len(self.roi_indices) != len(self.data):
                 raise ValueError("roi_indices length must match number of data rows")
+
+    @property
+    def name(self) -> str:
+        """Get the unique identifier name for this scalar table result.
+
+        Returns:
+            The string value of the kind attribute, which serves as a unique
+             name identifier for this scalar table result type.
+        """
+        return self.kind.value
 
     def __str__(self) -> str:
         """Return a string representation of the TableResult."""
