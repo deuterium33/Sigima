@@ -270,14 +270,14 @@ class GeometryResult:
         return [f"coord_{i}" for i in range(num_coords)]
 
     def to_dataframe(self, visible_only: bool = False):
-        """Convert the GeometryResult to a pandas DataFrame.
+        """Convert the result to a pandas DataFrame.
 
         Args:
             visible_only: If True, include only visible headers based on display
              preferences. Default is False.
 
         Returns:
-            DataFrame with columns as in coords, and optional 'roi_index' column.
+            DataFrame with an optional 'roi_index' column.
              If visible_only is True, only columns with visible headers are included.
         """
         df = pd.DataFrame(self.coords, columns=self.headers)
