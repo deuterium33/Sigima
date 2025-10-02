@@ -363,9 +363,12 @@ def get_range_mean_y(
         value_range: Tuple representing the x-range (min, max).
 
     Returns:
-        Mean y-value in the specified x-range.
+        Mean y-value in the specified x-range, or NaN if no points in range.
     """
-    return float(np.mean(y[np.logical_and(x >= value_range[0], x <= value_range[1])]))
+    y_range = y[np.logical_and(x >= value_range[0], x <= value_range[1])]
+    if len(y_range) == 0:
+        return np.nan
+    return float(np.mean(y_range))
 
 
 @check_1d_arrays(x_sorted=True)
