@@ -846,14 +846,12 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         cls: Type[BaseROI],
         obj: TypeObj,
         params: list[TypeROIParam],
-        inverse: bool = False,
     ) -> BaseROI[TypeObj, TypeSingleROI, TypeROIParam]:
         """Create ROIs from parameters
 
         Args:
             obj: object (signal/image)
             params: ROI parameters
-            inverse: If True, extract the inverse of the ROIs
 
         Returns:
             ROIs
