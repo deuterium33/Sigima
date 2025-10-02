@@ -493,7 +493,10 @@ def find_crossing_at_ratio(
         start_range = get_start_range(x, fraction)
     y_start = get_range_mean_y(x, y_positive, start_range)
     y_norm = (y_positive - y_start) / amplitude
-    roots = features.find_x_values_at_y(x, y_norm, ratio)
+    try:
+        roots = features.find_x_values_at_y(x, y_norm, ratio)
+    except ValueError:
+        return None
     if len(roots) == 0:
         return None
     if len(roots) > 1 and warn_multiple_crossings:
@@ -565,7 +568,10 @@ def get_rise_time_estimated(
         end_range = get_end_range(x)
 
     # Step 1: Find the true start of the rise (foot end)
-    foot_end_time = heuristically_find_rise_start_time(x, y, start_range)
+    try:
+        foot_end_time = heuristically_find_rise_start_time(x, y, start_range)
+    except InvalidSignalError:
+        foot_end_time = None
     if foot_end_time is None:
         # Fallback to traditional method if heuristic fails
         return _get_rise_time_traditional(
@@ -917,7 +923,10 @@ def get_rise_start_time(
         InvalidSignalError: If rise start time cannot be determined.
     """
     # Try heuristic detection first as it's often more reliable for step detection
-    heuristic_result = heuristically_find_rise_start_time(x, y, start_range)
+    try:
+        heuristic_result = heuristically_find_rise_start_time(x, y, start_range)
+    except InvalidSignalError:
+        heuristic_result = None
 
     # Try threshold method if requested
     threshold_result = None
@@ -1058,19 +1067,25 @@ def full_width_at_ratio(
 
     tmax_idx = np.argmax(y_norm)
 
-    roots1 = features.find_x_values_at_y(
-        x[0 : tmax_idx + 1],
-        y_norm[0 : tmax_idx + 1],
-        ratio,
-    )
+    try:
+        roots1 = features.find_x_values_at_y(
+            x[0 : tmax_idx + 1],
+            y_norm[0 : tmax_idx + 1],
+            ratio,
+        )
+    except ValueError:
+        roots1 = []
     if len(roots1) > 1:
         warnings.warn("Multiple crossing points found. Returning first.")
     x1 = roots1[0] if len(roots1) > 0 else np.nan
-    roots2 = features.find_x_values_at_y(
-        x[tmax_idx:],
-        y_norm[tmax_idx:],
-        ratio,
-    )
+    try:
+        roots2 = features.find_x_values_at_y(
+            x[tmax_idx:],
+            y_norm[tmax_idx:],
+            ratio,
+        )
+    except ValueError:
+        roots2 = []
     if len(roots2) > 1:
         warnings.warn("Multiple crossing points found. Returning last.")
     x2 = roots2[-1] if len(roots2) > 0 else np.nan
