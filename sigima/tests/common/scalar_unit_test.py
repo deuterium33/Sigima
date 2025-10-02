@@ -214,6 +214,7 @@ class TestTableResultDataAccess:
 
     def setup_method(self) -> None:
         """Set up test data for each test method."""
+        # pylint: disable=attribute-defined-outside-init
         self.table = TableResult(
             title="Test Table",
             headers=["col1", "col2"],
@@ -310,6 +311,7 @@ class TestTableResultDisplayPreferences:
 
     def setup_method(self) -> None:
         """Set up test data for each test method."""
+        # pylint: disable=attribute-defined-outside-init
         self.table = TableResult(
             title="Test Table",
             headers=["col1", "col2", "col3"],
@@ -827,7 +829,7 @@ class TestUtilityFunctions:
         result = concat_tables("Empty", [])
         assert result.title == "Empty"
         assert result.headers == []
-        assert result.data == []
+        assert not result.data
 
     def test_concat_tables_single(self) -> None:
         """Test concat_tables with single table."""
@@ -877,7 +879,7 @@ class TestUtilityFunctions:
 
         # Filter for specific ROI should return empty
         result_roi = filter_table_by_roi(table, 0)
-        assert result_roi.data == []
+        assert not result_roi.data
 
     def test_filter_table_by_roi_with_roi_indices(self) -> None:
         """Test filter_table_by_roi with ROI indices."""

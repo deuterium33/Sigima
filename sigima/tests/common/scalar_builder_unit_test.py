@@ -52,6 +52,7 @@ class TestTableResultBuilderHideColumns:
 
     def setup_method(self) -> None:
         """Set up test data for each test method."""
+        # pylint: disable=attribute-defined-outside-init
         self.sig = create_dummy_signal()
 
     def _create_basic_builder(self) -> TableResultBuilder:
