@@ -109,6 +109,8 @@ Signal parameters
     :no-index:
 .. autodataset:: sigima.params.PowerParam
     :no-index:
+.. autodataset:: sigima.params.PulseFeaturesParam
+    :no-index:
 .. autodataset:: sigima.params.Resampling1DParam
     :no-index:
 .. autodataset:: sigima.params.Resampling2DParam
@@ -311,6 +313,7 @@ __all__ = [
     "PeakDetectionParam",
     "PolynomialFitParam",
     "PowerParam",
+    "PulseFeaturesParam",
     "Resampling1DParam",
     "Resampling2DParam",
     "WindowingParam",
@@ -390,6 +393,7 @@ from sigima.proc.signal import (
     PeakDetectionParam,
     PolynomialFitParam,
     PowerParam,
+    PulseFeaturesParam,
     Resampling1DParam,
     WindowingParam,
     XYCalibrateParam,
