@@ -36,8 +36,7 @@ The following subpackages are available:
 
 - :mod:`sigima.proc.base`: Common processing features
 - :mod:`sigima.proc.signal`: Signal processing features
-- :mod:`sigima.proc.image`: Image processing features
-- :mod:`sigima.proc.transformations`: Unified transformation system
+- :mod:`sigima.proc.image`: Image processing features (including transformations)
 
 Common processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

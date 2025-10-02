@@ -10,7 +10,7 @@ import numpy as np
 
 from sigima.objects.scalar import GeometryResult, KindShape
 from sigima.objects.shape import PointCoordinates
-from sigima.proc.transformations import GeometryTransformer, transformer
+from sigima.proc.image.transformations import GeometryTransformer, transformer
 
 
 def test_geometry_transformer_singleton() -> None:

@@ -21,7 +21,7 @@ from sigima.objects.scalar import (
     filter_geometry_by_roi,
     filter_table_by_roi,
 )
-from sigima.proc.transformations import transformer
+from sigima.proc.image import transformer
 
 
 def create_rectangle(x0=0.0, y0=0.0, w=1.0, h=1.0) -> GeometryResult:

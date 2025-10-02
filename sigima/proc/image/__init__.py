@@ -87,7 +87,7 @@ Geometry
 Transformation features
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: sigima.proc.transformations
+.. automodule:: sigima.proc.image.transformations
    :members:
 """
 
@@ -294,6 +294,7 @@ from sigima.proc.image.threshold import (
     threshold_triangle,
     threshold_yen,
 )
+from sigima.proc.image.transformations import transformer
 
 __all__ = [
     "Wrap1to1Func",
@@ -406,6 +407,7 @@ __all__ = [
     "rotate270",
     "translate",
     "transpose",
+    "transformer",
     "DataTypeIParam",
     "LogP1Param",
     "absolute",

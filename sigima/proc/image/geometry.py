@@ -37,7 +37,7 @@ from sigima.enums import BorderMode, Interpolation2DMethod
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
-from sigima.proc.transformations import transformer
+from sigima.proc.image.transformations import transformer
 
 # NOTE: Only parameter classes DEFINED in this module should be included in __all__.
 # Parameter classes imported from other modules (like sigima.proc.base) should NOT
