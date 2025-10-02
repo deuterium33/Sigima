@@ -700,9 +700,8 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
     #: Each ROI subclass should override this with a unique string identifier.
     PREFIX = ""  # This is overriden in children classes
 
-    def __init__(self, inverse: bool = False) -> None:
+    def __init__(self) -> None:
         self.single_rois: list[TypeSingleROI] = []
-        self.inverse = inverse
 
     @staticmethod
     @abc.abstractmethod
@@ -817,8 +816,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             self.single_rois.append(roi)
         elif isinstance(roi, BaseROI):
             self.single_rois.extend(roi.single_rois)
-            if roi.inverse != self.inverse:
-                raise ValueError("Incompatible `inverse` values")
         else:
             raise TypeError(f"Unsupported ROI type: {type(roi)}")
 
@@ -865,7 +862,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
         for param in params:
             assert isinstance(param, BaseROIParam), "Invalid ROI parameter type"
             roi.add_roi(param.to_single_roi(obj))
-        roi.inverse = inverse
         return roi
 
     def to_dict(self) -> dict:
@@ -875,7 +871,6 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             Dictionary
         """
         return {
-            "inverse": self.inverse,
             "single_rois": [roi.to_dict() for roi in self.single_rois],
         }
 
@@ -890,11 +885,8 @@ class BaseROI(Generic[TypeObj, TypeSingleROI, TypeROIParam], abc.ABC):  # type: 
             ROIs
         """
         instance = cls()
-        if not all(key in dictdata for key in ["inverse", "single_rois"]):
-            raise ValueError(
-                "Invalid ROI: dictionary must contain 'inverse' and 'single_rois' keys"
-            )
-        instance.inverse = dictdata["inverse"]
+        if not all(key in dictdata for key in ["single_rois"]):
+            raise ValueError("Invalid ROI: dictionary must contain 'single_rois' key")
         instance.single_rois = []
         for single_roi in dictdata["single_rois"]:
             for single_roi_class in instance.get_compatible_single_roi_classes():

@@ -646,13 +646,7 @@ class CircularROI(BaseSingleImageROI):
         return np.array([xc, yc, r], dtype=type(x0))
 
 
-class ImageROI(
-    base.BaseROI[
-        "ImageObj",
-        BaseSingleImageROI,
-        ROI2DParam,
-    ]
-):
+class ImageROI(base.BaseROI["ImageObj", BaseSingleImageROI, ROI2DParam]):
     """Image Regions of Interest
 
     Args:
@@ -689,7 +683,6 @@ def create_image_roi(
     geometry: Literal["rectangle", "circle", "polygon"],
     coords: np.ndarray | list[float] | list[list[float]],
     indices: bool = False,
-    inverse: bool = False,
     title: str = "",
 ) -> ImageROI:
     """Create Image Regions of Interest (ROI) object.
@@ -704,7 +697,6 @@ def create_image_roi(
          `[[xc1, yc1, r1], [xc2, yc2, r2], ...]` for circles).
         indices: if True, coordinates are indices, if False, they are physical values
          (default to False)
-        inverse: if True, ROI is outside the region
         title: title
 
     Returns:
@@ -716,7 +708,7 @@ def create_image_roi(
     coords = np.array(coords, float)
     if coords.ndim == 1:
         coords = coords.reshape(1, -1)
-    roi = ImageROI(inverse)
+    roi = ImageROI()
     if geometry == "rectangle":
         if coords.shape[1] != 4:
             raise ValueError("Rectangle ROI requires 4 coordinates")

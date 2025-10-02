@@ -48,11 +48,17 @@ def __generic_fit(
         Fitting result signal object
     """
     dst = dst_1_to_1(src, fitfunc.__name__)
-    x = src.x[~src.get_masked_view().mask]
-    y = src.get_masked_view().compressed()
 
-    fitted_y, fit_params = fitfunc(x, y)
-    dst.set_xydata(x, fitted_y)
+    # Fit only on ROI if available
+    x_roi = src.x[~src.get_masked_view().mask]
+    y_roi = src.get_masked_view().compressed()
+    _fitted_y_roi, fit_params = fitfunc(x_roi, y_roi)
+
+    # Evaluate fit on full x range
+    fitted_y = fitting.evaluate_fit(src.x, **fit_params)
+    dst.set_xydata(src.x, fitted_y)
+
+    # Store fit parameters in metadata
     dst.metadata["fit_params"] = fit_params
     return dst
 

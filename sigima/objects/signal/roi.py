@@ -167,7 +167,6 @@ class SignalROI(base.BaseROI["SignalObj", SegmentROI, ROI1DParam]):
 def create_signal_roi(
     coords: np.ndarray | list[float] | list[list[float]],
     indices: bool = False,
-    inverse: bool = False,
     title: str = "",
 ) -> SignalROI:
     """Create Signal Regions of Interest (ROI) object.
@@ -178,7 +177,6 @@ def create_signal_roi(
          `[[xmin1, xmax1], [xmin2, xmax2], ...]` (lists or NumPy arrays)
         indices: if True, coordinates are indices, if False, they are physical values
          (default to False for signals)
-        inverse: if True, ROI is outside the region
         title: title
 
     Returns:
@@ -190,7 +188,7 @@ def create_signal_roi(
     coords = np.array(coords, float)
     if coords.ndim == 1:
         coords = coords.reshape(1, -1)
-    roi = SignalROI(inverse)
+    roi = SignalROI()
     for row in coords:
         roi.add_roi(SegmentROI(row, indices=indices, title=title))
     return roi
