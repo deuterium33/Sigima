@@ -145,6 +145,9 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
     )
     builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
     builder.add_from_dataclass(pulse_features)
+    builder.hide_columns(
+        ["xstartmin", "xstartmax", "xendmin", "xendmax", "xplateaumin", "xplateaumax"]
+    )
     return builder.compute(obj)
 
 

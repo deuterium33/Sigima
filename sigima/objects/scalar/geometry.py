@@ -55,8 +55,12 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-# Import the common components from table module
-from sigima.objects.scalar.table import NO_ROI, ResultHtmlGenerator
+from sigima.objects.scalar.common import (
+    NO_ROI,
+    DataFrameManager,
+    DisplayPreferencesManager,
+    ResultHtmlGenerator,
+)
 
 
 class KindShape(str, enum.Enum):
@@ -265,20 +269,31 @@ class GeometryResult:
         # Generic headers for unknown shapes
         return [f"coord_{i}" for i in range(num_coords)]
 
-    def to_dataframe(self):
-        """
-        Convert the GeometryResult to a pandas DataFrame.
+    def to_dataframe(self, visible_only: bool = False):
+        """Convert the GeometryResult to a pandas DataFrame.
+
+        Args:
+            visible_only: If True, include only visible headers based on display
+             preferences. Default is False.
 
         Returns:
-            pd.DataFrame: DataFrame with columns as in coords, and
-            optional 'roi_index' column.
+            DataFrame with columns as in coords, and optional 'roi_index' column.
+             If visible_only is True, only columns with visible headers are included.
         """
         df = pd.DataFrame(self.coords, columns=self.headers)
-        if self.roi_indices is not None:
-            df.insert(0, "roi_index", self.roi_indices)
+
         # For segments, add a length column
         if self.kind == KindShape.SEGMENT:
             df["length"] = self.segments_lengths()
+
+        if self.roi_indices is not None:
+            df.insert(0, "roi_index", self.roi_indices)
+
+        # Filter to visible columns if requested
+        if visible_only:
+            visible_headers = self.get_visible_headers()
+            df = DataFrameManager.apply_visible_only_filter(df, visible_headers)
+
         return df
 
     def get_display_preferences(self) -> dict[str, bool]:
@@ -288,14 +303,9 @@ class GeometryResult:
             Dictionary mapping header names to visibility (True=visible, False=hidden).
             By default, all coordinates are visible unless specified in attrs.
         """
-        prefs = {}
-        hidden_coords = self.attrs.get("hidden_coords", set())
-        if isinstance(hidden_coords, (list, tuple)):
-            hidden_coords = set(hidden_coords)
-
-        for header in self.headers:
-            prefs[header] = header not in hidden_coords
-        return prefs
+        return DisplayPreferencesManager.get_display_preferences(
+            self, self.headers, "hidden_coords"
+        )
 
     def set_display_preferences(self, preferences: dict[str, bool]) -> None:
         """Set display preferences for coordinate headers.
@@ -304,15 +314,9 @@ class GeometryResult:
             preferences: Dictionary mapping header names to visibility
                         (True=visible, False=hidden)
         """
-        hidden_coords = {
-            header
-            for header, visible in preferences.items()
-            if not visible and header in self.headers
-        }
-        if hidden_coords:
-            self.attrs["hidden_coords"] = list(hidden_coords)
-        elif "hidden_coords" in self.attrs:
-            del self.attrs["hidden_coords"]
+        DisplayPreferencesManager.set_display_preferences(
+            self, preferences, self.headers, "hidden_coords"
+        )
 
     def get_visible_headers(self) -> list[str]:
         """Get list of currently visible headers based on display preferences.
@@ -320,8 +324,9 @@ class GeometryResult:
         Returns:
             List of header names that should be displayed
         """
-        prefs = self.get_display_preferences()
-        return [header for header in self.headers if prefs.get(header, True)]
+        return DisplayPreferencesManager.get_visible_headers(
+            self, self.headers, "hidden_coords"
+        )
 
     # -------- User-oriented methods --------
 
@@ -367,7 +372,7 @@ class GeometryResult:
     def to_html(
         self,
         obj=None,
-        visible_headers: list[str] = None,
+        visible_only: bool = True,
         transpose_single_row: bool = True,
         **kwargs,
     ) -> str:
@@ -375,7 +380,8 @@ class GeometryResult:
 
         Args:
             obj: Optional SignalObj or ImageObj for ROI title extraction
-            visible_headers: Optional list of headers to show (filters columns)
+            visible_only: If True, include only visible headers based on display
+             preferences. Default is False.
             transpose_single_row: If True, transpose when there's only one row
             **kwargs: Additional arguments passed to DataFrame.to_html()
 
@@ -383,7 +389,7 @@ class GeometryResult:
             HTML representation of the result
         """
         return ResultHtmlGenerator.generate_html(
-            self, obj, visible_headers, transpose_single_row, **kwargs
+            self, obj, visible_only, transpose_single_row, **kwargs
         )
 
 

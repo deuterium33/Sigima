@@ -45,12 +45,15 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from sigima.objects.scalar.common import (
+    NO_ROI,
+    DataFrameManager,
+    DisplayPreferencesManager,
+    ResultHtmlGenerator,
+)
+
 if TYPE_CHECKING:
     from sigima.objects import ImageObj, SignalObj
-    from sigima.objects.scalar.geometry import GeometryResult
-
-# Sentinel value for "full signal/image / no ROI" rows in result tables
-NO_ROI: int = -1
 
 
 class TableKind(str, enum.Enum):
@@ -64,105 +67,6 @@ class TableKind(str, enum.Enum):
     def values(cls) -> list[str]:
         """Return all table kind values."""
         return [e.value for e in cls]
-
-
-class ResultHtmlGenerator:
-    """Utility class for generating HTML from result objects using composition."""
-
-    @staticmethod
-    def generate_html(
-        result: TableResult | "GeometryResult",
-        obj: SignalObj | ImageObj,
-        visible_headers: list[str] = None,
-        transpose_single_row: bool = True,
-        **kwargs,
-    ) -> str:
-        """Generate HTML from a result object.
-
-        Args:
-            result: The result object (TableResult or GeometryResult)
-            obj: SignalObj or ImageObj for ROI title extraction
-            visible_headers: Optional list of headers to show (filters columns)
-            transpose_single_row: If True, transpose the table when there's only one row
-            **kwargs: Additional arguments passed to DataFrame.to_html()
-
-        Returns:
-            HTML representation of the result
-        """
-        df = result.to_dataframe()
-
-        # Filter visible headers if specified
-        if visible_headers is not None:
-            available_headers = [h for h in visible_headers if h in df.columns]
-            if "roi_index" in df.columns:
-                df = df[["roi_index"] + available_headers]
-            else:
-                df = df[available_headers]
-
-        # Remove roi_index column for display
-        if "roi_index" in df.columns:
-            roi_indices = df["roi_index"].tolist()
-            df = df.drop(columns=["roi_index"])
-        else:
-            roi_indices = None
-
-        # Create row headers
-        row_headers = ResultHtmlGenerator._get_row_headers(result, roi_indices, obj)
-
-        # Transpose if single row and flag is set
-        if transpose_single_row and len(df) == 1:
-            # Transpose the dataframe
-            df_t = df.T
-            df_t.columns = [row_headers[0] if row_headers[0] else "Value"]
-            df_t.index.name = "Item"
-            # Get labels for the transposed view
-            display_labels = list(df.columns)
-            df_t.index = display_labels
-            text = f'<u><b style="color: blue">{result.title}</b></u>:'
-            html_kwargs = {"border": 0}
-            html_kwargs.update(kwargs)
-            # Format numeric columns only, avoiding float_format on mixed data types
-            for col in df_t.select_dtypes(include=["number"]).columns:
-                df_t[col] = df_t[col].map(lambda x: f"{x:.3g}" if pd.notna(x) else x)
-            text += df_t.to_html(**html_kwargs)
-        else:
-            # Standard horizontal layout
-            df.index = row_headers
-            text = f'<u><b style="color: blue">{result.title}</b></u>:'
-            html_kwargs = {"border": 0}
-            html_kwargs.update(kwargs)
-            # Format numeric columns only, avoiding float_format on mixed data types
-            for col in df.select_dtypes(include=["number"]).columns:
-                df[col] = df[col].map(lambda x: f"{x:.3g}" if pd.notna(x) else x)
-            text += df.to_html(**html_kwargs)
-
-        return text
-
-    @staticmethod
-    def _get_row_headers(
-        result: TableResult | "GeometryResult",
-        roi_indices: list[int] | None,
-        obj: SignalObj | ImageObj,
-    ) -> list[str]:
-        """Create row headers from ROI indices."""
-        row_headers = []
-        if roi_indices is not None:
-            for roi_idx in roi_indices:
-                if roi_idx == NO_ROI:
-                    header = ""
-                else:
-                    header = f"ROI {roi_idx}"
-                    # Try to get ROI title from object if available
-                    if obj.roi is not None:
-                        header = obj.roi.get_single_roi_title(roi_idx)
-                row_headers.append(header)
-        else:
-            # Need to get DataFrame to know the number of rows
-            df = result.to_dataframe()
-            if "roi_index" in df.columns:
-                df = df.drop(columns=["roi_index"])
-            row_headers = [""] * len(df)
-        return row_headers
 
 
 @dataclasses.dataclass(frozen=True)
@@ -293,17 +197,28 @@ class TableResult:
 
     # -------- Pandas DataFrame interop --------
 
-    def to_dataframe(self):
-        """
-        Convert the TableResult to a pandas DataFrame.
+    def to_dataframe(self, visible_only: bool = False):
+        """Convert the TableResult to a pandas DataFrame.
+
+        Args:
+            visible_only: If True, include only visible headers based on display
+             preferences. Default is False.
 
         Returns:
-            pd.DataFrame: DataFrame with columns as in self.headers, and
-            optional 'roi_index' column.
+            DataFrame with columns as in data, and optional 'roi_index' column.
+             If visible_only is True, only columns with visible headers are included.
         """
         df = pd.DataFrame(self.data, columns=self.headers)
+
+        # Add roi_index column if present
         if self.roi_indices is not None:
             df.insert(0, "roi_index", self.roi_indices)
+
+        # Filter to visible columns if requested
+        if visible_only:
+            visible_headers = self.get_visible_headers()
+            df = DataFrameManager.apply_visible_only_filter(df, visible_headers)
+
         return df
 
     def get_display_preferences(self) -> dict[str, bool]:
@@ -313,14 +228,9 @@ class TableResult:
             Dictionary mapping header names to visibility (True=visible, False=hidden).
             By default, all metrics are visible unless specified in attrs.
         """
-        prefs = {}
-        hidden_metrics = self.attrs.get("hidden_metrics", set())
-        if isinstance(hidden_metrics, (list, tuple)):
-            hidden_metrics = set(hidden_metrics)
-
-        for header in self.headers:
-            prefs[header] = header not in hidden_metrics
-        return prefs
+        return DisplayPreferencesManager.get_display_preferences(
+            self, self.headers, "hidden_metrics"
+        )
 
     def set_display_preferences(self, preferences: dict[str, bool]) -> None:
         """Set display preferences for metrics.
@@ -329,15 +239,9 @@ class TableResult:
             preferences: Dictionary mapping header names to visibility
                         (True=visible, False=hidden)
         """
-        hidden_metrics = {
-            header
-            for header, visible in preferences.items()
-            if not visible and header in self.headers
-        }
-        if hidden_metrics:
-            self.attrs["hidden_metrics"] = list(hidden_metrics)
-        elif "hidden_metrics" in self.attrs:
-            del self.attrs["hidden_metrics"]
+        DisplayPreferencesManager.set_display_preferences(
+            self, preferences, self.headers, "hidden_metrics"
+        )
 
     def get_visible_headers(self) -> list[str]:
         """Get list of currently visible headers based on display preferences.
@@ -345,8 +249,9 @@ class TableResult:
         Returns:
             List of header names that should be displayed
         """
-        prefs = self.get_display_preferences()
-        return [header for header in self.headers if prefs.get(header, True)]
+        return DisplayPreferencesManager.get_visible_headers(
+            self, self.headers, "hidden_metrics"
+        )
 
     @classmethod
     def from_dataframe(
@@ -491,7 +396,7 @@ class TableResult:
     def to_html(
         self,
         obj: SignalObj | ImageObj,
-        visible_headers: list[str] | None = None,
+        visible_only: bool = True,
         transpose_single_row: bool = True,
         **kwargs,
     ) -> str:
@@ -499,7 +404,8 @@ class TableResult:
 
         Args:
             obj: SignalObj or ImageObj for ROI title extraction
-            visible_headers: Optional list of headers to show (filters columns)
+            visible_only: If True, include only visible headers based on display
+             preferences. Default is False.
             transpose_single_row: If True, transpose when there's only one row
             **kwargs: Additional arguments passed to DataFrame.to_html()
 
@@ -507,7 +413,7 @@ class TableResult:
             HTML representation of the result
         """
         return ResultHtmlGenerator.generate_html(
-            self, obj, visible_headers, transpose_single_row, **kwargs
+            self, obj, visible_only, transpose_single_row, **kwargs
         )
 
     # -------- Convenience methods for table type identification --------
@@ -537,6 +443,7 @@ class TableResultBuilder:
         self.title = title
         self.kind = kind
         self.columns: list[tuple[Callable, str]] = []
+        self._hidden_columns: set[str] = set()
 
     def add_from_dataclass(self, parameters: object) -> None:
         """Add columns from a dataclass's float/int fields.
@@ -579,6 +486,18 @@ class TableResultBuilder:
             raise ValueError(f"Column function '{name}' must return a float or int")
         self.columns.append((name, func))
 
+    def hide_columns(self, names: list[str]) -> TableResultBuilder:
+        """Mark multiple columns as hidden in the display.
+
+        Args:
+            names: List of column names to hide.
+
+        Returns:
+            Self for method chaining.
+        """
+        self._hidden_columns.update(names)
+        return self
+
     def compute(self, obj: SignalObj | ImageObj) -> TableResult:
         """Extract data from the image or signal object and compute the table.
 
@@ -609,13 +528,20 @@ class TableResultBuilder:
                 row_data.append(value)
             rows.append(row_data)
             roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
-        return TableResult.from_rows(
+        result = TableResult.from_rows(
             title=self.title,
             headers=names,
             rows=rows,
             roi_indices=roi_idx,
             kind=self.kind,
         )
+
+        # Apply display preferences
+        if self._hidden_columns:
+            hidden_prefs = {name: name not in self._hidden_columns for name in names}
+            result.set_display_preferences(hidden_prefs)
+
+        return result
 
 
 # ===========================
