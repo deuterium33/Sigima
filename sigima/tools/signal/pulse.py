@@ -221,6 +221,8 @@ def _detect_square_polarity(
 
     # reduce x and y outside the base level
     y_red = y[np.logical_and(x >= start_range[1], x <= end_range[0])]
+    if len(y_red) == 0:
+        return 0
 
     if plateau_range is None:
         max_y = np.max(y_red)
@@ -495,6 +497,8 @@ def find_crossing_at_ratio(
     if start_range is None:
         start_range = get_start_range(x, fraction)
     y_start = get_range_mean_y(x, y_positive, start_range)
+    if amplitude == 0.0:
+        return None
     y_norm = (y_positive - y_start) / amplitude
     try:
         roots = features.find_x_values_at_y(x, y_norm, ratio)
