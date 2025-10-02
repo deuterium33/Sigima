@@ -132,19 +132,29 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
     Returns:
         An object containing the pulse features.
     """
-    x, y = obj.get_data()
     start_ratio, stop_ratio = p.reference_levels
-    pulse_features = pulse.extract_pulse_features(
-        x,
-        y,
-        signal_shape=p.signal_shape,
-        start_range=[p.xstartmin, p.xstartmax],
-        end_range=[p.xendmin, p.xendmax],
-        start_ratio=start_ratio / 100.0,
-        stop_ratio=stop_ratio / 100.0,
-    )
+
+    def func_extract_pulse_features(xydata: tuple[np.ndarray, np.ndarray]):
+        """Extract pulse features (internal function).
+
+        Args:
+            xydata: Tuple of (x, y) data arrays
+
+        Returns:
+            Pulse features dataclass
+        """
+        return pulse.extract_pulse_features(
+            xydata[0],
+            xydata[1],
+            signal_shape=p.signal_shape,
+            start_range=[p.xstartmin, p.xstartmax],
+            end_range=[p.xendmin, p.xendmax],
+            start_ratio=start_ratio / 100.0,
+            stop_ratio=stop_ratio / 100.0,
+        )
+
     builder = TableResultBuilder(_("Pulse features"), kind=TableKind.PULSE_FEATURES)
-    builder.add_from_dataclass(pulse_features)
+    builder.set_global_function(func_extract_pulse_features)
     builder.hide_columns(
         ["xstartmin", "xstartmax", "xendmin", "xendmax", "xplateaumin", "xplateaumax"]
     )

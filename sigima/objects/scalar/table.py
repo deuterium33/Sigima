@@ -452,28 +452,51 @@ class TableResultBuilder:
     def __init__(self, title: str, kind: TableKind | str = TableKind.CUSTOM) -> None:
         self.title = title
         self.kind = kind
-        self.columns: list[tuple[Callable, str]] = []
+
+        # We define either a list of column functions, or a single global function
+        # that returns a dataclass instance with float/int fields.
+        self.column_funcs: list[tuple[Callable, str]] = []
+        self.global_func: Callable | None = None
+
         self._hidden_columns: set[str] = set()
 
-    def add_from_dataclass(self, parameters: object) -> None:
-        """Add columns from a dataclass's float/int fields.
+    def set_global_function(self, func: Callable) -> None:
+        """Set a global function that returns a dataclass with float/int fields.
 
         Args:
-            parameters: The dataclass instance to extract fields from.
+            func: The function to compute the dataclass instance.
         """
-        for field in dataclasses.fields(parameters):
-            key = field.name
-            value = getattr(parameters, key)
-            if isinstance(value, (int, float, np.floating, np.integer, enum.Enum, str)):
-                self.add(lambda xy, v=value: v, key)
+        assert not self.column_funcs, "Cannot mix global and per-column functions"
+        assert isinstance(func, Callable), "Global function must be callable"
+        # Check function signature:
+        sig = inspect.signature(func)
+        if len(sig.parameters) < 1:
+            raise ValueError(
+                "Global function must accept at least one argument (xydata tuple)"
+            )
+        firstparam = list(sig.parameters.values())[0]
+        if (
+            firstparam.annotation is not sig.empty
+            and firstparam.annotation != "tuple[np.ndarray, np.ndarray]"
+        ):
+            raise ValueError(
+                "Global function must accept a (np.ndarray, np.ndarray) tuple"
+            )
+        # Check return type
+        if sig.return_annotation is not sig.empty:
+            ret_type = sig.return_annotation
+            if not dataclasses.is_dataclass(ret_type):
+                raise ValueError("Global function must return a dataclass")
+        self.global_func = func
 
     def add(self, func: Callable, name: str) -> None:
-        """Add a column to the table.
+        """Add a column function to the table.
 
         Args:
             func: The function to compute the column values.
             name: The name of the column.
         """
+        assert self.global_func is None, "Cannot mix global and per-column functions"
         assert isinstance(name, str) and name, "Column name must be a non-empty string"
         assert isinstance(func, Callable), "Column function must be callable"
         # Check function signature:
@@ -494,7 +517,7 @@ class TableResultBuilder:
             "int",
         ):
             raise ValueError(f"Column function '{name}' must return a float or int")
-        self.columns.append((name, func))
+        self.column_funcs.append((name, func))
 
     def hide_columns(self, names: list[str]) -> TableResultBuilder:
         """Mark multiple columns as hidden in the display.
@@ -508,6 +531,65 @@ class TableResultBuilder:
         self._hidden_columns.update(names)
         return self
 
+    @staticmethod
+    def __check_value(value) -> float | str:
+        """Check and convert a value to float or str.
+
+        Args:
+            value: The value to check.
+
+        Returns:
+            The value converted to float or str.
+
+        Raises:
+            ValueError: If the value is not convertible to float or str.
+        """
+        try:
+            value = float(value)
+        except ValueError as exc:
+            if not isinstance(value, str):
+                raise ValueError(f"Unexpected non-numeric value: {value!r}") from exc
+        return value
+
+    def __compute_row_from_column_funcs(self, data: np.ndarray) -> list:
+        """Compute a single row using the column functions.
+
+        Args:
+            data: The input data array.
+
+        Returns:
+            A list of computed values for the row.
+        """
+        row_data = []
+        for _name, func in self.column_funcs:
+            value = func(data)
+            value = self.__check_value(value)
+            row_data.append(value)
+        return row_data
+
+    def __compute_row_from_dataclass(self, result) -> tuple[list, list]:
+        """Compute a single row using the global function's dataclass result.
+
+        Args:
+            result: The dataclass instance returned by the global function.
+
+        Returns:
+            A tuple of (row_data, names).
+        """
+        row_data = []
+        names = []
+        if not dataclasses.is_dataclass(result):
+            raise ValueError("Global function must return a dataclass instance")
+        for field in dataclasses.fields(result):
+            value = getattr(result, field.name)
+            if isinstance(value, (int, float, np.floating, np.integer, enum.Enum, str)):
+                value = self.__check_value(value)
+            else:
+                value = None
+            row_data.append(value)
+            names.append(field.name)
+        return row_data, names
+
     def compute(self, obj: SignalObj | ImageObj) -> TableResult:
         """Extract data from the image or signal object and compute the table.
 
@@ -517,7 +599,7 @@ class TableResultBuilder:
         Returns:
             A TableResult object containing the extracted data.
         """
-        names = [name for name, _ in self.columns]
+        names = [name for name, _ in self.column_funcs]
         roi_indices = list(obj.iterate_roi_indices())
         if roi_indices[0] is not None:
             roi_indices.insert(0, None)
@@ -525,19 +607,28 @@ class TableResultBuilder:
         roi_idx = []
         for i_roi in roi_indices:
             data = obj.get_data(i_roi)
-            row_data = []
-            for _name, func in self.columns:
-                value = func(data)
-                try:
-                    value = float(value)
-                except ValueError as exc:
-                    if not isinstance(value, str):
-                        raise ValueError(
-                            f"Unexpected non-numeric value: {value!r}"
-                        ) from exc
-                row_data.append(value)
+            if self.column_funcs:
+                row_data = self.__compute_row_from_column_funcs(data)
+            elif self.global_func:
+                result = self.global_func(data)
+                row_data, names = self.__compute_row_from_dataclass(result)
             rows.append(row_data)
             roi_idx.append(NO_ROI if i_roi is None else int(i_roi))
+
+        # Remove columns with all None and/or NaN values
+        if rows and names:
+            valid_cols = []
+            for j, name in enumerate(names):
+                col_values = [row[j] for row in rows]
+                if any(
+                    v is not None and not (isinstance(v, float) and np.isnan(v))
+                    for v in col_values
+                ):
+                    valid_cols.append(j)
+            if len(valid_cols) < len(names):
+                names = [names[j] for j in valid_cols]
+                rows = [[row[j] for j in valid_cols] for row in rows]
+
         result = TableResult.from_rows(
             title=self.title,
             headers=names,
