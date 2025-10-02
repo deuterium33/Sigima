@@ -140,6 +140,86 @@ class SignalROI(base.BaseROI["SignalObj", SegmentROI, ROI1DParam]):
 
     PREFIX = "s"
 
+    def union(self) -> SignalROI:
+        """Return union of ROIs"""
+        if not self.single_rois:
+            return SignalROI()
+        coords = np.array([roi.coords for roi in self.single_rois])
+        # Merge overlapping segments:
+        sorted_coords = coords[coords[:, 0].argsort()]
+        merged_coords = [sorted_coords[0].tolist()]
+        for current in sorted_coords[1:]:
+            last = merged_coords[-1]
+            if current[0] <= last[1]:  # Overlap
+                last[1] = max(last[1], current[1])  # Merge
+            else:
+                merged_coords.append(current.tolist())
+        # Create new SignalROI with merged segments:
+        roi = create_signal_roi(merged_coords)
+        return roi
+
+    def clipped(self, x_min: float, x_max: float) -> SignalROI:
+        """Remove parts of ROIs outside the signal range
+
+        Args:
+            x_min: signal minimum X value
+            x_max: signal maximum X value
+
+        Returns:
+            SignalROI object containing ROIs clipped to the specified signal range.
+        """
+        new_roi = SignalROI()
+        for roi in self.single_rois:
+            roi_min, roi_max = roi.coords
+            if roi_max < x_min or roi_min > x_max:
+                # ROI completely outside signal range: skip it
+                continue
+            # Clip ROI to signal range:
+            new_roi_min = max(roi_min, x_min)
+            new_roi_max = min(roi_max, x_max)
+            new_roi.add_roi(
+                SegmentROI(np.array([new_roi_min, new_roi_max], float), indices=False)
+            )
+        return new_roi
+
+    def inverted(self, x_min: float, x_max: float) -> SignalROI:
+        """Return inverted ROI (inside/outside).
+
+        Args:
+            x_min: signal minimum X value
+            x_max: signal maximum X value
+        Returns:
+            Inverted ROI
+        """
+        clipped_roi = self.clipped(x_min, x_max)
+        union_roi = clipped_roi.union()
+        roi_delimiter_list = np.array(
+            [roi.coords for roi in union_roi.single_rois]
+        ).reshape(-1)
+
+        if len(roi_delimiter_list) == 0:
+            # No ROIs: inverted ROI is the whole signal
+            raise ValueError("No ROIs defined, cannot invert")
+        if len(roi_delimiter_list) % 2 != 0:
+            # Odd number of delimiters: add signal limits
+            raise ValueError("Internal error: odd number of ROI delimiters")
+
+        if roi_delimiter_list[0] == x_min:
+            # First delimiter is signal min: remove it
+            roi_delimiter_list = roi_delimiter_list[1:]
+        else:
+            # Add signal min as first delimiter
+            roi_delimiter_list = np.insert(roi_delimiter_list, 0, x_min)
+
+        if roi_delimiter_list[-1] == x_max:
+            # Last delimiter is signal max: remove it
+            roi_delimiter_list = roi_delimiter_list[:-1]
+        else:
+            # Add signal max as last delimiter
+            roi_delimiter_list = np.append(roi_delimiter_list, x_max)
+
+        return create_signal_roi(np.array(roi_delimiter_list).reshape(-1, 2))
+
     @staticmethod
     def get_compatible_single_roi_classes() -> list[Type[SegmentROI]]:
         """Return compatible single ROI classes"""

@@ -195,6 +195,189 @@ def test_signal_extract_roi() -> None:
     )
 
 
+def test_signal_roi_union() -> None:
+    """Test signal ROI union operation"""
+    # Test union of overlapping ROIs
+    roi1 = sigima.objects.create_signal_roi([[10, 30], [20, 40]], indices=True)
+    roi_union = roi1.union()
+    assert len(roi_union) == 1, "Overlapping ROIs should merge into one"
+    assert np.array_equal(roi_union.single_rois[0].coords, [10, 40]), (
+        "Union should span full range"
+    )
+
+    # Test union of non-overlapping ROIs
+    roi2 = sigima.objects.create_signal_roi([[10, 20], [30, 40]], indices=True)
+    roi_union2 = roi2.union()
+    assert len(roi_union2) == 2, "Non-overlapping ROIs should remain separate"
+
+    # Test union of adjacent ROIs
+    roi3 = sigima.objects.create_signal_roi([[10, 20], [20, 30]], indices=True)
+    roi_union3 = roi3.union()
+    assert len(roi_union3) == 1, "Adjacent ROIs should merge"
+    assert np.array_equal(roi_union3.single_rois[0].coords, [10, 30]), (
+        "Adjacent union should span full range"
+    )
+
+    # Test empty ROI union
+    empty_roi = sigima.objects.SignalROI()
+    empty_union = empty_roi.union()
+    assert len(empty_union) == 0, "Empty ROI union should be empty"
+
+
+def test_signal_roi_clipping() -> None:
+    """Test signal ROI clipping operation"""
+    src = __create_test_signal()
+    x_min, x_max = src.x[0], src.x[-1]
+
+    # Test clipping ROI within signal range
+    roi = sigima.objects.create_signal_roi([[x_min + 10, x_max - 10]], indices=False)
+    original_coords = roi.single_rois[0].coords.copy()
+    clipped_roi = roi.clipped(x_min, x_max)
+    assert len(clipped_roi) == 1, "ROI within range should remain"
+    assert np.array_equal(clipped_roi.single_rois[0].coords, original_coords), (
+        "ROI within range should be unchanged"
+    )
+
+    # Test clipping ROI partially outside signal range
+    roi2 = sigima.objects.create_signal_roi(
+        [[x_min - 5, x_min + 10], [x_max - 10, x_max + 5]], indices=False
+    )
+    clipped_roi2 = roi2.clipped(x_min, x_max)
+    assert len(clipped_roi2) == 2, "Partially outside ROIs should be clipped"
+    assert clipped_roi2.single_rois[0].coords[0] == x_min, (
+        "Left boundary should be clipped to x_min"
+    )
+    assert clipped_roi2.single_rois[1].coords[1] == x_max, (
+        "Right boundary should be clipped to x_max"
+    )
+
+    # Test clipping ROI completely outside signal range
+    roi3 = sigima.objects.create_signal_roi([[x_max + 1, x_max + 10]], indices=False)
+    clipped_roi3 = roi3.clipped(x_min, x_max)
+    assert len(clipped_roi3) == 0, "ROI completely outside range should be removed"
+
+
+def test_signal_roi_inversion() -> None:
+    """Test signal ROI inversion operation"""
+    src = __create_test_signal()
+    x_min, x_max = src.x[0], src.x[-1]
+
+    # Test inversion of single ROI in middle
+    roi = sigima.objects.create_signal_roi([[20, 30]], indices=False)
+    inverted = roi.inverted(x_min, x_max)
+    assert len(inverted) == 2, "Single middle ROI should create two inverted segments"
+    assert inverted.single_rois[0].coords[0] == x_min, (
+        "First segment should start at x_min"
+    )
+    assert inverted.single_rois[0].coords[1] == 20, (
+        "First segment should end at ROI start"
+    )
+    assert inverted.single_rois[1].coords[0] == 30, (
+        "Second segment should start at ROI end"
+    )
+    assert inverted.single_rois[1].coords[1] == x_max, (
+        "Second segment should end at x_max"
+    )
+
+    # Test inversion of ROI at signal start
+    roi_start = sigima.objects.create_signal_roi([[x_min, 20]], indices=False)
+    inverted_start = roi_start.inverted(x_min, x_max)
+    assert len(inverted_start) == 1, "ROI at start should create one inverted segment"
+    assert inverted_start.single_rois[0].coords[0] == 20, (
+        "Inverted segment should start after ROI"
+    )
+    assert inverted_start.single_rois[0].coords[1] == x_max, (
+        "Inverted segment should end at x_max"
+    )
+
+    # Test inversion of ROI at signal end
+    roi_end = sigima.objects.create_signal_roi([[30, x_max]], indices=False)
+    inverted_end = roi_end.inverted(x_min, x_max)
+    assert len(inverted_end) == 1, "ROI at end should create one inverted segment"
+    assert inverted_end.single_rois[0].coords[0] == x_min, (
+        "Inverted segment should start at x_min"
+    )
+    assert inverted_end.single_rois[0].coords[1] == 30, (
+        "Inverted segment should end before ROI"
+    )
+
+    # Test inversion of multiple ROIs
+    roi_multi = sigima.objects.create_signal_roi([[10, 15], [20, 30]], indices=False)
+    inverted_multi = roi_multi.inverted(x_min, x_max)
+    assert len(inverted_multi) == 3, "Two ROIs should create three inverted segments"
+
+    # Test error case: empty ROI inversion
+    empty_roi = sigima.objects.SignalROI()
+    with pytest.raises(ValueError, match="No ROIs defined, cannot invert"):
+        empty_roi.inverted(x_min, x_max)
+
+
+def test_signal_roi_mask() -> None:
+    """Test signal ROI mask creation"""
+    src = __create_test_signal()
+
+    # Test mask for single ROI
+    roi = sigima.objects.create_signal_roi([SROI1], indices=True)
+    mask = roi.to_mask(src)
+    assert mask.shape == src.xydata.shape, "Mask should have same shape as data"
+    assert mask.dtype == bool, "Mask should be boolean array"
+    # Check that ROI region is masked (False values)
+    assert not np.any(mask[:, SROI1[0] : SROI1[1]]), "ROI region should be masked"
+    # Check that non-ROI regions are not masked (True values)
+    assert np.all(mask[:, : SROI1[0]]), "Region before ROI should not be masked"
+    assert np.all(mask[:, SROI1[1] :]), "Region after ROI should not be masked"
+
+    # Test mask for multiple ROIs
+    roi_multi = __create_test_roi()
+    mask_multi = roi_multi.to_mask(src)
+    assert not np.any(mask_multi[:, SROI1[0] : SROI1[1]]), (
+        "First ROI region should be masked"
+    )
+    assert not np.any(mask_multi[:, SROI2[0] : SROI2[1]]), (
+        "Second ROI region should be masked"
+    )
+    assert np.all(mask_multi[:, SROI1[1] : SROI2[0]]), (
+        "Region between ROIs should not be masked"
+    )
+
+    # Test mask for empty ROI
+    empty_roi = sigima.objects.SignalROI()
+    empty_mask = empty_roi.to_mask(src)
+    assert not np.any(empty_mask), "Empty ROI should mask everything"
+
+
+def test_signal_roi_operations_edge_cases() -> None:
+    """Test edge cases for signal ROI operations"""
+    src = __create_test_signal()
+    x_min, x_max = src.x[0], src.x[-1]
+
+    # Test union with identical ROIs
+    roi_identical = sigima.objects.create_signal_roi([[10, 20], [10, 20]], indices=True)
+    union_identical = roi_identical.union()
+    assert len(union_identical) == 1, "Identical ROIs should merge to one"
+
+    # Test clipping with ROI exactly at boundaries
+    roi_boundary = sigima.objects.create_signal_roi([[x_min, x_max]], indices=False)
+    roi_boundary.clipped(x_min, x_max)
+    assert len(roi_boundary) == 1, "ROI at exact boundaries should remain"
+    assert np.array_equal(roi_boundary.single_rois[0].coords, [x_min, x_max]), (
+        "Boundary ROI should be unchanged"
+    )
+
+    # Test inversion with ROI covering entire signal
+    roi_full = sigima.objects.create_signal_roi([[x_min, x_max]], indices=False)
+    inverted_full = roi_full.inverted(x_min, x_max)
+    assert len(inverted_full) == 0, "Full signal ROI should invert to empty"
+
+    # Test operations with very small ROIs
+    small_roi = sigima.objects.create_signal_roi([[10, 10.1]], indices=False)
+    small_union = small_roi.union()
+    assert len(small_union) == 1, "Small ROI should remain in union"
+
+    small_roi.clipped(0, 100)
+    assert len(small_roi) == 1, "Small ROI within range should remain after clipping"
+
+
 if __name__ == "__main__":
     test_signal_roi_merge()
     test_signal_roi_combine()
@@ -202,3 +385,8 @@ if __name__ == "__main__":
     test_empty_signal_roi()
     test_signal_extract_rois()
     test_signal_extract_roi()
+    test_signal_roi_union()
+    test_signal_roi_clipping()
+    test_signal_roi_inversion()
+    test_signal_roi_mask()
+    test_signal_roi_operations_edge_cases()
