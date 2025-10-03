@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-09-22 17:03+0200\n"
+"POT-Creation-Date: 2025-10-03 14:48+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -183,87 +183,6 @@ msgstr "Ecart-type de la distribution normale"
 msgid "Poisson distribution mean"
 msgstr "Moyenne de la distribution de Poisson"
 
-msgid "This is a set of parameters defining a <b>Region of Interest</b> (ROI) in an image. The parameters can be used to create a ROI object or to extract data from an image using the ROI.<br><br>All values are expressed in physical coordinates (floats). The conversion to pixel coordinates is done by taking into account the image pixel size and origin.<br>"
-msgstr "Ceci est un ensemble de paramètres définissant une <b>Région d'Intérêt</b> (ROI) dans une image. Les paramètres peuvent être utilisés pour créer un objet ROI ou pour extraire des données d'une image en utilisant la ROI.<br><br>Toutes les valeurs sont exprimées en coordonnées physiques (flottantes). La conversion en coordonnées de pixels est effectuée en tenant compte de la taille des pixels et de l'origine de l'image.<br>"
-
-msgid "ROI title"
-msgstr "Titre de la ROI"
-
-msgid "Geometry"
-msgstr "Géométrie"
-
-msgid "Top left corner"
-msgstr "Coin supérieur gauche"
-
-msgid "Center coordinates"
-msgstr "Coordonnées du centre"
-
-msgid "Radius"
-msgstr "Rayon"
-
-msgid "Coordinates"
-msgstr "Coordonnées"
-
-msgid "Data"
-msgstr "Données"
-
-msgid "Metadata"
-msgstr "Métadonnées"
-
-msgid "Annotations"
-msgstr "Annotations"
-
-msgid "Origin"
-msgstr "Origine"
-
-msgid "Pixel spacing"
-msgstr "Taille des pixels"
-
-msgid "Extent"
-msgstr "Bornes"
-
-msgid "Titles / Units"
-msgstr "Titres / Unités"
-
-msgid "Image title"
-msgstr "Titre de l'image"
-
-msgid "Untitled"
-msgstr "Sans titre"
-
-msgid "X-axis"
-msgstr "Axe des X"
-
-msgid "Title"
-msgstr "Titre"
-
-msgid "Unit"
-msgstr "Unité"
-
-msgid "Y-axis"
-msgstr "Axe des Y"
-
-msgid "Z-axis"
-msgstr "Axe des Z"
-
-msgid "Scales"
-msgstr "Echelles"
-
-msgid "Auto scale"
-msgstr "Echelle automatique"
-
-msgid "Logarithmic scale"
-msgstr "Echelle logarithmique"
-
-msgid "Lower bound"
-msgstr "Borne inférieure"
-
-msgid "Upper bound"
-msgstr "Borne supérieure"
-
-msgid "LUT range"
-msgstr "Plage de LUT"
-
 msgid "Zeros"
 msgstr "Zéros"
 
@@ -281,6 +200,9 @@ msgstr "Rampe 2D"
 
 msgid "Untitled image"
 msgstr "Image sans titre"
+
+msgid "Title"
+msgstr "Titre"
 
 msgid "Image height: number of rows"
 msgstr "Hauteur de l'image : nombre de lignes"
@@ -330,20 +252,89 @@ msgstr "y<sub>min</sub>"
 msgid "y<sub>max</sub>"
 msgstr "y<sub>max</sub>"
 
-msgid "First point coordinate"
-msgstr "Coordonnée du premier point"
+msgid "Data"
+msgstr "Données"
 
-msgid "Last point coordinate"
-msgstr "Coordonnée du dernier point"
+msgid "Metadata"
+msgstr "Métadonnées"
 
-msgid "Data and metadata"
-msgstr "Données et métadonnées"
+msgid "Annotations"
+msgstr "Annotations"
 
-msgid "Signal title"
-msgstr "Titre du signal"
+msgid "Origin"
+msgstr "Origine"
+
+msgid "Pixel spacing"
+msgstr "Taille des pixels"
+
+msgid "Extent"
+msgstr "Bornes"
+
+msgid "Titles / Units"
+msgstr "Titres / Unités"
+
+msgid "Image title"
+msgstr "Titre de l'image"
+
+msgid "Untitled"
+msgstr "Sans titre"
+
+msgid "X-axis"
+msgstr "Axe des X"
+
+msgid "Unit"
+msgstr "Unité"
+
+msgid "Y-axis"
+msgstr "Axe des Y"
+
+msgid "Z-axis"
+msgstr "Axe des Z"
+
+msgid "Scales"
+msgstr "Echelles"
+
+msgid "Auto scale"
+msgstr "Echelle automatique"
+
+msgid "Logarithmic scale"
+msgstr "Echelle logarithmique"
+
+msgid "Lower bound"
+msgstr "Borne inférieure"
+
+msgid "Upper bound"
+msgstr "Borne supérieure"
+
+msgid "LUT range"
+msgstr "Plage de LUT"
+
+msgid "This is a set of parameters defining a <b>Region of Interest</b> (ROI) in an image. The parameters can be used to create a ROI object or to extract data from an image using the ROI.<br><br>All values are expressed in physical coordinates (floats). The conversion to pixel coordinates is done by taking into account the image pixel size and origin.<br>"
+msgstr "Ceci est un ensemble de paramètres définissant une <b>Région d'Intérêt</b> (ROI) dans une image. Les paramètres peuvent être utilisés pour créer un objet ROI ou pour extraire des données d'une image en utilisant la ROI.<br><br>Toutes les valeurs sont exprimées en coordonnées physiques (flottantes). La conversion en coordonnées de pixels est effectuée en tenant compte de la taille des pixels et de l'origine de l'image.<br>"
+
+msgid "ROI title"
+msgstr "Titre de la ROI"
+
+msgid "Geometry"
+msgstr "Géométrie"
+
+msgid "Top left corner"
+msgstr "Coin supérieur gauche"
+
+msgid "Center coordinates"
+msgstr "Coordonnées du centre"
+
+msgid "Radius"
+msgstr "Rayon"
+
+msgid "Coordinates"
+msgstr "Coordonnées"
 
 msgid "Lorentzian"
 msgstr "Lorentzienne"
+
+msgid "Voigt"
+msgstr "Voigt"
 
 msgid "Blackbody (Planck)"
 msgstr "Corps noir (Planck)"
@@ -476,6 +467,18 @@ msgstr "Largeur à mi-hauteur"
 
 msgid "Total fall time"
 msgstr "Temps de descente total"
+
+msgid "Data and metadata"
+msgstr "Données et métadonnées"
+
+msgid "Signal title"
+msgstr "Titre du signal"
+
+msgid "First point coordinate"
+msgstr "Coordonnée du premier point"
+
+msgid "Last point coordinate"
+msgstr "Coordonnée du dernier point"
 
 msgid "Operator"
 msgstr "Opérateur"
@@ -939,18 +942,6 @@ msgstr "Valeur absolue"
 msgid "How to return the inverse FFT result"
 msgstr "Comment retourner le résultat de la FFT inverse"
 
-msgid "Padding strategy"
-msgstr "Stratégie de complément de zéros"
-
-msgid "Rows to add"
-msgstr "Lignes à ajouter"
-
-msgid "Columns to add"
-msgstr "Colonnes à ajouter"
-
-msgid "Padding position"
-msgstr "Position du complément de zéros"
-
 msgid "cval"
 msgstr "cval"
 
@@ -971,27 +962,6 @@ msgstr "Ordre de l'interpolation de type spline"
 
 msgid "Zoom"
 msgstr "Zoom"
-
-msgid "Cluster size (X)"
-msgstr "Nombre de pixels (X)"
-
-msgid "Number of adjacent pixels to be combined together along X-axis."
-msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des X."
-
-msgid "Cluster size (Y)"
-msgstr "Nombre de pixels (Y)"
-
-msgid "Number of adjacent pixels to be combined together along Y-axis."
-msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
-
-msgid "Output image data type."
-msgstr "Type de données de l'image générée."
-
-msgid "Change pixel size"
-msgstr "Modifier la taille des pixels"
-
-msgid "If checked, pixel size is updated according to binning factors. Users who prefer to work with pixel coordinates may want to uncheck this."
-msgstr "Si coché, la taille des pixels est mise à jour en fonction de la taille des agrégats. Les utilisateurs qui préfèrent travailler avec les coordonnées de pixels peuvent vouloir décocher cette option."
 
 msgid "Minimum X-coordinate of the output image"
 msgstr "Coordonnée X minimale de l'image de sortie"
@@ -1035,11 +1005,44 @@ msgstr "Valeur à utiliser pour les points en dehors du domaine de l'image d'ori
 msgid "Destination data type"
 msgstr "Type de données de destination"
 
+msgid "Output image data type."
+msgstr "Type de données de l'image générée."
+
 msgid "Image statistics"
 msgstr "Statistiques de l'image"
 
 msgid "Footprint (disk) radius."
 msgstr "Rayon de l'ouverture circulaire (disque)."
+
+msgid "Cluster size (X)"
+msgstr "Nombre de pixels (X)"
+
+msgid "Number of adjacent pixels to be combined together along X-axis."
+msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des X."
+
+msgid "Cluster size (Y)"
+msgstr "Nombre de pixels (Y)"
+
+msgid "Number of adjacent pixels to be combined together along Y-axis."
+msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
+
+msgid "Change pixel size"
+msgstr "Modifier la taille des pixels"
+
+msgid "If checked, pixel size is updated according to binning factors. Users who prefer to work with pixel coordinates may want to uncheck this."
+msgstr "Si coché, la taille des pixels est mise à jour en fonction de la taille des agrégats. Les utilisateurs qui préfèrent travailler avec les coordonnées de pixels peuvent vouloir décocher cette option."
+
+msgid "Padding strategy"
+msgstr "Stratégie de complément de zéros"
+
+msgid "Rows to add"
+msgstr "Lignes à ajouter"
+
+msgid "Columns to add"
+msgstr "Colonnes à ajouter"
+
+msgid "Padding position"
+msgstr "Position du complément de zéros"
 
 msgid "Denoising weight"
 msgstr "Poids de débruitage"

@@ -24,10 +24,6 @@ the DataLab application.
 # the NLnet Foundation.
 
 # -------- Point of no return after creating an independent `sigima` package ----------
-# TODO: Migrate `cdlclient` features to a subpackage of `sigima` (e.g., `sigima.client`)
-# The features to be migrated include everything except the GUI components which will be
-# integrated into the `sigimax` project (`sigima` *must* remain headless)
-#
 # ** Task 3. Documentation and Training Materials **
 # TODO: Move DataLab's validation section to sigima's documentation
 # TODO: Add documentation on I/O plugin system (similar to the `cdl.plugins` module)
@@ -80,11 +76,15 @@ __all__ = [
     "create_signal",
     "create_signal_from_param",
     "create_signal_roi",
+    # Client functionality
+    "SimpleBaseProxy",
+    "SimpleRemoteProxy",
 ]
 
 
 from guidata.config import ValidationMode, set_validation_mode
 
+from sigima.client import SimpleBaseProxy, SimpleRemoteProxy
 from sigima.io import (
     read_image,
     read_images,

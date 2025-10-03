@@ -27,6 +27,9 @@ The public Application Programming Interface (API) of Sigima offers a set of fun
     * - :mod:`sigima.config`
       - Configuration management for the Sigima library, including options for data paths, translations, and other settings.
 
+    * - :mod:`sigima.client`
+      - Client interface for connecting to DataLab application through XML-RPC protocol, providing remote control capabilities for signal and image processing workflows.
+
 
 .. toctree::
    :maxdepth: 2
@@ -37,3 +40,4 @@ The public Application Programming Interface (API) of Sigima offers a set of fun
    objects
    proc
    config
+   client
