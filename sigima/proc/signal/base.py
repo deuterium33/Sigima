@@ -191,7 +191,7 @@ def compute_geometry_from_obj(
     obj: SignalObj,
     func: Callable,
     *args: Any,
-) -> Any:
+) -> GeometryResult | None:
     """Calculate result geometry by executing a computation function on a signal object.
 
     Args:

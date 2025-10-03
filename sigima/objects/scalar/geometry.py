@@ -291,17 +291,27 @@ class GeometryResult:
              If visible_only is True, only columns with visible headers are included.
         """
         df = pd.DataFrame(self.coords, columns=self.headers)
+        visible_headers = self.get_visible_headers()
 
         # For segments, add a length column
         if self.kind == KindShape.SEGMENT:
-            df["length"] = self.segments_lengths()
+            lengths = self.segments_lengths()
+            # Name the length column "Δx" if y0 == y1 for all rows,
+            # "Δy" if x0 == x1 for all rows, else "length"
+            if np.allclose(self.coords[:, 1], self.coords[:, 3]):
+                length_name = "Δx"
+            elif np.allclose(self.coords[:, 0], self.coords[:, 2]):
+                length_name = "Δy"
+            else:
+                length_name = "length"
+            df[length_name] = lengths
+            visible_headers = [length_name]  # always show length for segments
 
         if self.roi_indices is not None:
             df.insert(0, "roi_index", self.roi_indices)
 
         # Filter to visible columns if requested
         if visible_only:
-            visible_headers = self.get_visible_headers()
             df = DataFrameManager.apply_visible_only_filter(df, visible_headers)
 
         return df
