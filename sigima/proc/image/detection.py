@@ -141,8 +141,7 @@ class ContourShapeParam(GenericDetectionParam):
 
 @computation_function()
 def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | None:
-    """Compute contour shape fit
-    with :py:func:`sigima.tools.image.get_contour_shapes`"""
+    """Compute contour shape with :py:func:`sigima.tools.image.get_contour_shapes`."""
     shape: sigima.enums.ContourShape = p.shape
     kindshape = getattr(KindShape, shape.name)
     return compute_geometry_from_obj(
