@@ -62,7 +62,7 @@ class SigimaExecEnv:
             self.to_dict()
 
     def iterate_over_attrs_envvars(self) -> Generator[tuple[str, str], None, None]:
-        """Iterate over CDL environment variables
+        """Iterate over Sigima environment variables
 
         Yields:
             A tuple (attribute name, environment variable name)

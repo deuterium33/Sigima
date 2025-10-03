@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-20 19:40+0200\n"
+"POT-Creation-Date: 2025-10-03 14:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -27,6 +27,27 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"
+
+msgid "**New client subpackage**: Migrated DataLab client functionality to `sigima.client`"
+msgstr "**Nouveau sous-paquet client** : Fonctionnalité client DataLab migrée vers `sigima.client`"
+
+msgid "Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab"
+msgstr "Ajout de `sigima.client.remote.SimpleRemoteProxy` pour la communication XML-RPC avec DataLab"
+
+msgid "Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies"
+msgstr "Ajout de `sigima.client.baseproxy.SimpleBaseProxy` en tant que classe de base abstraite pour les proxys DataLab"
+
+msgid "Included comprehensive unit tests and API documentation"
+msgstr "Ajout de tests unitaires complets et de documentation API"
+
+msgid "Maintains headless design principle (GUI components excluded)"
+msgstr "Maintient le principe de conception sans interface graphique (composants GUI exclus)"
+
+msgid "Enables remote control of DataLab application from Python scripts and Jupyter notebooks"
+msgstr "Permet le contrôle à distance de l'application DataLab depuis des scripts Python et des notebooks Jupyter"
+
+msgid "Client functionality is now directly accessible: `from sigima import SimpleRemoteProxy`"
+msgstr "La fonctionnalité client est désormais directement accessible : `from sigima import SimpleRemoteProxy`"
 
 msgid "New image operation:"
 msgstr "Nouvelle opération d'image :"
