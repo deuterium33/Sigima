@@ -289,15 +289,37 @@ def detect_polarity(
             "Polarity could not be determined. Check signal data and baseline ranges."
         )
     if signal_shape == SignalShape.SQUARE:
-        return _detect_square_polarity(
-            x,
-            y,
-            start_range,
-            end_range,
-            plateau_range,
-            y_start,
-            y_end,
-        )
+        # Try square polarity detection first
+        try:
+            return _detect_square_polarity(
+                x,
+                y,
+                start_range,
+                end_range,
+                plateau_range,
+                y_start,
+                y_end,
+            )
+        except (PolarityDetectionError, IndexError, ValueError):
+            # If square detection fails, try Gaussian-like approach
+            # This handles Gaussian signals that are misclassified as SQUARE
+            baseline_mean = (y_start + y_end) / 2
+            max_y = np.max(y)
+            min_y = np.min(y)
+            peak_value = (
+                max_y if max_y - baseline_mean > baseline_mean - min_y else min_y
+            )
+
+            if peak_value > baseline_mean:
+                return 1
+            elif peak_value < baseline_mean:
+                return -1
+            else:
+                raise PolarityDetectionError(
+                    "Polarity could not be determined. Check signal data and "
+                    "baseline ranges."
+                )
+
     raise ValueError(
         f"\nUnknown signal shape '{signal_shape}'. Use 'step' or 'square'."
     )
@@ -514,6 +536,94 @@ def find_crossing_at_ratio(
     return roots[0]
 
 
+def _find_gaussian_crossing_times(
+    x: np.ndarray,
+    y: np.ndarray,
+    start_ratio: float,
+    stop_ratio: float,
+    start_range: tuple[float, float],
+    end_range: tuple[float, float],
+) -> tuple[float, float] | None:
+    """Find crossing times for Gaussian signals with proper handling of multiple
+    crossings.
+
+    For Gaussian signals, we want:
+    - Left side crossing at start_ratio
+    - Right side crossing at stop_ratio
+
+    This gives a meaningful "rise time" across the Gaussian peak.
+
+    Returns:
+        Tuple of (start_time, stop_time) or None if calculation fails.
+    """
+    try:
+        # Get signal properties
+        signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
+        polarity = detect_polarity(
+            x, y, start_range, end_range, signal_shape=signal_shape
+        )
+        amplitude = get_amplitude(
+            x, y, start_range, end_range, signal_shape=signal_shape
+        )
+
+        y_positive = y * polarity
+        y_start = get_range_mean_y(x, y_positive, start_range)
+
+        if amplitude == 0.0:
+            return None
+
+        y_norm = (y_positive - y_start) / amplitude
+
+        # Find all crossing points
+        start_roots = features.find_x_values_at_y(x, y_norm, start_ratio)
+        stop_roots = features.find_x_values_at_y(x, y_norm, stop_ratio)
+
+        # For true Gaussian signals, we expect exactly 2 crossings per ratio
+        # (left and right sides). However, for truncated signals (e.g., in
+        # extract_pulse_features), we might only see 1 crossing (left side only).
+        if len(start_roots) == 1 and len(stop_roots) == 1:
+            # Truncated Gaussian (left side only) - use these crossings directly
+            start_time = start_roots[0]
+            stop_time = stop_roots[0]
+            return (start_time, stop_time)
+        elif len(start_roots) != 2 or len(stop_roots) != 2:
+            # Not a clean Gaussian-style signal
+            return None
+
+        # Additional check: Gaussian signals should be roughly symmetric
+        # Square signals often have asymmetric crossing patterns
+        center_x = (x[0] + x[-1]) / 2
+        start_center = (start_roots[0] + start_roots[1]) / 2
+        stop_center = (stop_roots[0] + stop_roots[1]) / 2
+
+        # If crossings are very asymmetric or far from signal center,
+        # it's likely a square signal, not Gaussian
+        max_center_offset = (x[-1] - x[0]) * 0.05  # 5% of signal range (stricter)
+        if (
+            abs(start_center - center_x) > max_center_offset
+            or abs(stop_center - center_x) > max_center_offset
+        ):
+            # Too asymmetric for a Gaussian
+            return None
+
+        # For Gaussian signals, calculate rise/fall time on ONE side only
+        # start_roots[0] = left side, start_roots[1] = right side
+        # stop_roots[0] = left side, stop_roots[1] = right side
+        if stop_ratio > start_ratio:
+            # Rise time: use left side only (start_ratio to stop_ratio)
+            start_time = start_roots[0]  # Left side at start_ratio
+            stop_time = stop_roots[0]  # Left side at stop_ratio
+        else:
+            # Fall time: use right side only (start_ratio to stop_ratio)
+            start_time = start_roots[1]  # Right side at start_ratio
+            stop_time = stop_roots[1]  # Right side at stop_ratio
+
+        return (start_time, stop_time)
+
+    except (ValueError, PolarityDetectionError, InvalidSignalError):
+        return None
+
+
 def _get_rise_time_traditional(
     x: np.ndarray,
     y: np.ndarray,
@@ -525,7 +635,21 @@ def _get_rise_time_traditional(
     """Internal function for traditional ratio-based rise time calculation.
 
     This avoids recursion by providing the core traditional implementation.
+    For Gaussian signals, it uses special multi-crossing logic.
     """
+    # Check if this might be a Gaussian signal by detecting signal shape
+    # Only try Gaussian method for signals that have clean symmetric crossings
+    try:
+        gaussian_result = _find_gaussian_crossing_times(
+            x, y, start_ratio, stop_ratio, start_range, end_range
+        )
+        if gaussian_result is not None:
+            start_time, stop_time = gaussian_result
+            return abs(stop_time - start_time)
+    except (InvalidSignalError, PolarityDetectionError):
+        pass  # Fall back to traditional method
+
+    # Traditional method for step/square signals
     # Find crossing times for both ratios
     start_time = find_crossing_at_ratio(x, y, start_ratio, start_range, end_range)
     stop_time = find_crossing_at_ratio(x, y, stop_ratio, start_range, end_range)
@@ -676,7 +800,15 @@ def get_rise_time(
         )
 
         if traditional_result is not None:
-            # Check if result seems reasonable - if not, try enhanced method
+            # Check if this is a Gaussian signal - if so, trust the Gaussian result
+            gaussian_result = _find_gaussian_crossing_times(
+                x, y, start_ratio, stop_ratio, start_range, end_range
+            )
+            if gaussian_result is not None:
+                # Gaussian detection succeeded - trust this result
+                return traditional_result
+
+            # For non-Gaussian signals, check if enhanced method needed
             # Estimate signal quality by checking foot end detection reliability
             foot_end_time = heuristically_find_rise_start_time(x, y, start_range)
             if foot_end_time is not None:
@@ -761,6 +893,25 @@ def get_fall_time(
     if start_ratio <= stop_ratio:
         raise ValueError("For fall time, start_ratio must be greater than stop_ratio")
 
+    # Check if this might be a Gaussian signal
+    try:
+        if end_range is None:
+            end_range = get_end_range(x)
+        start_range = get_start_range(x)
+
+        signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
+        if signal_shape in ["square", "gaussian"]:  # Gaussian often detected as square
+            # For Gaussian signals, use symmetric crossing calculation
+            gaussian_result = _find_gaussian_crossing_times(
+                x, y, start_ratio, stop_ratio, start_range, end_range
+            )
+            if gaussian_result is not None:
+                start_time, stop_time = gaussian_result
+                return abs(stop_time - start_time)
+    except (InvalidSignalError, PolarityDetectionError):
+        pass  # Fall back to traditional method
+
+    # Traditional method for step/square signals
     if plateau_range is None:
         ymax_idx = np.argmax(y)
     else:
@@ -1297,13 +1448,28 @@ def extract_pulse_features(
             start_range,
             (x[ymax_idx], x[ymax_idx]),
         )
-        x50 = find_crossing_at_ratio(
-            x[0 : ymax_idx + 1],
-            y[0 : ymax_idx + 1],
-            0.5,
-            start_range,
-            (x[ymax_idx], x[ymax_idx]),
+        # Check if this is a Gaussian signal - if so, x50 should be on the rise
+        gaussian_result = _find_gaussian_crossing_times(
+            x, y, start_ratio, stop_ratio, start_range, end_range
         )
+        if gaussian_result is not None:
+            # For Gaussian signals, x50 is the 50% crossing on the rise (left side)
+            x50 = find_crossing_at_ratio(
+                x[0 : ymax_idx + 1],
+                y[0 : ymax_idx + 1],
+                0.5,
+                start_range,
+                (x[ymax_idx], x[ymax_idx]),
+            )
+        else:
+            # For square signals, x50 is at the 50% crossing
+            x50 = find_crossing_at_ratio(
+                x[0 : ymax_idx + 1],
+                y[0 : ymax_idx + 1],
+                0.5,
+                start_range,
+                (x[ymax_idx], x[ymax_idx]),
+            )
         fall_time = get_fall_time(
             x, y, stop_ratio, start_ratio, plateau_range, end_range
         )
@@ -1323,9 +1489,20 @@ def extract_pulse_features(
             rise_time = None
 
     if x50 is None:
+        # No x50 found (e.g., for very narrow pulses or Gaussian signals)
         x100 = x[ymax_idx]
     else:
-        x100 = x50 + (x50 - x0)
+        # For step/square signals, calculate conventional x100
+        # Check if this is likely a Gaussian signal (symmetric crossings)
+        gaussian_result = _find_gaussian_crossing_times(
+            x, y, start_ratio, stop_ratio, start_range, end_range
+        )
+        if gaussian_result is not None:
+            # Gaussian signal: x100 should be at the actual maximum
+            x100 = x[ymax_idx]
+        else:
+            # Step/square signal: use traditional extrapolation from x0/x50
+            x100 = x50 + (x50 - x0)
 
     return PulseFeatures(
         signal_shape=signal_shape,

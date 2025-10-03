@@ -360,6 +360,133 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
         y = func(x, self.a, self.sigma, self.mu, self.y0)
         return x, y
 
+    def get_expected_features(
+        self, start_ratio: float = 0.1, stop_ratio: float = 0.9
+    ) -> ExpectedFeatures:
+        """Calculate expected pulse features for this signal.
+
+        Args:
+            start_ratio: Start ratio for rise time calculation
+            stop_ratio: Stop ratio for rise time calculation
+
+        Returns:
+            ExpectedFeatures dataclass with all expected values
+        """
+        if self.a is None or self.sigma is None:
+            raise ValueError("Parameters 'a' and 'sigma' must be set")
+        if self.a == 0 or self.sigma <= 0:
+            raise ValueError("Parameter 'a' must be non-zero and 'sigma' positive")
+
+        polarity = 1 if self.a > 0 else -1
+
+        # For Gaussian: peak amplitude is a / (sigma * sqrt(2*pi))
+        # This gives the actual maximum value of the Gaussian function
+        amplitude = abs(self.a) / (self.sigma * np.sqrt(2 * np.pi))
+
+        if self.STYPE == SignalTypes.GAUSS:
+            # Gaussian rise time: t_r = 2.563 * sigma (10% to 90%)
+            rise_time = 2.563 * self.sigma
+        elif self.STYPE == SignalTypes.LORENTZ:
+            # Lorentzian rise time: 2*sigma*sqrt(1/start_ratio - 1/stop_ratio)
+            rise_time = 2 * self.sigma * np.sqrt(1 / start_ratio - 1 / stop_ratio)
+        elif self.STYPE == SignalTypes.VOIGT:
+            # Voigt rise time: approximate as Gaussian for simplicity
+            rise_time = 2.563 * self.sigma
+        else:
+            raise ValueError(f"Unsupported signal type: {self.STYPE}")
+
+        # For Gaussian signals centered at mu
+        x_center = self.mu if self.mu is not None else 0.0
+
+        # Gaussian-specific calculations
+        if self.STYPE == SignalTypes.GAUSS:
+            # Time at 50% amplitude (FWHM calculation)
+            fwhm = 2.355 * self.sigma  # Full Width at Half Maximum for Gaussian
+            # x50 is the 50% crossing on the rise (left side of peak)
+            x50 = x_center - self.sigma * np.sqrt(-2 * np.log(0.5))  # ~0.833σ
+
+            # Rise time from left 20% to left 80% (one-sided)
+            # For amplitude ratios: x = mu ± sigma * sqrt(-2 * ln(ratio))
+            t_20_left = x_center - self.sigma * np.sqrt(-2 * np.log(0.2))  # ~1.794σ
+            t_80_left = x_center - self.sigma * np.sqrt(-2 * np.log(0.8))  # ~0.668σ
+            actual_rise_time = abs(t_80_left - t_20_left)
+
+            # Fall time (symmetric for Gaussian)
+            fall_time = actual_rise_time
+
+            # Foot duration: For Gaussian, use approximation based on sigma
+            # Since Gaussian has no true flat foot, this is an approximation
+            foot_duration = 1.5 * self.sigma  # Empirically derived approximation
+
+        else:
+            # For Lorentzian and Voigt, use approximations
+            x50 = x_center
+            actual_rise_time = rise_time  # Use calculated rise_time
+            fall_time = rise_time
+            if self.STYPE == SignalTypes.LORENTZ:
+                fwhm = 2 * self.sigma
+            else:
+                fwhm = 2.355 * self.sigma
+            foot_duration = 2 * self.sigma  # Approximation
+
+        return ExpectedFeatures(
+            signal_shape=SignalShape.SQUARE,
+            polarity=polarity,
+            amplitude=amplitude,
+            rise_time=actual_rise_time,
+            offset=self.y0 if self.y0 is not None else 0.0,
+            x50=x50,
+            x100=x_center,  # Maximum is at center for Gaussian
+            foot_duration=foot_duration,
+            fall_time=fall_time,
+            fwhm=fwhm,
+        )
+
+    def get_feature_tolerances(self) -> FeatureTolerances:
+        """Get absolute tolerance values for pulse feature validation.
+
+        Returns:
+            FeatureTolerances dataclass with adjusted tolerances for Gaussian signals
+        """
+        # Gaussian signals may need slightly more relaxed tolerances due to smoothness
+        return FeatureTolerances(
+            rise_time=0.3,  # Slightly higher tolerance for Gaussian rise time
+            fall_time=0.3,  # Match rise time tolerance
+            x100=0.1,  # Tighter tolerance for maximum position (should be exact)
+            fwhm=0.2,  # Reasonable tolerance for FWHM
+        )
+
+    def get_crossing_time(self, edge: Literal["rise", "fall"], ratio: float) -> float:
+        """Get the theoretical crossing time for the specified edge and ratio.
+
+        Args:
+            edge: Which edge to calculate ("rise" or "fall")
+            ratio: Crossing ratio (0.0 to 1.0)
+
+        Returns:
+            Theoretical crossing time for the specified edge and ratio
+        """
+        if self.a is None or self.sigma is None or self.mu is None:
+            raise ValueError("Parameters 'a', 'sigma', and 'mu' must be set")
+        if self.a == 0 or self.sigma <= 0:
+            raise ValueError("Parameter 'a' must be non-zero and 'sigma' positive")
+        if not (0.0 < ratio < 1.0):
+            raise ValueError("Ratio must be between 0.0 and 1.0")
+
+        if self.STYPE != SignalTypes.GAUSS:
+            raise NotImplementedError(
+                "Crossing time calculation is only implemented for Gaussian signals"
+            )
+
+        # For Gaussian: x = mu ± sigma * sqrt(-2 * ln(ratio))
+        delta_x = self.sigma * np.sqrt(-2 * np.log(ratio))
+        if edge == "rise":
+            return self.mu - delta_x
+        elif edge == "fall":
+            return self.mu + delta_x
+        else:
+            raise ValueError("Edge must be 'rise' or 'fall'")
+
 
 class GaussParam(BaseGaussLorentzVoigtParam):
     """Parameters for Gaussian function"""

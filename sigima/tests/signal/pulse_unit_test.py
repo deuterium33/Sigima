@@ -19,6 +19,7 @@ from sigima.objects import create_signal
 from sigima.objects.signal import (
     ExpectedFeatures,
     FeatureTolerances,
+    GaussParam,
     SquarePulseParam,
     StepPulseParam,
 )
@@ -26,6 +27,20 @@ from sigima.proc.signal import PulseFeaturesParam, extract_pulse_features
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_scalar_result
 from sigima.tools.signal import filtering, pulse
+
+
+def create_test_gaussian_params() -> GaussParam:
+    """Create GaussParam with explicit test values."""
+    params = GaussParam()
+    # Explicit values to ensure test stability
+    params.xmin = -10.0
+    params.xmax = 10.0
+    params.size = 1000
+    params.a = 5.0
+    params.y0 = 0.0
+    params.sigma = 2.0
+    params.mu = 0.0
+    return params
 
 
 def create_test_step_params() -> StepPulseParam:
@@ -71,7 +86,7 @@ class AnalysisParams:
 
 
 def _test_shape_recognition_case(
-    signal_type: Literal["step", "square"],
+    signal_type: Literal["step", "square", "gaussian"],
     expected_shape: SignalShape,
     y_initial: float,
     y_final_or_high: float,
@@ -94,11 +109,16 @@ def _test_shape_recognition_case(
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
-    else:  # square
+    elif signal_type == "square":
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
 
     # Create title
     polarity_desc = "positive" if y_final_or_high > y_initial else "negative"
@@ -147,10 +167,12 @@ def test_heuristically_recognize_shape() -> None:
     tsc("square", SignalShape.SQUARE, 0.0, 5.0, (0.0, 2.0), (12.0, 14.0))
     # Square signals with negative polarity
     tsc("square", SignalShape.SQUARE, 5.0, 2.0, (0.0, 2.0), (12.0, 14.0))
+    # Gaussian signals with positive polarity
+    tsc("gaussian", SignalShape.SQUARE, 0.0, 5.0)
 
 
 def _test_polarity_detection_case(
-    signal_type: Literal["step", "square"],
+    signal_type: Literal["step", "square", "gaussian"],
     polarity_desc: str,
     expected_polarity: int,
     y_initial: float,
@@ -175,11 +197,16 @@ def _test_polarity_detection_case(
         step_params.offset = y_initial
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
-    else:  # square
+    elif signal_type == "square":
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
 
     # Create title
     title = f"{signal_type}, detection {polarity_desc} polarity"
@@ -222,6 +249,10 @@ def test_detect_polarity() -> None:
     tpdc("square", "positive", 1, 0.0, 5.0, (0.0, 2.0), (12.0, 14.0))
     # Square signals with negative polarity
     tpdc("square", "negative", -1, 5.0, 2.0, (0.0, 2.0), (12.0, 14.0))
+    # Gaussian signals with positive polarity (use baseline ranges at extremes)
+    tpdc("gaussian", "positive", 1, 0.0, 5.0, (-9.0, -7.0), (7.0, 9.0))
+    # Gaussian signals with negative polarity
+    tpdc("gaussian", "negative", -1, 5.0, 2.0, (-9.0, -7.0), (7.0, 9.0))
 
 
 def view_baseline_plateau_and_curve(
@@ -279,7 +310,7 @@ def view_baseline_plateau_and_curve(
 
 
 def _test_amplitude_case(
-    signal_type: Literal["step", "square"],
+    signal_type: Literal["step", "square", "gaussian"],
     polarity_desc: str,
     y_initial: float,
     y_final_or_high: float,
@@ -309,14 +340,21 @@ def _test_amplitude_case(
         step_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = step_params.generate_1d_data()
         expected_features = step_params.get_expected_features()
-    else:  # square
+        expected_amp = expected_features.amplitude
+    elif signal_type == "square":
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
         expected_features = square_params.get_expected_features()
-
-    expected_amp = expected_features.amplitude
+        expected_amp = expected_features.amplitude
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
+        expected_features = gaussian_params.get_expected_features()
+        expected_amp = expected_features.amplitude
 
     # Create title
     title = (
@@ -374,6 +412,8 @@ def test_get_amplitude() -> None:
         - Step signal with negative polarity.
         - Square signal with positive polarity.
         - Square signal with negative polarity.
+        - Gaussian signal with positive polarity.
+        - Gaussian signal with negative polarity.
 
         - Step signal with custom initial and final values.
         - Square signal with custom initial and high values.
@@ -388,10 +428,13 @@ def test_get_amplitude() -> None:
     # Square signals without plateau
     tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
     tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
+    # Gaussian signals
+    tac("gaussian", "positive", 0.0, 5.0, (-9.0, -7.0), (7.0, 9.0), atol=0.6)
+    tac("gaussian", "negative", 5.0, 2.0, (-9.0, -7.0), (7.0, 9.0), atol=0.6)
 
 
 def _test_crossing_ratio_time_case(
-    signal_type: Literal["step", "square"],
+    signal_type: Literal["step", "square", "gaussian"],
     polarity_desc: str,
     y_initial: float,
     y_final_or_high: float,
@@ -424,13 +467,20 @@ def _test_crossing_ratio_time_case(
         x, y_noisy = step_params.generate_1d_data()
         # Calculate crossing time for the specific ratio
         expected_ct = step_params.get_crossing_time("rise", ratio)
-    else:  # square
+    elif signal_type == "square":
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         x, y_noisy = square_params.generate_1d_data()
         # For square signals, calculate crossing time based on edge and ratio
         expected_ct = square_params.get_crossing_time(edge, ratio)
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
+        # Calculate crossing time for the specific ratio
+        expected_ct = gaussian_params.get_crossing_time("rise", ratio)
 
     # Create title
     title = (
@@ -483,10 +533,13 @@ def test_get_crossing_ratio_time(ratio: float) -> None:
 
     tcrtc("step", "positive", 0.0, 5.0, (0.0, 2.0), (6.0, 8.0), ratio)
     tcrtc("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0), ratio)
+    # Gaussian signals (test that functions work, even if results are less meaningful)
+    tcrtc("gaussian", "positive", 0.0, 5.0, (-9.0, -7.0), (7.0, 9.0), ratio, atol=1.0)
+    tcrtc("gaussian", "negative", 5.0, 2.0, (-9.0, -7.0), (7.0, 9.0), ratio, atol=1.0)
 
 
 def _test_rise_time_case(
-    signal_type: Literal["step", "square"],
+    signal_type: Literal["step", "square", "gaussian"],
     polarity_desc: Literal["positive", "negative"],
     y_initial: float,
     y_final_or_high: float,
@@ -526,13 +579,21 @@ def _test_rise_time_case(
         step_params.noise_amplitude = noise_amplitude
         x, y_noisy = step_params.generate_1d_data()
         expected_features = step_params.get_expected_features(start_ratio, stop_ratio)
-    else:  # square
+    elif signal_type == "square":
         square_params = create_test_square_params()
         square_params.offset = y_initial
         square_params.amplitude = y_final_or_high - y_initial
         square_params.noise_amplitude = noise_amplitude
         x, y_noisy = square_params.generate_1d_data()
         expected_features = square_params.get_expected_features(start_ratio, stop_ratio)
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
+        expected_features = gaussian_params.get_expected_features(
+            start_ratio, stop_ratio
+        )
 
     # Create title
     noise_desc = "clean" if noise_amplitude == 0 else "noisy"
@@ -607,9 +668,35 @@ def test_get_rise_time(noise_amplitude: float) -> None:
     na = noise_amplitude
     trtc("step", "positive", 0.0, 5.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
     trtc("step", "negative", 5.0, 2.0, (0, 2), (6, 8), start_ratio, stop_ratio, na)
+    # Gaussian signals (test that functions work, even if results are less meaningful)
+    trtc(
+        "gaussian",
+        "positive",
+        0.0,
+        5.0,
+        (-9.0, -7.0),
+        (7.0, 9.0),
+        start_ratio,
+        stop_ratio,
+        na,
+        atol=1.0,
+    )
+    trtc(
+        "gaussian",
+        "negative",
+        5.0,
+        2.0,
+        (-9.0, -7.0),
+        (7.0, 9.0),
+        start_ratio,
+        stop_ratio,
+        na,
+        atol=1.0,
+    )
 
 
 def _test_fall_time_case(
+    signal_type: Literal["square", "gaussian"],
     polarity_desc: Literal["positive", "negative"],
     y_initial: float,
     y_final_or_high: float,
@@ -622,9 +709,10 @@ def _test_fall_time_case(
     atol: float = 0.1,
     rtol: float = 0.1,
 ) -> None:
-    """Helper function to test step fall time for different signal configurations.
+    """Helper function to test fall time for different signal configurations.
 
     Args:
+        signal_type: Type of signal ("square" or "gaussian")
         polarity_desc: Description of polarity
         y_initial: Initial signal value
         y_final_or_high: Final value (step) or high value (square)
@@ -641,16 +729,26 @@ def _test_fall_time_case(
         atol /= 10.0  # Tighter check for clean signals
 
     # Generate signal and calculate expected fall time
-    square_params = create_test_square_params()
-    square_params.offset = y_initial
-    square_params.amplitude = y_final_or_high - y_initial
-    square_params.noise_amplitude = noise_amplitude
-    x, y_noisy = square_params.generate_1d_data()
-    expected_features = square_params.get_expected_features(start_ratio, stop_ratio)
+    if signal_type == "square":
+        square_params = create_test_square_params()
+        square_params.offset = y_initial
+        square_params.amplitude = y_final_or_high - y_initial
+        square_params.noise_amplitude = noise_amplitude
+        x, y_noisy = square_params.generate_1d_data()
+        expected_features = square_params.get_expected_features(start_ratio, stop_ratio)
+    else:  # gaussian
+        gaussian_params = create_test_gaussian_params()
+        gaussian_params.y0 = y_initial
+        gaussian_params.a = y_final_or_high - y_initial
+        x, y_noisy = gaussian_params.generate_1d_data()
+        expected_features = gaussian_params.get_expected_features(
+            start_ratio, stop_ratio
+        )
 
     # Create title
     noise_desc = "clean" if noise_amplitude == 0 else "noisy"
-    title = f"Square, {polarity_desc} polarity | Get fall time ({noise_desc})"
+    signal_desc = signal_type.capitalize()
+    title = f"{signal_desc}, {polarity_desc} polarity | Get fall time ({noise_desc})"
 
     # Using the same denoise algorithm as in `extract_pulse_features`
     y_noisy = filtering.denoise_preserve_shape(y_noisy)[0]
@@ -684,7 +782,7 @@ def _test_fall_time_case(
                 x,
                 y_noisy,
                 f"{title}: {fall_time:.3f}",
-                "square",
+                signal_type,
                 start_range,
                 end_range,
                 plateau_range=plateau_range,
@@ -704,20 +802,71 @@ def _test_fall_time_case(
 def test_get_fall_time(noise_amplitude: float) -> None:
     """Unit test for the `pulse.get_fall_time` function.
 
-    This test verifies the correct calculation of the fall time for step signals with
+    This test verifies the correct calculation of the fall time for signals with
     both positive and negative polarity using theoretical calculations based on
     signal generation parameters.
 
     Test cases (including noisy and clean signals):
         - Square signal with positive polarity (20%-80% fall time).
         - Square signal with negative polarity (20%-80% fall time).
+        - Gaussian signal with positive polarity (function test only).
+        - Gaussian signal with negative polarity (function test only).
     """
     tftc = _test_fall_time_case
 
     # Square signals with plateau
     na = noise_amplitude
-    tftc("positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5), 0.8, 0.2, na)
-    tftc("negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5), 0.8, 0.2, na)
+    tftc(
+        "square",
+        "positive",
+        0.0,
+        5.0,
+        (0.0, 2.0),
+        (12.0, 14.0),
+        (5.5, 6.5),
+        0.8,
+        0.2,
+        na,
+    )
+    tftc(
+        "square",
+        "negative",
+        5.0,
+        2.0,
+        (0.0, 2.0),
+        (12.0, 14.0),
+        (5.5, 6.5),
+        0.8,
+        0.2,
+        na,
+    )
+    # Gaussian signals (test that functions work, even if results are less meaningful)
+    tftc(
+        "gaussian",
+        "positive",
+        0.0,
+        5.0,
+        (-9.0, -7.0),
+        (7.0, 9.0),
+        (-1.0, 1.0),
+        0.8,
+        0.2,
+        na,
+        atol=1.0,
+    )
+    tftc(
+        "gaussian",
+        "negative",
+        5.0,
+        2.0,
+        (-9.0, -7.0),
+        (7.0, 9.0),
+        (-1.0, 1.0),
+        0.8,
+        0.2,
+        na,
+        atol=1.0,
+    )
 
 
 def test_heuristically_find_rise_start_time() -> None:
@@ -985,6 +1134,63 @@ def _extract_and_validate_square_features(
     return features
 
 
+def _extract_and_validate_gaussian_features(
+    x: np.ndarray,
+    y: np.ndarray,
+    analysis: AnalysisParams,
+    expected: ExpectedFeatures,
+    signal_params: GaussParam,
+) -> pulse.PulseFeatures:
+    """Helper function to extract and validate Gaussian signal features.
+
+    Args:
+        x: X data array
+        y: Y data array
+        analysis: Analysis parameters for pulse feature extraction
+        expected: Expected feature values for validation
+        signal_params: Gaussian signal parameters for tolerance calculation
+
+    Returns:
+        Extracted pulse features
+    """
+    # Extract features while ignoring FWHM warnings for noisy signals
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        features = pulse.extract_pulse_features(
+            x,
+            y,
+            analysis.start_range,
+            analysis.end_range,
+            analysis.start_ratio,
+            analysis.stop_ratio,
+        )
+
+    # Visualize results if GUI is available
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            view_pulse_features(
+                x, y, "Gaussian signal feature extraction", "gaussian", features
+            )
+
+    # Validate that we got the correct type
+    assert isinstance(features, pulse.PulseFeatures), (
+        f"Expected PulseFeatures, got {type(features)}"
+    )
+
+    # Validate signal shape (Gaussian is recognized as SQUARE)
+    assert features.signal_shape == SignalShape.SQUARE, (
+        f"Expected signal_shape to be SQUARE, but got {features.signal_shape}"
+    )
+
+    # Get tolerance values
+    tolerances = signal_params.get_feature_tolerances()
+
+    # Validate numerical features
+    __check_features(features, expected, tolerances)
+
+    return features
+
+
 def test_step_feature_extraction() -> None:
     """Test feature extraction for step signals.
 
@@ -1038,6 +1244,38 @@ def test_square_feature_extraction() -> None:
 
     # Extract and validate features
     _extract_and_validate_square_features(x, y, analysis, expected, signal_params)
+
+
+def test_gaussian_feature_extraction() -> None:
+    """Test feature extraction for Gaussian signals.
+
+    Validates that pulse feature extraction correctly identifies and measures
+    all relevant parameters for a Gaussian signal, including polarity, amplitude,
+    rise/fall times, timing features, and baseline characteristics using the
+    improved Gaussian-aware algorithms.
+    """
+    # Define signal parameters with appropriate ranges for Gaussian signal
+    signal_params = create_test_gaussian_params()
+
+    # Define analysis parameters with ranges suitable for Gaussian signal
+    analysis = AnalysisParams(
+        start_range=(-9.0, -7.0),
+        end_range=(7.0, 9.0),
+        start_ratio=0.2,  # 20%
+        stop_ratio=0.8,  # 80%
+    )
+
+    # Calculate expected values
+    expected = signal_params.get_expected_features(
+        start_ratio=analysis.start_ratio,
+        stop_ratio=analysis.stop_ratio,
+    )
+
+    # Generate test signal
+    x, y = signal_params.generate_1d_data()
+
+    # Extract and validate features
+    _extract_and_validate_gaussian_features(x, y, analysis, expected, signal_params)
 
 
 @pytest.mark.validation
@@ -1134,4 +1372,5 @@ if __name__ == "__main__":
     test_get_rise_start_time()
     test_step_feature_extraction()
     test_square_feature_extraction()
+    test_gaussian_feature_extraction()
     test_signal_extract_pulse_features()
