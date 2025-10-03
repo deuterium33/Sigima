@@ -133,7 +133,9 @@ class TableResult:
             The string value of the kind attribute, which serves as a unique
              name identifier for this scalar table result type.
         """
-        return self.kind.value
+        if isinstance(self.kind, TableKind):
+            return self.kind.value
+        return self.kind
 
     def __str__(self) -> str:
         """Return a string representation of the TableResult."""
