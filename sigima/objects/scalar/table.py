@@ -609,6 +609,7 @@ class TableResultBuilder:
         roi_idx = []
         for i_roi in roi_indices:
             data = obj.get_data(i_roi)
+            row_data = []
             if self.column_funcs:
                 row_data = self.__compute_row_from_column_funcs(data)
             elif self.global_func:
