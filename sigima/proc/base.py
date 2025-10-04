@@ -280,9 +280,7 @@ def dst_n_to_1(src_list: list[Obj], name: str, suffix: str | None = None) -> Obj
             if dst.roi is None:
                 dst.roi = src_obj.roi.copy()
             else:
-                roi = dst.roi
-                roi.add_roi(src_obj.roi)
-                dst.roi = roi
+                dst.roi.add_roi(src_obj.roi)
     return dst
 
 

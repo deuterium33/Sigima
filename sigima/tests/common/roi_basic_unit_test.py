@@ -57,8 +57,12 @@ def test_image_roi_modification() -> None:
 
     # Modify the ROI directly from the image's ROI attribute
     # (for example, we try to remove a single ROI)
-    obj.roi.single_rois.pop(0)
+    old_single_roi = obj.roi.single_rois.pop(0)
     assert len(obj.roi.single_rois) == nb_single_rois - 1
+
+    # Add it back
+    obj.roi.add_roi(old_single_roi)
+    assert len(obj.roi.single_rois) == nb_single_rois
 
 
 if __name__ == "__main__":
