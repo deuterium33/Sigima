@@ -426,7 +426,8 @@ def create_image_roi_items(obj: ImageObj) -> list[AnnotatedShape]:
                 x0, y0, x1, y1 = single_roi.get_bounding_box(obj)
                 roi_item = make.annotated_rectangle(x0, y0, x1, y1, single_roi.title)
             elif isinstance(single_roi, CircularROI):
-                x0, y0, x1, y1 = single_roi.get_bounding_box(obj)
+                xc, yc, r = single_roi.get_physical_coords(obj)
+                x0, y0, x1, y1 = coordinates.circle_to_diameter(xc, yc, r)
                 roi_item = make.annotated_circle(x0, y0, x1, y1, single_roi.title)
             elif isinstance(single_roi, PolygonalROI):
                 coords = single_roi.get_physical_coords(obj)
