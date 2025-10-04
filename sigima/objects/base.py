@@ -203,6 +203,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         self.__roi_changed: bool | None = None
         self._maskdata_cache: np.ndarray | None = None
         self.__metadata_options_defaults: dict[str, Any] = {}
+        self.__roi_cache: TypeROI | None = None
 
     @staticmethod
     @abc.abstractmethod
@@ -330,6 +331,11 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         Returns:
             Regions of interest object
         """
+        # If we have a cached ROI, return it
+        if self.__roi_cache is not None:
+            return self.__roi_cache
+
+        # Otherwise, try to load from metadata
         roidata = self.metadata.get(ROI_KEY)
         if roidata is None:
             return None
@@ -337,7 +343,10 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
             # Old or unsupported format: remove it
             self.metadata.pop(ROI_KEY)
             return None
-        return self.get_roi_class().from_dict(roidata)
+
+        # Create ROI from metadata and cache it
+        self.__roi_cache = self.get_roi_class().from_dict(roidata)
+        return self.__roi_cache
 
     @roi.setter
     def roi(self, roi: TypeROI | None) -> None:
@@ -346,6 +355,10 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         Args:
             roi: regions of interest object
         """
+        # Cache the ROI object
+        self.__roi_cache = roi
+
+        # Update metadata
         if roi is None:
             if ROI_KEY in self.metadata:
                 self.metadata.pop(ROI_KEY)
@@ -386,6 +399,35 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         """Invalidate mask data cache: force to rebuild it"""
         self._maskdata_cache = None
 
+    def invalidate_roi_cache(self) -> None:
+        """Invalidate ROI cache: force to reload it from metadata"""
+        self.__roi_cache = None
+        # Also invalidate mask data cache since ROI data might have changed
+        self.invalidate_maskdata_cache()
+
+    def sync_roi_to_metadata(self) -> None:
+        """Synchronize the current ROI cache to metadata.
+
+        This should be called after modifying the ROI object directly
+        to ensure the changes are persisted in metadata.
+        """
+        if self.__roi_cache is not None:
+            self.metadata[ROI_KEY] = self.__roi_cache.to_dict()
+            self.__roi_changed = True
+            # Also invalidate mask data cache since ROI has changed
+            self.invalidate_maskdata_cache()
+
+    def mark_roi_as_changed(self) -> None:
+        """Mark the ROI as changed and invalidate dependent caches.
+
+        This should be called after modifying the ROI object directly
+        to ensure all dependent data (like mask cache) is properly invalidated.
+        """
+        self.__roi_changed = True
+        self.invalidate_maskdata_cache()
+        # Optionally sync to metadata immediately
+        self.sync_roi_to_metadata()
+
     def update_metadata_from(self, other_metadata: dict[str, Any]) -> None:
         """Update metadata from another object's metadata (merge result shapes and
         annotations, and update the rest of the metadata).
@@ -394,6 +436,8 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
             other_metadata: other object metadata
         """
         self.metadata.update(other_metadata)
+        # Invalidate ROI cache since metadata might have changed ROI data
+        self.invalidate_roi_cache()
 
     # Method to set the default values of metadata options:
     def set_metadata_options_defaults(
@@ -503,6 +547,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
     def reset_metadata_to_defaults(self) -> None:
         """Reset metadata to default values"""
         self.metadata = {}
+        self.invalidate_roi_cache()
         defaults = self.get_metadata_options_defaults()
         for name, value in defaults.items():
             self.set_metadata_option(name, value)

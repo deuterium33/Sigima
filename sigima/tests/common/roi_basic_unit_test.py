@@ -45,6 +45,23 @@ def test_image_roi_creation() -> None:
         __conversion_methods(roi, obj)
 
 
+def test_image_roi_modification() -> None:
+    """Test image ROI modification methods"""
+    obj = create_multigaussian_image()
+    roi = list(create_test_image_rois(obj))[0]
+
+    # Set image's ROI
+    obj.roi = roi
+    assert obj.roi == roi
+    nb_single_rois = len(roi.single_rois)
+
+    # Modify the ROI directly from the image's ROI attribute
+    # (for example, we try to remove a single ROI)
+    obj.roi.single_rois.pop(0)
+    assert len(obj.roi.single_rois) == nb_single_rois - 1
+
+
 if __name__ == "__main__":
     test_signal_roi_creation()
     test_image_roi_creation()
+    test_image_roi_modification()
