@@ -695,6 +695,7 @@ def test_get_rise_time(noise_amplitude: float) -> None:
     )
 
 
+# pylint: disable=too-many-positional-arguments
 def _test_fall_time_case(
     signal_type: Literal["square", "gaussian"],
     polarity_desc: Literal["positive", "negative"],

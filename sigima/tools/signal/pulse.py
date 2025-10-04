@@ -300,7 +300,7 @@ def detect_polarity(
                 y_start,
                 y_end,
             )
-        except (PolarityDetectionError, IndexError, ValueError):
+        except (PolarityDetectionError, IndexError, ValueError) as exc:
             # If square detection fails, try Gaussian-like approach
             # This handles Gaussian signals that are misclassified as SQUARE
             baseline_mean = (y_start + y_end) / 2
@@ -312,13 +312,12 @@ def detect_polarity(
 
             if peak_value > baseline_mean:
                 return 1
-            elif peak_value < baseline_mean:
+            if peak_value < baseline_mean:
                 return -1
-            else:
-                raise PolarityDetectionError(
-                    "Polarity could not be determined. Check signal data and "
-                    "baseline ranges."
-                )
+            raise PolarityDetectionError(
+                "Polarity could not be determined. Check signal data and "
+                "baseline ranges."
+            ) from exc
 
     raise ValueError(
         f"\nUnknown signal shape '{signal_shape}'. Use 'step' or 'square'."
@@ -586,7 +585,7 @@ def _find_gaussian_crossing_times(
             start_time = start_roots[0]
             stop_time = stop_roots[0]
             return (start_time, stop_time)
-        elif len(start_roots) != 2 or len(stop_roots) != 2:
+        if len(start_roots) != 2 or len(stop_roots) != 2:
             # Not a clean Gaussian-style signal
             return None
 

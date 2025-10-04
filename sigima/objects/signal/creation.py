@@ -470,7 +470,7 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
             raise ValueError("Parameters 'a', 'sigma', and 'mu' must be set")
         if self.a == 0 or self.sigma <= 0:
             raise ValueError("Parameter 'a' must be non-zero and 'sigma' positive")
-        if not (0.0 < ratio < 1.0):
+        if not 0.0 < ratio < 1.0:
             raise ValueError("Ratio must be between 0.0 and 1.0")
 
         if self.STYPE != SignalTypes.GAUSS:
@@ -482,10 +482,9 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
         delta_x = self.sigma * np.sqrt(-2 * np.log(ratio))
         if edge == "rise":
             return self.mu - delta_x
-        elif edge == "fall":
+        if edge == "fall":
             return self.mu + delta_x
-        else:
-            raise ValueError("Edge must be 'rise' or 'fall'")
+        raise ValueError("Edge must be 'rise' or 'fall'")
 
 
 class GaussParam(BaseGaussLorentzVoigtParam):
