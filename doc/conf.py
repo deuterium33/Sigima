@@ -70,7 +70,10 @@ def cleanup_changelog(app, exception):
 
 
 def exclude_api_from_gettext(app):
-    """Exclude detailed API documentation from gettext extraction (keep `index.rst`)."""
+    """Exclude detailed API docs from gettext extraction.
+
+    This excludes API docs but keeps api/index.rst for translation.
+    """
     if app.builder.name == "gettext":
         # Get all RST files in the api directory
         api_dir = osp.join(app.srcdir, "api")
@@ -125,7 +128,10 @@ extensions = [
     "sphinx_gallery.gen_gallery",
 ]
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = [
+    "sg_execution_times.rst",
+    "**/sg_execution_times.rst",
+]
 
 # -- Sphinx-Gallery configuration --------------------------------------------
 # Using guidata's generic Qt scraper for capturing all Qt widgets
@@ -133,7 +139,10 @@ exclude_patterns = []
 qt_scraper.set_qt_scraper_config(
     thumbnail_source="last", hide_toolbars=True, capture_inside_layout=True
 )
-sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(filename_pattern="")
+sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
+    filename_pattern="",
+    show_memory=False,
+)
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"
