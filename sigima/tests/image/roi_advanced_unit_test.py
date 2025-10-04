@@ -24,10 +24,10 @@ def test_image_roi_merge() -> None:
     obj1 = create_multigaussian_image()
     obj2 = create_multigaussian_image()
     obj2.roi = sigima.objects.create_image_roi(
-        "rectangle", [600, 800, 1000, 1200], inside=False
+        "rectangle", [600, 800, 1000, 1200], inverse=False
     )
     obj1.roi = sigima.objects.create_image_roi(
-        "rectangle", [500, 750, 1000, 1250], inside=False
+        "rectangle", [500, 750, 1000, 1250], inverse=False
     )
 
     # Compute the average of the two objects
@@ -45,13 +45,16 @@ def test_image_roi_combine() -> None:
     """Test `ImageROI.combine_with` method"""
     coords1, coords2 = [600, 800, 1000, 1200], [500, 750, 1000, 1250]
     roi1 = sigima.objects.create_image_roi(
-        "rectangle", coords1, indices=True, inside=False
+        "rectangle", coords1, indices=True, inverse=False
     )
     roi2 = sigima.objects.create_image_roi(
-        "rectangle", coords2, indices=True, inside=False
+        "rectangle", coords2, indices=True, inverse=False
     )
     exp_combined = sigima.objects.create_image_roi(
-        "rectangle", [coords1, coords2], indices=True, inside=False
+        "rectangle",
+        [coords1, coords2],
+        indices=True,
+        inverse=False,
     )
     # Check that combining two ROIs results in a new ROI with both coordinates:
     roi3 = roi1.combine_with(roi2)
@@ -90,9 +93,9 @@ def __roi_str(obj: sigima.objects.ImageObj) -> str:
 
 def __create_test_roi() -> sigima.objects.ImageROI:
     """Create test ROI"""
-    roi = sigima.objects.create_image_roi("rectangle", IROI1, inside=False)
-    roi.add_roi(sigima.objects.create_image_roi("circle", IROI2, inside=False))
-    roi.add_roi(sigima.objects.create_image_roi("polygon", IROI3, inside=False))
+    roi = sigima.objects.create_image_roi("rectangle", IROI1, inverse=False)
+    roi.add_roi(sigima.objects.create_image_roi("circle", IROI2, inverse=False))
+    roi.add_roi(sigima.objects.create_image_roi("polygon", IROI3, inverse=False))
     return roi
 
 
@@ -243,13 +246,11 @@ def test_roi_coordinates_validation() -> None:
 
     # Create ROIs
     rect_roi = sigima.objects.create_image_roi(
-        "rectangle", rect_coords, title="rectangular", inside=False
+        "rectangle", rect_coords, title="rectangular"
     )
-    circ_roi = sigima.objects.create_image_roi(
-        "circle", circ_coords, title="circular", inside=False
-    )
+    circ_roi = sigima.objects.create_image_roi("circle", circ_coords, title="circular")
     poly_roi = sigima.objects.create_image_roi(
-        "polygon", poly_coords, title="polygonal", inside=False
+        "polygon", poly_coords, title="polygonal"
     )
 
     # Check that coordinates are correct
@@ -267,106 +268,120 @@ def test_roi_coordinates_validation() -> None:
     if guiutils.is_gui_enabled():
         images = [src]
         titles = ["Original Image"]
-        for inside in (True, False):
+        for inverse in (False, True):
             for roi in (rect_roi, circ_roi, poly_roi):
                 src2 = src.copy()
-                roi.get_single_roi(0).inside = inside
+                roi.get_single_roi(0).inverse = inverse
                 src2.roi = roi
                 images.append(src2)
                 roi_title = roi.get_single_roi(0).title
-                inside_str = "inside" if inside else "outside"
-                titles.append(f"Image with {roi_title} ROI ({inside_str})")
+                mask_str = "mask inside" if inverse else "mask outside"
+                titles.append(f"Image with {roi_title} ROI ({mask_str})")
         guiutils.view_images_side_by_side_if_gui(
             images, titles, rows=2, title="Image ROIs"
         )
 
 
-def test_create_image_roi_inside_parameter() -> None:
-    """Test create_image_roi function with inside parameter functionality"""
-    # Test 1: Single ROI with inside=True
-    roi1 = sigima.objects.create_image_roi("rectangle", [10, 20, 30, 40], inside=True)
+def test_create_image_roi_inverse_parameter() -> None:
+    """Test create_image_roi function with inverse parameter functionality"""
+    # Test 1: Single ROI with inverse=True (mask inside)
+    roi1 = sigima.objects.create_image_roi("rectangle", [10, 20, 30, 40], inverse=True)
     assert len(roi1) == 1, "Should create one ROI"
-    assert roi1.single_rois[0].inside is True, "ROI should have inside=True"
+    assert roi1.single_rois[0].inverse is True, "ROI should have inverse=True"
 
-    # Test 2: Single ROI with inside=True (default)
+    # Test 2: Single ROI with inverse=False (default)
     roi2 = sigima.objects.create_image_roi("rectangle", [10, 20, 30, 40])
-    assert roi2.single_rois[0].inside is True, "ROI should have default inside=True"
+    assert roi2.single_rois[0].inverse is False, "Default should be False"
 
-    # Test 3: Multiple ROIs with global inside parameter
+    # Test 3: Multiple ROIs with global inverse parameter
     coords = [[10, 20, 30, 40], [50, 60, 70, 80]]
-    roi3 = sigima.objects.create_image_roi("rectangle", coords, inside=True)
+    roi3 = sigima.objects.create_image_roi("rectangle", coords, inverse=True)
     assert len(roi3) == 2, "Should create two ROIs"
-    assert all(single_roi.inside is True for single_roi in roi3.single_rois), (
-        "All ROIs should have inside=True"
+    assert all(single_roi.inverse is True for single_roi in roi3.single_rois), (
+        "All ROIs should have inverse=True (internal representation)"
     )
 
-    # Test 4: Multiple ROIs with individual inside parameters
-    inside_params = [True, False]
-    roi4 = sigima.objects.create_image_roi("rectangle", coords, inside=inside_params)
+    # Test 4: Multiple ROIs with individual inverse parameters
+    inverse_values = [True, False]  # mask inside, then mask outside
+    roi4 = sigima.objects.create_image_roi("rectangle", coords, inverse=inverse_values)
     assert len(roi4) == 2, "Should create two ROIs"
-    assert roi4.single_rois[0].inside is True, "First ROI should have inside=True"
-    assert roi4.single_rois[1].inside is False, "Second ROI should have inside=False"
+    assert roi4.single_rois[0].inverse is True, "First ROI should be True"
+    assert roi4.single_rois[1].inverse is False, "Second ROI should be False"
 
-    # Test 5: Circle ROIs with mixed inside parameters
+    # Test 5: Circle ROIs with mixed inverse parameters
     circle_coords = [[50, 50, 25], [150, 150, 30]]
     roi5 = sigima.objects.create_image_roi(
-        "circle", circle_coords, inside=[False, True]
+        "circle",
+        circle_coords,
+        inverse=[False, True],  # mask outside, then mask inside
     )
     assert len(roi5) == 2, "Should create two circle ROIs"
-    assert roi5.single_rois[0].inside is False, "First circle should have inside=False"
-    assert roi5.single_rois[1].inside is True, "Second circle should have inside=True"
+    assert roi5.single_rois[0].inverse is False, "First circle should be False"
+    assert roi5.single_rois[1].inverse is True, "Second circle should be True"
 
-    # Test 6: Polygon ROIs with varying vertex counts and mixed inside parameters
+    # Test 6: Polygon ROIs with varying vertex counts and mixed inverse parameters
     polygon_coords = [
         [0, 0, 10, 0, 5, 8],  # Triangle (3 vertices)
         [20, 20, 30, 20, 30, 30, 20, 30],  # Rectangle (4 vertices)
     ]
     roi6 = sigima.objects.create_image_roi(
-        "polygon", polygon_coords, inside=[True, False]
+        "polygon",
+        polygon_coords,
+        inverse=[True, False],  # mask inside, then mask outside
     )
     assert len(roi6) == 2, "Should create two polygon ROIs"
-    assert roi6.single_rois[0].inside is True, "Triangle should have inside=True"
-    assert roi6.single_rois[1].inside is False, "Rectangle should have inside=False"
+    assert roi6.single_rois[0].inverse is True, "Triangle should be True"
+    assert roi6.single_rois[1].inverse is False, "Rectangle should be False"
 
 
-def test_create_image_roi_inside_parameter_errors() -> None:
-    """Test error handling for inside parameter in create_image_roi"""
-    # Test error when inside parameter count doesn't match ROI count
+def test_create_image_roi_inverse_parameter_errors() -> None:
+    """Test error handling for inverse parameter in create_image_roi"""
+    # Test error when inverse parameter count doesn't match ROI count
     coords = [[10, 20, 30, 40], [50, 60, 70, 80], [90, 100, 110, 120]]
-    inside_params = [True, False]  # Only 2 values for 3 ROIs
+    # Only 2 values for 3 ROIs
+    inverse_params = [
+        True,  # mask inside
+        False,  # mask outside
+    ]
 
     with pytest.raises(
         ValueError,
-        match=r"Number of inside values \(2\) must match number of ROIs \(3\)",
+        match=r"Number of inverse values \(2\) must match number of ROIs \(3\)",
     ):
-        sigima.objects.create_image_roi("rectangle", coords, inside=inside_params)
+        sigima.objects.create_image_roi("rectangle", coords, inverse=inverse_params)
 
-    # Test with too many inside values
-    inside_params_too_many = [True, False, True, False]  # 4 values for 3 ROIs
+    # Test with too many inverse values
+    # 4 values for 3 ROIs
+    inverse_params_too_many = [
+        True,  # mask inside
+        False,  # mask outside
+        True,  # mask inside
+        False,  # mask outside
+    ]
     with pytest.raises(
         ValueError,
-        match=r"Number of inside values \(4\) must match number of ROIs \(3\)",
+        match=r"Number of inverse values \(4\) must match number of ROIs \(3\)",
     ):
         sigima.objects.create_image_roi(
-            "rectangle", coords, inside=inside_params_too_many
+            "rectangle", coords, inverse=inverse_params_too_many
         )
 
 
-def test_roi_inside_mask_behavior() -> None:
-    """Test that inside parameter affects mask generation correctly"""
+def test_roi_inverse_affects_mask_generation() -> None:
+    """Test that inverse parameter affects mask generation correctly"""
     # Create a test image
     img = __create_test_image()
 
-    # Test rectangle ROI with inside=True vs inside=False
+    # Test rectangle ROI with inverse=True vs inverse=False
     rect_coords = [75, 75, 50, 50]  # Rectangle that should be inside image bounds
 
-    # ROI with inside=True (mask is True inside the rectangle)
-    roi_inside = sigima.objects.create_image_roi("rectangle", rect_coords, inside=True)
+    # ROI with inverse=True (mask is True inside the rectangle)
+    roi_inside = sigima.objects.create_image_roi("rectangle", rect_coords, inverse=True)
     mask_inside = roi_inside.to_mask(img)
 
-    # ROI with inside=False (mask is True outside the rectangle)
+    # ROI with inverse=False (mask is True outside the rectangle)
     roi_outside = sigima.objects.create_image_roi(
-        "rectangle", rect_coords, inside=False
+        "rectangle", rect_coords, inverse=False
     )
     mask_outside = roi_outside.to_mask(img)
 
@@ -386,13 +401,17 @@ def test_roi_inside_mask_behavior() -> None:
     )
 
 
-def test_roi_inside_serialization() -> None:
-    """Test that inside parameter is preserved during serialization/deserialization"""
-    # Create ROIs with mixed inside parameters
+def test_roi_inverse_serialization() -> None:
+    """Test that inverse parameter is preserved during
+    serialization/deserialization"""
+    # Create ROIs with mixed inverse parameters
     coords = [[10, 20, 30, 40], [50, 60, 70, 80]]
-    inside_params = [True, False]
+    inverse_params = [
+        True,  # mask inside
+        False,  # mask outside
+    ]
     original_roi = sigima.objects.create_image_roi(
-        "rectangle", coords, inside=inside_params
+        "rectangle", coords, inverse=inverse_params
     )
 
     # Serialize to dictionary
@@ -401,38 +420,155 @@ def test_roi_inside_serialization() -> None:
     # Deserialize from dictionary
     restored_roi = sigima.objects.ImageROI.from_dict(roi_dict)
 
-    # Check that inside parameters are preserved
+    # Check that inverse parameters are preserved
     assert len(restored_roi) == len(original_roi), "ROI count should be preserved"
     for i in range(len(original_roi)):
-        original_inside = original_roi.single_rois[i].inside
-        restored_inside = restored_roi.single_rois[i].inside
-        assert original_inside == restored_inside, (
-            f"Inside parameter for ROI {i} should be preserved "
-            f"(expected {original_inside}, got {restored_inside})"
+        original_inverse = original_roi.single_rois[i].inverse
+        restored_inverse = restored_roi.single_rois[i].inverse
+        assert original_inverse == restored_inverse, (
+            f"inverse parameter for ROI {i} should be preserved "
+            f"(expected {original_inverse}, got {restored_inverse})"
         )
 
 
-def test_roi_inside_parameter_conversion() -> None:
-    """Test that inside parameter works correctly with parameter conversion"""
+def test_roi_inverse_parameter_conversion() -> None:
+    """Test that inverse parameter works correctly with parameter conversion"""
     img = __create_test_image()
 
-    # Create ROI with inside=True
-    roi = sigima.objects.create_image_roi("rectangle", [50, 50, 40, 40], inside=True)
+    # Create ROI with inverse=True (mask inside)
+    roi = sigima.objects.create_image_roi("rectangle", [50, 50, 40, 40], inverse=True)
 
     # Convert to parameters
     params = roi.to_params(img)
     assert len(params) == 1, "Should create one parameter"
 
-    # Check that inside parameter is preserved in the parameter
+    # Check that inverse parameter is preserved in the parameter
     param = params[0]
-    assert hasattr(param, "inside"), "Parameter should have inside attribute"
-    assert param.inside is True, "Parameter should preserve inside=True"
+    assert hasattr(param, "inverse"), "Parameter should have inverse attribute"
+    assert param.inverse is True, "Parameter should preserve inverse=True"
 
-    # Create ROI from parameter and check inside is preserved
+    # Create ROI from parameter and check inverse is preserved
     new_roi = sigima.objects.ImageROI.from_params(img, params)
     assert len(new_roi) == 1, "Should recreate one ROI"
-    assert new_roi.single_rois[0].inside is True, (
-        "Recreated ROI should have inside=True"
+    assert new_roi.single_rois[0].inverse is True, (
+        "Recreated ROI should have inverse=True (internal representation)"
+    )
+
+
+def test_multiple_rois_inverse_true() -> None:
+    """Test multiple ROIs with inverse=True on distinct areas
+
+    This test checks that when multiple ROIs are defined with inverse=True
+    on distinct areas of an image, the resulting mask should have True values
+    in BOTH ROI areas, not just their intersection.
+    """
+    # Create a test image
+    img = __create_test_image()
+
+    # Define two rectangular ROIs on distinct areas of the image
+    # ROI 1: top-left area
+    roi1_coords = [30, 30, 40, 40]  # x, y, width, height
+    # ROI 2: bottom-right area (distinct from ROI 1)
+    roi2_coords = [130, 130, 40, 40]  # x, y, width, height
+
+    # Create ROI with inverse=True for both rectangles
+    roi = sigima.objects.create_image_roi(
+        "rectangle", [roi1_coords, roi2_coords], inverse=True
+    )
+
+    # Generate the mask
+    mask = roi.to_mask(img)
+
+    # Expected behavior: mask should be True in BOTH rectangular areas
+    # Create expected mask manually
+    expected_mask = np.zeros_like(img.data, dtype=bool)
+
+    # ROI 1 area
+    x1, y1, w1, h1 = roi1_coords
+    expected_mask[y1 : y1 + h1, x1 : x1 + w1] = True
+
+    # ROI 2 area
+    x2, y2, w2, h2 = roi2_coords
+    expected_mask[y2 : y2 + h2, x2 : x2 + w2] = True
+
+    # Check that the mask has True values in both ROI areas
+    assert np.any(mask[y1 : y1 + h1, x1 : x1 + w1]), (
+        "Mask should have True values in first ROI area"
+    )
+    assert np.any(mask[y2 : y2 + h2, x2 : x2 + w2]), (
+        "Mask should have True values in second ROI area"
+    )
+
+    # Check that the mask matches our expected mask
+    assert np.array_equal(mask, expected_mask), (
+        "Mask should have True values in both ROI areas and False elsewhere"
+    )
+
+    # Verify that the two ROI areas don't overlap (test integrity)
+    roi1_mask = np.zeros_like(img.data, dtype=bool)
+    roi1_mask[y1 : y1 + h1, x1 : x1 + w1] = True
+    roi2_mask = np.zeros_like(img.data, dtype=bool)
+    roi2_mask[y2 : y2 + h2, x2 : x2 + w2] = True
+    assert not np.any(roi1_mask & roi2_mask), (
+        "Test integrity: ROI areas should not overlap"
+    )
+
+
+def test_multiple_rois_mixed_inverse() -> None:
+    """Test multiple ROIs with mixed inverse values
+
+    This test checks that when ROIs have mixed inverse values,
+    the combination logic works correctly.
+    """
+    # Create a test image
+    img = __create_test_image()
+
+    # Define three rectangular ROIs
+    # ROI 1: top-left area (inverse=True - include this area)
+    roi1_coords = [30, 30, 40, 40]  # x, y, width, height
+    # ROI 2: top-right area (inverse=False - exclude this area)
+    roi2_coords = [130, 30, 40, 40]  # x, y, width, height
+    # ROI 3: bottom-left area (inverse=True - include this area)
+    roi3_coords = [30, 130, 40, 40]  # x, y, width, height
+
+    # Create ROI with mixed inverse values
+    roi = sigima.objects.create_image_roi(
+        "rectangle",
+        [roi1_coords, roi2_coords, roi3_coords],
+        inverse=[True, False, True],  # include, exclude, include
+    )
+
+    # Generate the mask
+    mask = roi.to_mask(img)
+
+    # Expected behavior:
+    # - ROI 1 area should have True values (inverse=True)
+    # - ROI 2 area should have False values (inverse=False)
+    # - ROI 3 area should have True values (inverse=True)
+    # - Areas outside all ROIs should have True values (due to ROI 2 being
+    #   inverse=False)
+
+    x1, y1, w1, h1 = roi1_coords
+    x2, y2, w2, h2 = roi2_coords
+    x3, y3, w3, h3 = roi3_coords
+
+    # Check that ROI 1 and ROI 3 areas have True values (inverse=True)
+    assert np.all(mask[y1 : y1 + h1, x1 : x1 + w1]), (
+        "ROI 1 area should have True values (inverse=True)"
+    )
+    assert np.all(mask[y3 : y3 + h3, x3 : x3 + w3]), (
+        "ROI 3 area should have True values (inverse=True)"
+    )
+
+    # Check that ROI 2 area has False values (inverse=False)
+    assert not np.any(mask[y2 : y2 + h2, x2 : x2 + w2]), (
+        "ROI 2 area should have False values (inverse=False)"
+    )
+
+    # Check that areas outside all ROIs have True values (due to ROI 2)
+    # For example, the bottom-right corner should be True
+    assert np.all(mask[170:190, 170:190]), (
+        "Areas outside all ROIs should have True values"
     )
 
 
@@ -447,6 +583,6 @@ if __name__ == "__main__":
     # test_image_extract_roi()
     # test_create_image_roi_inside_parameter()
     # test_create_image_roi_inside_parameter_errors()
-    # test_roi_inside_mask_behavior()
+    # test_roi_inverse()
     # test_roi_inside_serialization()
     # test_roi_inside_parameter_conversion()
