@@ -5,23 +5,6 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 1.0.0 ##
 
-* **New client subpackage**: Migrated DataLab client functionality to `sigima.client`
-  * Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab
-  * Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies
-  * Included comprehensive unit tests and API documentation
-  * Maintains headless design principle (GUI components excluded)
-  * Enables remote control of DataLab application from Python scripts and Jupyter notebooks
-  * Client functionality is now directly accessible: `from sigima import SimpleRemoteProxy`
-
-* New image operation:
-  * Convolution.
-
-* New image format support:
-  * **Matris text image files**: Added support for reading Matris format text files (`.txt` extension).
-    * Supports both real and complex-valued image data with optional error images.
-    * Automatically handles NaN values in the data.
-    * Reads metadata including units (X, Y, Z) and labels from file headers.
-
 ✨ Core architecture update: scalar result types
 
 * Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
@@ -32,6 +15,32 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 * This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API.
 
 💥 New features and enhancements:
+
+* **New client subpackage**: Migrated DataLab client functionality to `sigima.client`
+  * Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab
+  * Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies
+  * Included comprehensive unit tests and API documentation
+  * Maintains headless design principle (GUI components excluded)
+  * Enables remote control of DataLab application from Python scripts and Jupyter notebooks
+  * Client functionality is now directly accessible: `from sigima import SimpleRemoteProxy`
+
+* **New image ROI feature**: Added inverse ROI functionality for image ROIs
+  * Added `inside` parameter to `BaseSingleImageROI` base class, inherited by all image ROI types (`PolygonalROI`, `RectangularROI`, `CircularROI`)
+  * When `inside=True`, ROI represents the region inside the shape (inverted behavior)
+  * When `inside=False` (default), ROI represents the region outside the shape (original behavior)
+  * Fully integrated with serialization (`to_dict`/`from_dict`) and parameter conversion (`to_param`/`from_param`)
+  * Signal ROIs (`SegmentROI`) are unaffected as the concept doesn't apply to 1D intervals
+  * Optimal architecture with zero code duplication - all `inside` functionality implemented once in the base class
+  * Individual ROI classes no longer need custom constructors, inheriting directly from base class
+
+* New image operation:
+  * Convolution.
+
+* New image format support:
+  * **Matris text image files**: Added support for reading Matris format text files (`.txt` extension).
+    * Supports both real and complex-valued image data with optional error images.
+    * Automatically handles NaN values in the data.
+    * Reads metadata including units (X, Y, Z) and labels from file headers.
 
 * New image analysis features:
   * Horizontal and vertical projections

@@ -149,6 +149,16 @@ class ROI2DParam(base.BaseROIParam["ImageObj", "BaseSingleImageROI"]):
         "display", hide=_pfp
     )
 
+    # Parameter for ROI inside/outside behavior:
+    inside = gds.BoolItem(
+        _("Inside"),
+        default=False,
+        help=_(
+            "If True, the ROI mask will be True inside the ROI shape. "
+            "If False, the ROI mask will be True outside the ROI shape."
+        ),
+    )
+
     def to_single_roi(
         self, obj: ImageObj
     ) -> PolygonalROI | RectangularROI | CircularROI:
@@ -243,7 +253,10 @@ class BaseSingleImageROI(base.BaseSingleROI["ImageObj", ROI2DParam], abc.ABC):
 
     Args:
         coords: ROI edge coordinates (floats)
+        indices: if True, coordinates are indices, if False, they are physical values
         title: ROI title
+        inside: if True, the ROI mask will be True inside the ROI shape.
+         If False, the ROI mask will be True outside the ROI shape (default)
 
     .. note::
 
@@ -255,6 +268,39 @@ class BaseSingleImageROI(base.BaseSingleROI["ImageObj", ROI2DParam], abc.ABC):
         physical coordinates in the ROI object: this will help reusing the ROI with
         different images (e.g. with different pixel sizes).
     """
+
+    def __init__(
+        self,
+        coords: np.ndarray | list[int] | list[float],
+        indices: bool,
+        title: str = "ROI",
+        inside: bool = False,
+    ) -> None:
+        super().__init__(coords, indices, title)
+        self.inside = inside
+
+    def to_dict(self) -> dict:
+        """Convert ROI to dictionary
+
+        Returns:
+            Dictionary
+        """
+        result = super().to_dict()
+        result["inside"] = self.inside
+        return result
+
+    @classmethod
+    def from_dict(cls, dictdata: dict):
+        """Convert dictionary to ROI
+
+        Args:
+            dictdata: dictionary
+
+        Returns:
+            ROI
+        """
+        inside = dictdata.get("inside", False)
+        return cls(dictdata["coords"], dictdata["indices"], dictdata["title"], inside)
 
     @abc.abstractmethod
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
@@ -271,6 +317,8 @@ class PolygonalROI(BaseSingleImageROI):
     Args:
         coords: ROI edge coordinates
         title: title
+        inside: if True, the ROI mask will be True inside the ROI shape.
+         If False, the ROI mask will be True outside the ROI shape (default)
 
     Raises:
         ValueError: if number of coordinates is odd
@@ -296,7 +344,7 @@ class PolygonalROI(BaseSingleImageROI):
             obj: image object
             param: parameters
         """
-        return cls(param.points, indices=False, title=param.title)
+        return cls(param.points, indices=False, title=param.title, inside=param.inside)
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -319,10 +367,15 @@ class PolygonalROI(BaseSingleImageROI):
         """
         roi_mask = np.ones_like(obj.data, dtype=bool)
         indices = self.get_indices_coords(obj)
-        rows = np.array(indices[1::2], dtype=float)
-        cols = np.array(indices[::2], dtype=float)
+        rows = np.array(indices[1::2], dtype=float)  # y coordinates
+        cols = np.array(indices[::2], dtype=float)  # x coordinates
         rr, cc = draw.polygon(rows, cols, shape=obj.data.shape)
-        roi_mask[rr, cc] = False
+
+        if self.inside:
+            roi_mask[:] = False
+            roi_mask[rr, cc] = True
+        else:
+            roi_mask[rr, cc] = False
         return roi_mask
 
     def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
@@ -337,6 +390,7 @@ class PolygonalROI(BaseSingleImageROI):
         param.title = self.title or gtitle
         param.geometry = "polygon"
         param.points = np.array(self.get_physical_coords(obj))
+        param.inside = self.inside
         return param
 
 
@@ -346,6 +400,8 @@ class RectangularROI(BaseSingleImageROI):
     Args:
         coords: ROI edge coordinates (x0, y0, dx, dy)
         title: title
+        inside: if True, the ROI mask will be True inside the ROI shape.
+         If False, the ROI mask will be True outside the ROI shape (default)
 
     .. note:: The image ROI coords are expressed in physical coordinates (floats)
     """
@@ -371,7 +427,12 @@ class RectangularROI(BaseSingleImageROI):
             param: parameters
         """
         x0, y0, x1, y1 = param.get_bounding_box_physical()
-        return cls([x0, y0, x1 - x0, y1 - y0], indices=False, title=param.title)
+        return cls(
+            [x0, y0, x1 - x0, y1 - y0],
+            indices=False,
+            title=param.title,
+            inside=param.inside,
+        )
 
     def get_bounding_box(self, obj: ImageObj) -> tuple[float, float, float, float]:
         """Get bounding box (physical coordinates)
@@ -451,7 +512,12 @@ class RectangularROI(BaseSingleImageROI):
         roi_mask = np.ones_like(obj.data, dtype=bool)
         ix0, iy0, idx, idy = self.get_indices_coords(obj)
         rr, cc = draw.rectangle((iy0, ix0), extent=(idy, idx), shape=obj.data.shape)
-        roi_mask[rr, cc] = False
+
+        if self.inside:
+            roi_mask[:] = False
+            roi_mask[rr, cc] = True
+        else:
+            roi_mask[rr, cc] = False
         return roi_mask
 
     def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
@@ -466,6 +532,7 @@ class RectangularROI(BaseSingleImageROI):
         param.title = self.title or gtitle
         param.geometry = "rectangle"
         param.x0, param.y0, param.dx, param.dy = self.get_physical_coords(obj)
+        param.inside = self.inside
         return param
 
     @staticmethod
@@ -492,6 +559,8 @@ class CircularROI(BaseSingleImageROI):
     Args:
         coords: ROI edge coordinates (xc, yc, r)
         title: title
+        inside: if True, the ROI mask will be True inside the ROI shape.
+         If False, the ROI mask will be True outside the ROI shape (default)
 
     .. note:: The image ROI coords are expressed in physical coordinates (floats)
     """
@@ -508,7 +577,12 @@ class CircularROI(BaseSingleImageROI):
         x0, y0, x1, y1 = param.get_bounding_box_physical()
         ixc, iyc = (x0 + x1) * 0.5, (y0 + y1) * 0.5
         ir = (x1 - x0) * 0.5
-        return cls([ixc, iyc, ir], indices=False, title=param.title)
+        return cls(
+            [ixc, iyc, ir],
+            indices=False,
+            title=param.title,
+            inside=param.inside,
+        )
 
     def check_coords(self) -> None:
         """Check if coords are valid
@@ -610,7 +684,12 @@ class CircularROI(BaseSingleImageROI):
         ixc, iyc, ir = self.get_indices_coords(obj)
         yxratio = obj.dy / obj.dx
         rr, cc = draw.ellipse(iyc, ixc, ir / yxratio, ir, shape=obj.data.shape)
-        roi_mask[rr, cc] = False
+
+        if self.inside:
+            roi_mask[:] = False
+            roi_mask[rr, cc] = True
+        else:
+            roi_mask[rr, cc] = False
         return roi_mask
 
     def to_param(self, obj: ImageObj, index: int) -> ROI2DParam:
@@ -625,6 +704,7 @@ class CircularROI(BaseSingleImageROI):
         param.title = self.title or gtitle
         param.geometry = "circle"
         param.xc, param.yc, param.r = self.get_physical_coords(obj)
+        param.inside = self.inside
         return param
 
     @staticmethod
@@ -684,6 +764,7 @@ def create_image_roi(
     coords: np.ndarray | list[float] | list[list[float]],
     indices: bool = False,
     title: str = "",
+    inside: bool | list[bool] = True,
 ) -> ImageROI:
     """Create Image Regions of Interest (ROI) object.
     More ROIs can be added to the object after creation, using the `add_roi` method.
@@ -698,32 +779,78 @@ def create_image_roi(
         indices: if True, coordinates are indices, if False, they are physical values
          (default to False)
         title: title
+        inside: if True, the ROI mask will be True inside the ROI shape.
+         If False, the ROI mask will be True outside the ROI shape (default to True).
+         Can be a single boolean (applied to all ROIs) or a list of booleans
+         (one per ROI for individual control).
 
     Returns:
         Regions of Interest (ROI) object
 
     Raises:
-        ValueError: if ROI type is unknown or if the number of coordinates is invalid
+        ValueError: if ROI type is unknown, if the number of coordinates is invalid,
+         or if the number of inside values doesn't match the number of ROIs
+
+    Examples:
+        Create a single rectangle ROI (defaults to inside=True):
+        >>> roi = create_image_roi("rectangle", [10, 20, 30, 40])
+
+        Create a single rectangle ROI with inside=True explicitly:
+        >>> roi = create_image_roi("rectangle", [10, 20, 30, 40], inside=True)
+
+        Create multiple rectangles with global inside parameter:
+        >>> coords = [[10, 20, 30, 40], [50, 60, 70, 80]]
+        >>> roi = create_image_roi("rectangle", coords, inside=False)
+
+        Create multiple rectangles with individual inside parameters:
+        >>> coords = [[10, 20, 30, 40], [50, 60, 70, 80]]
+        >>> inside_params = [True, False]  # First inside, second outside
+        >>> roi = create_image_roi("rectangle", coords, inside=inside_params)
+
+        Create polygons with varying vertex counts:
+        >>> polygon_coords = [[0, 0, 10, 0, 5, 8], [20, 20, 30, 20, 30, 30, 20, 30]]
+        >>> inside_params = [False, True]
+        >>> roi = create_image_roi("polygon", polygon_coords, inside=inside_params)
     """
-    coords = np.array(coords, float)
-    if coords.ndim == 1:
-        coords = coords.reshape(1, -1)
+    # Handle coordinates - try to create numpy array, fall back to list for irregular
+    try:
+        coords = np.array(coords, float)
+        if coords.ndim == 1:
+            coords = coords.reshape(1, -1)
+        coord_list = coords
+        coord_count = len(coords)
+    except ValueError:
+        # Handle irregular case: polygons with varying vertex counts
+        coord_list = [np.array(coord, float) for coord in coords]
+        coord_count = len(coord_list)
+
+    # Handle inside parameter - can be single value or list
+    if isinstance(inside, bool):
+        inside_values = [inside] * coord_count
+    else:
+        inside_values = list(inside)
+        if len(inside_values) != coord_count:
+            raise ValueError(
+                f"Number of inside values ({len(inside_values)}) must match "
+                f"number of ROIs ({coord_count})"
+            )
+
     roi = ImageROI()
     if geometry == "rectangle":
-        if coords.shape[1] != 4:
+        if isinstance(coord_list, np.ndarray) and coord_list.shape[1] != 4:
             raise ValueError("Rectangle ROI requires 4 coordinates")
-        for row in coords:
-            roi.add_roi(RectangularROI(row, indices, title))
+        for coord_row, inside_val in zip(coord_list, inside_values):
+            roi.add_roi(RectangularROI(coord_row, indices, title, inside_val))
     elif geometry == "circle":
-        if coords.shape[1] != 3:
+        if isinstance(coord_list, np.ndarray) and coord_list.shape[1] != 3:
             raise ValueError("Circle ROI requires 3 coordinates")
-        for row in coords:
-            roi.add_roi(CircularROI(row, indices, title))
+        for coord_row, inside_val in zip(coord_list, inside_values):
+            roi.add_roi(CircularROI(coord_row, indices, title, inside_val))
     elif geometry == "polygon":
-        if coords.shape[1] % 2 != 0:
+        if isinstance(coord_list, np.ndarray) and coord_list.shape[1] % 2 != 0:
             raise ValueError("Polygon ROI requires pairs of X, Y coordinates")
-        for row in coords:
-            roi.add_roi(PolygonalROI(row, indices, title))
+        for coord_row, inside_val in zip(coord_list, inside_values):
+            roi.add_roi(PolygonalROI(coord_row, indices, title, inside_val))
     else:
         raise ValueError(f"Unknown ROI type: {geometry}")
     return roi

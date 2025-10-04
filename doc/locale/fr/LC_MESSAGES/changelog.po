@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 14:48+0200\n"
+"POT-Creation-Date: 2025-10-04 10:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -27,48 +27,6 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"
-
-msgid "**New client subpackage**: Migrated DataLab client functionality to `sigima.client`"
-msgstr "**Nouveau sous-paquet client** : Fonctionnalité client DataLab migrée vers `sigima.client`"
-
-msgid "Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab"
-msgstr "Ajout de `sigima.client.remote.SimpleRemoteProxy` pour la communication XML-RPC avec DataLab"
-
-msgid "Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies"
-msgstr "Ajout de `sigima.client.baseproxy.SimpleBaseProxy` en tant que classe de base abstraite pour les proxys DataLab"
-
-msgid "Included comprehensive unit tests and API documentation"
-msgstr "Ajout de tests unitaires complets et de documentation API"
-
-msgid "Maintains headless design principle (GUI components excluded)"
-msgstr "Maintient le principe de conception sans interface graphique (composants GUI exclus)"
-
-msgid "Enables remote control of DataLab application from Python scripts and Jupyter notebooks"
-msgstr "Permet le contrôle à distance de l'application DataLab depuis des scripts Python et des notebooks Jupyter"
-
-msgid "Client functionality is now directly accessible: `from sigima import SimpleRemoteProxy`"
-msgstr "La fonctionnalité client est désormais directement accessible : `from sigima import SimpleRemoteProxy`"
-
-msgid "New image operation:"
-msgstr "Nouvelle opération d'image :"
-
-msgid "Convolution."
-msgstr "Convolution."
-
-msgid "New image format support:"
-msgstr "Nouveau support de format d'image :"
-
-msgid "**Matris text image files**: Added support for reading Matris format text files (`.txt` extension)."
-msgstr "**Fichiers image texte Matris** : Ajout du support pour la lecture des fichiers texte au format Matris (extension `.txt`)."
-
-msgid "Supports both real and complex-valued image data with optional error images."
-msgstr "Prend en charge à la fois les données d'image réelles et à valeurs complexes avec des images d'erreur facultatives."
-
-msgid "Automatically handles NaN values in the data."
-msgstr "Gère automatiquement les valeurs NaN dans les données."
-
-msgid "Reads metadata including units (X, Y, Z) and labels from file headers."
-msgstr "Lit les métadonnées, y compris les unités (X, Y, Z) et les étiquettes, à partir des en-têtes de fichiers."
 
 msgid "✨ Core architecture update: scalar result types"
 msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
@@ -93,6 +51,72 @@ msgstr "Cette refonte améliore considérablement la modularité, la testabilit�
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**New client subpackage**: Migrated DataLab client functionality to `sigima.client`"
+msgstr "**Nouveau sous-paquet client** : Fonctionnalité client DataLab migrée vers `sigima.client`"
+
+msgid "Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab"
+msgstr "Ajout de `sigima.client.remote.SimpleRemoteProxy` pour la communication XML-RPC avec DataLab"
+
+msgid "Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies"
+msgstr "Ajout de `sigima.client.baseproxy.SimpleBaseProxy` en tant que classe de base abstraite pour les proxys DataLab"
+
+msgid "Included comprehensive unit tests and API documentation"
+msgstr "Ajout de tests unitaires complets et de documentation API"
+
+msgid "Maintains headless design principle (GUI components excluded)"
+msgstr "Maintient le principe de conception sans interface graphique (composants GUI exclus)"
+
+msgid "Enables remote control of DataLab application from Python scripts and Jupyter notebooks"
+msgstr "Permet le contrôle à distance de l'application DataLab depuis des scripts Python et des notebooks Jupyter"
+
+msgid "Client functionality is now directly accessible: `from sigima import SimpleRemoteProxy`"
+msgstr "La fonctionnalité client est désormais directement accessible : `from sigima import SimpleRemoteProxy`"
+
+msgid "**New image ROI feature**: Added inverse ROI functionality for image ROIs"
+msgstr "**Nouvelle fonctionnalité de ROI d'image** : Ajout de la fonctionnalité ROI inverse pour les ROIs d'image"
+
+msgid "Added `inside` parameter to `BaseSingleImageROI` base class, inherited by all image ROI types (`PolygonalROI`, `RectangularROI`, `CircularROI`)"
+msgstr "Ajout du paramètre `inside` à la classe de base `BaseSingleImageROI`, héritée par tous les types de ROI d'image (`PolygonalROI`, `RectangularROI`, `CircularROI`)"
+
+msgid "When `inside=True`, ROI represents the region inside the shape (inverted behavior)"
+msgstr "Lorsque `inside=True`, le ROI représente la région à l'intérieur de la forme (comportement inversé)"
+
+msgid "When `inside=False` (default), ROI represents the region outside the shape (original behavior)"
+msgstr "Lorsque `inside=False` (par défaut), le ROI représente la région à l'extérieur de la forme (comportement original)"
+
+msgid "Fully integrated with serialization (`to_dict`/`from_dict`) and parameter conversion (`to_param`/`from_param`)"
+msgstr "Entièrement intégré à la sérialisation (`to_dict`/`from_dict`) et à la conversion de paramètres (`to_param`/`from_param`)"
+
+msgid "Signal ROIs (`SegmentROI`) are unaffected as the concept doesn't apply to 1D intervals"
+msgstr "Les ROIs de signal (`SegmentROI`) ne sont pas affectées car le concept ne s'applique pas aux intervalles 1D."
+
+msgid "Optimal architecture with zero code duplication - all `inside` functionality implemented once in the base class"
+msgstr "Architecture optimale sans duplication de code - toute la fonctionnalité `inside` est implémentée une seule fois dans la classe de base."
+
+msgid "Individual ROI classes no longer need custom constructors, inheriting directly from base class"
+msgstr "Les classes ROI individuelles n'ont plus besoin de constructeurs personnalisés, héritant directement de la classe de base."
+
+msgid "New image operation:"
+msgstr "Nouvelle opération d'image :"
+
+msgid "Convolution."
+msgstr "Convolution."
+
+msgid "New image format support:"
+msgstr "Nouveau support de format d'image :"
+
+msgid "**Matris text image files**: Added support for reading Matris format text files (`.txt` extension)."
+msgstr "**Fichiers image texte Matris** : Ajout du support pour la lecture des fichiers texte au format Matris (extension `.txt`)."
+
+msgid "Supports both real and complex-valued image data with optional error images."
+msgstr "Prend en charge à la fois les données d'image réelles et à valeurs complexes avec des images d'erreur facultatives."
+
+msgid "Automatically handles NaN values in the data."
+msgstr "Gère automatiquement les valeurs NaN dans les données."
+
+msgid "Reads metadata including units (X, Y, Z) and labels from file headers."
+msgstr "Lit les métadonnées, y compris les unités (X, Y, Z) et les étiquettes, à partir des en-têtes de fichiers."
 
 msgid "New image analysis features:"
 msgstr "Nouvelles fonctionnalités d'analyse de l'image :"

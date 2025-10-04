@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-03 14:48+0200\n"
+"POT-Creation-Date: 2025-10-04 10:23+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -329,6 +329,12 @@ msgstr "Rayon"
 
 msgid "Coordinates"
 msgstr "Coordonnées"
+
+msgid "Inside"
+msgstr "Intérieur"
+
+msgid "If True, the ROI mask will be True inside the ROI shape. If False, the ROI mask will be True outside the ROI shape."
+msgstr "Si vrai, le masque ROI sera vrai à l'intérieur de la forme ROI. Si faux, le masque ROI sera vrai à l'extérieur de la forme ROI."
 
 msgid "Lorentzian"
 msgstr "Lorentzienne"

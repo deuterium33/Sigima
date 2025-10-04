@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-03 14:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_convolution.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_convolution.py>` pour télécharger le code complet de l'exemple."
+
+msgid "Convolution and Deconvolution with Sigima"
+msgstr "Convolution et Déconvolution avec Sigima"
+
+msgid "This example demonstrates the image convolution and deconvolution features available in Sigima, showing various kernels and their effects on images. Each section builds upon the previous one to create a comprehensive understanding of convolution operations."
+msgstr "Cet exemple démontre les fonctionnalités de convolution et de déconvolution d'image disponibles dans Sigima, montrant divers noyaux et leurs effets sur les images. Chaque section s'appuie sur la précédente pour créer une compréhension complète des opérations de convolution."
+
+msgid "The example shows:"
+msgstr "L'exemple montre :"
+
+msgid "Creating test images and kernels"
+msgstr "Création d'images de test et de noyaux"
+
+msgid "Basic convolution with Gaussian kernel"
+msgstr "Convolution de base avec noyau gaussien"
+
+msgid "Identity convolution (preserving original image)"
+msgstr "Convolution d'identité (préservation de l'image d'origine)"
+
+msgid "Deconvolution operations"
+msgstr "Opérations de déconvolution"
+
+msgid "Effects of different kernel parameters"
+msgstr "Effets des différents paramètres de noyau"
+
+msgid "Custom edge detection and sharpening kernels"
+msgstr "Kernels personnalisés de détection de contours et d'accentuation"
+
+msgid "This tutorial uses PlotPy for visualization, providing interactive plots that allow you to explore the convolution results in detail."
+msgstr "Ce tutoriel utilise PlotPy pour la visualisation, fournissant des graphiques interactifs qui vous permettent d'explorer les résultats de convolution en détail."
+
+msgid "Importing necessary modules"
+msgstr "Importation des modules nécessaires"
+
+msgid "We'll start by importing all the required modules for image processing and visualization."
+msgstr "Nous commencerons par importer tous les modules nécessaires au traitement d'image et à la visualisation."
+
+msgid "We start by creating a test image and various convolution kernels."
+msgstr "Nous commençons par créer une image de test et divers noyaux de convolution."
+
+msgid "Qt widget 1"
+msgstr "Qt widget 1"
+
+msgid "Now we'll perform convolution with the Gaussian kernel and compare the result with scipy's implementation to verify correctness."
+msgstr "Nous allons maintenant effectuer une convolution avec le noyau gaussien et comparer le résultat avec l'implémentation de scipy pour vérifier la justesse."
+
+msgid "Identity convolution"
+msgstr "Convolution d'identité"
+
+msgid "Identity convolution should preserve the original image exactly. This demonstrates that our convolution implementation is working correctly."
+msgstr "La convolution d'identité devrait préserver exactement l'image d'origine. Cela démontre que notre implémentation de convolution fonctionne correctement."
+
+msgid "Deconvolution with identity kernel"
+msgstr "Déconvolution avec noyau d'identité"
+
+msgid "Deconvolution is the inverse operation of convolution. We'll start with a simple case using the identity kernel."
+msgstr "La déconvolution est l'opération inverse de la convolution. Nous commencerons par un cas simple utilisant le noyau d'identité."
+
+msgid "Advanced deconvolution with Gaussian kernel"
+msgstr "Déconvolution avancée avec noyau gaussien"
+
+msgid "Now we'll try deconvolution with a Gaussian kernel, which is more challenging and demonstrates the limitations of deconvolution."
+msgstr "Nous allons maintenant essayer la déconvolution avec un noyau gaussien, qui est plus difficile et démontre les limites de la déconvolution."
+
+msgid "Exploring different kernel parameters"
+msgstr "Exploration des différents paramètres de noyau"
+
+msgid "Different sigma values in Gaussian kernels produce different blurring effects. Let's compare several sigma values side by side."
+msgstr "Différentes valeurs de sigma dans les noyaux gaussiens produisent différents effets de flou. Comparons plusieurs valeurs de sigma côte à côte."
+
+msgid "Qt widget 2"
+msgstr "Qt widget 2"
+
+msgid "Custom convolution kernels"
+msgstr "Kernels de convolution personnalisés"
+
+msgid "Besides Gaussian kernels, we can create custom kernels for specific image processing tasks like edge detection and sharpening."
+msgstr "En plus des noyaux gaussiens, nous pouvons créer des noyaux personnalisés pour des tâches spécifiques de traitement d'image telles que la détection de contours et l'accentuation."
+
+msgid "Summary and conclusions"
+msgstr "Résumé et conclusions"
+
+msgid "This tutorial demonstrated the key concepts of convolution and deconvolution in image processing using Sigima."
+msgstr "Ce tutoriel a démontré les concepts clés de la convolution et de la déconvolution dans le traitement d'image en utilisant Sigima."
+
+msgid "**Total running time of the script:** (0 minutes 9.785 seconds)"
+msgstr ""
+
+msgid ":download:`Download Jupyter notebook: convolution.ipynb <convolution.ipynb>`"
+msgstr ":download:`Télécharger le notebook Jupyter : convolution.ipynb <convolution.ipynb>`"
+
+msgid ":download:`Download Python source code: convolution.py <convolution.py>`"
+msgstr ":download:`Télécharger le code source Python : convolution.py <convolution.py>`"
+
+msgid ":download:`Download zipped: convolution.zip <convolution.zip>`"
+msgstr ":download:`Télécharger le fichier compressé : convolution.zip <convolution.zip>`"
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr "`Galerie générée par Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
