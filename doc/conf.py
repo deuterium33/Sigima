@@ -146,6 +146,10 @@ exclude_patterns = [
     "**/sg_execution_times.rst",
 ]
 
+# Suppress the warning about unpicklable sphinx_gallery_conf
+# (it contains reset_modules function which cannot be pickled)
+suppress_warnings = ["config.cache"]
+
 # -- Sphinx-Gallery configuration --------------------------------------------
 # Using guidata's generic Qt scraper for capturing all Qt widgets
 # Configure to use the last widget as thumbnail for a complete pipeline view
@@ -164,23 +168,19 @@ _stub_server = None
 def _reset_example_namespace(gallery_conf, fname):
     """Reset namespace and setup stub server for datalab_client example."""
     global _stub_server
+    # Cleanup previous stub server if it exists
+    if _stub_server is not None:
+        _stub_server.stop()
+        _stub_server = None
+    # Setup new stub server for datalab_client example
     if "datalab_client" in fname:
         _stub_server = patch_datalab_client_example()
 
 
-def _teardown_example_namespace(gallery_conf, fname):
-    """Cleanup stub server after datalab_client example."""
-    global _stub_server
-    if "datalab_client" in fname and _stub_server is not None:
-        _stub_server.stop()
-        _stub_server = None
-
-
-# Add reset and teardown functions to sphinx_gallery_conf
+# Add reset handler to sphinx_gallery_conf
 sphinx_gallery_conf["reset_modules"] = _reset_example_namespace
 sphinx_gallery_conf["reset_modules_order"] = "before"
-# Note: Sphinx-Gallery doesn't have a built-in teardown, but reset_modules
-# is called before each example, so we'll handle cleanup there
+# Note: The handler also cleans up the stub server from previous examples
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"

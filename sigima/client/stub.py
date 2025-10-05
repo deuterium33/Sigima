@@ -53,15 +53,20 @@ class DataLabStubServer:
 
     This server provides mock implementations of all DataLab XML-RPC methods
     using real SignalObj and ImageObj instances for maximum compatibility.
+
+    Args:
+        port: Port to bind to. If 0, uses a random available port.
+        verbose: If True, print verbose debug information.
     """
 
-    def __init__(self, port: int = 0):
+    def __init__(self, port: int = 0, verbose: bool = True) -> None:
         """Initialize the stub server.
 
         Args:
             port: Port to bind to. If 0, uses a random available port.
         """
         self.port = port
+        self.verbose = verbose
         self.server: ThreadingXMLRPCServer | None = None
         self.server_thread: threading.Thread | None = None
 
@@ -217,17 +222,20 @@ class DataLabStubServer:
     def toggle_auto_refresh(self, state: bool) -> None:
         """Toggle auto refresh mode."""
         self.auto_refresh = state
-        execenv.print(f"[STUB] Auto-refresh set to: {state}")
+        if self.verbose:
+            execenv.print(f"[STUB] Auto-refresh set to: {state}")
 
     def toggle_show_titles(self, state: bool) -> None:
         """Toggle show titles mode."""
         self.show_titles = state
-        execenv.print(f"[STUB] Show titles set to: {state}")
+        if self.verbose:
+            execenv.print(f"[STUB] Show titles set to: {state}")
 
     # File operations
     def save_to_h5_file(self, filename: str) -> None:
         """Save to a DataLab HDF5 file."""
-        execenv.print(f"[STUB] Simulating H5 file save to: {filename}")
+        if self.verbose:
+            execenv.print(f"[STUB] Simulating H5 file save to: {filename}")
         # In stub mode, just create a dummy text file to simulate the save operation
         # This avoids HDF5 dependencies and potential test failures
         try:
@@ -236,12 +244,14 @@ class DataLabStubServer:
                 f.write(f"# Signals: {len(self.signals)}\n")
                 f.write(f"# Images: {len(self.images)}\n")
                 f.write("# This is a dummy file created by the stub server\n")
-            execenv.print(
-                f"[STUB] Successfully created dummy file with {len(self.signals)} "
-                f"signals and {len(self.images)} images"
-            )
+            if self.verbose:
+                execenv.print(
+                    f"[STUB] Successfully created dummy file with {len(self.signals)} "
+                    f"signals and {len(self.images)} images"
+                )
         except Exception as exc:  # pylint: disable=broad-except
-            execenv.print(f"[STUB] Failed to create dummy file: {exc}")
+            if self.verbose:
+                execenv.print(f"[STUB] Failed to create dummy file: {exc}")
             # Ignore errors in stub mode
 
     # pylint: disable=unused-argument
@@ -255,10 +265,12 @@ class DataLabStubServer:
         if h5files is None:
             return
 
-        execenv.print(f"[STUB] Simulating H5 file loading: {h5files}")
+        if self.verbose:
+            execenv.print(f"[STUB] Simulating H5 file loading: {h5files}")
 
         if reset_all:
-            execenv.print("[STUB] Resetting all data before loading")
+            if self.verbose:
+                execenv.print("[STUB] Resetting all data before loading")
             self.reset_all()
 
         # In stub mode, just simulate loading by creating dummy objects
@@ -269,14 +281,16 @@ class DataLabStubServer:
             if not hasattr(signal, "uuid") or signal.uuid is None:
                 signal.uuid = str(uuid.uuid4())
             self.signals[signal.uuid] = signal
-            execenv.print(f"[STUB] Created dummy signal: {signal.title}")
+            if self.verbose:
+                execenv.print(f"[STUB] Created dummy signal: {signal.title}")
 
             # Create a dummy image for each file
             image = create_image(f"Loaded Image from {os.path.basename(filename)}")
             if not hasattr(image, "uuid") or image.uuid is None:
                 image.uuid = str(uuid.uuid4())
             self.images[image.uuid] = image
-            execenv.print(f"[STUB] Created dummy image: {image.title}")
+            if self.verbose:
+                execenv.print(f"[STUB] Created dummy image: {image.title}")
 
     def import_h5_file(self, filename: str, reset_all: bool | None = None) -> None:
         """Open DataLab HDF5 browser to Import HDF5 file."""
@@ -617,33 +631,41 @@ class DataLabStubServer:
     # Calculation operations
     def calc(self, name: str, param: list[str] | None = None) -> str | None:
         """Execute calculation and return result object UUID."""
-        execenv.print(f"[STUB] Simulating calculation '{name}' with params: {param}")
+        if self.verbose:
+            execenv.print(
+                f"[STUB] Simulating calculation '{name}' with params: {param}"
+            )
 
         # In stub mode, just simulate by creating a dummy result object
         if not self.selected_objects:
-            execenv.print("[STUB] No objects selected for calculation")
+            if self.verbose:
+                execenv.print("[STUB] No objects selected for calculation")
             return None
 
         src_uuid = self.selected_objects[0]
         src_obj = self.signals.get(src_uuid) or self.images.get(src_uuid)
 
         if src_obj is None:
-            execenv.print(f"[STUB] Source object {src_uuid} not found")
+            if self.verbose:
+                execenv.print(f"[STUB] Source object {src_uuid} not found")
             return None
 
         # Create a dummy result object based on source type
         if isinstance(src_obj, SignalObj):
             result = create_signal(f"{name}({src_obj.title})")
             self.signals[result.uuid] = result
-            execenv.print(f"[STUB] Created dummy signal result: {result.title}")
+            if self.verbose:
+                execenv.print(f"[STUB] Created dummy signal result: {result.title}")
             return result.uuid
         if isinstance(src_obj, ImageObj):
             result = create_image(f"{name}({src_obj.title})")
             self.images[result.uuid] = result
-            execenv.print(f"[STUB] Created dummy image result: {result.title}")
+            if self.verbose:
+                execenv.print(f"[STUB] Created dummy image result: {result.title}")
             return result.uuid
 
-        execenv.print("[STUB] Unsupported object type for calculation")
+        if self.verbose:
+            execenv.print("[STUB] Unsupported object type for calculation")
         return None
 
     # Annotation operations
@@ -660,21 +682,25 @@ class DataLabStubServer:
         self, title: str | None = None, panel: str | None = None
     ) -> None:
         """Add label with title."""
-        execenv.print(f"[STUB] Simulating add label with title: {title}")
+        if self.verbose:
+            execenv.print(f"[STUB] Simulating add label with title: {title}")
         # In stub mode, just acknowledge the label
 
 
 @contextmanager
-def datalab_stub_server(port: int = 0) -> Generator[int, None, None]:
+def datalab_stub_server(
+    port: int = 0, verbose: bool = True
+) -> Generator[int, None, None]:
     """Context manager for DataLab stub server.
 
     Args:
         port: Port to bind to. If 0, uses a random available port.
+        verbose: If True, print verbose debug information.
 
     Yields:
         Port number the server is listening on
     """
-    server = DataLabStubServer(port)
+    server = DataLabStubServer(port, verbose=verbose)
     try:
         actual_port = server.start()
         yield actual_port
@@ -710,7 +736,7 @@ def patch_simpleremoteproxy_for_stub() -> DataLabStubServer:
     original_connect_to_server = SimpleRemoteProxy._SimpleRemoteProxy__connect_to_server
 
     # Start stub server
-    stub_server_instance = DataLabStubServer()
+    stub_server_instance = DataLabStubServer(verbose=False)
     stub_port = stub_server_instance.start()
 
     # pylint: disable=unused-argument
