@@ -71,11 +71,11 @@ Additional features
 ^^^^^^^^^^^^^^^^^^^
 
 For simple remote controlling, :py:class:`sigima.client.SimpleRemoteProxy` may be
-used. For more advanced remote controlling, the `datalab.proxy.RemoteProxy` class
-provided by the DataLab package may be used.
+used. For more advanced remote controlling, the `datalab.control.proxy.RemoteProxy`
+class provided by the DataLab package may be used.
 
-See DataLab documentation for more details about the ``datalab.proxy.RemoteProxy``
-class (on the section "Remote control").
+See DataLab documentation for more details about the
+``datalab.control.proxy.RemoteProxy`` class (on the section "Remote control").
 
 .. _XML-RPC: https://docs.python.org/3/library/xmlrpc.html
 
@@ -93,13 +93,19 @@ Remote client
 Base proxy
 ~~~~~~~~~~
 
-.. autoclass:: sigima.client.baseproxy.SimpleBaseProxy
+.. autoclass:: sigima.client.base.SimpleBaseProxy
     :members:
 """
 
-from sigima.client.baseproxy import SimpleBaseProxy
+from sigima.client.base import SimpleBaseProxy
 from sigima.client.remote import SimpleRemoteProxy
+from sigima.client.stub import DataLabStubServer, datalab_stub_server
 
-__all__ = ["SimpleBaseProxy", "SimpleRemoteProxy"]
+__all__ = [
+    "SimpleBaseProxy",
+    "SimpleRemoteProxy",
+    "DataLabStubServer",
+    "datalab_stub_server",
+]
 
-# TODO: Refactor the `sigima.client` with `datalab.baseproxy` and `datalab.remote`
+# TODO: Refactor the `sigima.client` with `datalab.base` and `datalab.control.remote`

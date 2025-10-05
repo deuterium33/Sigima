@@ -18,7 +18,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * **New client subpackage**: Migrated DataLab client functionality to `sigima.client`
   * Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab
-  * Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies
+  * Added `sigima.client.base.SimpleBaseProxy` as abstract base class for DataLab proxies
   * Included comprehensive unit tests and API documentation
   * Maintains headless design principle (GUI components excluded)
   * Enables remote control of DataLab application from Python scripts and Jupyter notebooks

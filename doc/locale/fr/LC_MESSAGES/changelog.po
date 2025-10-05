@@ -58,8 +58,8 @@ msgstr "**Nouveau sous-paquet client** : Fonctionnalité client DataLab migrée 
 msgid "Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab"
 msgstr "Ajout de `sigima.client.remote.SimpleRemoteProxy` pour la communication XML-RPC avec DataLab"
 
-msgid "Added `sigima.client.baseproxy.SimpleBaseProxy` as abstract base class for DataLab proxies"
-msgstr "Ajout de `sigima.client.baseproxy.SimpleBaseProxy` en tant que classe de base abstraite pour les proxys DataLab"
+msgid "Added `sigima.client.base.SimpleBaseProxy` as abstract base class for DataLab proxies"
+msgstr "Ajout de `sigima.client.base.SimpleBaseProxy` en tant que classe de base abstraite pour les proxys DataLab"
 
 msgid "Included comprehensive unit tests and API documentation"
 msgstr "Ajout de tests unitaires complets et de documentation API"

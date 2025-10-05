@@ -3,8 +3,8 @@
 """
 Sigima Client Comprehensive Headless Test
 
-This test requires a running DataLab instance with XML-RPC server enabled.
-It will be skipped if DataLab is not available.
+This test uses a stub XML-RPC server to emulate DataLab, allowing the test
+to run without requiring a real DataLab instance.
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
@@ -23,6 +23,7 @@ import pytest
 from guidata.env import execenv
 
 from sigima.client.remote import SimpleRemoteProxy
+from sigima.client.stub import datalab_stub_server
 
 
 @contextmanager
@@ -54,11 +55,30 @@ class RemoteClientTester:
         """Initialize the tester"""
         self.datalab = None
         self.log_messages = []
+        self.stub_server_port = None
 
     def log(self, message: str) -> None:
         """Log message for debugging"""
         self.log_messages.append(message)
         execenv.print(f"[CLIENT] {message}")
+
+    def init_cdl_with_stub(self, port: int) -> bool:
+        """Initialize DataLab connection with stub server"""
+        try:
+            self.stub_server_port = port
+            self.datalab = SimpleRemoteProxy(autoconnect=False)
+            self.datalab.connect(port=str(port), timeout=1.0, retries=1)
+            self.log("✨ Initialized DataLab connection with stub server ✨")
+            self.log(f"  Communication port: {self.datalab.port}")
+
+            # Test getting method list
+            methods = self.datalab.get_method_list()
+            self.log(f"  Available methods: {len(methods)} found")
+            return True
+
+        except ConnectionRefusedError:
+            self.log("🔥 Connection refused 🔥 (Stub server is not ready)")
+            return False
 
     def init_cdl(self) -> bool:
         """Initialize DataLab connection"""
@@ -77,7 +97,7 @@ class RemoteClientTester:
             self.log("🔥 Connection refused 🔥 (DataLab server is not ready)")
             return False
 
-    def close_cdl(self) -> None:
+    def close_datalab(self) -> None:
         """Close DataLab connection"""
         if self.datalab is not None:
             try:
@@ -90,7 +110,9 @@ class RemoteClientTester:
 
     def test_connection_management(self) -> None:
         """Test connection initialization and method listing"""
-        assert self.init_cdl(), "Failed to initialize DataLab connection"
+        # If we already have a connection (from stub server), skip init
+        if self.datalab is None:
+            assert self.init_cdl(), "Failed to initialize DataLab connection"
 
         # Test method listing
         methods = self.datalab.get_method_list()
@@ -358,16 +380,25 @@ class RemoteClientTester:
 
 def test_comprehensive_remote_client():
     """Comprehensive remote client test (pytest version)"""
-    tester = RemoteClientTester()
+    # First try with stub server (always available)
+    with datalab_stub_server() as port:
+        tester = RemoteClientTester()
+        if tester.init_cdl_with_stub(port):
+            try:
+                tester.run_comprehensive_test()
+                return  # Test passed with stub server
+            finally:
+                tester.close_datalab()
 
-    # Skip test if DataLab is not available
+    # If stub server test failed, try with real DataLab
+    tester = RemoteClientTester()
     if not tester.init_cdl():
-        pytest.skip("DataLab server is not available")
+        pytest.skip("Neither stub server nor real DataLab server is available")
 
     try:
         tester.run_comprehensive_test()
     finally:
-        tester.close_cdl()
+        tester.close_datalab()
 
 
 if __name__ == "__main__":

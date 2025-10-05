@@ -14,15 +14,13 @@ to DataLab XML-RPC server.
 from __future__ import annotations
 
 import configparser as cp
-import importlib
 import json
 import os
 import os.path as osp
 import sys
 import time
 import warnings
-from io import BytesIO
-from xmlrpc.client import Binary, ServerProxy
+from xmlrpc.client import ServerProxy
 
 import guidata.dataset as gds
 import numpy as np
@@ -30,7 +28,8 @@ from guidata.env import execenv
 from guidata.io import JSONReader, JSONWriter
 from guidata.userconfig import get_config_basedir
 
-from sigima.client.baseproxy import SimpleBaseProxy
+from sigima.client.base import SimpleBaseProxy
+from sigima.client.utils import array_to_rpcbinary, dataset_to_json, json_to_dataset
 from sigima.objects import ImageObj, SignalObj
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
@@ -47,76 +46,6 @@ def get_xmlrpcport_from_env() -> int | None:
         return int(os.environ.get(XMLRPCPORT_ENV))
     except (TypeError, ValueError):
         return None
-
-
-def array_to_rpcbinary(data: np.ndarray) -> Binary:
-    """Convert NumPy array to XML-RPC Binary object, with shape and dtype.
-
-    The array is converted to a binary string using NumPy's native binary
-    format.
-
-    Args:
-        data: NumPy array to convert
-
-    Returns:
-        XML-RPC Binary object
-    """
-    dbytes = BytesIO()
-    np.save(dbytes, data, allow_pickle=False)
-    return Binary(dbytes.getvalue())
-
-
-def rpcbinary_to_array(binary: Binary) -> np.ndarray:
-    """Convert XML-RPC binary to NumPy array.
-
-    Args:
-        binary: XML-RPC Binary object
-
-    Returns:
-        NumPy array
-    """
-    dbytes = BytesIO(binary.data)
-    return np.load(dbytes, allow_pickle=False)
-
-
-def dataset_to_json(param: gds.DataSet) -> list[str]:
-    """Convert guidata DataSet to JSON data.
-
-    The JSON data is a list of three elements:
-
-    - The first element is the module name of the DataSet class
-    - The second element is the class name of the DataSet class
-    - The third element is the JSON data of the DataSet instance
-
-    Args:
-        param: guidata DataSet to convert
-
-    Returns:
-        JSON data
-    """
-    writer = JSONWriter()
-    param.serialize(writer)
-    param_json = writer.get_json()
-    klass = param.__class__
-    return [klass.__module__, klass.__name__, param_json]
-
-
-def json_to_dataset(param_data: list[str]) -> gds.DataSet:
-    """Convert JSON data to guidata DataSet.
-
-    Args:
-        param_data: JSON data
-
-    Returns:
-        guidata DataSet
-    """
-    param_module, param_clsname, param_json = param_data
-    mod = importlib.__import__(param_module, fromlist=[param_clsname])
-    klass = getattr(mod, param_clsname)
-    param = klass()
-    reader = JSONReader(param_json)
-    param.deserialize(reader)
-    return param
 
 
 def get_cdl_xmlrpc_port():

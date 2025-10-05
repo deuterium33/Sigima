@@ -1,0 +1,682 @@
+# Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
+
+"""
+Sigima Client Stub/Mock Server (Real Objects)
+---------------------------------------------
+
+This module provides a stub XML-RPC server that emulates DataLab's XML-RPC interface
+for testing purposes using real Sigima objects. The stub server allows tests to run
+without requiring a real DataLab instance.
+"""
+
+from __future__ import annotations
+
+import os
+import threading
+import uuid
+from contextlib import contextmanager
+from socketserver import ThreadingMixIn
+from typing import TYPE_CHECKING
+from xmlrpc.client import Binary
+from xmlrpc.server import SimpleXMLRPCServer
+
+from guidata.env import execenv
+
+from sigima.client.utils import dataset_to_json, json_to_dataset, rpcbinary_to_array
+from sigima.objects import ImageObj, SignalObj, create_image, create_signal
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+# pylint: disable=duplicate-code
+
+
+class MockGroup:
+    """Mock group object."""
+
+    def __init__(self, title: str, uuid_str: str | None = None):
+        self.title = title
+        self.uuid = uuid_str or str(uuid.uuid4())
+        self.objects: list[str] = []  # List of object UUIDs
+
+
+class ThreadingXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
+    """Threading XML-RPC server to handle multiple requests."""
+
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+class DataLabStubServer:
+    """Stub XML-RPC server emulating DataLab XML-RPC interface with real objects.
+
+    This server provides mock implementations of all DataLab XML-RPC methods
+    using real SignalObj and ImageObj instances for maximum compatibility.
+    """
+
+    def __init__(self, port: int = 0):
+        """Initialize the stub server.
+
+        Args:
+            port: Port to bind to. If 0, uses a random available port.
+        """
+        self.port = port
+        self.server: ThreadingXMLRPCServer | None = None
+        self.server_thread: threading.Thread | None = None
+
+        # Real Sigima object storage
+        self.signals: dict[str, SignalObj] = {}  # uuid -> SignalObj
+        self.images: dict[str, ImageObj] = {}  # uuid -> ImageObj
+        self.signal_groups: dict[str, MockGroup] = {}  # uuid -> group
+        self.image_groups: dict[str, MockGroup] = {}  # uuid -> group
+
+        # Current state
+        self.current_panel = "signal"  # "signal", "image", or "macro"
+        self.selected_objects: list[str] = []  # list of UUIDs
+        self.selected_groups: list[str] = []  # list of group UUIDs
+        self.auto_refresh = True
+        self.show_titles = True
+
+        # Add default groups
+        self._add_default_group("signal")
+        self._add_default_group("image")
+
+    def _add_default_group(self, panel: str) -> None:
+        """Add default group for a panel."""
+        group = MockGroup("Group 1")
+        if panel == "signal":
+            self.signal_groups[group.uuid] = group
+        elif panel == "image":
+            self.image_groups[group.uuid] = group
+
+    def start(self) -> int:
+        """Start the XML-RPC server.
+
+        Returns:
+            Port number the server is listening on
+        """
+        self.server = ThreadingXMLRPCServer(
+            ("127.0.0.1", self.port), allow_none=True, logRequests=False
+        )
+
+        # Register all methods
+        self._register_functions()
+
+        self.port = self.server.server_address[1]
+
+        # Start server in a separate thread
+        self.server_thread = threading.Thread(
+            target=self.server.serve_forever, daemon=True
+        )
+        self.server_thread.start()
+
+        execenv.print(f"DataLab stub server started on port {self.port}")
+        return self.port
+
+    def stop(self) -> None:
+        """Stop the XML-RPC server."""
+        if self.server:
+            self.server.shutdown()
+            self.server.server_close()
+            if self.server_thread:
+                self.server_thread.join(timeout=1.0)
+            execenv.print("DataLab stub server stopped")
+
+    def _register_functions(self) -> None:
+        """Register all XML-RPC functions."""
+        # System introspection methods
+        self.server.register_introspection_functions()
+
+        # Basic server methods
+        self.server.register_function(self.get_version, "get_version")
+        self.server.register_function(self.close_application, "close_application")
+        self.server.register_function(self.raise_window, "raise_window")
+
+        # Panel management
+        self.server.register_function(self.get_current_panel, "get_current_panel")
+        self.server.register_function(self.set_current_panel, "set_current_panel")
+
+        # Application control
+        self.server.register_function(self.reset_all, "reset_all")
+        self.server.register_function(self.toggle_auto_refresh, "toggle_auto_refresh")
+        self.server.register_function(self.toggle_show_titles, "toggle_show_titles")
+
+        # File operations
+        self.server.register_function(self.save_to_h5_file, "save_to_h5_file")
+        self.server.register_function(self.open_h5_files, "open_h5_files")
+        self.server.register_function(self.import_h5_file, "import_h5_file")
+
+        # Object operations
+        self.server.register_function(self.add_signal, "add_signal")
+        self.server.register_function(self.add_image, "add_image")
+        self.server.register_function(self.get_object_titles, "get_object_titles")
+        self.server.register_function(self.get_object_uuids, "get_object_uuids")
+        self.server.register_function(self.get_object, "get_object")
+        self.server.register_function(self.get_object_shapes, "get_object_shapes")
+        self.server.register_function(self.delete_metadata, "delete_metadata")
+
+        # Selection operations
+        self.server.register_function(self.select_objects, "select_objects")
+        self.server.register_function(self.select_groups, "select_groups")
+        self.server.register_function(self.get_sel_object_uuids, "get_sel_object_uuids")
+        self.server.register_function(self.delete_object, "delete_object")
+        self.server.register_function(self.duplicate_object, "duplicate_object")
+        self.server.register_function(self.copy_metadata, "copy_metadata")
+
+        # Group operations
+        self.server.register_function(self.add_group, "add_group")
+        self.server.register_function(self.get_group_titles, "get_group_titles")
+        self.server.register_function(
+            self.get_group_titles_with_object_info, "get_group_titles_with_object_info"
+        )
+        self.server.register_function(self.move_up, "move_up")
+        self.server.register_function(self.move_down, "move_down")
+        self.server.register_function(self.delete_group, "delete_group")
+
+        # Calculation operations
+        self.server.register_function(self.calc, "calc")
+
+        # Annotation operations
+        self.server.register_function(
+            self.add_annotations_from_items, "add_annotations_from_items"
+        )
+        self.server.register_function(self.add_label_with_title, "add_label_with_title")
+
+    # Basic server methods
+    def get_version(self) -> str:
+        """Get DataLab version."""
+        return "1.0.0-stub"
+
+    def close_application(self) -> None:
+        """Close DataLab application."""
+        # In stub mode, do nothing
+
+    def raise_window(self) -> None:
+        """Raise DataLab window."""
+        # In stub mode, do nothing
+
+    # Panel management
+    def get_current_panel(self) -> str:
+        """Get current panel name."""
+        return self.current_panel
+
+    def set_current_panel(self, panel: str) -> None:
+        """Set current panel."""
+        if panel in ("signal", "image", "macro"):
+            self.current_panel = panel
+
+    # Application control
+    def reset_all(self) -> None:
+        """Reset all data."""
+        self.signals.clear()
+        self.images.clear()
+        self.selected_objects.clear()
+        self.selected_groups.clear()
+
+    def toggle_auto_refresh(self, state: bool) -> None:
+        """Toggle auto refresh mode."""
+        self.auto_refresh = state
+        execenv.print(f"[STUB] Auto-refresh set to: {state}")
+
+    def toggle_show_titles(self, state: bool) -> None:
+        """Toggle show titles mode."""
+        self.show_titles = state
+        execenv.print(f"[STUB] Show titles set to: {state}")
+
+    # File operations
+    def save_to_h5_file(self, filename: str) -> None:
+        """Save to a DataLab HDF5 file."""
+        execenv.print(f"[STUB] Simulating H5 file save to: {filename}")
+        # In stub mode, just create a dummy text file to simulate the save operation
+        # This avoids HDF5 dependencies and potential test failures
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write("# DataLab stub file (for testing)\n")
+                f.write(f"# Signals: {len(self.signals)}\n")
+                f.write(f"# Images: {len(self.images)}\n")
+                f.write("# This is a dummy file created by the stub server\n")
+            execenv.print(
+                f"[STUB] Successfully created dummy file with {len(self.signals)} "
+                f"signals and {len(self.images)} images"
+            )
+        except Exception as exc:  # pylint: disable=broad-except
+            execenv.print(f"[STUB] Failed to create dummy file: {exc}")
+            # Ignore errors in stub mode
+
+    # pylint: disable=unused-argument
+    def open_h5_files(
+        self,
+        h5files: list[str] | None = None,
+        import_all: bool | None = None,
+        reset_all: bool | None = None,
+    ) -> None:
+        """Open a DataLab HDF5 file or import from any other HDF5 file."""
+        if h5files is None:
+            return
+
+        execenv.print(f"[STUB] Simulating H5 file loading: {h5files}")
+
+        if reset_all:
+            execenv.print("[STUB] Resetting all data before loading")
+            self.reset_all()
+
+        # In stub mode, just simulate loading by creating dummy objects
+        # This avoids complex HDF5 file parsing and potential test failures
+        for _i, filename in enumerate(h5files):
+            # Create a dummy signal for each file
+            signal = create_signal(f"Loaded Signal from {os.path.basename(filename)}")
+            if not hasattr(signal, "uuid") or signal.uuid is None:
+                signal.uuid = str(uuid.uuid4())
+            self.signals[signal.uuid] = signal
+            execenv.print(f"[STUB] Created dummy signal: {signal.title}")
+
+            # Create a dummy image for each file
+            image = create_image(f"Loaded Image from {os.path.basename(filename)}")
+            if not hasattr(image, "uuid") or image.uuid is None:
+                image.uuid = str(uuid.uuid4())
+            self.images[image.uuid] = image
+            execenv.print(f"[STUB] Created dummy image: {image.title}")
+
+    def import_h5_file(self, filename: str, reset_all: bool | None = None) -> None:
+        """Open DataLab HDF5 browser to Import HDF5 file."""
+        self.open_h5_files([filename], import_all=True, reset_all=reset_all)
+
+    # Object operations
+    # pylint: disable=unused-argument
+    def add_signal(
+        self,
+        title: str,
+        xbinary: Binary,
+        ybinary: Binary,
+        xunit: str = "",
+        yunit: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        group_id: str = "",
+        set_current: bool = True,
+    ) -> bool:
+        """Add signal data to DataLab."""
+        xdata = rpcbinary_to_array(xbinary)
+        ydata = rpcbinary_to_array(ybinary)
+
+        # Create real SignalObj using factory function
+        signal = create_signal(title, x=xdata, y=ydata)
+        signal.xunit = xunit or ""
+        signal.yunit = yunit or ""
+        signal.xlabel = xlabel or ""
+        signal.ylabel = ylabel or ""
+
+        # Ensure signal has a UUID
+        if not hasattr(signal, "uuid") or signal.uuid is None:
+            signal.uuid = str(uuid.uuid4())
+
+        # Store signal
+        self.signals[signal.uuid] = signal
+
+        # Add to group if specified
+        if group_id and group_id in self.signal_groups:
+            self.signal_groups[group_id].objects.append(signal.uuid)
+
+        return True
+
+    # pylint: disable=unused-argument
+    def add_image(
+        self,
+        title: str,
+        zbinary: Binary,
+        xunit: str = "",
+        yunit: str = "",
+        zunit: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
+        group_id: str = "",
+        set_current: bool = True,
+    ) -> bool:
+        """Add image data to DataLab."""
+        data = rpcbinary_to_array(zbinary)
+
+        # Create real ImageObj using factory function
+        image = create_image(title, data=data)
+        image.xunit = xunit or ""
+        image.yunit = yunit or ""
+        image.zunit = zunit or ""
+        image.xlabel = xlabel or ""
+        image.ylabel = ylabel or ""
+        image.zlabel = zlabel or ""
+
+        # Ensure image has a UUID
+        if not hasattr(image, "uuid") or image.uuid is None:
+            image.uuid = str(uuid.uuid4())
+
+        # Store image
+        self.images[image.uuid] = image
+
+        # Add to group if specified
+        if group_id and group_id in self.image_groups:
+            self.image_groups[group_id].objects.append(image.uuid)
+
+        return True
+
+    def get_object_titles(self, panel: str | None = None) -> list[str]:
+        """Get object titles for panel."""
+        panel = panel or self.current_panel
+        if panel == "signal":
+            return [signal.title for signal in self.signals.values()]
+        if panel == "image":
+            return [image.title for image in self.images.values()]
+        return []
+
+    # pylint: disable=unused-argument
+    def get_object_uuids(
+        self, panel: str | None = None, group: int | str | None = None
+    ) -> list[str]:
+        """Get object UUIDs for panel."""
+        panel = panel or self.current_panel
+        if panel == "signal":
+            return list(self.signals.keys())
+        if panel == "image":
+            return list(self.images.keys())
+        return []
+
+    def get_object(self, uuid_str: str, panel: str | None = None) -> list[str] | None:
+        """Get object by UUID, index, or title."""
+        panel = panel or self.current_panel
+
+        # Get the appropriate objects dictionary
+        if panel == "signal":
+            objects = self.signals
+            object_list = list(self.signals.keys())
+        elif panel == "image":
+            objects = self.images
+            object_list = list(self.images.keys())
+        else:
+            return None
+
+        # Try to resolve uuid_str as UUID first
+        if uuid_str in objects:
+            obj = objects[uuid_str]
+        else:
+            # Try to resolve as 1-based index
+            try:
+                index = int(uuid_str) - 1  # Convert to 0-based
+                if 0 <= index < len(object_list):
+                    uuid_key = object_list[index]
+                    obj = objects[uuid_key]
+                else:
+                    return None
+            except (ValueError, TypeError):
+                # Try to find by title
+                obj = None
+                for object_instance in objects.values():
+                    if (
+                        hasattr(object_instance, "title")
+                        and object_instance.title == uuid_str
+                    ):
+                        obj = object_instance
+                        break
+                if obj is None:
+                    return None
+
+        # Use standard serialization with real objects
+        return dataset_to_json(obj)
+
+    # pylint: disable=unused-argument
+    def get_object_shapes(
+        self, uuid_str: str, panel: str | None = None
+    ) -> list[dict] | None:
+        """Get object shapes."""
+        obj = self.signals.get(uuid_str) or self.images.get(uuid_str)
+        if obj is None:
+            return None
+
+        # Return shapes if available
+        if hasattr(obj, "roi") and obj.roi:
+            return [roi.to_dict() for roi in obj.roi]
+        return []
+
+    def delete_metadata(self, uuid_str: str, key: str) -> bool:
+        """Delete metadata entry for object."""
+        obj = self.signals.get(uuid_str) or self.images.get(uuid_str)
+        if obj is None:
+            return False
+
+        if hasattr(obj, "metadata") and key in obj.metadata:
+            del obj.metadata[key]
+            return True
+        return False
+
+    # Selection operations
+    def select_objects(
+        self, selection: list[int | str], panel: str | None = None
+    ) -> None:
+        """Select objects by indices or UUIDs."""
+        panel = panel or self.current_panel
+        if panel == "signal":
+            uuids = list(self.signals.keys())
+        elif panel == "image":
+            uuids = list(self.images.keys())
+        else:
+            return
+
+        selected_uuids = []
+        for item in selection:
+            if isinstance(item, str):
+                # Item is a UUID
+                if item in uuids:
+                    selected_uuids.append(item)
+            elif isinstance(item, int):
+                # Item is a 1-based index
+                index = item - 1  # Convert to 0-based
+                if 0 <= index < len(uuids):
+                    selected_uuids.append(uuids[index])
+
+        self.selected_objects = selected_uuids
+
+    # pylint: disable=unused-argument
+    def get_sel_object_uuids(self, include_groups: bool = False) -> list[str]:
+        """Return selected objects uuids."""
+        return self.selected_objects.copy()
+
+    def select_groups(self, selection: list[int], panel: str | None = None) -> None:
+        """Select groups by indices."""
+        panel = panel or self.current_panel
+        if panel == "signal":
+            group_uuids = list(self.signal_groups.keys())
+        elif panel == "image":
+            group_uuids = list(self.image_groups.keys())
+        else:
+            return
+
+        self.selected_groups = [
+            group_uuids[i] for i in selection if 0 <= i < len(group_uuids)
+        ]
+
+    def delete_object(self, uuid_str: str) -> bool:
+        """Delete object by UUID."""
+        if uuid_str in self.signals:
+            del self.signals[uuid_str]
+            return True
+        if uuid_str in self.images:
+            del self.images[uuid_str]
+            return True
+        return False
+
+    def duplicate_object(self, uuid_str: str) -> str | None:
+        """Duplicate object and return new UUID."""
+        obj = self.signals.get(uuid_str) or self.images.get(uuid_str)
+        if obj is None:
+            return None
+
+        # Create a copy using serialization/deserialization
+        json_data = dataset_to_json(obj)
+        new_obj = json_to_dataset(json_data)
+        new_obj.uuid = str(uuid.uuid4())
+        new_obj.title = f"{obj.title} (copy)"
+
+        # Store the copy
+        if isinstance(obj, SignalObj):
+            self.signals[new_obj.uuid] = new_obj
+        else:
+            self.images[new_obj.uuid] = new_obj
+
+        return new_obj.uuid
+
+    def copy_metadata(self, src_uuid: str, dst_uuid: str) -> bool:
+        """Copy metadata from source to destination object."""
+        src_obj = self.signals.get(src_uuid) or self.images.get(src_uuid)
+        dst_obj = self.signals.get(dst_uuid) or self.images.get(dst_uuid)
+
+        if src_obj is None or dst_obj is None:
+            return False
+
+        if hasattr(src_obj, "metadata") and hasattr(dst_obj, "metadata"):
+            dst_obj.metadata.update(src_obj.metadata)
+            return True
+        return False
+
+    # Group operations
+    # pylint: disable=unused-argument
+    def add_group(
+        self, title: str, panel: str | None = None, select: bool = False
+    ) -> str:
+        """Add group and return UUID."""
+        panel = panel or self.current_panel
+        group = MockGroup(title)
+
+        if panel == "signal":
+            self.signal_groups[group.uuid] = group
+        elif panel == "image":
+            self.image_groups[group.uuid] = group
+
+        return group.uuid
+
+    def get_group_titles_with_object_info(
+        self,
+    ) -> tuple[list[str], list[list[str]], list[list[str]]]:
+        """Return groups titles and lists of inner objects uuids and titles."""
+        panel = self.current_panel
+        if panel == "signal":
+            groups = self.signal_groups
+            objects = self.signals
+        elif panel == "image":
+            groups = self.image_groups
+            objects = self.images
+        else:
+            return ([], [], [])
+
+        group_titles = []
+        group_uuids_lists = []
+        group_titles_lists = []
+
+        for group in groups.values():
+            group_titles.append(group.title)
+
+            # Get objects in this group
+            object_uuids = [uuid for uuid in group.objects if uuid in objects]
+            object_titles = [
+                objects[uuid].title for uuid in object_uuids if uuid in objects
+            ]
+
+            group_uuids_lists.append(object_uuids)
+            group_titles_lists.append(object_titles)
+
+        return (group_titles, group_uuids_lists, group_titles_lists)
+
+    def get_group_titles(self, panel: str | None = None) -> list[str]:
+        """Get group titles."""
+        panel = panel or self.current_panel
+        if panel == "signal":
+            return [group.title for group in self.signal_groups.values()]
+        if panel == "image":
+            return [group.title for group in self.image_groups.values()]
+        return []
+
+    def move_up(self, uuid_str: str) -> bool:  # pylint: disable=unused-argument
+        """Move object up in list."""
+        # In stub mode, just return success
+        return True
+
+    def move_down(self, uuid_str: str) -> bool:  # pylint: disable=unused-argument
+        """Move object down in list."""
+        # In stub mode, just return success
+        return True
+
+    def delete_group(self, group_id: str, panel: str | None = None) -> bool:
+        """Delete group."""
+        panel = panel or self.current_panel
+        if panel == "signal" and group_id in self.signal_groups:
+            del self.signal_groups[group_id]
+            return True
+        if panel == "image" and group_id in self.image_groups:
+            del self.image_groups[group_id]
+            return True
+        return False
+
+    # Calculation operations
+    def calc(self, name: str, param: list[str] | None = None) -> str | None:
+        """Execute calculation and return result object UUID."""
+        execenv.print(f"[STUB] Simulating calculation '{name}' with params: {param}")
+
+        # In stub mode, just simulate by creating a dummy result object
+        if not self.selected_objects:
+            execenv.print("[STUB] No objects selected for calculation")
+            return None
+
+        src_uuid = self.selected_objects[0]
+        src_obj = self.signals.get(src_uuid) or self.images.get(src_uuid)
+
+        if src_obj is None:
+            execenv.print(f"[STUB] Source object {src_uuid} not found")
+            return None
+
+        # Create a dummy result object based on source type
+        if isinstance(src_obj, SignalObj):
+            result = create_signal(f"{name}({src_obj.title})")
+            self.signals[result.uuid] = result
+            execenv.print(f"[STUB] Created dummy signal result: {result.title}")
+            return result.uuid
+        if isinstance(src_obj, ImageObj):
+            result = create_image(f"{name}({src_obj.title})")
+            self.images[result.uuid] = result
+            execenv.print(f"[STUB] Created dummy image result: {result.title}")
+            return result.uuid
+
+        execenv.print("[STUB] Unsupported object type for calculation")
+        return None
+
+    # Annotation operations
+    # pylint: disable=unused-argument
+    def add_annotations_from_items(
+        self, items: list[str], refresh_plot: bool = True, panel: str | None = None
+    ) -> None:
+        """Add object annotations (annotation plot items)."""
+        # In stub mode, just acknowledge the annotations
+        # Real implementation would deserialize items and add to objects
+
+    # pylint: disable=unused-argument
+    def add_label_with_title(
+        self, title: str | None = None, panel: str | None = None
+    ) -> None:
+        """Add label with title."""
+        execenv.print(f"[STUB] Simulating add label with title: {title}")
+        # In stub mode, just acknowledge the label
+
+
+@contextmanager
+def datalab_stub_server(port: int = 0) -> Generator[int, None, None]:
+    """Context manager for DataLab stub server.
+
+    Args:
+        port: Port to bind to. If 0, uses a random available port.
+
+    Yields:
+        Port number the server is listening on
+    """
+    server = DataLabStubServer(port)
+    try:
+        actual_port = server.start()
+        yield actual_port
+    finally:
+        server.stop()
