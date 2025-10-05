@@ -142,6 +142,7 @@ qt_scraper.set_qt_scraper_config(
 sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
     filename_pattern="",
     show_memory=False,
+    expected_failing_examples=["examples/remote_example.py"],
 )
 
 # -- Options for HTML output -------------------------------------------------
