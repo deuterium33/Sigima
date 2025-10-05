@@ -680,3 +680,47 @@ def datalab_stub_server(port: int = 0) -> Generator[int, None, None]:
         yield actual_port
     finally:
         server.stop()
+
+
+def patch_simpleremoteproxy_for_stub() -> DataLabStubServer:
+    """Patch SimpleRemoteProxy to connect to a stub server instead of real DataLab.
+
+    This utility function:
+    1. Creates and starts a DataLabStubServer instance
+    2. Patches SimpleRemoteProxy.__connect_to_server to use the stub server port
+    3. Returns the stub server instance for later cleanup
+
+    Returns:
+        The running DataLabStubServer instance that needs to be stopped later
+
+    Example:
+        >>> stub_server = patch_simpleremoteproxy_for_stub()
+        >>> try:
+        ...     # Your code using SimpleRemoteProxy here
+        ...     proxy = SimpleRemoteProxy()
+        ...     # proxy will connect to stub server automatically
+        ... finally:
+        ...     stub_server.stop()
+    """
+    # pylint: disable=import-outside-toplevel
+    from sigima.client import SimpleRemoteProxy
+
+    # Store original method
+    # pylint: disable=protected-access
+    original_connect_to_server = SimpleRemoteProxy._SimpleRemoteProxy__connect_to_server
+
+    # Start stub server
+    stub_server_instance = DataLabStubServer()
+    stub_port = stub_server_instance.start()
+
+    # pylint: disable=unused-argument
+    def patched_connect_to_server(self, port=None):
+        """Patched connect that uses stub server port."""
+        # Always use the stub server port, ignore the requested port
+        original_connect_to_server(self, port=str(stub_port))
+
+    # Apply the patch
+    # pylint: disable=protected-access
+    SimpleRemoteProxy._SimpleRemoteProxy__connect_to_server = patched_connect_to_server
+
+    return stub_server_instance

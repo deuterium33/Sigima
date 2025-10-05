@@ -98,6 +98,19 @@ def exclude_api_from_gettext(app):
         app.config.suppress_warnings.extend(["toc.excluded", "ref.doc"])
 
 
+def patch_datalab_client_example():
+    """Patch the datalab_client example to use stub server during doc build.
+
+    This function modifies the example execution context so that when
+    Sphinx-Gallery runs datalab_client.py, it connects to a stub server
+    instead of requiring a real DataLab instance.
+    """
+    from sigima.client import patch_simpleremoteproxy_for_stub
+
+    # Start stub server and apply the patch
+    return patch_simpleremoteproxy_for_stub()
+
+
 def setup(app):
     """Setup function for Sphinx."""
     app.connect("builder-inited", copy_changelog)
@@ -142,8 +155,32 @@ qt_scraper.set_qt_scraper_config(
 sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
     filename_pattern="",
     show_memory=False,
-    expected_failing_examples=["examples/remote_example.py"],
 )
+
+# Patch datalab_client example to use stub server during documentation build
+_stub_server = None
+
+
+def _reset_example_namespace(gallery_conf, fname):
+    """Reset namespace and setup stub server for datalab_client example."""
+    global _stub_server
+    if "datalab_client" in fname:
+        _stub_server = patch_datalab_client_example()
+
+
+def _teardown_example_namespace(gallery_conf, fname):
+    """Cleanup stub server after datalab_client example."""
+    global _stub_server
+    if "datalab_client" in fname and _stub_server is not None:
+        _stub_server.stop()
+        _stub_server = None
+
+
+# Add reset and teardown functions to sphinx_gallery_conf
+sphinx_gallery_conf["reset_modules"] = _reset_example_namespace
+sphinx_gallery_conf["reset_modules_order"] = "before"
+# Note: Sphinx-Gallery doesn't have a built-in teardown, but reset_modules
+# is called before each example, so we'll handle cleanup there
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "pydata_sphinx_theme"

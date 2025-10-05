@@ -65,7 +65,7 @@ Here is an example in Python 3 of a script that connects to a running DataLab
 instance, adds a signal and an image, and then runs calculations (the cell
 structure of the script make it convenient to be used in `Spyder`_ IDE):
 
-.. literalinclude:: ../examples/remote_example.py
+.. literalinclude:: ../examples/datalab_client.py
 
 Additional features
 ^^^^^^^^^^^^^^^^^^^
@@ -99,13 +99,18 @@ Base proxy
 
 from sigima.client.base import SimpleBaseProxy
 from sigima.client.remote import SimpleRemoteProxy
-from sigima.client.stub import DataLabStubServer, datalab_stub_server
+from sigima.client.stub import (
+    DataLabStubServer,
+    datalab_stub_server,
+    patch_simpleremoteproxy_for_stub,
+)
 
 __all__ = [
     "SimpleBaseProxy",
     "SimpleRemoteProxy",
     "DataLabStubServer",
     "datalab_stub_server",
+    "patch_simpleremoteproxy_for_stub",
 ]
 
 # TODO: Refactor the `sigima.client` with `datalab.base` and `datalab.control.remote`

@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 import sigima
-from sigima.client import SimpleRemoteProxy, datalab_stub_server
+from sigima.client import patch_simpleremoteproxy_for_stub
 
 # Check if plotpy is available
 try:
@@ -56,33 +56,18 @@ def test_examples_directory_exists() -> None:
 
 @pytest.mark.skipif(not PLOTPY_AVAILABLE, reason="PlotPy not installed")
 @pytest.mark.parametrize("example_file", get_example_files())
-def test_example_execution(example_file: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_example_execution(example_file: Path) -> None:
     """Test that each example file can be executed without errors."""
     # Special handling for datalab_client.py - needs a stub server
     if example_file.name == "datalab_client.py":
-        # Start stub server and modify the example to use it
-        with datalab_stub_server() as stub_port:
-            # Patch the connect method to use our stub server port
-            # pylint: disable=protected-access
-            original_connect_to_server = (
-                SimpleRemoteProxy._SimpleRemoteProxy__connect_to_server
-            )
-
-            # pylint: disable=unused-argument
-            def patched_connect_to_server(self, port=None):
-                """Patched connect that uses stub server port."""
-                # Always use the stub server port, ignore the requested port
-                original_connect_to_server(self, port=str(stub_port))
-
-            # Apply monkeypatch for the duration of this test
-            monkeypatch.setattr(
-                SimpleRemoteProxy,
-                "_SimpleRemoteProxy__connect_to_server",
-                patched_connect_to_server,
-            )
-
+        # Use the utility to patch SimpleRemoteProxy for stub server
+        stub_server = patch_simpleremoteproxy_for_stub()
+        try:
             # Load and execute the module
             _execute_example_module(example_file)
+        finally:
+            # Clean up the stub server
+            stub_server.stop()
     else:
         # Normal execution for other examples
         _execute_example_module(example_file)
