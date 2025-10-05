@@ -353,7 +353,10 @@ class RemoteClientTester:
             self.test_selection_operations()
 
             # Test annotations and shapes
-            self.test_annotations_and_shapes()
+            try:
+                self.test_annotations_and_shapes()
+            except ImportError:
+                self.log("PlotPy not available, skipping annotations and shapes test")
 
             # Test computations
             self.test_computation_operations()
