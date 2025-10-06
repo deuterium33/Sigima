@@ -219,8 +219,11 @@ class SimpleRemoteProxy(SimpleBaseProxy):
         Args:
             port (str | None): XML-RPC port to connect to. If not specified,
                 the port is automatically retrieved from DataLab configuration.
-            timeout (float | None): Timeout in seconds. Defaults to 5.0.
-            retries (int | None): Number of retries. Defaults to 10.
+            timeout (float | None): Maximum time to wait for connection in seconds.
+                Defaults to 5.0. This is the total maximum wait time, not per retry.
+            retries (int | None): Number of retries. Defaults to 10. This parameter
+                is deprecated and will be removed in a future version (kept for
+                backward compatibility).
 
         Raises:
             ConnectionRefusedError: Unable to connect to DataLab
@@ -228,22 +231,38 @@ class SimpleRemoteProxy(SimpleBaseProxy):
             ValueError: Invalid number of retries (must be >= 1)
         """
         timeout = 5.0 if timeout is None else timeout
-        retries = 10 if retries is None else retries
+        retries = 10 if retries is None else retries  # Kept for backward compatibility
         if timeout < 0.0:
             raise ValueError("timeout must be >= 0.0")
         if retries < 1:
             raise ValueError("retries must be >= 1")
+
         execenv.print("Connecting to DataLab XML-RPC server...", end="")
-        for _index in range(retries):
+
+        # Use exponential backoff for more efficient retrying
+        start_time = time.time()
+        poll_interval = 0.1  # Start with 100ms
+        max_poll_interval = 1.0  # Cap at 1 second
+
+        while True:
             try:
+                # Try to connect - this may fail if DataLab hasn't written its
+                # config file yet, so we retry it in the loop
                 self.__connect_to_server(port=port)
-                break
-            except ConnectionRefusedError:
-                time.sleep(timeout / retries)
-        else:
-            execenv.print("KO")
-            raise ConnectionRefusedError("Unable to connect to DataLab")
-        execenv.print(f"OK (port: {self.port})")
+                elapsed = time.time() - start_time
+                execenv.print(f"OK (port: {self.port}, connected in {elapsed:.1f}s)")
+                return
+            except (ConnectionRefusedError, OSError):
+                # Catch both ConnectionRefusedError and OSError (includes socket errors)
+                elapsed = time.time() - start_time
+                if elapsed >= timeout:
+                    execenv.print("KO")
+                    raise ConnectionRefusedError(
+                        f"Unable to connect to DataLab after {elapsed:.1f}s"
+                    )
+                # Wait before next retry with exponential backoff
+                time.sleep(poll_interval)
+                poll_interval = min(poll_interval * 1.5, max_poll_interval)
 
     def disconnect(self) -> None:
         """Disconnect from DataLab XML-RPC server."""
@@ -335,6 +354,26 @@ class SimpleRemoteProxy(SimpleBaseProxy):
         return self._datalab.add_image(
             title, zbinary, xunit, yunit, zunit, xlabel, ylabel, zlabel
         )
+
+    def add_object(
+        self, obj: SignalObj | ImageObj, group_id: str = "", set_current: bool = True
+    ) -> None:
+        """Add object to DataLab.
+
+        Args:
+            obj: Signal or image object
+            group_id: group id in which to add the object. Defaults to ""
+            set_current: if True, set the added object as current
+        """
+        self._datalab.add_object(obj.serialize(), group_id, set_current)
+
+    def load_from_directory(self, path: str) -> None:
+        """Open objects from directory in current panel (signals/images).
+
+        Args:
+            path: directory path
+        """
+        self._datalab.load_from_directory(path)
 
     def calc(self, name: str, param: gds.DataSet | None = None) -> None:
         """Call compute function ``name`` in current panel's processor.

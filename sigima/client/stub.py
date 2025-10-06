@@ -22,7 +22,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 from guidata.env import execenv
 
-from sigima.client.utils import dataset_to_json, json_to_dataset, rpcbinary_to_array
+from sigima.client import utils
 from sigima.objects import ImageObj, SignalObj, create_image, create_signal
 
 if TYPE_CHECKING:
@@ -278,17 +278,13 @@ class DataLabStubServer:
         for _i, filename in enumerate(h5files):
             # Create a dummy signal for each file
             signal = create_signal(f"Loaded Signal from {os.path.basename(filename)}")
-            if not hasattr(signal, "uuid") or signal.uuid is None:
-                signal.uuid = str(uuid.uuid4())
-            self.signals[signal.uuid] = signal
+            self.signals[str(uuid.uuid4())] = signal
             if self.verbose:
                 execenv.print(f"[STUB] Created dummy signal: {signal.title}")
 
             # Create a dummy image for each file
             image = create_image(f"Loaded Image from {os.path.basename(filename)}")
-            if not hasattr(image, "uuid") or image.uuid is None:
-                image.uuid = str(uuid.uuid4())
-            self.images[image.uuid] = image
+            self.images[str(uuid.uuid4())] = image
             if self.verbose:
                 execenv.print(f"[STUB] Created dummy image: {image.title}")
 
@@ -311,8 +307,8 @@ class DataLabStubServer:
         set_current: bool = True,
     ) -> bool:
         """Add signal data to DataLab."""
-        xdata = rpcbinary_to_array(xbinary)
-        ydata = rpcbinary_to_array(ybinary)
+        xdata = utils.rpcbinary_to_array(xbinary)
+        ydata = utils.rpcbinary_to_array(ybinary)
 
         # Create real SignalObj using factory function
         signal = create_signal(title, x=xdata, y=ydata)
@@ -321,16 +317,13 @@ class DataLabStubServer:
         signal.xlabel = xlabel or ""
         signal.ylabel = ylabel or ""
 
-        # Ensure signal has a UUID
-        if not hasattr(signal, "uuid") or signal.uuid is None:
-            signal.uuid = str(uuid.uuid4())
-
         # Store signal
-        self.signals[signal.uuid] = signal
+        obj_uuid = str(uuid.uuid4())
+        self.signals[obj_uuid] = signal
 
         # Add to group if specified
         if group_id and group_id in self.signal_groups:
-            self.signal_groups[group_id].objects.append(signal.uuid)
+            self.signal_groups[group_id].objects.append(obj_uuid)
 
         return True
 
@@ -349,7 +342,7 @@ class DataLabStubServer:
         set_current: bool = True,
     ) -> bool:
         """Add image data to DataLab."""
-        data = rpcbinary_to_array(zbinary)
+        data = utils.rpcbinary_to_array(zbinary)
 
         # Create real ImageObj using factory function
         image = create_image(title, data=data)
@@ -360,18 +353,62 @@ class DataLabStubServer:
         image.ylabel = ylabel or ""
         image.zlabel = zlabel or ""
 
-        # Ensure image has a UUID
-        if not hasattr(image, "uuid") or image.uuid is None:
-            image.uuid = str(uuid.uuid4())
-
         # Store image
-        self.images[image.uuid] = image
+        obj_uuid = str(uuid.uuid4())
+        self.images[obj_uuid] = image
 
         # Add to group if specified
         if group_id and group_id in self.image_groups:
-            self.image_groups[group_id].objects.append(image.uuid)
+            self.image_groups[group_id].objects.append(obj_uuid)
 
         return True
+
+    def add_object(
+        self, obj_data: list[str], group_id: str = "", set_current: bool = True
+    ) -> bool:
+        """Add object to stub server.
+
+        Args:
+            obj_serialized: Serialized signal or image object
+            group_id: group id in which to add the object. Defaults to ""
+            set_current: if True, set the added object as current
+        """
+        obj: SignalObj | ImageObj = utils.json_to_dataset(obj_data)
+        if self.verbose:
+            obj_str = "signal" if isinstance(obj, SignalObj) else "image"
+            obj_uuid = str(uuid.uuid4())
+            print(f"Added {obj_str} {obj.title} with UUID {obj_uuid}")
+            if isinstance(obj, SignalObj):
+                self.signals[obj_uuid] = obj
+                if group_id and group_id in self.signal_groups:
+                    self.signal_groups[group_id].objects.append(obj_uuid)
+            else:
+                self.images[obj_uuid] = obj
+                if group_id and group_id in self.image_groups:
+                    self.image_groups[group_id].objects.append(obj_uuid)
+
+    def load_from_files(self, filenames: list[str]) -> None:
+        """Load objects from files (stub implementation).
+
+        Args:
+            filenames: list of file names
+        """
+        if self.verbose:
+            print(
+                f"load_from_files called with {len(filenames)} files "
+                "(stub - not implemented)"
+            )
+
+    def load_from_directory(self, path: str) -> None:
+        """Load objects from directory (stub implementation).
+
+        Args:
+            path: directory path
+        """
+        if self.verbose:
+            print(
+                f"load_from_directory called with path: {path} (stub - not implemented)"
+            )
 
     def get_object_titles(self, panel: str | None = None) -> list[str]:
         """Get object titles for panel."""
@@ -424,17 +461,14 @@ class DataLabStubServer:
                 # Try to find by title
                 obj = None
                 for object_instance in objects.values():
-                    if (
-                        hasattr(object_instance, "title")
-                        and object_instance.title == uuid_str
-                    ):
+                    if object_instance.title == uuid_str:
                         obj = object_instance
                         break
                 if obj is None:
                     return None
 
         # Use standard serialization with real objects
-        return dataset_to_json(obj)
+        return utils.dataset_to_json(obj)
 
     # pylint: disable=unused-argument
     def get_object_shapes(
@@ -444,19 +478,14 @@ class DataLabStubServer:
         obj = self.signals.get(uuid_str) or self.images.get(uuid_str)
         if obj is None:
             return None
-
-        # Return shapes if available
-        if hasattr(obj, "roi") and obj.roi:
-            return [roi.to_dict() for roi in obj.roi]
-        return []
+        return [roi.to_dict() for roi in obj.roi]
 
     def delete_metadata(self, uuid_str: str, key: str) -> bool:
         """Delete metadata entry for object."""
         obj = self.signals.get(uuid_str) or self.images.get(uuid_str)
         if obj is None:
             return False
-
-        if hasattr(obj, "metadata") and key in obj.metadata:
+        if key in obj.metadata:
             del obj.metadata[key]
             return True
         return False
@@ -524,18 +553,17 @@ class DataLabStubServer:
             return None
 
         # Create a copy using serialization/deserialization
-        json_data = dataset_to_json(obj)
-        new_obj = json_to_dataset(json_data)
-        new_obj.uuid = str(uuid.uuid4())
+        json_data = utils.dataset_to_json(obj)
+        new_obj: SignalObj | ImageObj = utils.json_to_dataset(json_data)
+        obj_uuid = str(uuid.uuid4())
         new_obj.title = f"{obj.title} (copy)"
 
         # Store the copy
         if isinstance(obj, SignalObj):
-            self.signals[new_obj.uuid] = new_obj
+            self.signals[obj_uuid] = new_obj
         else:
-            self.images[new_obj.uuid] = new_obj
-
-        return new_obj.uuid
+            self.images[obj_uuid] = new_obj
+        return obj_uuid
 
     def copy_metadata(self, src_uuid: str, dst_uuid: str) -> bool:
         """Copy metadata from source to destination object."""
@@ -545,10 +573,8 @@ class DataLabStubServer:
         if src_obj is None or dst_obj is None:
             return False
 
-        if hasattr(src_obj, "metadata") and hasattr(dst_obj, "metadata"):
-            dst_obj.metadata.update(src_obj.metadata)
-            return True
-        return False
+        dst_obj.metadata.update(src_obj.metadata)
+        return True
 
     # Group operations
     # pylint: disable=unused-argument
@@ -628,6 +654,34 @@ class DataLabStubServer:
             return True
         return False
 
+    # Macro operations (stub implementations)
+    def import_macro_from_file(self, filename: str) -> None:
+        """Import macro from file (stub implementation).
+
+        Args:
+            filename: Filename
+        """
+        if self.verbose:
+            print(f"import_macro_from_file called: {filename} (stub - not implemented)")
+
+    def run_macro(self, number_or_title: int | str | None = None) -> None:
+        """Run macro (stub implementation).
+
+        Args:
+            number_or_title: Number or title of the macro. Defaults to None.
+        """
+        if self.verbose:
+            print(f"run_macro called: {number_or_title} (stub - not implemented)")
+
+    def stop_macro(self, number_or_title: int | str | None = None) -> None:
+        """Stop macro (stub implementation).
+
+        Args:
+            number_or_title: Number or title of the macro. Defaults to None.
+        """
+        if self.verbose:
+            print(f"stop_macro called: {number_or_title} (stub - not implemented)")
+
     # Calculation operations
     def calc(self, name: str, param: list[str] | None = None) -> str | None:
         """Execute calculation and return result object UUID."""
@@ -653,16 +707,18 @@ class DataLabStubServer:
         # Create a dummy result object based on source type
         if isinstance(src_obj, SignalObj):
             result = create_signal(f"{name}({src_obj.title})")
-            self.signals[result.uuid] = result
+            obj_uuid = str(uuid.uuid4())
+            self.signals[obj_uuid] = result
             if self.verbose:
                 execenv.print(f"[STUB] Created dummy signal result: {result.title}")
-            return result.uuid
+            return obj_uuid
         if isinstance(src_obj, ImageObj):
             result = create_image(f"{name}({src_obj.title})")
-            self.images[result.uuid] = result
+            obj_uuid = str(uuid.uuid4())
+            self.images[obj_uuid] = result
             if self.verbose:
                 execenv.print(f"[STUB] Created dummy image result: {result.title}")
-            return result.uuid
+            return obj_uuid
 
         if self.verbose:
             execenv.print("[STUB] Unsupported object type for calculation")

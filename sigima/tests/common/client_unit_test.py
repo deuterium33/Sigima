@@ -80,11 +80,15 @@ class RemoteClientTester:
             self.log("🔥 Connection refused 🔥 (Stub server is not ready)")
             return False
 
-    def init_cdl(self) -> bool:
-        """Initialize DataLab connection"""
+    def init_cdl(self, port: str | None = None) -> bool:
+        """Initialize DataLab connection
+
+        Args:
+            port: Port to connect to (if None, uses default)
+        """
         try:
             self.datalab = SimpleRemoteProxy(autoconnect=False)
-            self.datalab.connect(timeout=1.0, retries=1)
+            self.datalab.connect(port=port, timeout=1.0, retries=1)
             self.log("✨ Initialized DataLab connection ✨")
             self.log(f"  Communication port: {self.datalab.port}")
 

@@ -234,6 +234,29 @@ class SimpleAbstractDLControl(abc.ABC):
         """
 
     @abc.abstractmethod
+    def add_object(
+        self, obj: SignalObj | ImageObj, group_id: str = "", set_current: bool = True
+    ) -> None:
+        """Add object to DataLab.
+
+        Args:
+            obj: Signal or image object
+            group_id: group id in which to add the object. Defaults to ""
+            set_current: if True, set the added object as current
+
+        Returns:
+            True if object was added successfully, False otherwise
+        """
+
+    @abc.abstractmethod
+    def load_from_directory(self, path: str) -> None:
+        """Open objects from directory in current panel (signals/images).
+
+        Args:
+            path: directory path
+        """
+
+    @abc.abstractmethod
     def add_group(
         self, title: str, panel: str | None = None, select: bool = False
     ) -> None:
