@@ -27,7 +27,9 @@ import numpy as np
 from guidata.env import execenv
 from guidata.io import JSONReader, JSONWriter
 from guidata.userconfig import get_config_basedir
+from packaging.version import Version
 
+import sigima
 from sigima.client.base import SimpleBaseProxy
 from sigima.client.utils import array_to_rpcbinary, dataset_to_json, json_to_dataset
 from sigima.objects import ImageObj, SignalObj
@@ -100,41 +102,6 @@ def json_to_items(json_str: str | None) -> list:
     return items
 
 
-def is_version_at_least(version1: str, version2: str) -> bool:
-    """
-    Compare two version strings to check if the first version is at least
-    equal to the second.
-
-    Args:
-        version1 (str): The first version string.
-        version2 (str): The second version string.
-
-    Returns:
-        bool: True if version1 is greater than or equal to version2, False otherwise.
-
-    .. note::
-
-        Development, alpha, beta, and rc versions are considered to be equal
-        to the corresponding release version.
-    """
-    # Split the version strings into parts
-    parts1 = [part.strip() for part in version1.split(".")]
-    parts2 = [part.strip() for part in version2.split(".")]
-
-    for part1, part2 in zip(parts1, parts2):
-        if part1.isdigit() and part2.isdigit():
-            if int(part1) > int(part2):
-                return True
-            if int(part1) < int(part2):
-                return False
-        elif part1 > part2:
-            return True
-        elif part1 < part2:
-            return False
-
-    return len(parts1) >= len(parts2)
-
-
 class SimpleRemoteProxy(SimpleBaseProxy):
     """Object representing a proxy/client to DataLab XML-RPC server.
     This object is used to call DataLab functions from a Python script.
@@ -199,13 +166,17 @@ class SimpleRemoteProxy(SimpleBaseProxy):
             version = self.get_version()
         except ConnectionRefusedError as exc:
             raise ConnectionRefusedError("DataLab is currently not running") from exc
-        # If DataLab version is not compatible with this client, show a warning using
-        # standard `warnings` module:
-        if not is_version_at_least(version, __required_server_version__):
+        # If DataLab version is not compatible with this client, show a warning
+        server_ver = Version(version)
+        client_ver = Version(sigima.__version__)
+        if server_ver < Version(__required_server_version__):
             warnings.warn(
-                f"DataLab version {version} is not fully compatible with "
-                f"Please upgrade DataLab to {__required_server_version__} "
-                f"or higher."
+                f"DataLab server version ({server_ver}) may not be fully compatible "
+                f"with Sigima client version {client_ver} "
+                f"(requires DataLab >= {__required_server_version__}).\n"
+                f"Please upgrade DataLab to {__required_server_version__} or higher.",
+                UserWarning,
+                stacklevel=2,
             )
 
     def connect(
