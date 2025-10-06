@@ -190,8 +190,13 @@ class DataLabStubServer:
 
     # Basic server methods
     def get_version(self) -> str:
-        """Get DataLab version."""
-        return "1.0.0-stub"
+        """Get DataLab version.
+
+        Returns a valid PEP 440 version string for testing purposes.
+        Since this is a stub server, we return "1.0.0" which is compliant
+        with both PEP 440 and the minimum version requirement.
+        """
+        return "1.0.0"
 
     def close_application(self) -> None:
         """Close DataLab application."""
