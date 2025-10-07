@@ -99,18 +99,7 @@ Base proxy
 
 from sigima.client.base import SimpleBaseProxy
 from sigima.client.remote import SimpleRemoteProxy
-from sigima.client.stub import (
-    DataLabStubServer,
-    datalab_stub_server,
-    patch_simpleremoteproxy_for_stub,
-)
 
-__all__ = [
-    "SimpleBaseProxy",
-    "SimpleRemoteProxy",
-    "DataLabStubServer",
-    "datalab_stub_server",
-    "patch_simpleremoteproxy_for_stub",
-]
+__all__ = ["SimpleBaseProxy", "SimpleRemoteProxy"]
 
 # TODO: Refactor the `sigima.client` with `datalab.base` and `datalab.control.remote`

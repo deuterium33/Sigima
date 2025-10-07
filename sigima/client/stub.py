@@ -790,7 +790,8 @@ def patch_simpleremoteproxy_for_stub() -> DataLabStubServer:
         ...     stub_server.stop()
     """
     # pylint: disable=import-outside-toplevel
-    from sigima.client import SimpleRemoteProxy
+    # Import directly from remote module to avoid circular dependency
+    from sigima.client.remote import SimpleRemoteProxy
 
     # Store original method
     # pylint: disable=protected-access

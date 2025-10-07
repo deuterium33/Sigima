@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 import sigima
-from sigima.client import patch_simpleremoteproxy_for_stub
+from sigima.client.stub import patch_simpleremoteproxy_for_stub
 
 # Check if plotpy is available
 try:

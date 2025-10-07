@@ -105,7 +105,7 @@ def patch_datalab_client_example():
     Sphinx-Gallery runs datalab_client.py, it connects to a stub server
     instead of requiring a real DataLab instance.
     """
-    from sigima.client import patch_simpleremoteproxy_for_stub
+    from sigima.client.stub import patch_simpleremoteproxy_for_stub
 
     # Start stub server and apply the patch
     return patch_simpleremoteproxy_for_stub()

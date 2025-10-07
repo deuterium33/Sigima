@@ -29,7 +29,6 @@ from guidata.io import JSONReader, JSONWriter
 from guidata.userconfig import get_config_basedir
 from packaging.version import Version
 
-import sigima
 from sigima.client.base import SimpleBaseProxy
 from sigima.client.utils import array_to_rpcbinary, dataset_to_json, json_to_dataset
 from sigima.objects import ImageObj, SignalObj
@@ -166,9 +165,13 @@ class SimpleRemoteProxy(SimpleBaseProxy):
             version = self.get_version()
         except ConnectionRefusedError as exc:
             raise ConnectionRefusedError("DataLab is currently not running") from exc
+
         # If DataLab version is not compatible with this client, show a warning
+        # pylint: disable=cyclic-import
+        from sigima import __version__  # pylint: disable=import-outside-toplevel
+
         server_ver = Version(version)
-        client_ver = Version(sigima.__version__)
+        client_ver = Version(__version__)
         if server_ver < Version(__required_server_version__):
             warnings.warn(
                 f"DataLab server version ({server_ver}) may not be fully compatible "
