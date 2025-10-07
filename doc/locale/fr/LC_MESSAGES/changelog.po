@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-04 10:23+0200\n"
+"POT-Creation-Date: 2025-10-07 14:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -28,29 +28,50 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"
 
-msgid "✨ Core architecture update: scalar result types"
-msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
-
-msgid "Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects."
-msgstr "Introduction de deux nouveaux types de résultats immuables: `TableResult` et `GeometryResult`, remplaçant les anciens objets `ResultProperties` et `ResultShape`."
-
-msgid "These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse."
-msgstr "Ces nouveaux types de résultats sont orientés vers le calcul et dépourvus de logique spécifique à l'application (par exemple, Qt, métadonnées), permettant une meilleure séparation des préoccupations et une réutilisation future."
-
-msgid "Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object."
-msgstr "Ajout d'un utilitaire `TableResultBuilder` pour définir progressivement des calculs tabulaires (par exemple, des statistiques sur les signaux ou les images) et générer un objet `TableResult`."
-
-msgid "All metadata-related behaviors of former result types have been migrated to the DataLab application layer."
-msgstr "Tous les comportements liés aux métadonnées des anciens types de résultats ont été migrés vers la couche d'application DataLab."
-
-msgid "Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core."
-msgstr "Suppression de fonctionnalités obsolètes ou étroitement couplées telles que `from_metadata_entry()` et `transform_shapes()` du cœur de Sigima."
-
-msgid "This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API."
-msgstr "Cette refonte améliore considérablement la modularité, la testabilité et la clarté de l'API de calcul scalaire."
-
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**DateTime support for signal data**: Added comprehensive datetime handling for signal X-axis data"
+msgstr "**Prise en charge des DateTime pour les données de signal** : Ajout d'une gestion complète des DateTime pour les données de l'axe X du signal"
+
+msgid "Automatic detection and conversion of datetime columns when reading CSV files"
+msgstr "Détection et conversion automatiques des colonnes datetime lors de la lecture des fichiers CSV"
+
+msgid "Detects datetime values in the first or second column (handling index columns)"
+msgstr "Détecte les valeurs datetime dans la première ou la deuxième colonne (gestion des colonnes d'index)"
+
+msgid "Validates datetime format and ensures reasonable date ranges (post-1900)"
+msgstr "Valide le format datetime et garantit des plages de dates raisonnables (post-1900)"
+
+msgid "Converts datetime strings to float timestamps for efficient computation"
+msgstr "Convertit les chaînes datetime en timestamps flottants pour un calcul efficace"
+
+msgid "Preserves datetime metadata for proper display and export"
+msgstr "Préserve les métadonnées datetime pour un affichage et une exportation appropriés"
+
+msgid "New `SignalObj` methods for datetime manipulation:"
+msgstr "Nouvelles méthodes `SignalObj` pour la manipulation des datetime :"
+
+msgid "`set_x_from_datetime()`: Convert datetime objects/strings to signal X data with configurable time units (s, ms, μs, ns, min, h)"
+msgstr "`set_x_from_datetime()`: Convertit les objets/chaînes datetime en données X de signal avec des unités de temps configurables (s, ms, μs, ns, min, h)"
+
+msgid "`get_x_as_datetime()`: Retrieve X values as datetime objects for display or export"
+msgstr "`get_x_as_datetime()`: Récupère les valeurs X sous forme d'objets datetime pour l'affichage ou l'exportation"
+
+msgid "`is_x_datetime()`: Check if signal contains datetime data"
+msgstr "`is_x_datetime()`: Vérifie si le signal contient des données datetime"
+
+msgid "Enhanced CSV export to preserve datetime format when writing signals with datetime X-axis"
+msgstr "Export CSV amélioré pour préserver le format datetime lors de l'écriture de signaux avec un axe X datetime"
+
+msgid "New constants module (`sigima.objects.signal.constants`) defining datetime metadata keys and time unit conversion factors"
+msgstr "Nouveau module de constantes (`sigima.objects.signal.constants`) définissant les clés de métadonnées datetime et les facteurs de conversion des unités de temps"
+
+msgid "Comprehensive unit tests covering datetime conversion, I/O roundtrip, and edge cases"
+msgstr "Tests unitaires complets couvrant la conversion datetime, le roundtrip I/O et les cas limites"
+
+msgid "Example test data file with real-world temperature/humidity logger data (`datetime.txt`)"
+msgstr "Fichier de données de test exemple avec des données de logger de température/humidité du monde réel (`datetime.txt`)"
 
 msgid "**New client subpackage**: Migrated DataLab client functionality to `sigima.client`"
 msgstr "**Nouveau sous-paquet client** : Fonctionnalité client DataLab migrée vers `sigima.client`"
@@ -538,6 +559,27 @@ msgstr "La résolution automatique des conflits de noms de fichiers garantit des
 
 msgid "Enhanced workflow efficiency for processing and saving multiple objects in batch operations."
 msgstr "Efficacité améliorée du flux de travail pour le traitement et l'enregistrement de plusieurs objets dans des opérations par lots."
+
+msgid "✨ Core architecture update: scalar result types"
+msgstr "✨ Mise à jour de l'architecture de base: types de résultats scalaires"
+
+msgid "Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects."
+msgstr "Introduction de deux nouveaux types de résultats immuables: `TableResult` et `GeometryResult`, remplaçant les anciens objets `ResultProperties` et `ResultShape`."
+
+msgid "These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse."
+msgstr "Ces nouveaux types de résultats sont orientés vers le calcul et dépourvus de logique spécifique à l'application (par exemple, Qt, métadonnées), permettant une meilleure séparation des préoccupations et une réutilisation future."
+
+msgid "Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object."
+msgstr "Ajout d'un utilitaire `TableResultBuilder` pour définir progressivement des calculs tabulaires (par exemple, des statistiques sur les signaux ou les images) et générer un objet `TableResult`."
+
+msgid "All metadata-related behaviors of former result types have been migrated to the DataLab application layer."
+msgstr "Tous les comportements liés aux métadonnées des anciens types de résultats ont été migrés vers la couche d'application DataLab."
+
+msgid "Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core."
+msgstr "Suppression de fonctionnalités obsolètes ou étroitement couplées telles que `from_metadata_entry()` et `transform_shapes()` du cœur de Sigima."
+
+msgid "This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API."
+msgstr "Cette refonte améliore considérablement la modularité, la testabilité et la clarté de l'API de calcul scalaire."
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Corrections de bogues:"

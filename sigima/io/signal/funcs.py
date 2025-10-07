@@ -15,6 +15,11 @@ import numpy as np
 import pandas as pd
 
 from sigima.io.common.textreader import count_lines, read_first_n_lines
+from sigima.objects.signal.constants import (
+    DATETIME_X_FORMAT_KEY,
+    DATETIME_X_KEY,
+    DEFAULT_DATETIME_FORMAT,
+)
 from sigima.worker import CallbackWorkerProtocol
 
 
@@ -128,22 +133,185 @@ DATA_HEADERS = [
 ]
 
 
+def _read_df_without_header(
+    filename: str, skiprows: int | None = None
+) -> tuple[pd.DataFrame | None, str, str]:
+    """Try to read a CSV file without header, testing various delimiters and decimal.
+
+    Args:
+        filename: CSV file name
+        skiprows: Number of rows to skip at the beginning of the file
+
+    Returns:
+        A tuple (DataFrame if successful, None otherwise, decimal used, delimiter used)
+    """
+    for decimal in (".", ","):
+        for delimiter in (",", ";", r"\s+"):
+            try:
+                df = pd.read_csv(
+                    filename,
+                    decimal=decimal,
+                    delimiter=delimiter,
+                    header=None,
+                    comment="#",
+                    nrows=1000,  # Read only the first 1000 lines
+                    encoding_errors="ignore",
+                    skiprows=skiprows,
+                    dtype=float,  # Keep dtype to validate delimiter detection
+                )
+                break
+            except (pd.errors.ParserError, ValueError):
+                df = None
+        if df is not None:
+            break
+    return df, decimal, delimiter
+
+
+def _read_df_with_header(filename: str) -> tuple[pd.DataFrame | None, str, str]:
+    """Try to read a CSV file with header, testing various delimiters and decimal.
+
+    Args:
+        filename: CSV file name
+
+    Returns:
+        A tuple (DataFrame if successful, None otherwise, decimal used, delimiter used)
+    """
+    for decimal in (".", ","):
+        for delimiter in (",", ";", r"\s+"):
+            # Headers are generally in the first 10 lines, so we try to skip the
+            # minimum number of lines before reading the data:
+            for skiprows in range(20):
+                try:
+                    df = pd.read_csv(
+                        filename,
+                        decimal=decimal,
+                        delimiter=delimiter,
+                        skiprows=skiprows,
+                        comment="#",
+                        nrows=1000,  # Read only the first 1000 lines
+                        encoding_errors="ignore",
+                    )
+                    # Validate: CSV should have at least 2 columns (x and y)
+                    # If only 1 column, likely wrong delimiter
+                    if df.shape[1] >= 2:
+                        break  # Good delimiter found
+                    df = None  # Try next delimiter
+                except (pd.errors.ParserError, ValueError):
+                    df = None
+            if df is not None:
+                break
+        if df is not None:
+            break
+    return df, decimal, delimiter
+
+
+def _detect_datetime_col(df: pd.DataFrame) -> tuple[pd.DataFrame, dict | None]:
+    """Try to detect the presence of a datetime column in a DataFrame.
+
+    Detect if the first or second column contains datetime values, and convert it to
+    float timestamps if so.
+
+    Args:
+        df: Input DataFrame
+
+    Returns:
+        A tuple (DataFrame with datetime column converted, datetime metadata dict)
+    """
+    datetime_col_idx = None
+
+    for col_idx in [0, 1]:  # Check first two columns
+        col_data = df.iloc[:, col_idx]
+        # Try to convert to datetime
+        try:
+            # Attempt to parse as datetime
+            datetime_series = pd.to_datetime(col_data, errors="coerce")
+            # Check if most values were successfully converted (>90%)
+            valid_ratio = datetime_series.notna().sum() / len(datetime_series)
+
+            # Skip if conversion ratio is too low
+            if valid_ratio <= 0.9:
+                continue
+
+            # Check if values have reasonable variation and are actual dates
+            unique_dates = datetime_series.dropna().nunique()
+            if unique_dates <= 1:
+                continue
+
+            # Check date range - should be reasonable dates, not epoch times
+            min_date = datetime_series.min()
+            max_date = datetime_series.max()
+            # Dates should be after 1900 and the range should be > 1 sec
+            valid_datetime = (
+                min_date.year >= 1900 and (max_date - min_date).total_seconds() > 1.0
+            )
+
+            if valid_datetime:
+                # This is a datetime column!
+                datetime_col_idx = col_idx
+                break
+        except (ValueError, TypeError, pd.errors.OutOfBoundsDatetime):
+            # Not a datetime column, continue checking
+            pass
+
+    datetime_metadata = None
+
+    if datetime_col_idx is not None:
+        # Convert datetime column to float timestamps
+        col_data = df.iloc[:, datetime_col_idx]
+        datetime_series = pd.to_datetime(col_data, errors="coerce")
+        x_float = datetime_series.astype(np.int64) / 1e9
+        # Store datetime metadata (unit will be stored in xunit attribute)
+        datetime_metadata = {
+            DATETIME_X_KEY: True,
+            DATETIME_X_FORMAT_KEY: DEFAULT_DATETIME_FORMAT,
+        }
+
+        # If datetime is in column 1 and column 0 looks like an index, drop column 0
+        if datetime_col_idx == 1:
+            try:
+                # Try to convert first column to int - if sequential,
+                # it's likely an index column
+                first_col = pd.to_numeric(df.iloc[:, 0], errors="coerce")
+                if first_col.notna().all():
+                    # Check if it's a sequential index (1, 2, 3, ...)
+                    diffs = first_col.diff().dropna()
+                    if (diffs == 1).sum() / len(diffs) > 0.9:
+                        # Drop the index column
+                        df = df.iloc[:, 1:].copy()
+                        datetime_col_idx = 0  # Now datetime is in position 0
+            except (ValueError, TypeError):
+                pass
+
+        # Replace datetime column with float timestamps
+        df.iloc[:, datetime_col_idx] = x_float
+
+    return df, datetime_metadata
+
+
 def read_csv(
     filename: str,
     worker: CallbackWorkerProtocol | None = None,
 ) -> tuple[
-    np.ndarray, str | None, str | None, list[str] | None, list[str] | None, str | None
+    np.ndarray,
+    str | None,
+    str | None,
+    list[str] | None,
+    list[str] | None,
+    str | None,
+    dict | None,
 ]:
-    """Read CSV data, and return tuple (xydata, xlabel, xunit, ylabels, yunits, header).
+    """Read CSV data and return parsed components including datetime metadata.
 
     Args:
         filename: CSV file name
         worker: Callback worker object
 
     Returns:
-        Tuple (xydata, xlabel, xunit, ylabels, yunits, header)
+        Tuple (xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata)
+        where datetime_metadata is a dict with datetime conversion info if detected
     """
-    xydata, xlabel, xunit, ylabels, yunits, header = None, None, None, None, None, None
+    xydata, xlabel, xunit, ylabels, yunits = None, None, None, None, None
+    header, datetime_metadata = None, None
 
     # The first attempt is to read the CSV file assuming it has no header because it
     # won't raise an error if the first line is data. If it fails, we try to read it
@@ -163,51 +331,11 @@ def read_csv(
 
     # First attempt: no header (try to read with different delimiters)
     read_without_header = True
-    for decimal in (".", ","):
-        for delimiter in (",", ";", r"\s+"):
-            try:
-                df = pd.read_csv(
-                    filename,
-                    dtype=float,
-                    decimal=decimal,
-                    delimiter=delimiter,
-                    header=None,
-                    comment="#",
-                    nrows=1000,  # Read only the first 1000 lines
-                    encoding_errors="ignore",
-                    skiprows=skiprows,
-                )
-                break
-            except (pd.errors.ParserError, ValueError):
-                df = None
-        if df is not None:
-            break
+    df, decimal, delimiter = _read_df_without_header(filename, skiprows=skiprows)
 
     # Second attempt: with header
     if df is None:
-        for decimal in (".", ","):
-            for delimiter in (",", ";", r"\s+"):
-                # Headers are generally in the first 10 lines, so we try to skip the
-                # minimum number of lines before reading the data:
-                for skiprows in range(20):
-                    try:
-                        df = pd.read_csv(
-                            filename,
-                            dtype=float,
-                            decimal=decimal,
-                            delimiter=delimiter,
-                            skiprows=skiprows,
-                            comment="#",
-                            nrows=1000,  # Read only the first 1000 lines
-                            encoding_errors="ignore",
-                        )
-                        break
-                    except (pd.errors.ParserError, ValueError):
-                        df = None
-                if df is not None:
-                    break
-            if df is not None:
-                break
+        df, decimal, delimiter = _read_df_with_header(filename)
 
         if df is None:
             raise ValueError("Unable to read CSV file (format not supported)")
@@ -216,8 +344,13 @@ def read_csv(
         # if the first line is a header or data. We try to read the first line as
         # a header, and if it fails, we read it as data.
         try:
-            df.columns.astype(float)
-            # This means that the first line is data, so we have to read it again, but
+            # Try to convert columns to float - if first column is datetime, this will
+            # fail and we know we have a header
+            first_col_numeric = pd.to_numeric(df.columns[0], errors="coerce")
+            if pd.notna(first_col_numeric):
+                # First column name is numeric, might be data
+                df.columns.astype(float)
+                # This means the first line is data, so we re-read it, but
             # without the header:
             read_without_header = True
         except (ValueError, TypeError):  # TypeError can occur with pandas >= 2.2
@@ -244,26 +377,95 @@ def read_csv(
                 header = "\n".join(header.splitlines()[:-1])
 
     # Now we read the whole file with the correct options
-    df = read_csv_by_chunks(
-        filename,
-        worker=worker,
-        decimal=decimal,
-        delimiter=delimiter,
-        header=None if read_without_header else "infer",
-        skiprows=skiprows,
-        comment="#",
-    )
+    try:
+        df = read_csv_by_chunks(
+            filename,
+            worker=worker,
+            decimal=decimal,
+            delimiter=delimiter,
+            header=None if read_without_header else "infer",
+            skiprows=skiprows,
+            comment="#",
+        )
+    except pd.errors.ParserError:
+        # If chunked reading fails (e.g., ragged CSV), try different approaches
+        df = None
+        # Try with python engine (more flexible)
+        for skip in [skiprows, 0, 9, 10, 15, 20]:  # Try different skiprows values
+            if df is not None:
+                break
+            try:
+                df = pd.read_csv(
+                    filename,
+                    decimal=decimal,
+                    delimiter=delimiter,
+                    header=None if read_without_header else "infer",
+                    skiprows=skip,
+                    comment="#",
+                    engine="python",
+                    encoding_errors="ignore",
+                )
+                break  # Success!
+            except (pd.errors.ParserError, ValueError):
+                continue
+
+        # If still failing, try auto-detect
+        if df is None:
+            try:
+                df = pd.read_csv(
+                    filename,
+                    engine="python",
+                    encoding_errors="ignore",
+                    comment="#",
+                )
+            except (pd.errors.ParserError, ValueError) as e:
+                raise ValueError(f"Unable to parse CSV file: {e}") from e
 
     # Remove rows and columns where all values are NaN in the DataFrame:
     df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
 
+    # Check if first row contains header strings (non-numeric values in all columns)
+    # This happens when header="infer" fails to detect the header
+    if not df.empty and isinstance(df.columns[0], (int, np.integer)):
+        # Columns are integers, not strings - header wasn't properly parsed
+        first_row = df.iloc[0]
+        # Count how many values in first row are non-numeric strings
+        non_numeric_count = 0
+        for val in first_row:
+            try:
+                float(val)
+            except (ValueError, TypeError):
+                if isinstance(val, str):
+                    non_numeric_count += 1
+        # If most of first row is non-numeric strings, it's likely a header row
+        if non_numeric_count / len(first_row) > 0.5:
+            # Drop the first row (header)
+            df = df.iloc[1:].reset_index(drop=True)
+
+    # Try to detect datetime columns - check first two columns
+    # Often CSV files have an index column, then a datetime column
+    if not df.empty and df.shape[1] >= 2:
+        df, datetime_metadata = _detect_datetime_col(df)
+
     # Converting to NumPy array
-    xydata = df.to_numpy(float)
+    try:
+        xydata = df.to_numpy(float)
+    except (ValueError, TypeError):
+        # If conversion fails, try converting each column individually
+        # and dropping columns that can't be converted
+        for col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        df = df.dropna(axis=1, how="all")
+        xydata = df.to_numpy(float)
+
     if xydata.size == 0:
-        raise ValueError("Unable to read CSV file (no supported data after cleaning)")
+        raise ValueError(
+            f"Unable to read CSV file (no supported data after cleaning): {filename}"
+        )
 
     xlabel, ylabels, xunit, yunits = get_labels_units_from_dataframe(df)
-    return xydata, xlabel, xunit, ylabels, yunits, header
+
+    return xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata
 
 
 def write_csv(

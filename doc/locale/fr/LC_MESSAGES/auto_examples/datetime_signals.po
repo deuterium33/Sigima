@@ -1,0 +1,128 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-07 14:58+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_datetime_signals.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_datetime_signals.py>` pour télécharger le code complet de l'exemple."
+
+msgid "DateTime Signal Processing with Sigima"
+msgstr "Traitement des signaux DateTime avec Sigima"
+
+msgid "This example demonstrates how to work with signals that have datetime X-axis data in Sigima. DateTime support is essential for time-series analysis where you need to preserve human-readable timestamps while performing signal processing."
+msgstr "Cet exemple démontre comment travailler avec des signaux ayant des données d'axe X de type datetime dans Sigima. Le support de DateTime est essentiel pour l'analyse des séries temporelles où vous devez préserver des horodatages lisibles par l'homme tout en effectuant un traitement de signal."
+
+msgid "The example shows:"
+msgstr "L'exemple montre :"
+
+msgid "Creating signals from datetime objects and strings"
+msgstr "Création de signaux à partir d'objets datetime et de chaînes"
+
+msgid "Using different time units (hours, minutes, seconds, milliseconds, etc.)"
+msgstr "Utilisation de différentes unités de temps (heures, minutes, secondes, millisecondes, etc.)"
+
+msgid "Visualizing datetime signals with proper time formatting"
+msgstr "Visualisation des signaux datetime avec un formatage temporel approprié"
+
+msgid "CSV I/O with datetime preservation"
+msgstr "Entrée/Sortie CSV avec préservation des datetimes"
+
+msgid "Roundtrip testing across all supported time units"
+msgstr "Tests de roundtrip sur toutes les unités de temps prises en charge"
+
+msgid "This tutorial uses PlotPy for visualization, providing interactive plots with properly formatted datetime axes."
+msgstr "Ce tutoriel utilise PlotPy pour la visualisation, fournissant des graphiques interactifs avec des axes datetime correctement formatés."
+
+msgid "Importing necessary modules"
+msgstr "Importation des modules nécessaires"
+
+msgid "We'll start by importing all the required modules for datetime signal processing and visualization."
+msgstr "Nous commencerons par importer tous les modules nécessaires au traitement des signaux datetime et à la visualisation."
+
+msgid "Creating datetime signals from datetime objects"
+msgstr "Création de signaux datetime à partir d'objets datetime"
+
+msgid "The most common way to create datetime signals is from Python datetime objects. This is useful when you have timestamps from sensors, logs, or other time-series data."
+msgstr "La façon la plus courante de créer des signaux datetime est à partir d'objets datetime Python. Cela est utile lorsque vous avez des horodatages provenant de capteurs, de journaux ou d'autres données de séries temporelles."
+
+msgid "Qt widget 1"
+msgstr ""
+
+msgid "Creating datetime signals from string timestamps"
+msgstr "Création de signaux datetime à partir d'horodatages sous forme de chaînes"
+
+msgid "Often, datetime data comes as strings (e.g., from CSV files or logs). Sigima can automatically parse common datetime string formats."
+msgstr "Souvent, les données datetime se présentent sous forme de chaînes (par exemple, à partir de fichiers CSV ou de journaux). Sigima peut automatiquement analyser les formats de chaînes datetime courants."
+
+msgid "Using different time units"
+msgstr "Utilisation de différentes unités de temps"
+
+msgid "Sigima supports various time units to match your data's natural resolution: nanoseconds (ns), microseconds (us), milliseconds (ms), seconds (s), minutes (min), and hours (h)."
+msgstr "Sigima prend en charge diverses unités de temps pour correspondre à la résolution naturelle de vos données : nanosecondes (ns), microsecondes (us), millisecondes (ms), secondes (s), minutes (min) et heures (h)."
+
+msgid "High-resolution signals with milliseconds"
+msgstr "Signaux haute résolution avec millisecondes"
+
+msgid "For high-frequency measurements, use millisecond or microsecond resolution."
+msgstr "Pour les mesures à haute fréquence, utilisez une résolution en millisecondes ou en microsecondes."
+
+msgid "Comparing multiple datetime signals"
+msgstr "Comparaison de plusieurs signaux datetime"
+
+msgid "You can visualize multiple datetime signals together to compare trends."
+msgstr "Vous pouvez visualiser plusieurs signaux datetime ensemble pour comparer les tendances."
+
+msgid "Sigima automatically preserves datetime information when writing to CSV, storing timestamps as human-readable strings instead of opaque float values."
+msgstr "Sigima préserve automatiquement les informations datetime lors de l'écriture dans un fichier CSV, stockant les horodatages sous forme de chaînes lisibles par l'homme plutôt que de valeurs flottantes opaques."
+
+msgid "Summary"
+msgstr "Résumé"
+
+msgid "This example demonstrated the complete datetime signal workflow in Sigima:"
+msgstr "Cet exemple a démontré le flux de travail complet des signaux datetime dans Sigima :"
+
+msgid "**Creating datetime signals** from objects and strings"
+msgstr "**Création de signaux datetime** à partir d'objets et de chaînes"
+
+msgid "**Multiple time units** (ns, us, ms, s, min, h) stored in `xunit` attribute"
+msgstr "**Plusieurs unités de temps** (ns, us, ms, s, min, h) stockées dans l'attribut `xunit`"
+
+msgid "**Visualization** with properly formatted datetime axes"
+msgstr "**Visualisation** avec des axes datetime correctement formatés"
+
+msgid "**CSV I/O** with automatic datetime preservation"
+msgstr "**CSV I/O** avec préservation automatique des datetime"
+
+msgid "The time unit is stored in the signal's `xunit` attribute, making it easy to access and consistent with other signal metadata. DateTime support makes Sigima ideal for time-series analysis, sensor data processing, and any application requiring human-readable temporal information."
+msgstr "L'unité de temps est stockée dans l'attribut `xunit` du signal, ce qui facilite l'accès et assure la cohérence avec les autres métadonnées du signal. La prise en charge des datetime fait de Sigima un outil idéal pour l'analyse des séries temporelles, le traitement des données de capteurs et toute application nécessitant des informations temporelles lisibles par l'homme."
+
+msgid "**Total running time of the script:** (0 minutes 4.946 seconds)"
+msgstr ""
+
+msgid ":download:`Download Jupyter notebook: datetime_signals.ipynb <datetime_signals.ipynb>`"
+msgstr ""
+
+msgid ":download:`Download Python source code: datetime_signals.py <datetime_signals.py>`"
+msgstr ""
+
+msgid ":download:`Download zipped: datetime_signals.zip <datetime_signals.zip>`"
+msgstr ""
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr ""

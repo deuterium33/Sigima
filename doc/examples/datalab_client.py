@@ -13,10 +13,6 @@ environment outside of DataLab to interact with an active DataLab session.
    This example is not executed during documentation build as it requires
    an active DataLab session to connect to. It is included in the gallery
    for reference and can be run manually when DataLab is running.
-
-Created on Fri May 12 12:28:56 2023
-
-@author: p.raybaut
 """
 
 # %% Importing necessary modules

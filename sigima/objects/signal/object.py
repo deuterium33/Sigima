@@ -27,9 +27,17 @@ from typing import Type
 
 import guidata.dataset as gds
 import numpy as np
+import pandas as pd
 
 from sigima.config import _
 from sigima.objects import base
+from sigima.objects.signal.constants import (
+    DATETIME_X_FORMAT_KEY,
+    DATETIME_X_KEY,
+    DEFAULT_DATETIME_FORMAT,
+    TIME_UNIT_FACTORS,
+    VALID_TIME_UNITS,
+)
 from sigima.objects.signal.roi import SignalROI
 
 
@@ -205,7 +213,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         assert isinstance(self.xydata, np.ndarray)
         assert isinstance(data, (list, np.ndarray))
         data = np.array(data, dtype=float)
-        assert data.shape[1] == self.xydata.shape[1], (
+        assert data.shape[0] == self.xydata.shape[1], (
             "X data size must match Y data size"
         )
         if not np.all(np.diff(data) >= 0.0):
@@ -323,3 +331,102 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         # We take the real part of the x data to avoid `ComplexWarning` warnings
         # when creating and manipulating the `XRangeSelection` shape (`plotpy`)
         return self.x.real[indices].tolist()
+
+    def is_x_datetime(self) -> bool:
+        """Check if x data represents datetime values.
+
+        Returns:
+            True if x data represents datetime values, False otherwise
+        """
+        return self.metadata.get(DATETIME_X_KEY, False)
+
+    def set_x_from_datetime(
+        self,
+        dt_array: np.ndarray | list,
+        unit: str = "s",
+        format_str: str | None = None,
+    ) -> None:
+        """Set x values from datetime objects or strings.
+
+        This method converts datetime data to float timestamps for efficient storage
+        and computation while preserving the datetime context through metadata.
+
+        Args:
+            dt_array: Array of datetime objects, datetime strings, or numpy datetime64
+            unit: Time unit for storage. Options: 's' (seconds), 'ms' (milliseconds),
+             'us' (microseconds), 'ns' (nanoseconds), 'min' (minutes),
+             'h' (hours). Default is 's'.
+            format_str: Format string for datetime display. If None, uses default.
+
+        Raises:
+            ValueError: If unit is not valid
+
+        Example:
+            >>> from datetime import datetime
+            >>> signal = SignalObj()
+            >>> timestamps = [datetime(2025, 1, 1, 10, 0, 0),
+            ...               datetime(2025, 1, 1, 10, 0, 1)]
+            >>> signal.set_x_from_datetime(timestamps, unit='s')
+            >>> signal.is_x_datetime()
+            True
+        """
+        if unit not in VALID_TIME_UNITS:
+            raise ValueError(
+                f"Invalid unit: {unit}. Must be one of: {', '.join(VALID_TIME_UNITS)}"
+            )
+
+        # Convert to pandas datetime (handles strings, datetime objects, etc.)
+        dt_series = pd.to_datetime(dt_array)
+
+        # Convert to float timestamp in seconds first (pandas epoch is in nanoseconds)
+        timestamp_seconds = dt_series.astype(np.int64) / 1e9
+
+        # Convert to target unit using conversion factors
+        x_float = timestamp_seconds / TIME_UNIT_FACTORS[unit]
+
+        # Convert to numpy array (pandas may return Float64Index)
+        x_float = np.array(x_float, dtype=np.float64)
+
+        # Check if signal already has data with matching size
+        if self.xydata is not None and self.xydata.shape[1] == len(x_float):
+            # Signal already has matching data, just update x
+            self.x = x_float
+        else:
+            # Initialize or reinitialize signal with x data (y will be zeros)
+            y_placeholder = np.zeros_like(x_float)
+            self.set_xydata(x_float, y_placeholder)
+
+        # Store metadata
+        self.metadata[DATETIME_X_KEY] = True
+        self.metadata[DATETIME_X_FORMAT_KEY] = (
+            format_str if format_str is not None else DEFAULT_DATETIME_FORMAT
+        )
+        # Store unit in xunit attribute (more intuitive than metadata)
+        self.xunit = unit
+
+    def get_x_as_datetime(self) -> np.ndarray:
+        """Get x values as datetime objects if x is datetime data.
+
+        Returns x data as numpy datetime64 array if the signal contains datetime data,
+        otherwise returns the regular x data as floats.
+
+        Returns:
+            Array of datetime64 objects if x is datetime data, otherwise regular x array
+
+        Example:
+            >>> signal.set_x_from_datetime([datetime(2025, 1, 1, 10, 0, 0)])
+            >>> dt_values = signal.get_x_as_datetime()
+            >>> isinstance(dt_values[0], np.datetime64)
+            True
+        """
+        if not self.is_x_datetime():
+            return self.x
+        # Get unit from xunit attribute (fallback to 's' if not set)
+        unit = self.xunit if self.xunit else "s"
+        x_float = self.x
+
+        # Convert from stored unit back to seconds first
+        timestamp_seconds = x_float * TIME_UNIT_FACTORS.get(unit, 1.0)
+
+        # Convert seconds to datetime using pandas
+        return pd.to_datetime(timestamp_seconds, unit="s").to_numpy()

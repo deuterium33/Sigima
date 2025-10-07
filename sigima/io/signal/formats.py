@@ -7,6 +7,7 @@ I/O signal formats
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import scipy.io as sio
 from guidata.io import HDF5Reader, HDF5Writer
 
@@ -17,6 +18,10 @@ from sigima.io.common.converters import convert_array_to_valid_dtype
 from sigima.io.signal import funcs
 from sigima.io.signal.base import SignalFormatBase
 from sigima.objects.signal import SignalObj
+from sigima.objects.signal.constants import (
+    DATETIME_X_FORMAT_KEY,
+    DEFAULT_DATETIME_FORMAT,
+)
 from sigima.worker import CallbackWorkerProtocol
 
 
@@ -94,9 +99,9 @@ class CSVSignalFormat(SignalFormatBase):
         Returns:
             List of signal objects
         """
-        xydata, xlabel, xunit, ylabels, yunits, header = funcs.read_csv(
-            filename, worker
-        )
+        result = funcs.read_csv(filename, worker)
+        xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata = result
+
         if ylabels:
             # If y labels are present, we are sure that the data contains at least
             # two columns (x and y)
@@ -105,11 +110,18 @@ class CSVSignalFormat(SignalFormatBase):
                 obj = self.create_object(filename, i if len(ylabels) > 1 else None)
                 obj.set_xydata(xydata[:, 0], xydata[:, i + 1])
                 obj.xlabel = xlabel or ""
-                obj.xunit = xunit or ""
+                # Set xunit, defaulting to 's' if datetime signal and no unit specified
+                if datetime_metadata and not xunit:
+                    obj.xunit = "s"  # Default unit for datetime signals
+                else:
+                    obj.xunit = xunit or ""
                 obj.ylabel = ylabel or ""
                 obj.yunit = yunit or ""
                 if header:
                     obj.metadata[self.HEADER_KEY] = header
+                # Add datetime metadata if detected
+                if datetime_metadata:
+                    obj.metadata.update(datetime_metadata)
                 objs.append(obj)
             return objs
         return self.create_signals_from(xydata, filename)
@@ -121,15 +133,29 @@ class CSVSignalFormat(SignalFormatBase):
             filename: Name of file to write
             obj: Signal object to read data from
         """
-        funcs.write_csv(
-            filename,
-            obj.xydata,
-            obj.xlabel,
-            obj.xunit,
-            [obj.ylabel],
-            [obj.yunit],
-            obj.metadata.get(self.HEADER_KEY, ""),
-        )
+        # If X is datetime, convert back to datetime strings for CSV
+        if obj.is_x_datetime():
+            datetime_values = obj.get_x_as_datetime()
+            # Convert to strings with appropriate format
+            datetime_format = obj.metadata.get(
+                DATETIME_X_FORMAT_KEY, DEFAULT_DATETIME_FORMAT
+            )
+            x_data = pd.to_datetime(datetime_values).strftime(datetime_format).values
+            # Create modified xydata with datetime strings in X column
+            # We'll write manually with pandas to preserve datetime strings
+            data_dict = {obj.xlabel or "Time": x_data, obj.ylabel or "Y": obj.y}
+            df = pd.DataFrame(data_dict)
+            df.to_csv(filename, index=False)
+        else:
+            funcs.write_csv(
+                filename,
+                obj.xydata,
+                obj.xlabel,
+                obj.xunit,
+                [obj.ylabel],
+                [obj.yunit],
+                obj.metadata.get(self.HEADER_KEY, ""),
+            )
 
 
 class NumPySignalFormat(SignalFormatBase):

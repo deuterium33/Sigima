@@ -5,16 +5,22 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 1.0.0 ##
 
-✨ Core architecture update: scalar result types
-
-* Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
-  * These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse.
-  * Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object.
-  * All metadata-related behaviors of former result types have been migrated to the DataLab application layer.
-  * Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core.
-* This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API.
-
 💥 New features and enhancements:
+
+* **DateTime support for signal data**: Added comprehensive datetime handling for signal X-axis data
+  * Automatic detection and conversion of datetime columns when reading CSV files
+    * Detects datetime values in the first or second column (handling index columns)
+    * Validates datetime format and ensures reasonable date ranges (post-1900)
+    * Converts datetime strings to float timestamps for efficient computation
+    * Preserves datetime metadata for proper display and export
+  * New `SignalObj` methods for datetime manipulation:
+    * `set_x_from_datetime()`: Convert datetime objects/strings to signal X data with configurable time units (s, ms, μs, ns, min, h)
+    * `get_x_as_datetime()`: Retrieve X values as datetime objects for display or export
+    * `is_x_datetime()`: Check if signal contains datetime data
+  * Enhanced CSV export to preserve datetime format when writing signals with datetime X-axis
+  * New constants module (`sigima.objects.signal.constants`) defining datetime metadata keys and time unit conversion factors
+  * Comprehensive unit tests covering datetime conversion, I/O roundtrip, and edge cases
+  * Example test data file with real-world temperature/humidity logger data (`datetime.txt`)
 
 * **New client subpackage**: Migrated DataLab client functionality to `sigima.client`
   * Added `sigima.client.remote.SimpleRemoteProxy` for XML-RPC communication with DataLab
@@ -210,6 +216,15 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * `SaveToDirectoryParam` provides control over file basenames (with Python format string support), extensions, directory paths, and overwrite behavior.
     * Automatic filename conflict resolution ensures unique filenames when duplicates would occur.
     * Enhanced workflow efficiency for processing and saving multiple objects in batch operations.
+
+✨ Core architecture update: scalar result types
+
+* Introduced two new immutable result types: `TableResult` and `GeometryResult`, replacing the legacy `ResultProperties` and `ResultShape` objects.
+  * These new result types are computation-oriented and free of application-specific logic (e.g., Qt, metadata), enabling better separation of concerns and future reuse.
+  * Added a `TableResultBuilder` utility to incrementally define tabular computations (e.g., statistics on signals or images) and generate a `TableResult` object.
+  * All metadata-related behaviors of former result types have been migrated to the DataLab application layer.
+  * Removed obsolete or tightly coupled features such as `from_metadata_entry()` and `transform_shapes()` from the Sigima core.
+* This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API.
 
 🛠️ Bug fixes:
 
