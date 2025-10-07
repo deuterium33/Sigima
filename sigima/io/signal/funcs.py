@@ -9,6 +9,7 @@ I/O signal functions
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from typing import TextIO
 
 import numpy as np
@@ -205,6 +206,56 @@ def _read_df_with_header(filename: str) -> tuple[pd.DataFrame | None, str, str]:
     return df, decimal, delimiter
 
 
+def _detect_metadata_cols(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Detect columns containing constant/single-value metadata.
+
+    Columns with a single unique value (excluding NaN) across all rows are treated
+    as metadata rather than data columns. These are typically instrument serial numbers,
+    experiment IDs, or other constant identifiers.
+
+    Args:
+        df: Input DataFrame
+
+    Returns:
+        A tuple (DataFrame with metadata columns removed,
+        dict of metadata key-value pairs)
+    """
+    metadata = {}
+    cols_to_drop = []
+
+    # Start from column 1 (skip X column) and check for constant-value columns
+    for col_idx in range(1, df.shape[1]):
+        col_data = df.iloc[:, col_idx]
+        col_name = df.columns[col_idx]
+
+        # Get unique non-NaN values
+        unique_values = col_data.dropna().unique()
+
+        # If column has exactly one unique value (excluding NaN), it's metadata
+        if len(unique_values) == 1:
+            # Store the metadata
+            value = unique_values[0]
+            # Try to convert to appropriate type (keep as string if necessary)
+            try:
+                # Try int first
+                if float(value).is_integer():
+                    value = int(float(value))
+                else:
+                    value = float(value)
+            except (ValueError, TypeError):
+                # Keep as string
+                value = str(value)
+
+            metadata[str(col_name)] = value
+            cols_to_drop.append(col_name)  # Store column name, not index
+
+    # Drop metadata columns from DataFrame
+    if cols_to_drop:
+        df = df.drop(columns=cols_to_drop)
+
+    return df, metadata
+
+
 def _detect_datetime_col(df: pd.DataFrame) -> tuple[pd.DataFrame, dict | None]:
     """Try to detect the presence of a datetime column in a DataFrame.
 
@@ -288,18 +339,38 @@ def _detect_datetime_col(df: pd.DataFrame) -> tuple[pd.DataFrame, dict | None]:
     return df, datetime_metadata
 
 
+@dataclass
+class CSVData:
+    """Data structure for CSV file contents.
+
+    This dataclass encapsulates all the data extracted from a CSV file,
+    including the actual XY data, labels, units, and metadata.
+
+    Attributes:
+        xydata: Numpy array containing X and Y data columns
+        xlabel: Label for the X axis
+        xunit: Unit for the X axis
+        ylabels: List of labels for Y columns
+        yunits: List of units for Y columns
+        header: Optional header text from the CSV file
+        datetime_metadata: Optional dict with datetime conversion info
+        column_metadata: Optional dict with constant-value column metadata
+    """
+
+    xydata: np.ndarray
+    xlabel: str | None = None
+    xunit: str | None = None
+    ylabels: list[str] | None = None
+    yunits: list[str] | None = None
+    header: str | None = None
+    datetime_metadata: dict | None = None
+    column_metadata: dict | None = None
+
+
 def read_csv(
     filename: str,
     worker: CallbackWorkerProtocol | None = None,
-) -> tuple[
-    np.ndarray,
-    str | None,
-    str | None,
-    list[str] | None,
-    list[str] | None,
-    str | None,
-    dict | None,
-]:
+) -> CSVData:
     """Read CSV data and return parsed components including datetime metadata.
 
     Args:
@@ -307,11 +378,10 @@ def read_csv(
         worker: Callback worker object
 
     Returns:
-        Tuple (xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata)
-        where datetime_metadata is a dict with datetime conversion info if detected
+        CSVData object containing all parsed CSV components
     """
     xydata, xlabel, xunit, ylabels, yunits = None, None, None, None, None
-    header, datetime_metadata = None, None
+    header, datetime_metadata, column_metadata = None, None, {}
 
     # The first attempt is to read the CSV file assuming it has no header because it
     # won't raise an error if the first line is data. If it fails, we try to read it
@@ -439,6 +509,8 @@ def read_csv(
                     non_numeric_count += 1
         # If most of first row is non-numeric strings, it's likely a header row
         if non_numeric_count / len(first_row) > 0.5:
+            # Use first row as column names
+            df.columns = first_row.values
             # Drop the first row (header)
             df = df.iloc[1:].reset_index(drop=True)
 
@@ -446,6 +518,11 @@ def read_csv(
     # Often CSV files have an index column, then a datetime column
     if not df.empty and df.shape[1] >= 2:
         df, datetime_metadata = _detect_datetime_col(df)
+
+    # Try to detect metadata columns (constant-value columns like serial numbers)
+    # This must be done after datetime detection but before converting to numpy
+    if not df.empty and df.shape[1] >= 2:
+        df, column_metadata = _detect_metadata_cols(df)
 
     # Converting to NumPy array
     try:
@@ -465,7 +542,16 @@ def read_csv(
 
     xlabel, ylabels, xunit, yunits = get_labels_units_from_dataframe(df)
 
-    return xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata
+    return CSVData(
+        xydata=xydata,
+        xlabel=xlabel,
+        xunit=xunit,
+        ylabels=ylabels,
+        yunits=yunits,
+        header=header,
+        datetime_metadata=datetime_metadata,
+        column_metadata=column_metadata,
+    )
 
 
 def write_csv(

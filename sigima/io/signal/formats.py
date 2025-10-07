@@ -99,32 +99,36 @@ class CSVSignalFormat(SignalFormatBase):
         Returns:
             List of signal objects
         """
-        result = funcs.read_csv(filename, worker)
-        xydata, xlabel, xunit, ylabels, yunits, header, datetime_metadata = result
+        csv_data = funcs.read_csv(filename, worker)
 
-        if ylabels:
+        if csv_data.ylabels:
             # If y labels are present, we are sure that the data contains at least
             # two columns (x and y)
             objs = []
-            for i, (ylabel, yunit) in enumerate(zip(ylabels, yunits)):
-                obj = self.create_object(filename, i if len(ylabels) > 1 else None)
-                obj.set_xydata(xydata[:, 0], xydata[:, i + 1])
-                obj.xlabel = xlabel or ""
+            for i, (ylabel, yunit) in enumerate(zip(csv_data.ylabels, csv_data.yunits)):
+                obj = self.create_object(
+                    filename, i if len(csv_data.ylabels) > 1 else None
+                )
+                obj.set_xydata(csv_data.xydata[:, 0], csv_data.xydata[:, i + 1])
+                obj.xlabel = csv_data.xlabel or ""
                 # Set xunit, defaulting to 's' if datetime signal and no unit specified
-                if datetime_metadata and not xunit:
+                if csv_data.datetime_metadata and not csv_data.xunit:
                     obj.xunit = "s"  # Default unit for datetime signals
                 else:
-                    obj.xunit = xunit or ""
+                    obj.xunit = csv_data.xunit or ""
                 obj.ylabel = ylabel or ""
                 obj.yunit = yunit or ""
-                if header:
-                    obj.metadata[self.HEADER_KEY] = header
+                if csv_data.header:
+                    obj.metadata[self.HEADER_KEY] = csv_data.header
                 # Add datetime metadata if detected
-                if datetime_metadata:
-                    obj.metadata.update(datetime_metadata)
+                if csv_data.datetime_metadata:
+                    obj.metadata.update(csv_data.datetime_metadata)
+                # Add column metadata (constant-value columns like serial numbers)
+                if csv_data.column_metadata:
+                    obj.metadata.update(csv_data.column_metadata)
                 objs.append(obj)
             return objs
-        return self.create_signals_from(xydata, filename)
+        return self.create_signals_from(csv_data.xydata, filename)
 
     def write(self, filename: str, obj: SignalObj) -> None:
         """Write data to file
