@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from typing import Any, Type
+from typing import Any, Literal, Type
 
 import guidata.dataset as gds
 import numpy as np
@@ -159,43 +159,6 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     )  # Annotations as a serialized JSON string  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data"))
 
-    _coordsg = gds.BeginGroup(_("Coordinates"))
-    xcoords = gds.FloatArrayItem(
-        _("X coordinates"),
-        default=np.array([], dtype=float),
-    )  # type: ignore[assignment]
-    ycoords = gds.FloatArrayItem(
-        _("Y coordinates"), default=np.array([], dtype=float)
-    ).set_pos(col=1)  # type: ignore[assignment]
-    _e_coordsg = gds.EndGroup(_("Coordinates"))
-
-    def set_uniform_coords(
-        self, dx: float, dy: float, x0: float = 0.0, y0: float = 0.0
-    ) -> None:
-        """Set uniform coordinates and clear non-uniform arrays.
-
-        Args:
-            dx: pixel size along X-axis
-            dy: pixel size along Y-axis
-            x0: origin X-axis coordinate
-            y0: origin Y-axis coordinate
-        """
-        self.is_uniform_coords = True
-        self.xcoords = np.array([], dtype=float)
-        self.ycoords = np.array([], dtype=float)
-        self.dx, self.dy, self.x0, self.y0 = dx, dy, x0, y0
-
-    def set_coords(self, xcoords: np.ndarray, ycoords: np.ndarray) -> None:
-        """Set non-uniform coordinates.
-
-        Args:
-            xcoords: X coordinates
-            ycoords: Y coordinates
-        """
-        self.is_uniform_coords = False
-        self.xcoords = xcoords
-        self.ycoords = ycoords
-
     def _compute_xmin(self) -> float:
         """Compute Xmin"""
         if self.data is None or self.data.size == 0:
@@ -243,7 +206,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     _dxdyg = gds.BeginGroup(f"{_('Origin')} / {_('Pixel spacing')}")
     _prop_uniform = gds.GetAttrProp("is_uniform_coords")
     is_uniform_coords = gds.BoolItem(_("Uniform coordinates"), default=True).set_prop(
-        "display", store=_prop_uniform
+        "display", store=_prop_uniform, active=False
     )
     _origin = gds.BeginGroup(_("Origin"))
     x0 = gds.FloatItem("X<sub>0</sub>", default=0.0).set_prop(
@@ -270,6 +233,78 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     ymax = gds.FloatItem("Y<sub>MAX</sub>").set_pos(col=1).set_computed(_compute_ymax)
     _e_boundaries = gds.EndGroup(_("Extent"))
     _e_dxdyg = gds.EndGroup(f"{_('Origin')} / {_('Pixel spacing')}")
+
+    _coordsg = gds.BeginGroup(_("Coordinates"))
+    xcoords = gds.FloatArrayItem(
+        _("X coordinates"),
+        default=np.array([], dtype=float),
+    ).set_prop("display", active=gds.NotProp(_prop_uniform))  # type: ignore[assignment]
+    ycoords = (
+        gds.FloatArrayItem(_("Y coordinates"), default=np.array([], dtype=float))
+        .set_prop("display", active=gds.NotProp(_prop_uniform))
+        .set_pos(col=1)
+    )  # type: ignore[assignment]
+    _e_coordsg = gds.EndGroup(_("Coordinates"))
+
+    def set_uniform_coords(
+        self, dx: float, dy: float, x0: float = 0.0, y0: float = 0.0
+    ) -> None:
+        """Set uniform coordinates and clear non-uniform arrays.
+
+        Args:
+            dx: pixel size along X-axis
+            dy: pixel size along Y-axis
+            x0: origin X-axis coordinate
+            y0: origin Y-axis coordinate
+        """
+        self.is_uniform_coords = True
+        self.xcoords = np.array([], dtype=float)
+        self.ycoords = np.array([], dtype=float)
+        self.dx, self.dy, self.x0, self.y0 = dx, dy, x0, y0
+
+    def set_coords(self, xcoords: np.ndarray, ycoords: np.ndarray) -> None:
+        """Set non-uniform coordinates.
+
+        Args:
+            xcoords: X coordinates
+            ycoords: Y coordinates
+        """
+        self.is_uniform_coords = False
+        self.xcoords = xcoords
+        self.ycoords = ycoords
+
+    def switch_coords_to(self, coords_type: Literal["uniform", "non-uniform"]) -> None:
+        """Switch coordinates to uniform or non-uniform representation.
+
+        If switching to uniform, the image pixel size and origin are computed from
+        the current non-uniform coordinates. If switching to non-uniform, the
+        corresponding coordinate arrays are generated from the current pixel size
+        and origin. If the current coordinates are already of the requested type,
+        no action is performed.
+
+        Args:
+            coords_type: 'uniform' or 'non-uniform'
+
+        Raises:
+            ValueError: If switching to uniform coordinates fails due to insufficient
+             non-uniform coordinates defined
+        """
+        if coords_type == "uniform" and not self.is_uniform_coords:
+            if self.xcoords.size >= 2 and self.ycoords.size >= 2:
+                x0, y0 = float(self.xcoords[0]), float(self.ycoords[0])
+                dx = float(self.xcoords[-1] - self.xcoords[0]) / (self.xcoords.size - 1)
+                dy = float(self.ycoords[-1] - self.ycoords[0]) / (self.ycoords.size - 1)
+                self.set_uniform_coords(dx, dy, x0, y0)
+            else:
+                raise ValueError(
+                    "Cannot switch to uniform coordinates: "
+                    "not enough non-uniform coordinates defined"
+                )
+        elif coords_type == "non-uniform" and self.is_uniform_coords:
+            shape = self.data.shape
+            xcoords = np.linspace(self.x0, self.x0 + self.dx * (shape[1] - 1), shape[1])
+            ycoords = np.linspace(self.y0, self.y0 + self.dy * (shape[0] - 1), shape[0])
+            self.set_coords(xcoords, ycoords)
 
     _unitsg = gds.BeginGroup(_("Titles / Units"))
     title = gds.StringItem(_("Image title"), default=_("Untitled"))
