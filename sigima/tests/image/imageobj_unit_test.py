@@ -150,7 +150,7 @@ def test_create_image() -> None:
     units = ("x unit", "y unit", "z unit")
     labels = ("x label", "y label", "z label")
 
-    # 1. Create image with all parameters
+    # 1. Create image with all parameters, and uniform coordinates
     image = sigima.objects.create_image(
         title=title,
         data=data,
@@ -164,8 +164,27 @@ def test_create_image() -> None:
     assert image.metadata == metadata
     assert (image.xunit, image.yunit, image.zunit) == units
     assert (image.xlabel, image.ylabel, image.zlabel) == labels
+    dx, dy, x0, y0 = 0.1, 0.2, 50.0, 100.0
+    image.set_uniform_coords(dx, dy, x0=x0, y0=y0)
+    assert image.is_uniform_coords
+    assert image.dx == dx
+    assert image.dy == dy
+    assert image.x0 == x0
+    assert image.y0 == y0
 
-    # 2. Create image with only data
+    guiutils.view_images_if_gui(image, title=title)
+
+    # 2. Create image with non-uniform coordinates
+    xcoords = np.linspace(0, 1, 10)
+    ycoords = np.linspace(0, 1, 10) ** 2
+    image.set_coords(xcoords=xcoords, ycoords=ycoords)
+    assert not image.is_uniform_coords
+    assert np.array_equal(image.xcoords, xcoords)
+    assert np.array_equal(image.ycoords, ycoords)
+
+    guiutils.view_images_if_gui(image, title=title + " (non-uniform coords)")
+
+    # 3. Create image with only data
     image = sigima.objects.create_image("", data=data)
     assert isinstance(image, sigima.objects.ImageObj)
     assert np.array_equal(image.data, data)
@@ -294,8 +313,9 @@ def test_create_image_from_param() -> None:
 
 
 if __name__ == "__main__":
+    guiutils.enable_gui()
+    test_create_image()
     test_image_parameters_interactive()
     test_all_image_types()
     test_hdf5_image_io()
-    test_create_image()
     test_create_image_from_param()

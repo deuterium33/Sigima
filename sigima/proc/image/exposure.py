@@ -402,13 +402,15 @@ def calibration(src: ImageObj, p: XYZCalibrateParam) -> ImageObj:
         dst.data = p.a * src.data + p.b
         restore_data_outside_roi(dst, src)
     elif p.axis == "x":
-        # Adjust X-axis via the `x0` origin and `dx` step attributes:
-        dst.x0 = p.a * src.x0 + p.b
-        dst.dx = p.a * src.dx
+        if src.is_uniform_coords:
+            dst.set_uniform_coords(p.a * src.dx, dst.dy, p.a * src.x0 + p.b, dst.y0)
+        else:
+            dst.set_coords(p.a * src.xcoords + p.b, dst.ycoords)
     elif p.axis == "y":
-        # Adjust Y-axis via the `y0` origin and `dy` step attributes:
-        dst.y0 = p.a * src.y0 + p.b
-        dst.dy = p.a * src.dy
+        if src.is_uniform_coords:
+            dst.set_uniform_coords(dst.dx, p.a * src.dy, dst.x0, p.a * src.y0 + p.b)
+        else:
+            dst.set_coords(dst.xcoords, p.a * src.ycoords + p.b)
     else:  # Should not happen
         raise ValueError(f"Unknown axis: {p.axis}")  # pragma: no cover
     return dst

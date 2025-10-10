@@ -40,7 +40,9 @@ def test_signal_roi_creation() -> None:
 def test_image_roi_creation() -> None:
     """Test image ROI creation and conversion methods"""
     obj = create_multigaussian_image()
-    obj.dx = obj.dy = 0.035
+    # Update to use new coordinate API instead of setting dx/dy directly
+    if obj.data is not None:
+        obj.set_uniform_coords(0.035, 0.035)
     for roi in create_test_image_rois(obj):
         __conversion_methods(roi, obj)
 

@@ -172,7 +172,7 @@ def _make_positional_image(h=6, w=9, dx=1.0, dy=1.0, x0=0.0, y0=0.0) -> ImageObj
         1000 * np.arange(h, dtype=np.int32), np.arange(w, dtype=np.int32)
     )
     img = create_image("positional", data)
-    img.x0, img.y0, img.dx, img.dy = x0, y0, dx, dy
+    img.set_uniform_coords(dx, dy, x0, y0)
     img.roi = None
     return img
 

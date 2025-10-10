@@ -71,29 +71,33 @@ def extract_rois(src: ImageObj, params: list[ROI2DParam]) -> ImageObj:
     Returns:
         Output image object
     """
-    # Initialize x0, y0 with maximum values:
-    y0, x0 = ymax, xmax = src.data.shape
-    # Initialize x1, y1 with minimum values:
-    y1, x1 = ymin, xmin = 0, 0
+    # Initialize ix0, iy0 with maximum values:
+    iy0, ix0 = iymax, ixmax = src.data.shape
+    # Initialize ix1, iy1 with minimum values:
+    iy1, ix1 = iymin, ixmin = 0, 0
     for p in params:
         x0i, y0i, x1i, y1i = p.get_bounding_box_indices(src)
-        x0, y0, x1, y1 = min(x0, x0i), min(y0, y0i), max(x1, x1i), max(y1, y1i)
-    x0, y0 = max(x0, xmin), max(y0, ymin)
-    x1, y1 = min(x1, xmax), min(y1, ymax)
+        ix0, iy0, ix1, iy1 = min(ix0, x0i), min(iy0, y0i), max(ix1, x1i), max(iy1, y1i)
+    ix0, iy0 = max(ix0, ixmin), max(iy0, iymin)
+    ix1, iy1 = min(ix1, ixmax), min(iy1, iymax)
 
     suffix = None
     if len(params) == 1:
         p = params[0]
         suffix = p.get_suffix()
     dst = dst_1_to_1(src, "extract_rois", suffix)
-    dst.x0 += x0 * src.dx
-    dst.y0 += y0 * src.dy
+    if src.is_uniform_coords:
+        dst.set_uniform_coords(
+            dst.dx, dst.dy, dst.x0 + ix0 * src.dx, dst.y0 + iy0 * src.dy
+        )
+    else:
+        dst.set_coords(src.xcoords[iy0:iy1], src.ycoords[ix0:ix1])
     dst.roi = None
 
     src2 = src.copy()
     src2.roi = ImageROI.from_params(src2, params)
     src2.data[src2.maskdata] = 0
-    dst.data = src2.data[y0:y1, x0:x1]
+    dst.data = src2.data[iy0:iy1, ix0:ix1]
     return dst
 
 
@@ -112,8 +116,10 @@ def extract_roi(src: ImageObj, p: ROI2DParam) -> ImageObj:
     dst.data = p.get_data(src).copy()
     dst.roi = p.get_extracted_roi(src)
     x0, y0, _x1, _y1 = p.get_bounding_box_physical()
-    dst.x0 += x0
-    dst.y0 += y0
+    if src.is_uniform_coords:
+        dst.set_uniform_coords(dst.dx, dst.dy, dst.x0 + x0, dst.y0 + y0)
+    else:
+        dst.set_coords(src.xcoords + x0, src.ycoords + y0)
     return dst
 
 

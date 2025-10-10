@@ -141,11 +141,10 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         """Set DICOM template"""
         if template is not None:
             ipp = getattr(template, "ImagePositionPatient", None)
-            if ipp is not None:
-                self.x0, self.y0 = float(ipp[0]), float(ipp[1])
+            x0, y0 = 0.0, 0.0 if ipp is None else (float(ipp[0]), float(ipp[1]))
             pxs = getattr(template, "PixelSpacing", None)
-            if pxs is not None:
-                self.dy, self.dx = float(pxs[0]), float(pxs[1])
+            dx, dy = 1.0, 1.0 if pxs is None else (float(pxs[0]), float(pxs[1]))
+            self.set_uniform_coords(dx, dy, x0, y0)
             self.__set_metadata_from(template)
             self._dicom_template = template
 
@@ -160,38 +159,109 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     )  # Annotations as a serialized JSON string  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data"))
 
+    _coordsg = gds.BeginGroup(_("Coordinates"))
+    xcoords = gds.FloatArrayItem(
+        _("X coordinates"),
+        default=np.array([], dtype=float),
+    )  # type: ignore[assignment]
+    ycoords = gds.FloatArrayItem(
+        _("Y coordinates"), default=np.array([], dtype=float)
+    ).set_pos(col=1)  # type: ignore[assignment]
+    _e_coordsg = gds.EndGroup(_("Coordinates"))
+
+    def set_uniform_coords(
+        self, dx: float, dy: float, x0: float = 0.0, y0: float = 0.0
+    ) -> None:
+        """Set uniform coordinates and clear non-uniform arrays.
+
+        Args:
+            dx: pixel size along X-axis
+            dy: pixel size along Y-axis
+            x0: origin X-axis coordinate
+            y0: origin Y-axis coordinate
+        """
+        self.is_uniform_coords = True
+        self.xcoords = np.array([], dtype=float)
+        self.ycoords = np.array([], dtype=float)
+        self.dx, self.dy, self.x0, self.y0 = dx, dy, x0, y0
+
+    def set_coords(self, xcoords: np.ndarray, ycoords: np.ndarray) -> None:
+        """Set non-uniform coordinates.
+
+        Args:
+            xcoords: X coordinates
+            ycoords: Y coordinates
+        """
+        self.is_uniform_coords = False
+        self.xcoords = xcoords
+        self.ycoords = ycoords
+
     def _compute_xmin(self) -> float:
         """Compute Xmin"""
         if self.data is None or self.data.size == 0:
             return 0.0
-        return self.x0
+        if self.is_uniform_coords:
+            return self.x0
+        else:
+            if self.xcoords is None or self.xcoords.size == 0:
+                return np.nan
+            return self.xcoords[0]
 
     def _compute_xmax(self) -> float:
         """Compute Xmax"""
         if self.data is None or self.data.size == 0:
             return 0.0
-        return self.x0 + self.width - self.dx
+        if self.is_uniform_coords:
+            return self.x0 + self.width - self.dx
+        else:
+            if self.xcoords is None or self.xcoords.size == 0:
+                return np.nan
+            return self.xcoords[-1]
 
     def _compute_ymin(self) -> float:
         """Compute Ymin"""
         if self.data is None or self.data.size == 0:
             return 0.0
-        return self.y0
+        if self.is_uniform_coords:
+            return self.y0
+        else:
+            if self.ycoords is None or self.ycoords.size == 0:
+                return np.nan
+            return self.ycoords[0]
 
     def _compute_ymax(self) -> float:
         """Compute Ymax"""
         if self.data is None or self.data.size == 0:
             return 0.0
-        return self.y0 + self.height - self.dy
+        if self.is_uniform_coords:
+            return self.y0 + self.height - self.dy
+        else:
+            if self.ycoords is None or self.ycoords.size == 0:
+                return np.nan
+            return self.ycoords[-1]
 
     _dxdyg = gds.BeginGroup(f"{_('Origin')} / {_('Pixel spacing')}")
+    _prop_uniform = gds.GetAttrProp("is_uniform_coords")
+    is_uniform_coords = gds.BoolItem(_("Uniform coordinates"), default=True).set_prop(
+        "display", store=_prop_uniform
+    )
     _origin = gds.BeginGroup(_("Origin"))
-    x0 = gds.FloatItem("X<sub>0</sub>", default=0.0)
-    y0 = gds.FloatItem("Y<sub>0</sub>", default=0.0).set_pos(col=1)
+    x0 = gds.FloatItem("X<sub>0</sub>", default=0.0).set_prop(
+        "display", active=_prop_uniform
+    )
+    y0 = (
+        gds.FloatItem("Y<sub>0</sub>", default=0.0)
+        .set_prop("display", active=_prop_uniform)
+        .set_pos(col=1)
+    )
     _e_origin = gds.EndGroup(_("Origin"))
     _pixel_spacing = gds.BeginGroup(_("Pixel spacing"))
-    dx = gds.FloatItem("Δx", default=1.0, nonzero=True)
-    dy = gds.FloatItem("Δy", default=1.0, nonzero=True).set_pos(col=1)
+    dx = gds.FloatItem("Δx", default=1.0).set_prop("display", active=_prop_uniform)
+    dy = (
+        gds.FloatItem("Δy", default=1.0)
+        .set_prop("display", active=_prop_uniform)
+        .set_pos(col=1)
+    )
     _e_pixel_spacing = gds.EndGroup(_("Pixel spacing"))
     _boundaries = gds.BeginGroup(_("Extent"))
     xmin = gds.FloatItem("X<sub>MIN</sub>").set_computed(_compute_xmin)
@@ -316,14 +386,13 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.xunit = self.xunit
         obj.yunit = self.yunit
         obj.zunit = self.zunit
-        obj.x0 = self.x0
-        obj.y0 = self.y0
-        obj.dx = self.dx
-        obj.dy = self.dy
         obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         if self.data is not None:
             obj.data = np.array(self.data, copy=True, dtype=dtype)
+        if not self.is_uniform_coords:
+            obj.xcoords = np.array(self.xcoords, copy=True)
+            obj.ycoords = np.array(self.ycoords, copy=True)
         obj.dicom_template = self.dicom_template
         return obj
 
@@ -359,8 +428,16 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             )
         indices = np.array(coords, float)
         if indices.size > 0:
-            indices[::2] = (indices[::2] - self.x0) / self.dx
-            indices[1::2] = (indices[1::2] - self.y0) / self.dy
+            if self.is_uniform_coords:
+                # Use existing uniform conversion
+                indices[::2] = (indices[::2] - self.x0) / self.dx
+                indices[1::2] = (indices[1::2] - self.y0) / self.dy
+            else:
+                # Use interpolation for non-uniform coordinates
+                x_indices = np.arange(len(self.xcoords))
+                y_indices = np.arange(len(self.ycoords))
+                indices[::2] = np.interp(indices[::2], self.xcoords, x_indices)
+                indices[1::2] = np.interp(indices[1::2], self.ycoords, y_indices)
 
         if clip:
             indices[::2] = np.clip(indices[::2], 0, self.data.shape[1] - 1)
@@ -369,7 +446,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             return indices.tolist()
         return np.floor(indices + 0.5).astype(int).tolist()
 
-    def indices_to_physical(self, indices: list[float]) -> list[int]:
+    def indices_to_physical(self, indices: list[float]) -> list[float]:
         """Convert coordinates from indices to physical (real world)
 
         Args:
@@ -387,6 +464,14 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             )
         coords = np.array(indices, float)
         if coords.size > 0:
-            coords[::2] = coords[::2] * self.dx + self.x0
-            coords[1::2] = coords[1::2] * self.dy + self.y0
+            if self.is_uniform_coords:
+                # Use existing uniform conversion
+                coords[::2] = coords[::2] * self.dx + self.x0
+                coords[1::2] = coords[1::2] * self.dy + self.y0
+            else:
+                # Use interpolation for non-uniform coordinates
+                x_indices = np.arange(len(self.xcoords))
+                y_indices = np.arange(len(self.ycoords))
+                coords[::2] = np.interp(coords[::2], x_indices, self.xcoords)
+                coords[1::2] = np.interp(coords[1::2], y_indices, self.ycoords)
         return coords.tolist()

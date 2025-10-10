@@ -174,8 +174,14 @@ def test_image_calibration() -> None:
             else:
                 suffix = f"a={p.a},b={p.b}"
                 if axis in ("x", "y"):
-                    setattr(exp, f"{axis}0", getattr(src, f"{axis}0") * p.a + p.b)
-                    setattr(exp, f"d{axis}", getattr(src, f"d{axis}") * p.a)
+                    if axis == "x":
+                        new_x0 = src.x0 * p.a + p.b
+                        new_dx = src.dx * p.a
+                        exp.set_uniform_coords(new_dx, exp.dy, new_x0, exp.y0)
+                    else:  # axis == "y"
+                        new_y0 = src.y0 * p.a + p.b
+                        new_dy = src.dy * p.a
+                        exp.set_uniform_coords(exp.dx, new_dy, exp.x0, new_y0)
                 else:
                     exp.data = p.a * src.data + p.b
             title = f"Calibration[{axis},{suffix}]"

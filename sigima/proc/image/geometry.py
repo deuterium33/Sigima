@@ -79,8 +79,10 @@ def translate(src: ImageObj, p: TranslateParam) -> ImageObj:
         Output image object
     """
     dst = dst_1_to_1(src, "translate", f"dx={p.dx}, dy={p.dy}")
-    dst.x0 += p.dx
-    dst.y0 += p.dy
+    if src.is_uniform_coords:
+        dst.set_uniform_coords(dst.dx, dst.dy, dst.x0 + p.dx, dst.y0 + p.dy)
+    else:
+        dst.set_coords(src.xcoords + p.dx, src.ycoords + p.dy)
     transformer.transform_roi(dst, "translate", dx=p.dx, dy=p.dy)
     return dst
 
@@ -249,7 +251,12 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
 
     Returns:
         Output image object
+
+    Raises:
+        ValueError: if source image has non-uniform coordinates
     """
+    if not src.is_uniform_coords:
+        raise ValueError("Source image must have uniform coordinates for resampling")
     mode = p.mode
     dst = dst_1_to_1(src, "resize", f"zoom={p.zoom:.3f}")
     dst.data = spi.zoom(
@@ -260,8 +267,8 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
         cval=p.cval,
         prefilter=p.prefilter,
     )
-    if dst.dx is not None and dst.dy is not None:
-        dst.dx, dst.dy = dst.dx / p.zoom, dst.dy / p.zoom
+    if not np.isnan(dst.dx) and not np.isnan(dst.dy):
+        dst.set_uniform_coords(dst.dx / p.zoom, dst.dy / p.zoom, dst.x0, dst.y0)
     return dst
 
 
@@ -281,10 +288,10 @@ def transpose(src: ImageObj) -> ImageObj:
     dst.ylabel = src.xlabel
     dst.xunit = src.yunit
     dst.yunit = src.xunit
-    dst.x0 = src.y0
-    dst.y0 = src.x0
-    dst.dx = src.dy
-    dst.dy = src.dx
+    if src.is_uniform_coords:
+        dst.set_uniform_coords(src.dy, src.dx, src.y0, src.x0)
+    else:
+        dst.set_coords(src.ycoords, src.xcoords)
     transformer.transform_roi(dst, "transpose")
     return dst
 
@@ -393,7 +400,13 @@ def resampling(src: ImageObj, p: Resampling2DParam) -> ImageObj:
 
     Returns:
         Resampled image object
+
+    Raises:
+        ValueError: if source image has non-uniform coordinates
     """
+    if not src.is_uniform_coords:
+        raise ValueError("Source image must have uniform coordinates for resampling")
+
     # Set output range - use source image bounds if not specified
     output_xmin = p.xmin if p.xmin is not None else src.x0
     output_xmax = p.xmax if p.xmax is not None else src.x0 + src.width
@@ -486,9 +499,6 @@ def resampling(src: ImageObj, p: Resampling2DParam) -> ImageObj:
 
     # Set output data and coordinate system
     dst.data = resampled_data
-    dst.x0 = output_xmin
-    dst.y0 = output_ymin
-    dst.dx = output_dx
-    dst.dy = output_dy
+    dst.set_uniform_coords(output_dx, output_dy, output_xmin, output_ymin)
 
     return dst

@@ -28,6 +28,7 @@ from plotpy.items import (
     LabelItem,
     Marker,
     MaskedImageItem,
+    MaskedXYImageItem,
 )
 from plotpy.plot import (
     BasePlot,
@@ -377,7 +378,7 @@ def create_curve_roi_items(obj: SignalObj) -> list[AnnotatedXRange]:
 
 def create_image_item(
     obj: ImageObj | np.ndarray, title: str | None = None, **kwargs
-) -> MaskedImageItem:
+) -> MaskedImageItem | MaskedXYImageItem:
     """Create an image item from an ImageObj
 
     Args:
@@ -387,7 +388,7 @@ def create_image_item(
          (e.g., interpolation, colormap)
 
     Returns:
-        A `MaskedImageItem` representing the image
+        A `MaskedImageItem` or `MaskedXYImageItem` representing the image
     """
     if isinstance(obj, ImageObj):
         data = obj.data
@@ -401,12 +402,18 @@ def create_image_item(
         raise TypeError(f"Unsupported image type: {type(obj)}")
     imparameters = IMAGE_PARAMETERS.copy()
     imparameters.update(kwargs)
-    item = make.maskedimage(data, mask, title=title, show_mask=True, **imparameters)
-    if isinstance(obj, ImageObj):
-        x0, y0, dx, dy = obj.x0, obj.y0, obj.dx, obj.dy
-        item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
-        item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
-        item.param.update_item(item)
+    if isinstance(obj, ImageObj) and not obj.is_uniform_coords:
+        x, y = obj.xcoords, obj.ycoords
+        item = make.maskedxyimage(
+            x, y, data, mask, title=title, show_mask=True, **imparameters
+        )
+    else:
+        item = make.maskedimage(data, mask, title=title, show_mask=True, **imparameters)
+        if isinstance(obj, ImageObj):
+            x0, y0, dx, dy = obj.x0, obj.y0, obj.dx, obj.dy
+            item.param.xmin, item.param.xmax = x0, x0 + dx * data.shape[1]
+            item.param.ymin, item.param.ymax = y0, y0 + dy * data.shape[0]
+            item.param.update_item(item)
     return item
 
 
@@ -807,7 +814,9 @@ def view_images(
             items.append(create_image_item(data.real, title=re_title, **imparameters))
             items.append(create_image_item(data.imag, title=im_title, **imparameters))
         else:
-            items.append(create_image_item(data, title=image_title, **imparameters))
+            items.append(
+                create_image_item(data_or_obj, title=image_title, **imparameters)
+            )
         if isinstance(data_or_obj, ImageObj):
             items.extend(create_image_roi_items(data_or_obj))
     if results is not None:

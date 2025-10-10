@@ -159,7 +159,8 @@ def test_image_centroid() -> None:
         (circle_roi, 0.0, 0.0),
         (circle_roi, 100.0, 100.0),  # Test for regression like #106
     ):
-        image.roi, image.x0, image.y0 = roi, x0, y0
+        image.roi = roi
+        image.set_uniform_coords(image.dx, image.dy, x0, y0)
         debug_str = f"{roi}, x0: {x0}, y0: {y0}"
         __check_centroid(image, 200.0 + x0, 325.0 + y0, debug_str)
 

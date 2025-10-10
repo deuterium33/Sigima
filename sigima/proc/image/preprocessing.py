@@ -72,12 +72,17 @@ def binning(src: ImageObj, p: BinningParam) -> ImageObj:
     number of blocks.
 
     Args:
-        src: input image object
+        src: source image
         p: parameters
 
     Returns:
-        Output image object
+        Output image
+
+    Raises:
+        ValueError: if source image has non-uniform coordinates
     """
+    if not src.is_uniform_coords:
+        raise ValueError("Binning only works with images having uniform coordinates")
     # Create destination image
     dst = dst_1_to_1(
         src,
@@ -92,9 +97,11 @@ def binning(src: ImageObj, p: BinningParam) -> ImageObj:
         dtype=None if p.dtype_str == "dtype" else p.dtype_str,
     )
     if p.change_pixel_size:
-        if src.dx is not None and src.dy is not None:
-            dst.dx = src.dx * p.sx
-            dst.dy = src.dy * p.sy
+        if not np.isnan(src.dx) and not np.isnan(src.dy):
+            # Update coordinates with new pixel spacing
+            new_dx = src.dx * p.sx
+            new_dy = src.dy * p.sy
+            dst.set_uniform_coords(new_dx, new_dy, src.x0, src.y0)
     return dst
 
 
