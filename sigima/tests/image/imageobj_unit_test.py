@@ -363,6 +363,139 @@ def test_create_image_from_param() -> None:
     execenv.print(f"{test_create_image_from_param.__doc__}: OK")
 
 
+def test_image_copy() -> None:
+    """Test copying image objects with uniform and non-uniform coordinates"""
+    execenv.print(f"{test_image_copy.__doc__}:")
+
+    # Create a base image with some data
+    data = np.random.rand(50, 60)
+    title = "Original Image"
+    metadata = {"key1": "value1", "key2": 42}
+    units = ("mm", "mm", "intensity")
+    labels = ("X axis", "Y axis", "Intensity")
+
+    # Test 1: Copy image with uniform coordinates
+    execenv.print("  Test 1: Copy image with uniform coordinates")
+    image_uniform = sigima.objects.create_image(
+        title=title,
+        data=data.copy(),
+        metadata=metadata.copy(),
+        units=units,
+        labels=labels,
+    )
+    dx, dy, x0, y0 = 0.5, 0.8, 10.0, 20.0
+    image_uniform.set_uniform_coords(dx, dy, x0=x0, y0=y0)
+    # Set some scale attributes
+    image_uniform.autoscale = False
+    image_uniform.xscalelog = True
+    image_uniform.xscalemin = 5.0
+    image_uniform.xscalemax = 25.0
+    image_uniform.yscalelog = False
+    image_uniform.yscalemin = 15.0
+    image_uniform.yscalemax = 35.0
+    image_uniform.zscalemin = 0.0
+    image_uniform.zscalemax = 1.0
+
+    # Copy the image
+    copied_uniform = image_uniform.copy()
+
+    # Verify the copy
+    assert copied_uniform is not image_uniform
+    assert copied_uniform.title == image_uniform.title
+    assert np.array_equal(copied_uniform.data, image_uniform.data)
+    assert copied_uniform.data is not image_uniform.data  # Different array objects
+    assert copied_uniform.metadata == image_uniform.metadata
+    assert copied_uniform.metadata is not image_uniform.metadata
+    assert (copied_uniform.xunit, copied_uniform.yunit, copied_uniform.zunit) == units
+    assert (
+        copied_uniform.xlabel,
+        copied_uniform.ylabel,
+        copied_uniform.zlabel,
+    ) == labels
+
+    # Verify uniform coordinates are preserved
+    assert copied_uniform.is_uniform_coords == image_uniform.is_uniform_coords
+    assert copied_uniform.is_uniform_coords is True
+    assert copied_uniform.dx == dx
+    assert copied_uniform.dy == dy
+    assert copied_uniform.x0 == x0
+    assert copied_uniform.y0 == y0
+    execenv.print("    ✓ Uniform coordinates correctly copied")
+
+    # Verify scale attributes are preserved
+    assert copied_uniform.autoscale == image_uniform.autoscale
+    assert copied_uniform.xscalelog == image_uniform.xscalelog
+    assert copied_uniform.xscalemin == image_uniform.xscalemin
+    assert copied_uniform.xscalemax == image_uniform.xscalemax
+    assert copied_uniform.yscalelog == image_uniform.yscalelog
+    assert copied_uniform.yscalemin == image_uniform.yscalemin
+    assert copied_uniform.yscalemax == image_uniform.yscalemax
+    assert copied_uniform.zscalemin == image_uniform.zscalemin
+    assert copied_uniform.zscalemax == image_uniform.zscalemax
+    execenv.print("    ✓ Scale attributes correctly copied")
+
+    # Test 2: Copy image with non-uniform coordinates
+    execenv.print("  Test 2: Copy image with non-uniform coordinates")
+    image_nonuniform = sigima.objects.create_image(
+        title=title + " (non-uniform)",
+        data=data.copy(),
+        metadata=metadata.copy(),
+        units=units,
+        labels=labels,
+    )
+    # Create non-uniform coordinates (quadratic spacing)
+    ny, nx = data.shape
+    xcoords = np.linspace(0, 10, nx) ** 1.5
+    ycoords = np.linspace(0, 20, ny) ** 2
+    image_nonuniform.set_coords(xcoords=xcoords, ycoords=ycoords)
+
+    # Copy the image
+    copied_nonuniform = image_nonuniform.copy()
+
+    # Verify the copy
+    assert copied_nonuniform is not image_nonuniform
+    assert copied_nonuniform.title == image_nonuniform.title
+    assert np.array_equal(copied_nonuniform.data, image_nonuniform.data)
+    assert copied_nonuniform.data is not image_nonuniform.data
+    assert copied_nonuniform.metadata == image_nonuniform.metadata
+    assert copied_nonuniform.metadata is not image_nonuniform.metadata
+
+    # Verify non-uniform coordinates are preserved
+    assert copied_nonuniform.is_uniform_coords == image_nonuniform.is_uniform_coords
+    assert copied_nonuniform.is_uniform_coords is False
+    assert np.array_equal(copied_nonuniform.xcoords, xcoords)
+    assert np.array_equal(copied_nonuniform.ycoords, ycoords)
+    assert copied_nonuniform.xcoords is not image_nonuniform.xcoords
+    assert copied_nonuniform.ycoords is not image_nonuniform.ycoords
+    execenv.print("    ✓ Non-uniform coordinates correctly copied")
+
+    # Test 3: Copy with title override
+    execenv.print("  Test 3: Copy with custom title")
+    new_title = "Copied Image"
+    copied_with_title = image_uniform.copy(title=new_title)
+    assert copied_with_title.title == new_title
+    assert copied_with_title.is_uniform_coords is True
+    assert copied_with_title.dx == dx
+    execenv.print("    ✓ Title override works correctly")
+
+    # Test 4: Copy with dtype conversion
+    execenv.print("  Test 4: Copy with dtype conversion")
+    copied_uint16 = image_uniform.copy(dtype=np.uint16)
+    assert copied_uint16.data.dtype == np.uint16
+    assert copied_uint16.is_uniform_coords is True
+    assert copied_uint16.dx == dx
+    execenv.print("    ✓ Dtype conversion works correctly")
+
+    # Test 5: Copy with metadata filtering
+    execenv.print("  Test 5: Copy with metadata filtering")
+    copied_basic_meta = image_uniform.copy(all_metadata=False)
+    assert copied_basic_meta.is_uniform_coords is True
+    assert copied_basic_meta.dx == dx
+    execenv.print("    ✓ Metadata filtering works correctly")
+
+    execenv.print(f"{test_image_copy.__doc__}: OK")
+
+
 if __name__ == "__main__":
     guiutils.enable_gui()
     test_create_image()
@@ -370,3 +503,4 @@ if __name__ == "__main__":
     test_all_image_types()
     test_hdf5_image_io()
     test_create_image_from_param()
+    test_image_copy()

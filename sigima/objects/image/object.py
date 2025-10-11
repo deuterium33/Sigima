@@ -418,6 +418,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.title = title
         obj.xlabel = self.xlabel
         obj.ylabel = self.ylabel
+        obj.zlabel = self.zlabel
         obj.xunit = self.xunit
         obj.yunit = self.yunit
         obj.zunit = self.zunit
@@ -425,9 +426,24 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
         obj.annotations = self.annotations
         if self.data is not None:
             obj.data = np.array(self.data, copy=True, dtype=dtype)
-        if not self.is_uniform_coords:
+        obj.is_uniform_coords = self.is_uniform_coords
+        if self.is_uniform_coords:
+            obj.dx = self.dx
+            obj.dy = self.dy
+            obj.x0 = self.x0
+            obj.y0 = self.y0
+        else:
             obj.xcoords = np.array(self.xcoords, copy=True)
             obj.ycoords = np.array(self.ycoords, copy=True)
+        obj.autoscale = self.autoscale
+        obj.xscalelog = self.xscalelog
+        obj.xscalemin = self.xscalemin
+        obj.xscalemax = self.xscalemax
+        obj.yscalelog = self.yscalelog
+        obj.yscalemin = self.yscalemin
+        obj.yscalemax = self.yscalemax
+        obj.zscalemin = self.zscalemin
+        obj.zscalemax = self.zscalemax
         obj.dicom_template = self.dicom_template
         return obj
 
