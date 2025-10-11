@@ -138,6 +138,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         obj = SignalObj(title=title)
         obj.title = title
         obj.xlabel = self.xlabel
+        obj.ylabel = self.ylabel
         obj.xunit = self.xunit
         obj.yunit = self.yunit
         if dtype not in (None, float, complex, np.complex128):
@@ -145,6 +146,13 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         obj.metadata = base.deepcopy_metadata(self.metadata, all_metadata=all_metadata)
         obj.annotations = self.annotations
         obj.xydata = np.array(self.xydata, copy=True, dtype=dtype)
+        obj.autoscale = self.autoscale
+        obj.xscalelog = self.xscalelog
+        obj.xscalemin = self.xscalemin
+        obj.xscalemax = self.xscalemax
+        obj.yscalelog = self.yscalelog
+        obj.yscalemin = self.yscalemin
+        obj.yscalemax = self.yscalemax
         return obj
 
     def set_data_type(self, dtype: np.dtype) -> None:  # pylint: disable=unused-argument

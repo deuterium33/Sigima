@@ -285,9 +285,110 @@ def test_create_signal_from_param() -> None:
     execenv.print(f"{test_create_signal_from_param.__doc__}: OK")
 
 
+def test_signal_copy() -> None:
+    """Test copying signal objects with all attributes"""
+    execenv.print(f"{test_signal_copy.__doc__}:")
+
+    # Create a base signal with some data
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x)
+    dx = np.full_like(x, 0.1)
+    dy = np.full_like(y, 0.01)
+    title = "Original Signal"
+    metadata = {"key1": "value1", "key2": 42}
+    units = ("s", "V")
+    labels = ("Time", "Voltage")
+
+    # Test 1: Copy signal with all attributes
+    execenv.print("  Test 1: Copy signal with all attributes")
+    signal = sigima.objects.create_signal(
+        title=title,
+        x=x,
+        y=y,
+        dx=dx,
+        dy=dy,
+        metadata=metadata.copy(),
+        units=units,
+        labels=labels,
+    )
+
+    # Set scale attributes
+    signal.autoscale = False
+    signal.xscalelog = True
+    signal.xscalemin = 1.0
+    signal.xscalemax = 9.0
+    signal.yscalelog = False
+    signal.yscalemin = -1.5
+    signal.yscalemax = 1.5
+
+    # Copy the signal
+    copied = signal.copy()
+
+    # Verify the copy
+    assert copied is not signal
+    assert copied.title == signal.title
+    assert np.array_equal(copied.x, signal.x)
+    assert np.array_equal(copied.y, signal.y)
+    assert np.array_equal(copied.dx, signal.dx)
+    assert np.array_equal(copied.dy, signal.dy)
+    assert copied.xydata is not signal.xydata  # Different array objects
+    assert copied.metadata == signal.metadata
+    assert copied.metadata is not signal.metadata
+    assert (copied.xunit, copied.yunit) == units
+    assert (copied.xlabel, copied.ylabel) == labels
+
+    # Verify scale attributes are preserved
+    assert copied.autoscale == signal.autoscale
+    assert copied.xscalelog == signal.xscalelog
+    assert copied.xscalemin == signal.xscalemin
+    assert copied.xscalemax == signal.xscalemax
+    assert copied.yscalelog == signal.yscalelog
+    assert copied.yscalemin == signal.yscalemin
+    assert copied.yscalemax == signal.yscalemax
+    execenv.print("    ✓ All attributes correctly copied")
+
+    # Test 2: Copy with title override
+    execenv.print("  Test 2: Copy with custom title")
+    new_title = "Copied Signal"
+    copied_with_title = signal.copy(title=new_title)
+    assert copied_with_title.title == new_title
+    assert copied_with_title.autoscale == signal.autoscale
+    assert np.array_equal(copied_with_title.x, signal.x)
+    execenv.print("    ✓ Title override works correctly")
+
+    # Test 3: Copy with metadata filtering
+    execenv.print("  Test 3: Copy with metadata filtering")
+    copied_basic_meta = signal.copy(all_metadata=False)
+    assert copied_basic_meta.autoscale == signal.autoscale
+    assert copied_basic_meta.xscalelog == signal.xscalelog
+    execenv.print("    ✓ Metadata filtering works correctly")
+
+    # Test 4: Copy signal without error bars
+    execenv.print("  Test 4: Copy signal without error bars")
+    signal_no_err = sigima.objects.create_signal(
+        title="Signal without error bars",
+        x=x,
+        y=y,
+        units=units,
+        labels=labels,
+    )
+    signal_no_err.autoscale = True
+    signal_no_err.yscalelog = True
+
+    copied_no_err = signal_no_err.copy()
+    assert copied_no_err.dx is None
+    assert copied_no_err.dy is None
+    assert copied_no_err.autoscale is True
+    assert copied_no_err.yscalelog is True
+    execenv.print("    ✓ Signal without error bars copied correctly")
+
+    execenv.print(f"{test_signal_copy.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_signal_parameters_interactive()
     test_all_signal_types()
     test_hdf5_signal_io()
     test_create_signal()
     test_create_signal_from_param()
+    test_signal_copy()
