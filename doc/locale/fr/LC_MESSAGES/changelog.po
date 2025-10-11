@@ -127,8 +127,8 @@ msgstr "Convolution."
 msgid "New image format support:"
 msgstr "Nouveau support de format d'image :"
 
-msgid "**Matris text image files**: Added support for reading Matris format text files (`.txt` extension)."
-msgstr "**Fichiers image texte Matris** : Ajout du support pour la lecture des fichiers texte au format Matris (extension `.txt`)."
+msgid "**Coordinated text image files**: Added support for reading coordinated text files (`.txt` extension), similar to the Matris image format."
+msgstr "**Fichiers image texte avec coordonnées** : Ajout de la prise en charge de la lecture des fichiers texte coordonnés (extension `.txt`), similaires au format d'image Matris."
 
 msgid "Supports both real and complex-valued image data with optional error images."
 msgstr "Prend en charge à la fois les données d'image réelles et à valeurs complexes avec des images d'erreur facultatives."

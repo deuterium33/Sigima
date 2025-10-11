@@ -43,7 +43,7 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Convolution.
 
 * New image format support:
-  * **Matris text image files**: Added support for reading Matris format text files (`.txt` extension).
+  * **Coordinated text image files**: Added support for reading coordinated text files (`.txt` extension), similar to the Matris image format.
     * Supports both real and complex-valued image data with optional error images.
     * Automatically handles NaN values in the data.
     * Reads metadata including units (X, Y, Z) and labels from file headers.

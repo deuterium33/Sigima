@@ -160,16 +160,16 @@ class NumPyImageFormat(SingleImageFormatBase):
         np.save(filename, data)
 
 
-class NotMatrisFileError(Exception):
-    """Exception raised when a file is not a Matris file"""
+class NotCoordinatedTextFileError(Exception):
+    """Exception raised when a file is not a coordinated text file"""
 
 
-class MatrisFileReader:
-    """Utility class for reading Matris software text files"""
+class CoordinatedTextFileReader:
+    """Utility class for reading text files with metadata and coordinates"""
 
     @staticmethod
     def read_images(filename: str) -> list[ImageObj]:
-        """Read list of image objects from Matris file.
+        """Read list of image objects from coordinated text file.
 
         Args:
             filename: File name
@@ -177,10 +177,10 @@ class MatrisFileReader:
         Returns:
             List of image objects
         """
-        file_metadata = MatrisFileReader.read_metadata(filename)
+        file_metadata = CoordinatedTextFileReader.read_metadata(filename)
 
         # Validate metadata and raise on inconsistent or missing keys
-        MatrisFileReader.verify_metadata(filename, file_metadata)
+        CoordinatedTextFileReader.verify_metadata(filename, file_metadata)
 
         dict_keys = file_metadata.keys()
         allowed_column_header = {
@@ -203,14 +203,20 @@ class MatrisFileReader:
         }
         metadata["source"] = filename
 
-        df = MatrisFileReader.read_data(filename, columns_header)
+        df = CoordinatedTextFileReader.read_data(filename, columns_header)
 
         name = osp.basename(filename)
 
         try:
-            data = df.pivot(index="Y", columns="X", values="Z").values
-            data = convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
+            # Check if coordinates are uniform or non-uniform
+            x_coords = np.sort(df["X"].unique())
+            y_coords = np.sort(df["Y"].unique())
 
+            # Check if we have a regular grid structure
+            expected_points = len(x_coords) * len(y_coords)
+            actual_points = len(df)
+
+            # Extract coordinate and data information
             (zlabel, zunit) = file_metadata.get("Z", file_metadata.get("Zre", ("", "")))
             (xlabel, xunit) = file_metadata.get("X", ("X", ""))
             (ylabel, yunit) = file_metadata.get("Y", ("Y", ""))
@@ -226,22 +232,59 @@ class MatrisFileReader:
             yunit = "" if yunit is None else str(yunit)
             zunit = "" if zunit is None else str(zunit)
 
-            image = create_image(
-                name,
-                metadata=metadata,
-                data=data,
-                units=(xunit, yunit, zunit),
-                labels=(xlabel, ylabel, zlabel),
-            )
+            if expected_points == actual_points:
+                # Regular grid - can use pivot to create 2D array
+                data = df.pivot(index="Y", columns="X", values="Z").values
+                data = convert_array_to_valid_dtype(data, ImageObj.VALID_DTYPES)
+
+                # Check if coordinates are truly uniform (evenly spaced)
+                x_uniform = len(x_coords) >= 2 and np.allclose(
+                    np.diff(x_coords), x_coords[1] - x_coords[0], rtol=1e-10
+                )
+                y_uniform = len(y_coords) >= 2 and np.allclose(
+                    np.diff(y_coords), y_coords[1] - y_coords[0], rtol=1e-10
+                )
+
+                image = create_image(
+                    name,
+                    metadata=metadata,
+                    data=data,
+                    units=(xunit, yunit, zunit),
+                    labels=(xlabel, ylabel, zlabel),
+                )
+
+                if x_uniform and y_uniform:
+                    # Set uniform coordinates
+                    dx = float(x_coords[1] - x_coords[0]) if len(x_coords) > 1 else 1.0
+                    dy = float(y_coords[1] - y_coords[0]) if len(y_coords) > 1 else 1.0
+                    x0 = float(x_coords[0]) if len(x_coords) > 0 else 0.0
+                    y0 = float(y_coords[0]) if len(y_coords) > 0 else 0.0
+                    image.set_uniform_coords(dx, dy, x0, y0)
+                else:
+                    # Set non-uniform coordinates
+                    image.set_coords(x_coords.astype(float), y_coords.astype(float))
+            else:
+                # Non-regular grid - cannot create proper 2D array from this data
+                raise ValueError(
+                    f"File {filename} contains {actual_points} data points "
+                    f"but expected {expected_points} for a regular grid "
+                    f"({len(x_coords)}×{len(y_coords)}). "
+                    "Coordinated text files must contain data on a complete "
+                    "rectangular grid."
+                )
+
             images_list = [image]
         except ValueError as exc:
             raise ValueError(f"File {filename} wrong format.\n{exc}") from exc
 
         if "Z Error" in df.columns:
+            # For error data, use the same coordinate structure as the main image
+            error_data = df.pivot(index="Y", columns="X", values="Z Error").values
+
             image_error = create_image(
                 name + " error",
                 metadata={"source": filename},
-                data=df.pivot(index="Y", columns="X", values="Z Error").values,
+                data=error_data,
                 units=(
                     file_metadata["X"][1],
                     file_metadata["Y"][1],
@@ -260,6 +303,13 @@ class MatrisFileReader:
                     + " error",
                 ),
             )
+
+            # Apply the same coordinate system as the main image
+            if image.is_uniform_coords:
+                image_error.set_uniform_coords(image.dx, image.dy, image.x0, image.y0)
+            else:
+                image_error.set_coords(image.xcoords.copy(), image.ycoords.copy())
+
             images_list.append(image_error)
 
         return images_list
@@ -298,7 +348,7 @@ class MatrisFileReader:
                     content = line[1:].strip()
 
                     # Parse specific patterns
-                    parsed = MatrisFileReader._parse_metadata_line(content)
+                    parsed = CoordinatedTextFileReader._parse_metadata_line(content)
                     if parsed:
                         key, value_unit = parsed
                         metadata[key] = value_unit
@@ -350,7 +400,7 @@ class MatrisFileReader:
         rest = rest.strip()
 
         # Parse value and unit
-        value, unit = MatrisFileReader._parse_value_and_unit(rest)
+        value, unit = CoordinatedTextFileReader._parse_value_and_unit(rest)
 
         return key, (value, unit)
 
@@ -398,18 +448,18 @@ class MatrisFileReader:
             metadata: Metadata dictionary parsed from file header.
 
         Raises:
-            NotMatrisFileError: When file is not a valid Matris format.
+            NotCoordinatedTextFileError: When file is not a valid format.
             ValueError: When required fields are missing or inconsistent.
         """
-        # Check if this is a Matris file by looking for key indicators
-        has_matris_indicators = "software_version" in metadata or (
+        # Check if this is a coordinated text file by looking for key indicators
+        has_format_indicators = "software_version" in metadata or (
             "creation_date" in metadata
             and any(col in metadata for col in ["X", "Y", "Z", "Zre", "Zim"])
         )
 
-        if not has_matris_indicators:
-            raise NotMatrisFileError(
-                f"File {filename} does not appear to be a Matris format file "
+        if not has_format_indicators:
+            raise NotCoordinatedTextFileError(
+                f"File {filename} does not appear to be a coordinated text format file "
                 "(missing expected metadata structure)"
             )
 
@@ -521,7 +571,7 @@ class MatrisFileReader:
         # Try several parsing variants (encoding, decimal and delimiter).
         df: pd.DataFrame | None = None
 
-        df = MatrisFileReader._try_df_reading(filename, columns_header)
+        df = CoordinatedTextFileReader._try_df_reading(filename, columns_header)
 
         # if Z is present, the image is Real
 
@@ -533,6 +583,87 @@ class MatrisFileReader:
                 df = df.drop(columns=["Zre Error", "Zim Error"])
 
         return df
+
+
+class CoordinatedTextFileWriter:
+    """Utility class for writing text files with metadata and coordinates"""
+
+    @staticmethod
+    def write_image(filename: str, obj: ImageObj) -> None:
+        """Write image object to coordinated text file.
+
+        Args:
+            filename: File name to write to
+            obj: Image object to write
+
+        Raises:
+            ValueError: If image has invalid coordinate system
+        """
+        import datetime
+
+        import sigima
+
+        # Validate that we can write this image
+        if obj.data is None:
+            raise ValueError(
+                "Cannot write image with no data to coordinated text format"
+            )
+
+        # Get coordinate information
+        if obj.is_uniform_coords:
+            # Generate coordinate arrays for uniform coordinates
+            ny, nx = obj.data.shape
+            x_coords = obj.x0 + np.arange(nx) * obj.dx
+            y_coords = obj.y0 + np.arange(ny) * obj.dy
+        else:
+            # Use non-uniform coordinates directly
+            x_coords = obj.xcoords
+            y_coords = obj.ycoords
+            if x_coords is None or y_coords is None:
+                raise ValueError("Cannot write image with missing coordinate arrays")
+
+        # Create meshgrid for the data
+        X, Y = np.meshgrid(x_coords, y_coords)
+
+        # Flatten arrays for CSV output
+        x_flat = X.flatten()
+        y_flat = Y.flatten()
+        z_flat = obj.data.flatten()
+
+        # Write file
+        with open(filename, "w", encoding="utf-8") as f:
+            # Write metadata header
+            f.write(f"# Created by Sigima {sigima.__version__}\n")
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            f.write(f"# Created on {timestamp}\n")
+            f.write(f"# nx: {obj.data.shape[1]}\n")
+            f.write(f"# ny: {obj.data.shape[0]}\n")
+
+            # Write axis information
+            f.write(f"# X: {obj.xlabel}")
+            if obj.xunit:
+                f.write(f" ({obj.xunit})")
+            f.write("\n")
+
+            f.write(f"# Y: {obj.ylabel}")
+            if obj.yunit:
+                f.write(f" ({obj.yunit})")
+            f.write("\n")
+
+            f.write(f"# Z: {obj.zlabel}")
+            if obj.zunit:
+                f.write(f" ({obj.zunit})")
+            f.write("\n")
+
+            # Write additional metadata if present
+            if obj.metadata:
+                for key, value in obj.metadata.items():
+                    if key not in ("source",):  # Skip internal metadata
+                        f.write(f"# {key}: {value}\n")
+
+            # Write data columns
+            for x, y, z in zip(x_flat, y_flat, z_flat):
+                f.write(f"{x}\t{y}\t{z}\n")
 
 
 class TextImageFormat(SingleImageFormatBase):
@@ -557,12 +688,13 @@ class TextImageFormat(SingleImageFormatBase):
         Returns:
             List of image objects
         """
-        # Try to read as Matris format first (for .txt files that might be Matris)
-        if filename.lower().endswith(".txt"):
+        # Try to read as coordinated text format first
+        # (for .txt/.csv files with metadata and coordinates)
+        if filename.lower().endswith((".txt", ".csv")):
             try:
-                return MatrisFileReader.read_images(filename)
-            except NotMatrisFileError:
-                # Not a Matris file, continue with regular text processing
+                return CoordinatedTextFileReader.read_images(filename)
+            except NotCoordinatedTextFileError:
+                # Not a coordinated text file, continue with regular text processing
                 pass
 
         # Read as generic text file
@@ -628,6 +760,30 @@ class TextImageFormat(SingleImageFormatBase):
             np.savetxt(filename, data, fmt=fmt, delimiter=",")
         else:
             raise ValueError(f"Unknown text file extension {ext}")
+
+    def write(self, filename: str, obj: ImageObj) -> None:
+        """Write data to file
+
+        Args:
+            filename: file name
+            obj: image object
+        """
+        if not isinstance(obj, ImageObj):
+            raise ValueError("Object is not an image")
+
+        # Check if object has non-uniform coordinates and filename is CSV
+        # If so, use coordinated text format
+        ext = osp.splitext(filename)[1].lower()
+        if ext == ".csv" and not obj.is_uniform_coords:
+            try:
+                CoordinatedTextFileWriter.write_image(filename, obj)
+                return
+            except Exception:
+                # Fall back to regular text format if writing fails
+                pass
+
+        # Use default text format
+        super().write(filename, obj)
 
 
 class MatImageFormat(SingleImageFormatBase):
