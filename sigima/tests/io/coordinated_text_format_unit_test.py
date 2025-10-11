@@ -360,6 +360,130 @@ def test_write_with_nan_values() -> None:
     execenv.print(f"{test_write_with_nan_values.__doc__}: OK")
 
 
+def test_polynomial_calibration_txt_io() -> None:
+    """Test I/O for images with polynomial calibration saved as TXT files"""
+    execenv.print(f"{test_polynomial_calibration_txt_io.__doc__}:")
+
+    # Import here to avoid circular dependency
+    import sigima.params
+    import sigima.proc.image
+
+    # Create test image
+    data = np.random.rand(10, 10) * 100
+    orig_image = sigima.objects.create_image("Test", data)
+    orig_image.set_uniform_coords(dx=1.0, dy=1.0, x0=0.0, y0=0.0)
+
+    # Apply polynomial calibration on X axis (a0=0, a1=1, a2=0.001)
+    p = sigima.params.XYZCalibrateParam.create(axis="x", a0=0.0, a1=1.0, a2=0.001)
+    calibrated_image = sigima.proc.image.calibration(orig_image, p)
+
+    # Verify calibrated image has non-uniform coordinates
+    assert not calibrated_image.is_uniform_coords
+    execenv.print("  ✓ Created image with polynomial calibration")
+
+    with WorkdirRestoringTempDir() as tmpdir:
+        # Test TXT format
+        txt_filename = osp.join(tmpdir, "test_polynomial.txt")
+        sigima.io.write_image(txt_filename, calibrated_image)
+        execenv.print(f"  ✓ Saved to TXT: {txt_filename}")
+
+        loaded_txt = sigima.io.read_image(txt_filename)
+        execenv.print(f"  ✓ Loaded from TXT: {txt_filename}")
+
+        # Verify non-uniform coordinates are preserved
+        assert not loaded_txt.is_uniform_coords, (
+            "TXT file should preserve non-uniform coordinates"
+        )
+        assert np.allclose(loaded_txt.xcoords, calibrated_image.xcoords, atol=1e-10)
+        assert np.allclose(loaded_txt.ycoords, calibrated_image.ycoords, atol=1e-10)
+        assert np.allclose(loaded_txt.data, calibrated_image.data, atol=1e-10)
+        execenv.print("    ✓ Non-uniform coordinates preserved in TXT format")
+
+        # Test CSV format for comparison
+        csv_filename = osp.join(tmpdir, "test_polynomial.csv")
+        sigima.io.write_image(csv_filename, calibrated_image)
+        execenv.print(f"  ✓ Saved to CSV: {csv_filename}")
+
+        loaded_csv = sigima.io.read_image(csv_filename)
+        execenv.print(f"  ✓ Loaded from CSV: {csv_filename}")
+
+        # Verify both formats produce identical results
+        assert not loaded_csv.is_uniform_coords
+        assert np.allclose(loaded_csv.xcoords, loaded_txt.xcoords, atol=1e-10)
+        assert np.allclose(loaded_csv.ycoords, loaded_txt.ycoords, atol=1e-10)
+        assert np.allclose(loaded_csv.data, loaded_txt.data, atol=1e-10)
+        execenv.print("    ✓ TXT and CSV formats produce identical results")
+
+    execenv.print(f"{test_polynomial_calibration_txt_io.__doc__}: OK")
+
+
+def test_metadata_type_restoration() -> None:
+    """Test that metadata types are correctly restored when reading text files"""
+    execenv.print(f"{test_metadata_type_restoration.__doc__}:")
+
+    # Create test image with various metadata types
+    data = np.random.rand(5, 5) * 100
+    orig_image = sigima.objects.create_image("TypeTest", data)
+
+    # Add metadata with different types
+    orig_image.metadata["int_value"] = 42
+    orig_image.metadata["negative_int"] = -123
+    orig_image.metadata["float_value"] = 3.14159
+    orig_image.metadata["negative_float"] = -2.71828
+    orig_image.metadata["scientific_float"] = 1.23e-5
+    orig_image.metadata["bool_true"] = True
+    orig_image.metadata["bool_false"] = False
+    orig_image.metadata["string_value"] = "hello world"
+
+    execenv.print("  ✓ Created image with mixed metadata types")
+
+    # Set non-uniform coordinates to trigger coordinated text format
+    xcoords = np.array([0.0, 1.0, 2.5, 4.0, 6.0])
+    ycoords = np.array([0.0, 1.0, 2.0, 3.5, 5.5])
+    orig_image.set_coords(xcoords=xcoords, ycoords=ycoords)
+
+    with WorkdirRestoringTempDir() as tmpdir:
+        filename = osp.join(tmpdir, "test_metadata_types.txt")
+
+        # Save to text file
+        sigima.io.write_image(filename, orig_image)
+        execenv.print(f"  ✓ Saved to TXT: {filename}")
+
+        # Load it back
+        loaded_image = sigima.io.read_image(filename)
+        execenv.print(f"  ✓ Loaded from TXT: {filename}")
+
+        # Verify integer types are restored
+        assert isinstance(loaded_image.metadata["int_value"], int)
+        assert loaded_image.metadata["int_value"] == 42
+        assert isinstance(loaded_image.metadata["negative_int"], int)
+        assert loaded_image.metadata["negative_int"] == -123
+        execenv.print("    ✓ Integer types restored correctly")
+
+        # Verify float types are restored
+        assert isinstance(loaded_image.metadata["float_value"], float)
+        assert abs(loaded_image.metadata["float_value"] - 3.14159) < 1e-10
+        assert isinstance(loaded_image.metadata["negative_float"], float)
+        assert abs(loaded_image.metadata["negative_float"] - (-2.71828)) < 1e-10
+        assert isinstance(loaded_image.metadata["scientific_float"], float)
+        assert abs(loaded_image.metadata["scientific_float"] - 1.23e-5) < 1e-15
+        execenv.print("    ✓ Float types restored correctly")
+
+        # Verify boolean types are restored
+        assert isinstance(loaded_image.metadata["bool_true"], bool)
+        assert loaded_image.metadata["bool_true"] is True
+        assert isinstance(loaded_image.metadata["bool_false"], bool)
+        assert loaded_image.metadata["bool_false"] is False
+        execenv.print("    ✓ Boolean types restored correctly")
+
+        # Verify string types are preserved
+        assert isinstance(loaded_image.metadata["string_value"], str)
+        assert loaded_image.metadata["string_value"] == "hello world"
+        execenv.print("    ✓ String types preserved correctly")
+
+    execenv.print(f"{test_metadata_type_restoration.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_read_image_basic()
     test_read_image_with_unit()
@@ -369,3 +493,5 @@ if __name__ == "__main__":
     test_nonuniform_coordinates_io()
     test_uniform_coordinates_io()
     test_write_with_nan_values()
+    test_polynomial_calibration_txt_io()
+    test_metadata_type_restoration()

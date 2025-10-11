@@ -405,14 +405,23 @@ class CoordinatedTextFileReader:
         return key, (value, unit)
 
     @staticmethod
-    def _parse_value_and_unit(text: str) -> tuple[int | str | None, str | None]:
+    def _parse_value_and_unit(
+        text: str,
+    ) -> tuple[int | float | bool | str | None, str | None]:
         """Parse value and unit from text like 'value (unit)' or just 'value'.
+
+        Intelligently converts values to appropriate types:
+        - Booleans: "true"/"false" (case-insensitive) → bool
+        - Integers: "123", "-456" → int
+        - Floats: "1.23", "-4.56", "1.2e-3" → float
+        - None: empty string → None
+        - Strings: everything else → str
 
         Args:
             text: Text to parse
 
         Returns:
-            Tuple of (value, unit) where value can be int, str, or None
+            Tuple of (value, unit) where value can be int, float, bool, str, or None
         """
         text = text.strip()
 
@@ -426,13 +435,24 @@ class CoordinatedTextFileReader:
                 if not unit:
                     unit = None
 
-        # Parse value
+        # Parse value with intelligent type detection
         if not text:
             value = None
-        elif text.isdigit():
-            value = int(text)
+        elif text.lower() in ("true", "false"):
+            # Boolean values
+            value = text.lower() == "true"
         else:
-            value = text
+            # Try to parse as number
+            try:
+                # Check if it looks like an integer (no decimal point or exponent)
+                if "." not in text and "e" not in text.lower():
+                    value = int(text)
+                else:
+                    # Parse as float
+                    value = float(text)
+            except ValueError:
+                # Not a number, keep as string
+                value = text
 
         return value, unit
 
@@ -771,10 +791,10 @@ class TextImageFormat(SingleImageFormatBase):
         if not isinstance(obj, ImageObj):
             raise ValueError("Object is not an image")
 
-        # Check if object has non-uniform coordinates and filename is CSV
+        # Check if object has non-uniform coordinates and filename is TXT or CSV
         # If so, use coordinated text format
         ext = osp.splitext(filename)[1].lower()
-        if ext == ".csv" and not obj.is_uniform_coords:
+        if ext in (".txt", ".csv") and not obj.is_uniform_coords:
             try:
                 CoordinatedTextFileWriter.write_image(filename, obj)
                 return
