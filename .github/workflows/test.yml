@@ -35,13 +35,22 @@ jobs:
         /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
         python -m pip install --upgrade pip
         python -m pip install ruff pytest
-        pip install .
         if [ "${{ github.ref_name }}" = "develop" ]; then
            pip uninstall -y guidata
            cd ..
            git clone --depth 1 --branch develop https://github.com/PlotPyStack/guidata.git
            cd Sigima
            pip install -e ../guidata
+           # Install tomli for TOML parsing (safe if already present)
+           pip install tomli
+           # Extract dependencies and save to file, then install
+           python -c "import tomli; f=open('pyproject.toml','rb'); data=tomli.load(f); deps=[d for d in data['project']['dependencies'] if not any(p in d for p in ['guidata'])]; open('deps.txt','w').write('\n'.join(deps))"
+           pip install -r deps.txt
+           # Install Sigima without dependencies
+           pip install --no-deps .
+        else
+           # Install from PyPI normally for main branch
+           pip install .
         fi
     - name: Lint with Ruff
       run: ruff check --output-format=github sigima
