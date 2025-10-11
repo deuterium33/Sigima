@@ -7,6 +7,30 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **Non-uniform coordinate support for images**: Added comprehensive support for non-uniform pixel coordinates
+  * `ImageObj` now supports both uniform and non-uniform coordinate systems:
+    * Uniform coordinates: defined by origin (`x0`, `y0`) and pixel spacing (`dx`, `dy`)
+    * Non-uniform coordinates: defined by coordinate arrays (`xcoords`, `ycoords`)
+  * New methods for coordinate manipulation:
+    * `set_coords()`: Set non-uniform X and Y coordinate arrays
+    * `is_uniform_coords`: Property to check if coordinates are uniform
+  * New computation function `set_uniform_coords()`: Convert non-uniform to uniform coordinates
+    * Automatically extracts uniform spacing from non-uniform arrays
+    * Handles numerical precision issues from linspace-generated arrays
+    * Preserves image data while transforming coordinate system
+  * Enhanced `calibration()` function with polynomial support:
+    * Now supports polynomial calibration up to cubic order: `dst = a0 + a1*src + a2*src² + a3*src³`
+    * Parameter class changed from `a, b` (linear) to `a0, a1, a2, a3` (polynomial)
+    * Works on X-axis, Y-axis (creating non-uniform coordinates), and Z-axis (data values)
+    * Linear calibration is a special case with `a2=0, a3=0`
+    * Automatically handles conversion between uniform and non-uniform coordinate systems
+  * Enhanced I/O support:
+    * HDF5 format now serializes/deserializes non-uniform coordinates
+    * Coordinated text files support non-uniform coordinate arrays
+  * All geometric operations updated to handle both coordinate types:
+    * Coordinate transformations preserve or create appropriate coordinate system
+    * ROI operations work seamlessly with both uniform and non-uniform coordinates
+
 * **DateTime support for signal data**: Added comprehensive datetime handling for signal X-axis data
   * Automatic detection and conversion of datetime columns when reading CSV files
     * Detects datetime values in the first or second column (handling index columns)

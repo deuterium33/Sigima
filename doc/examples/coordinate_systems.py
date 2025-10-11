@@ -121,7 +121,7 @@ print(f"Y spacing varies from {y_spacing_min:.4f} to {y_spacing_max:.4f} μm")
 
 # %%
 # Visualizing coordinate system differences
-# ----------------------------------------
+# -----------------------------------------
 # Let's create coordinate grid visualizations to highlight the differences
 # between uniform and non-uniform coordinate systems.
 
@@ -173,7 +173,7 @@ view_images_side_by_side(
 
 # %%
 # Creating specialized non-uniform coordinate examples
-# ---------------------------------------------------
+# ----------------------------------------------------
 # Let's create some more realistic examples of non-uniform coordinates
 # that might be encountered in real applications.
 
@@ -246,7 +246,7 @@ view_images_side_by_side(
 
 # %%
 # Summary and best practices
-# -------------------------
+# --------------------------
 # Let's summarize when to use each coordinate system type.
 
 print("\n" + "=" * 60)

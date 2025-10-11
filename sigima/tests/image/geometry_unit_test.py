@@ -463,6 +463,183 @@ def test_image_resize() -> None:
     check_array_result("Resize large zoom=5.0", ima_large.data, expected_large)
 
 
+@pytest.mark.validation
+def test_set_uniform_coords() -> None:
+    """Test converting from non-uniform to uniform coordinates."""
+    execenv.print("*** Testing set_uniform_coords")
+
+    # Test 1: Create an image with non-uniform coordinates
+    execenv.print("  Testing non-uniform to uniform conversion")
+    ima1 = get_test_image("flower.npy")
+    nx, ny = ima1.data.shape[1], ima1.data.shape[0]
+
+    # Create non-uniform coordinates (e.g., quadratic spacing on y-axis)
+    xcoords = np.linspace(0.0, 10.0, nx)
+    ycoords = np.linspace(0.0, 8.0, ny) ** 2  # Non-uniform spacing
+    ima1.set_coords(xcoords, ycoords)
+
+    # Verify it's non-uniform
+    assert not ima1.is_uniform_coords, "Image should have non-uniform coordinates"
+
+    # Create parameter and update from object
+    p = sigima.params.UniformCoordsParam()
+    p.update_from_obj(ima1)
+
+    # Apply conversion
+    ima2 = sigima.proc.image.set_uniform_coords(ima1, p)
+
+    # Check that result has uniform coordinates
+    assert ima2.is_uniform_coords, "Result should have uniform coordinates"
+
+    # Check that the data is unchanged
+    check_array_result("Data preservation", ima2.data, ima1.data)
+
+    # Check that coordinate parameters were extracted correctly
+    expected_x0 = xcoords[0]
+    expected_y0 = ycoords[0]
+    expected_dx = (xcoords[-1] - xcoords[0]) / (nx - 1)
+    expected_dy = (ycoords[-1] - ycoords[0]) / (ny - 1)
+
+    check_scalar_result("X0 extraction", ima2.x0, expected_x0, atol=1e-10)
+    check_scalar_result("Y0 extraction", ima2.y0, expected_y0, atol=1e-10)
+    check_scalar_result("dx extraction", ima2.dx, expected_dx, atol=1e-10)
+    check_scalar_result("dy extraction", ima2.dy, expected_dy, atol=1e-10)
+
+    # Test 2: Converting already uniform coordinates (should preserve values)
+    execenv.print("  Testing uniform to uniform (identity)")
+    ima3 = get_test_image("flower.npy")
+    original_x0, original_y0 = ima3.x0, ima3.y0
+    original_dx, original_dy = ima3.dx, ima3.dy
+
+    p2 = sigima.params.UniformCoordsParam()
+    p2.update_from_obj(ima3)
+    ima4 = sigima.proc.image.set_uniform_coords(ima3, p2)
+
+    assert ima4.is_uniform_coords, "Result should have uniform coordinates"
+    check_array_result("Data preservation (uniform)", ima4.data, ima3.data)
+    check_scalar_result("X0 preservation", ima4.x0, original_x0, atol=1e-10)
+    check_scalar_result("Y0 preservation", ima4.y0, original_y0, atol=1e-10)
+    check_scalar_result("dx preservation", ima4.dx, original_dx, atol=1e-10)
+    check_scalar_result("dy preservation", ima4.dy, original_dy, atol=1e-10)
+
+    # Test 3: Manual parameter specification
+    execenv.print("  Testing manual parameter specification")
+    ima5 = get_test_image("flower.npy")
+    # Create non-uniform coordinates
+    ima5.set_coords(np.linspace(5.0, 15.0, nx), np.linspace(10.0, 20.0, ny))
+
+    p3 = sigima.params.UniformCoordsParam.create(x0=5.0, y0=10.0, dx=0.5, dy=0.25)
+    ima6 = sigima.proc.image.set_uniform_coords(ima5, p3)
+
+    assert ima6.is_uniform_coords, "Result should have uniform coordinates"
+    check_scalar_result("Manual X0", ima6.x0, 5.0, atol=1e-10)
+    check_scalar_result("Manual Y0", ima6.y0, 10.0, atol=1e-10)
+    check_scalar_result("Manual dx", ima6.dx, 0.5, atol=1e-10)
+    check_scalar_result("Manual dy", ima6.dy, 0.25, atol=1e-10)
+
+
+@pytest.mark.validation
+def test_image_calibration() -> None:
+    """Validation test for polynomial calibration."""
+    execenv.print("*** Testing calibration (polynomial)")
+
+    # Test 1: Z-axis polynomial calibration
+    execenv.print("  Testing Z-axis polynomial calibration")
+    src = get_test_image("flower.npy")
+    # Use smaller coefficients to avoid overflow with uint8 data (0-255 range)
+    p = sigima.params.XYZCalibrateParam.create(
+        axis="z", a0=10.0, a1=2.0, a2=0.001, a3=0.0
+    )
+    dst = sigima.proc.image.calibration(src, p)
+
+    # Verify polynomial transformation on data
+    src_data_float = src.data.astype(float)
+    expected_data = (
+        p.a0
+        + p.a1 * src_data_float
+        + p.a2 * src_data_float**2
+        + p.a3 * src_data_float**3
+    )
+    check_array_result("Z-axis polynomial", dst.data, expected_data)
+
+    # Coordinates should be unchanged
+    assert dst.is_uniform_coords
+    check_scalar_result("Z-calib: x0", dst.x0, src.x0)
+    check_scalar_result("Z-calib: y0", dst.y0, src.y0)
+    check_scalar_result("Z-calib: dx", dst.dx, src.dx)
+    check_scalar_result("Z-calib: dy", dst.dy, src.dy)
+
+    # Test 2: X-axis polynomial calibration (uniform → non-uniform)
+    execenv.print("  Testing X-axis polynomial (uniform → non-uniform)")
+    src2 = get_test_image("flower.npy")
+    src2.set_uniform_coords(dx=0.5, dy=0.5, x0=0.0, y0=0.0)
+    p2 = sigima.params.XYZCalibrateParam.create(
+        axis="x", a0=1.0, a1=2.0, a2=0.1, a3=0.0
+    )
+    dst2 = sigima.proc.image.calibration(src2, p2)
+
+    # After polynomial calibration on X, coordinates should become non-uniform
+    assert not dst2.is_uniform_coords, (
+        "X-axis polynomial should create non-uniform coords"
+    )
+
+    # Verify X coordinates transformation
+    x_uniform = src2.x0 + np.arange(src2.data.shape[1]) * src2.dx
+    expected_x = p2.a0 + p2.a1 * x_uniform + p2.a2 * x_uniform**2
+    check_array_result("X-axis polynomial coords", dst2.xcoords, expected_x)
+    # Check that Y coordinates were converted in non-uniform but unchanged
+    src2_ycoords = src2.y0 + np.arange(src2.data.shape[0]) * src2.dy
+    check_array_result("X-axis polynomial Y coords", dst2.ycoords, src2_ycoords)
+
+    # Data should be unchanged
+    check_array_result("X-calib: data preservation", dst2.data, src2.data)
+
+    # Test 3: Y-axis polynomial calibration (non-uniform → non-uniform)
+    execenv.print("  Testing Y-axis polynomial (non-uniform → non-uniform)")
+    src3 = get_test_image("flower.npy")
+    ny = src3.data.shape[0]
+    y_nonuniform = np.linspace(0.0, 10.0, ny)
+    src3.set_coords(None, y_nonuniform)
+
+    p3 = sigima.params.XYZCalibrateParam.create(
+        axis="y", a0=5.0, a1=1.0, a2=0.0, a3=0.05
+    )
+    dst3 = sigima.proc.image.calibration(src3, p3)
+
+    # Should still be non-uniform
+    assert not dst3.is_uniform_coords
+
+    # Verify Y coordinates transformation
+    expected_y = p3.a0 + p3.a1 * y_nonuniform + p3.a3 * y_nonuniform**3
+    check_array_result("Y-axis polynomial coords", dst3.ycoords, expected_y)
+
+    # Data should be unchanged
+    check_array_result("Y-calib: data preservation", dst3.data, src3.data)
+
+    # Test 4: Linear case (a2=a3=0, backward compatibility)
+    execenv.print("  Testing linear calibration (a2=a3=0)")
+    src4 = get_test_image("flower.npy")
+    p4 = sigima.params.XYZCalibrateParam.create(
+        axis="x", a0=0.5, a1=2.0, a2=0.0, a3=0.0
+    )
+    dst4 = sigima.proc.image.calibration(src4, p4)
+
+    # For linear case with uniform input, result should still be non-uniform
+    # because we always generate coordinate arrays
+    # Verify the transformation is correct
+    x_uniform = src4.x0 + np.arange(src4.data.shape[1]) * src4.dx
+    expected_x_linear = p4.a0 + p4.a1 * x_uniform
+    if dst4.is_uniform_coords:
+        # If implementation optimized to keep uniform coords
+        check_scalar_result("Linear x0", dst4.x0, expected_x_linear[0])
+        check_scalar_result(
+            "Linear dx", dst4.dx, expected_x_linear[1] - expected_x_linear[0]
+        )
+    else:
+        # If coordinates are non-uniform
+        check_array_result("Linear xcoords", dst4.xcoords, expected_x_linear)
+
+
 if __name__ == "__main__":
     test_image_fliph()
     test_image_flipv()
@@ -472,3 +649,6 @@ if __name__ == "__main__":
     test_image_transpose()
     test_image_resampling()
     test_image_resize()
+    test_image_translate()
+    test_set_uniform_coords()
+    test_image_calibration()

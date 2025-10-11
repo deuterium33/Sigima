@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-07 15:01+0200\n"
+"POT-Creation-Date: 2025-10-11 11:30+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -261,6 +261,9 @@ msgstr "Métadonnées"
 msgid "Annotations"
 msgstr "Annotations"
 
+msgid "Uniform coordinates"
+msgstr "Coordonnées uniformes"
+
 msgid "Origin"
 msgstr "Origine"
 
@@ -269,6 +272,15 @@ msgstr "Taille des pixels"
 
 msgid "Extent"
 msgstr "Bornes"
+
+msgid "Coordinates"
+msgstr "Coordonnées"
+
+msgid "X coordinates"
+msgstr "Coordonnées X"
+
+msgid "Y coordinates"
+msgstr "Coordonnées Y"
 
 msgid "Titles / Units"
 msgstr "Titres / Unités"
@@ -326,9 +338,6 @@ msgstr "Coordonnées du centre"
 
 msgid "Radius"
 msgstr "Rayon"
-
-msgid "Coordinates"
-msgstr "Coordonnées"
 
 msgid "Inverse ROI logic"
 msgstr "Inverser la logique de la ROI"
@@ -832,9 +841,6 @@ msgstr "Seuil"
 msgid "Counts"
 msgstr "Coups"
 
-msgid "Calibrate"
-msgstr "Étalonner"
-
 msgid "increasing"
 msgstr "croissant"
 
@@ -1011,6 +1017,33 @@ msgstr "Valeur de remplissage"
 
 msgid "Value to use for points outside the input image domain. If None, uses NaN for extrapolation."
 msgstr "Valeur à utiliser pour les points en dehors du domaine de l'image d'origine. Si aucune valeur n'est fournie, alors NaN est utilisé pour l'extrapolation."
+
+msgid "Origin X-axis coordinate"
+msgstr "Abscisse de l'origine"
+
+msgid "Origin Y-axis coordinate"
+msgstr "Ordonnée de l'origine"
+
+msgid "Pixel size along X-axis"
+msgstr "Taille du pixel selon X"
+
+msgid "Pixel size along Y-axis"
+msgstr "Taille du pixel selon Y"
+
+msgid "Calibrate"
+msgstr "Étalonner"
+
+msgid "Constant term"
+msgstr "Terme constant"
+
+msgid "Linear term"
+msgstr "Terme linéaire"
+
+msgid "Quadratic term"
+msgstr "Terme quadratique"
+
+msgid "Cubic term"
+msgstr "Terme cubique"
 
 msgid "Destination data type"
 msgstr "Type de données de destination"
@@ -1327,4 +1360,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

@@ -295,6 +295,7 @@ __all__ = [
     "SegmentProfileParam",
     "ThresholdParam",
     "TranslateParam",
+    "UniformCoordsParam",
     "XYZCalibrateParam",
     "ZeroPadding2DParam",
     "AbscissaParam",
@@ -374,6 +375,7 @@ from sigima.proc.image import (
     SegmentProfileParam,
     ThresholdParam,
     TranslateParam,
+    UniformCoordsParam,
     XYZCalibrateParam,
     ZeroPadding2DParam,
 )

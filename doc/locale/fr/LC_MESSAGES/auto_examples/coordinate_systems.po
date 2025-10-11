@@ -1,0 +1,110 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-11 11:36+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_coordinate_systems.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_coordinate_systems.py>` pour télécharger le code complet de l'exemple."
+
+msgid "Uniform and Non-Uniform Coordinate Systems with Sigima"
+msgstr "Systèmes de coordonnées uniformes et non uniformes avec Sigima"
+
+msgid "This example demonstrates the use of uniform and non-uniform coordinate systems with images in Sigima. It shows how to create, visualize, and work with both types of coordinate systems, highlighting their differences and appropriate use cases."
+msgstr "Cet exemple démontre l'utilisation de systèmes de coordonnées uniformes et non uniformes avec des images dans Sigima. Il montre comment créer, visualiser et travailler avec les deux types de systèmes de coordonnées, en mettant en évidence leurs différences et leurs cas d'utilisation appropriés."
+
+msgid "The example shows:"
+msgstr "L'exemple montre :"
+
+msgid "Creating images with uniform coordinate systems"
+msgstr "Création d'images avec des systèmes de coordonnées uniformes"
+
+msgid "Creating images with non-uniform coordinate systems"
+msgstr "Création d'images avec des systèmes de coordonnées non uniformes"
+
+msgid "Visualizing the coordinate grids"
+msgstr "Visualisation des grilles de coordonnées"
+
+msgid "Comparing pixel spacing and coordinate mapping"
+msgstr "Comparaison de l'espacement des pixels et du mappage des coordonnées"
+
+msgid "Working with real-world units and coordinates"
+msgstr "Travail avec des unités et des coordonnées du monde réel"
+
+msgid "Understanding when to use each coordinate system type"
+msgstr "Quand et comment utiliser chaque type de système de coordonnées"
+
+msgid "This tutorial uses PlotPy for visualization, providing interactive plots that allow you to explore the coordinate system effects in detail."
+msgstr "Ce tutoriel utilise PlotPy pour la visualisation, fournissant des graphiques interactifs qui vous permettent d'explorer en détail les effets du système de coordonnées."
+
+msgid "Importing necessary modules"
+msgstr "Importation des modules nécessaires"
+
+msgid "We'll start by importing all the required modules for image processing and visualization."
+msgstr "Nous commencerons par importer tous les modules nécessaires au traitement d'images et à la visualisation."
+
+msgid "Creating test images with uniform coordinates"
+msgstr "Création d'images de test avec des coordonnées uniformes"
+
+msgid "Uniform coordinates have constant spacing between pixels in both directions. This is the most common case for regular imaging systems."
+msgstr "Les coordonnées uniformes ont un espacement constant entre les pixels dans les deux directions. C'est le cas le plus courant pour les systèmes d'imagerie réguliers."
+
+msgid "Creating test images with non-uniform coordinates"
+msgstr "Création d'images de test avec des coordonnées non uniformes"
+
+msgid "Non-uniform coordinates allow for variable spacing between pixels, useful for adaptive sampling, curved coordinates, or irregular grids."
+msgstr "Les coordonnées non uniformes permettent un espacement variable entre les pixels, utile pour l'échantillonnage adaptatif, les coordonnées courbes ou les grilles irrégulières."
+
+msgid "Visualizing coordinate system differences"
+msgstr "Visualisation des différences entre les systèmes de coordonnées"
+
+msgid "Let's create coordinate grid visualizations to highlight the differences between uniform and non-uniform coordinate systems."
+msgstr "Créons des visualisations de grilles de coordonnées pour mettre en évidence les différences entre les systèmes de coordonnées uniformes et non uniformes."
+
+msgid "Qt widget 1"
+msgstr ""
+
+msgid "Qt widget 2"
+msgstr ""
+
+msgid "Creating specialized non-uniform coordinate examples"
+msgstr "Création d'exemples spécialisés de coordonnées non uniformes"
+
+msgid "Let's create some more realistic examples of non-uniform coordinates that might be encountered in real applications."
+msgstr "Créons des exemples plus réalistes de coordonnées non uniformes qui pourraient être rencontrées dans des applications réelles."
+
+msgid "Summary and best practices"
+msgstr "Résumé et meilleures pratiques"
+
+msgid "Let's summarize when to use each coordinate system type."
+msgstr "Résumons quand utiliser chaque type de système de coordonnées."
+
+msgid "**Total running time of the script:** (0 minutes 3.887 seconds)"
+msgstr ""
+
+msgid ":download:`Download Jupyter notebook: coordinate_systems.ipynb <coordinate_systems.ipynb>`"
+msgstr ""
+
+msgid ":download:`Download Python source code: coordinate_systems.py <coordinate_systems.py>`"
+msgstr ""
+
+msgid ":download:`Download zipped: coordinate_systems.zip <coordinate_systems.zip>`"
+msgstr ""
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr ""

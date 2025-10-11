@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 14:58+0200\n"
+"POT-Creation-Date: 2025-10-11 11:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,75 @@ msgstr "sigima 1.0.0"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**Non-uniform coordinate support for images**: Added comprehensive support for non-uniform pixel coordinates"
+msgstr "**Prise en charge des coordonnées non uniformes pour les images** : Ajout d'une prise en charge complète des coordonnées de pixels non uniformes"
+
+msgid "`ImageObj` now supports both uniform and non-uniform coordinate systems:"
+msgstr "`ImageObj` prend désormais en charge les systèmes de coordonnées uniformes et non uniformes :"
+
+msgid "Uniform coordinates: defined by origin (`x0`, `y0`) and pixel spacing (`dx`, `dy`)"
+msgstr "Coordonnées uniformes : définies par l'origine (`x0`, `y0`) et l'espacement des pixels (`dx`, `dy`)"
+
+msgid "Non-uniform coordinates: defined by coordinate arrays (`xcoords`, `ycoords`)"
+msgstr "Coordonnées non uniformes : définies par des tableaux de coordonnées (`xcoords`, `ycoords`)"
+
+msgid "New methods for coordinate manipulation:"
+msgstr "Nouvelles méthodes pour la manipulation des coordonnées :"
+
+msgid "`set_coords()`: Set non-uniform X and Y coordinate arrays"
+msgstr "`set_coords()`: Définir les tableaux de coordonnées X et Y non uniformes"
+
+msgid "`is_uniform_coords`: Property to check if coordinates are uniform"
+msgstr "`is_uniform_coords`: Propriété pour vérifier si les coordonnées sont uniformes"
+
+msgid "New computation function `set_uniform_coords()`: Convert non-uniform to uniform coordinates"
+msgstr "`set_uniform_coords()`: Nouvelle fonction de calcul pour convertir les coordonnées non uniformes en coordonnées uniformes"
+
+msgid "Automatically extracts uniform spacing from non-uniform arrays"
+msgstr "Extrait automatiquement l'espacement uniforme des tableaux non uniformes"
+
+msgid "Handles numerical precision issues from linspace-generated arrays"
+msgstr "Gère les problèmes de précision numérique des tableaux générés par linspace"
+
+msgid "Preserves image data while transforming coordinate system"
+msgstr "Préserve les données d'image lors de la transformation du système de coordonnées"
+
+msgid "Enhanced `calibration()` function with polynomial support:"
+msgstr "Amélioration de la fonction `calibration()` avec prise en charge des polynômes :"
+
+msgid "Now supports polynomial calibration up to cubic order: `dst = a0 + a1*src + a2*src² + a3*src³`"
+msgstr "Prend désormais en charge l'étalonnage polynomial jusqu'à l'ordre cubique : `dst = a0 + a1*src + a2*src² + a3*src³`"
+
+msgid "Parameter class changed from `a, b` (linear) to `a0, a1, a2, a3` (polynomial)"
+msgstr "La classe de paramètres est passée de `a, b` (linéaire) à `a0, a1, a2, a3` (polynomiale)"
+
+msgid "Works on X-axis, Y-axis (creating non-uniform coordinates), and Z-axis (data values)"
+msgstr "Fonctionne sur l'axe X, l'axe Y (création de coordonnées non uniformes) et l'axe Z (valeurs de données)"
+
+msgid "Linear calibration is a special case with `a2=0, a3=0`"
+msgstr "L'étalonnage linéaire est un cas particulier avec `a2=0, a3=0`"
+
+msgid "Automatically handles conversion between uniform and non-uniform coordinate systems"
+msgstr "Gère automatiquement la conversion entre les systèmes de coordonnées uniformes et non uniformes"
+
+msgid "Enhanced I/O support:"
+msgstr "Support I/O amélioré :"
+
+msgid "HDF5 format now serializes/deserializes non-uniform coordinates"
+msgstr "Le format HDF5 prend désormais en charge la sérialisation/désérialisation des coordonnées non uniformes"
+
+msgid "Coordinated text files support non-uniform coordinate arrays"
+msgstr "Les fichiers texte coordonnés prennent en charge les tableaux de coordonnées non uniformes"
+
+msgid "All geometric operations updated to handle both coordinate types:"
+msgstr "Toutes les opérations géométriques ont été mises à jour pour gérer les deux types de coordonnées :"
+
+msgid "Coordinate transformations preserve or create appropriate coordinate system"
+msgstr "Les transformations de coordonnées préservent ou créent un système de coordonnées approprié"
+
+msgid "ROI operations work seamlessly with both uniform and non-uniform coordinates"
+msgstr "Les opérations ROI fonctionnent sans problème avec des coordonnées uniformes et non uniformes"
 
 msgid "**DateTime support for signal data**: Added comprehensive datetime handling for signal X-axis data"
 msgstr "**Prise en charge des DateTime pour les données de signal** : Ajout d'une gestion complète des DateTime pour les données de l'axe X du signal"
@@ -269,7 +338,7 @@ msgid "New utility functions to generate file basenames."
 msgstr "Nouvelles fonctions utilitaires pour générer des noms de fichiers."
 
 msgid "Deconvolution in the frequency domain."
-msgstr ""
+msgstr "Déconvolution dans le domaine fréquentiel."
 
 msgid "New ROI features:"
 msgstr "Nouvelles fonctionnalités de ROI:"
@@ -516,16 +585,16 @@ msgid "New signal generators: linear chirp, logistic function, Planck function."
 msgstr "Nouveaux générateurs de signaux: chirp linéaire, fonction logistique, fonction de Planck."
 
 msgid "New image \"Extent\" computed parameters:"
-msgstr ""
+msgstr "Nouveaux paramètres calculés d'\"Étendue\" de l'image :"
 
 msgid "Added computed parameters for image extent: `xmin`, `xmax`, `ymin`, and `ymax`."
-msgstr ""
+msgstr "Ajout de paramètres calculés pour l'étendue de l'image : `xmin`, `xmax`, `ymin` et `ymax`."
 
 msgid "These parameters are automatically calculated based on the image origin, pixel spacing, and dimensions."
-msgstr ""
+msgstr "Ces paramètres sont automatiquement calculés en fonction de l'origine de l'image, de l'espacement des pixels et des dimensions."
 
 msgid "They provide the physical coordinate boundaries of the image for enhanced spatial analysis."
-msgstr ""
+msgstr "Ils fournissent les limites des coordonnées physiques de l'image pour une analyse spatiale améliorée."
 
 msgid "New I/O features:"
 msgstr "Nouvelles fonctionnalités d'E/S:"

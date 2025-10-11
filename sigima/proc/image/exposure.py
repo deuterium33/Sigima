@@ -69,8 +69,6 @@ __all__ = [
     "flatfield",
     "normalize",
     "histogram",
-    "XYZCalibrateParam",
-    "calibration",
     "clip",
     "offset_correction",
 ]
@@ -374,45 +372,6 @@ def histogram(src: ImageObj, p: HistogramParam) -> SignalObj:
     dst.set_xydata(x, y)
     dst.set_metadata_option("shade", 0.5)
     dst.set_metadata_option("curvestyle", "Steps")
-    return dst
-
-
-class XYZCalibrateParam(gds.DataSet):
-    """Image linear calibration parameters"""
-
-    axes = (("x", _("X-axis")), ("y", _("Y-axis")), ("z", _("Z-axis")))
-    axis = gds.ChoiceItem(_("Calibrate"), axes, default="z")
-    a = gds.FloatItem("a", default=1.0)
-    b = gds.FloatItem("b", default=0.0)
-
-
-@computation_function()
-def calibration(src: ImageObj, p: XYZCalibrateParam) -> ImageObj:
-    """Compute linear calibration
-
-    Args:
-        src: input image object
-        p: calibration parameters
-
-    Returns:
-        Output image object
-    """
-    dst = dst_1_to_1(src, "calibration", f"{p.axis}={p.a}*{p.axis}+{p.b}")
-    if p.axis == "z":
-        dst.data = p.a * src.data + p.b
-        restore_data_outside_roi(dst, src)
-    elif p.axis == "x":
-        if src.is_uniform_coords:
-            dst.set_uniform_coords(p.a * src.dx, dst.dy, p.a * src.x0 + p.b, dst.y0)
-        else:
-            dst.set_coords(p.a * src.xcoords + p.b, dst.ycoords)
-    elif p.axis == "y":
-        if src.is_uniform_coords:
-            dst.set_uniform_coords(dst.dx, p.a * src.dy, dst.x0, p.a * src.y0 + p.b)
-        else:
-            dst.set_coords(dst.xcoords, p.a * src.ycoords + p.b)
-    else:  # Should not happen
-        raise ValueError(f"Unknown axis: {p.axis}")  # pragma: no cover
     return dst
 
 

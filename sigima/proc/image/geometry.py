@@ -37,6 +37,7 @@ from sigima.enums import BorderMode, Interpolation2DMethod
 from sigima.objects.image import ImageObj
 from sigima.proc.base import dst_1_to_1
 from sigima.proc.decorator import computation_function
+from sigima.proc.image.base import restore_data_outside_roi
 from sigima.proc.image.transformations import transformer
 
 # NOTE: Only parameter classes DEFINED in this module should be included in __all__.
@@ -57,6 +58,10 @@ __all__ = [
     "Resampling2DParam",
     "resampling",
     "transpose",
+    "UniformCoordsParam",
+    "set_uniform_coords",
+    "XYZCalibrateParam",
+    "calibration",
 ]
 
 
@@ -501,4 +506,156 @@ def resampling(src: ImageObj, p: Resampling2DParam) -> ImageObj:
     dst.data = resampled_data
     dst.set_uniform_coords(output_dx, output_dy, output_xmin, output_ymin)
 
+    return dst
+
+
+class UniformCoordsParam(gds.DataSet):
+    """Uniform coordinates parameters"""
+
+    x0 = gds.FloatItem("X<sub>0</sub>", default=0.0, help=_("Origin X-axis coordinate"))
+    y0 = gds.FloatItem("Y<sub>0</sub>", default=0.0, help=_("Origin Y-axis coordinate"))
+    dx = gds.FloatItem("Δx", default=1.0, help=_("Pixel size along X-axis"))
+    dy = gds.FloatItem("Δy", default=1.0, help=_("Pixel size along Y-axis"))
+
+    def update_from_obj(self, obj: ImageObj) -> None:
+        """Update default values from image object's non-uniform coordinates.
+
+        This method extracts uniform coordinate approximations from non-uniform
+        coordinate arrays, handling numerical precision issues that may arise
+        from arrays created using linspace.
+
+        Args:
+            obj: Image object with non-uniform coordinates
+        """
+        if obj.is_uniform_coords:
+            # Already uniform, just copy the values
+            self.x0 = obj.x0
+            self.y0 = obj.y0
+            self.dx = obj.dx
+            self.dy = obj.dy
+        else:
+            # Extract from non-uniform coordinates
+            if obj.xcoords is not None and len(obj.xcoords) >= 2:
+                self.x0 = float(obj.xcoords[0])
+                # Calculate dx with rounding to handle numerical precision
+                dx_raw = (obj.xcoords[-1] - obj.xcoords[0]) / (len(obj.xcoords) - 1)
+                # Round to reasonable precision (12 decimal places)
+                self.dx = float(np.round(dx_raw, 12))
+            else:
+                self.x0 = 0.0
+                self.dx = 1.0
+
+            if obj.ycoords is not None and len(obj.ycoords) >= 2:
+                self.y0 = float(obj.ycoords[0])
+                # Calculate dy with rounding to handle numerical precision
+                dy_raw = (obj.ycoords[-1] - obj.ycoords[0]) / (len(obj.ycoords) - 1)
+                # Round to reasonable precision (12 decimal places)
+                self.dy = float(np.round(dy_raw, 12))
+            else:
+                self.y0 = 0.0
+                self.dy = 1.0
+
+
+@computation_function()
+def set_uniform_coords(src: ImageObj, p: UniformCoordsParam) -> ImageObj:
+    """Convert image to uniform coordinate system
+
+    Args:
+        src: input image object
+        p: uniform coordinates parameters
+
+    Returns:
+        Output image object with uniform coordinates
+    """
+    dst = dst_1_to_1(src, "uniform_coords", f"dx={p.dx}, dy={p.dy}")
+    dst.set_uniform_coords(p.dx, p.dy, p.x0, p.y0)
+    return dst
+
+
+class XYZCalibrateParam(gds.DataSet):
+    """Image polynomial calibration parameters"""
+
+    axes = (("x", _("X-axis")), ("y", _("Y-axis")), ("z", _("Z-axis")))
+    axis = gds.ChoiceItem(_("Calibrate"), axes, default="z")
+    a0 = gds.FloatItem("a<sub>0</sub>", default=0.0, help=_("Constant term"))
+    a1 = gds.FloatItem("a<sub>1</sub>", default=1.0, help=_("Linear term"))
+    a2 = gds.FloatItem("a<sub>2</sub>", default=0.0, help=_("Quadratic term"))
+    a3 = gds.FloatItem("a<sub>3</sub>", default=0.0, help=_("Cubic term"))
+
+
+@computation_function()
+def calibration(src: ImageObj, p: XYZCalibrateParam) -> ImageObj:
+    """Compute polynomial calibration
+
+    Applies polynomial transformation: dst = a0 + a1*src + a2*src² + a3*src³
+
+    Args:
+        src: input image object
+        p: calibration parameters
+
+    Returns:
+        Output image object
+    """
+    # Build polynomial description for metadata
+    terms = []
+    if p.a0 != 0.0:
+        terms.append(f"{p.a0}")
+    if p.a1 != 0.0:
+        terms.append(f"{p.a1}*{p.axis}" if p.a1 != 1.0 else p.axis)
+    if p.a2 != 0.0:
+        terms.append(f"{p.a2}*{p.axis}²")
+    if p.a3 != 0.0:
+        terms.append(f"{p.a3}*{p.axis}³")
+    poly_str = "+".join(terms) if terms else "0"
+
+    dst = dst_1_to_1(src, "calibration", f"{p.axis}={poly_str}")
+
+    shape = src.data.shape
+
+    if p.axis == "z":
+        # Apply polynomial to data values
+        data = src.data.astype(float)
+        dst.data = p.a0 + p.a1 * data + p.a2 * data**2 + p.a3 * data**3
+        restore_data_outside_roi(dst, src)
+    elif p.axis == "x":
+        # For X-axis, polynomial calibration requires non-uniform coordinates
+        # (unless it's linear but we don't special case that here)
+        if src.is_uniform_coords:
+            # Generate uniform coordinates array
+            x_uniform = src.x0 + np.arange(src.data.shape[1]) * src.dx
+            # Apply polynomial transformation
+            x_new = p.a0 + p.a1 * x_uniform + p.a2 * x_uniform**2 + p.a3 * x_uniform**3
+            # Set non-uniform coordinates
+            ycoords = np.linspace(src.y0, src.y0 + src.dy * (shape[0] - 1), shape[0])
+            dst.set_coords(x_new, ycoords)
+        else:
+            # Apply polynomial to existing non-uniform coordinates
+            x_new = (
+                p.a0
+                + p.a1 * src.xcoords
+                + p.a2 * src.xcoords**2
+                + p.a3 * src.xcoords**3
+            )
+            dst.set_coords(x_new, dst.ycoords)
+    elif p.axis == "y":
+        # For Y-axis, polynomial calibration requires non-uniform coordinates
+        if src.is_uniform_coords:
+            # Generate uniform coordinates array
+            y_uniform = src.y0 + np.arange(src.data.shape[0]) * src.dy
+            # Apply polynomial transformation
+            y_new = p.a0 + p.a1 * y_uniform + p.a2 * y_uniform**2 + p.a3 * y_uniform**3
+            # Set non-uniform coordinates
+            xcoords = np.linspace(src.x0, src.x0 + src.dx * (shape[1] - 1), shape[1])
+            dst.set_coords(xcoords, y_new)
+        else:
+            # Apply polynomial to existing non-uniform coordinates
+            y_new = (
+                p.a0
+                + p.a1 * src.ycoords
+                + p.a2 * src.ycoords**2
+                + p.a3 * src.ycoords**3
+            )
+            dst.set_coords(dst.xcoords, y_new)
+    else:  # Should not happen
+        raise ValueError(f"Unknown axis: {p.axis}")  # pragma: no cover
     return dst

@@ -156,45 +156,6 @@ def test_image_normalize() -> None:
 
 
 @pytest.mark.validation
-def test_image_calibration() -> None:
-    """Validation test for the image calibration processing."""
-    src = get_test_image("flower.npy")
-    p = sigima.params.XYZCalibrateParam()
-    for axis in ("x", "y", "z"):
-        for a, b in ((1.0, 0.0), (0.5, 0.1)):
-            p.axis = axis
-            p.a, p.b = a, b
-            dst = sigima.proc.image.calibration(src, p)
-            exp = src.copy("expected")
-            if p.a == 1.0 and p.b == 0.0:
-                suffix = "identity"
-                # Identity, do nothing except convert data to float for Z-axis case
-                if axis == "z":
-                    exp.data = np.array(src.data, dtype=float)
-            else:
-                suffix = f"a={p.a},b={p.b}"
-                if axis in ("x", "y"):
-                    if axis == "x":
-                        new_x0 = src.x0 * p.a + p.b
-                        new_dx = src.dx * p.a
-                        exp.set_uniform_coords(new_dx, exp.dy, new_x0, exp.y0)
-                    else:  # axis == "y"
-                        new_y0 = src.y0 * p.a + p.b
-                        new_dy = src.dy * p.a
-                        exp.set_uniform_coords(exp.dx, new_dy, exp.x0, new_y0)
-                else:
-                    exp.data = p.a * src.data + p.b
-            title = f"Calibration[{axis},{suffix}]"
-            if axis in ("x", "y"):
-                x0n, dxn = f"{axis}0", f"d{axis}"
-                res_x0n, exp_x0n = getattr(dst, x0n), getattr(exp, x0n)
-                res_dxn, exp_dxn = getattr(dst, dxn), getattr(exp, dxn)
-                check_scalar_result(f"{title}|{x0n}", res_x0n, exp_x0n)
-                check_scalar_result(f"{title}|{dxn}", res_dxn, exp_dxn)
-            check_array_result(title, dst.data, exp.data)
-
-
-@pytest.mark.validation
 def test_image_clip() -> None:
     """Validation test for the image clipping processing."""
     src = get_test_image("flower.npy")
@@ -257,7 +218,6 @@ if __name__ == "__main__":
     test_equalize_adapthist()
     test_flatfield()
     test_image_normalize()
-    test_image_calibration()
     test_image_clip()
     test_image_histogram()
     test_image_offset_correction()
