@@ -97,20 +97,24 @@ def __get_filenames_and_images() -> list[tuple[str, sigima.objects.ImageObj]]:
 
 
 def test_hdf5_image_io() -> None:
-    """Test HDF5 I/O for image objects"""
+    """Test HDF5 I/O for image objects with uniform and non-uniform coordinates"""
     execenv.print(f"{test_hdf5_image_io.__doc__}:")
     with WorkdirRestoringTempDir() as tmpdir:
         for fname, orig_image in __get_filenames_and_images():
             if orig_image is None:
                 execenv.print(f"  Skipping {fname} (not implemented)")
                 continue
-            # Save to HDF5
-            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5ima")
+
+            # Test Case 1: Original image with uniform coordinates (default)
+            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}_uniform.h5ima")
             sigima.io.write_image(filename, orig_image)
-            execenv.print(f"  Saved {filename}")
+            execenv.print(f"  Saved {filename} (uniform coords)")
+
             # Read back
             fetch_image = sigima.io.read_image(filename)
             execenv.print(f"  Read {filename}")
+
+            # Verify data
             data = fetch_image.data
             orig_data = orig_image.data
             assert isinstance(data, np.ndarray)
@@ -120,6 +124,53 @@ def test_hdf5_image_io() -> None:
             assert fetch_image.annotations == orig_image.annotations
             assert np.allclose(data, orig_data, atol=0.0, equal_nan=True)
             assert compare_metadata(fetch_image.metadata, orig_image.metadata.copy())
+
+            # Verify uniform coordinate attributes are preserved
+            if orig_image.is_uniform_coords:
+                assert fetch_image.is_uniform_coords
+                assert fetch_image.dx == orig_image.dx
+                assert fetch_image.dy == orig_image.dy
+                assert fetch_image.x0 == orig_image.x0
+                assert fetch_image.y0 == orig_image.y0
+                execenv.print("    ✓ Uniform coordinates preserved")
+
+            # Test Case 2: Same image with non-uniform coordinates
+            # Create a modified version with non-uniform coordinates
+            nonuniform_image = sigima.objects.create_image(
+                title=orig_image.title + " (non-uniform)",
+                data=orig_image.data.copy(),
+                metadata=orig_image.metadata.copy(),
+                units=(orig_image.xunit, orig_image.yunit, orig_image.zunit),
+                labels=(orig_image.xlabel, orig_image.ylabel, orig_image.zlabel),
+            )
+            # Set non-uniform coordinates
+            ny, nx = nonuniform_image.data.shape
+            xcoords = np.linspace(0, 1, nx)
+            ycoords = np.linspace(0, 1, ny) ** 2  # Quadratic spacing
+            nonuniform_image.set_coords(xcoords=xcoords, ycoords=ycoords)
+
+            # Save non-uniform version
+            filename_nu = osp.join(
+                tmpdir, f"test_{osp.basename(fname)}_nonuniform.h5ima"
+            )
+            sigima.io.write_image(filename_nu, nonuniform_image)
+            execenv.print(f"  Saved {filename_nu} (non-uniform coords)")
+
+            # Read back
+            fetch_image_nu = sigima.io.read_image(filename_nu)
+            execenv.print(f"  Read {filename_nu}")
+
+            # Verify data
+            assert np.allclose(
+                fetch_image_nu.data, nonuniform_image.data, atol=0.0, equal_nan=True
+            )
+
+            # Verify non-uniform coordinate attributes are preserved
+            assert not fetch_image_nu.is_uniform_coords
+            assert np.array_equal(fetch_image_nu.xcoords, xcoords)
+            assert np.array_equal(fetch_image_nu.ycoords, ycoords)
+            execenv.print("    ✓ Non-uniform coordinates preserved")
+
     execenv.print(f"{test_hdf5_image_io.__doc__}: OK")
 
 
