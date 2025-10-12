@@ -385,6 +385,187 @@ def test_signal_copy() -> None:
     execenv.print(f"{test_signal_copy.__doc__}: OK")
 
 
+def test_coordinate_conversion() -> None:
+    """Test physical_to_indices and indices_to_physical methods"""
+    execenv.print(f"{test_coordinate_conversion.__doc__}:")
+
+    # Create test signals with different x-coordinate patterns
+    n = 100
+
+    # ==================== Test 1: Uniform spacing ====================
+    execenv.print("  Test 1: Uniform spacing - basic conversion")
+    x_uniform = np.linspace(0.0, 10.0, n)
+    y_uniform = np.sin(x_uniform)
+    signal_uniform = sigima.objects.create_signal(
+        title="Uniform Spacing Test", x=x_uniform, y=y_uniform
+    )
+
+    # Test forward conversion (physical → indices)
+    # Since SignalObj uses argmin to find closest x, we test with exact x values
+    test_coords = [0.0, 5.0, 10.0]
+    indices = signal_uniform.physical_to_indices(test_coords)
+    assert len(indices) == 3
+    assert indices[0] == 0  # Closest to x[0] = 0.0
+    assert indices[1] == 49  # Closest to x[49] ≈ 5.0 (for n=100, linspace 0-10)
+    assert indices[2] == 99  # Closest to x[99] = 10.0
+    execenv.print("    ✓ Forward conversion (physical → indices) correct")
+
+    # Test backward conversion (indices → physical)
+    test_indices = [0, 49, 99]
+    coords = signal_uniform.indices_to_physical(test_indices)
+    assert len(coords) == 3
+    np.testing.assert_allclose(coords[0], 0.0, rtol=1e-10)
+    np.testing.assert_allclose(coords[1], 5.0, rtol=0.02)  # ~1% tolerance
+    np.testing.assert_allclose(coords[2], 10.0, rtol=1e-10)
+    execenv.print("    ✓ Backward conversion (indices → physical) correct")
+
+    # Test round-trip accuracy
+    execenv.print("  Test 2: Uniform spacing - round-trip accuracy")
+    # Use exact x values for perfect round-trip
+    original_coords = [x_uniform[10], x_uniform[50], x_uniform[80]]
+    indices_rt = signal_uniform.physical_to_indices(original_coords)
+    recovered_coords = signal_uniform.indices_to_physical(indices_rt)
+    np.testing.assert_allclose(recovered_coords, original_coords, rtol=1e-10)
+    execenv.print("    ✓ Round-trip (physical → indices → physical) preserves values")
+
+    # ==================== Test 3: Non-uniform spacing ====================
+    execenv.print("  Test 3: Non-uniform spacing - logarithmic")
+    x_log = np.logspace(0, 2, n)  # 1 to 100, logarithmic spacing
+    y_log = np.sin(x_log)
+    signal_log = sigima.objects.create_signal(
+        title="Logarithmic Spacing Test", x=x_log, y=y_log
+    )
+
+    # Test with exact x values
+    test_coords_log = [x_log[0], x_log[50], x_log[99]]
+    indices_log = signal_log.physical_to_indices(test_coords_log)
+    assert indices_log[0] == 0
+    assert indices_log[1] == 50
+    assert indices_log[2] == 99
+    execenv.print("    ✓ Non-uniform forward conversion correct")
+
+    # Test backward conversion
+    coords_log = signal_log.indices_to_physical([0, 50, 99])
+    np.testing.assert_allclose(coords_log[0], x_log[0], rtol=1e-10)
+    np.testing.assert_allclose(coords_log[1], x_log[50], rtol=1e-10)
+    np.testing.assert_allclose(coords_log[2], x_log[99], rtol=1e-10)
+    execenv.print("    ✓ Non-uniform backward conversion correct")
+
+    # ==================== Test 4: Finding closest value ====================
+    execenv.print("  Test 4: Finding closest value (argmin behavior)")
+    # Test that physical_to_indices finds the closest x value
+    # For uniform spacing, test a value between grid points
+    test_val = 5.05  # Between x[49] and x[50]
+    idx = signal_uniform.physical_to_indices([test_val])
+    # Should return index of closest value
+    expected_idx = np.abs(x_uniform - test_val).argmin()
+    assert idx[0] == expected_idx
+    execenv.print("    ✓ Finds closest x value correctly (argmin)")
+
+    # Test with multiple values not on grid
+    test_vals = [1.23, 4.56, 7.89]
+    indices_approx = signal_uniform.physical_to_indices(test_vals)
+    for i, val in enumerate(test_vals):
+        expected = np.abs(x_uniform - val).argmin()
+        assert indices_approx[i] == expected
+    execenv.print("    ✓ Multiple approximate values handled correctly")
+
+    # ==================== Test 5: Quadratic spacing ====================
+    execenv.print("  Test 5: Non-uniform spacing - quadratic")
+    x_quad = np.linspace(0, 1, n) ** 2 * 100  # Quadratic spacing, denser near 0
+    y_quad = np.exp(-x_quad / 10)
+    signal_quad = sigima.objects.create_signal(
+        title="Quadratic Spacing Test", x=x_quad, y=y_quad
+    )
+
+    # Round-trip test with exact values
+    test_indices_quad = [0, 25, 50, 75, 99]
+    coords_quad = signal_quad.indices_to_physical(test_indices_quad)
+    indices_back = signal_quad.physical_to_indices(coords_quad)
+    assert indices_back == test_indices_quad
+    execenv.print("    ✓ Round-trip for quadratic spacing preserves indices")
+
+    # ==================== Test 6: Edge cases ====================
+    execenv.print("  Test 6: Edge cases")
+
+    # Empty coordinate list
+    empty_coords = []
+    empty_indices = signal_uniform.physical_to_indices(empty_coords)
+    assert len(empty_indices) == 0
+    execenv.print("    ✓ Empty coordinate list handled")
+
+    # Single point
+    single_coord = [5.0]
+    single_idx = signal_uniform.physical_to_indices(single_coord)
+    assert len(single_idx) == 1
+    execenv.print("    ✓ Single point conversion works")
+
+    # Multiple points
+    multi_coords = [0.0, 2.5, 5.0, 7.5, 10.0]
+    multi_idx = signal_uniform.physical_to_indices(multi_coords)
+    assert len(multi_idx) == 5
+    execenv.print("    ✓ Multiple points conversion works")
+
+    # Boundary values
+    boundary_coords = [x_uniform[0], x_uniform[-1]]
+    boundary_idx = signal_uniform.physical_to_indices(boundary_coords)
+    assert boundary_idx[0] == 0
+    assert boundary_idx[1] == n - 1
+    execenv.print("    ✓ Boundary values handled correctly")
+
+    # ==================== Test 7: Out-of-range values ====================
+    execenv.print("  Test 7: Out-of-range values")
+    # Values outside the x range should map to closest endpoint
+    out_of_range = [-100.0, 200.0]
+    out_idx = signal_uniform.physical_to_indices(out_of_range)
+    assert out_idx[0] == 0  # Closest to minimum x
+    assert out_idx[1] == n - 1  # Closest to maximum x
+    execenv.print("    ✓ Out-of-range values map to closest endpoint")
+
+    # ==================== Test 8: Complex y data ====================
+    execenv.print("  Test 8: Complex y data")
+    # SignalObj can have complex y values, but x is always real
+    x_complex = np.linspace(0, 2 * np.pi, n)
+    y_complex = np.exp(1j * x_complex)  # Complex exponential
+    signal_complex = sigima.objects.create_signal(
+        title="Complex Signal Test", x=x_complex, y=y_complex
+    )
+
+    # Test that coordinate conversion still works with complex y
+    test_coords_complex = [0.0, np.pi, 2 * np.pi]
+    indices_complex = signal_complex.physical_to_indices(test_coords_complex)
+    assert len(indices_complex) == 3
+    # Verify we can recover coordinates
+    coords_complex = signal_complex.indices_to_physical(indices_complex)
+    np.testing.assert_allclose(coords_complex, test_coords_complex, rtol=0.02)
+    execenv.print("    ✓ Complex y data doesn't affect coordinate conversion")
+
+    # ==================== Test 9: Dense data near specific region ====================
+    execenv.print("  Test 9: Non-uniform spacing - dense region")
+    # Create a signal with very dense sampling in middle region
+    x_dense = np.concatenate(
+        [
+            np.linspace(0, 1, 10),  # Sparse
+            np.linspace(1, 2, 70),  # Dense
+            np.linspace(2, 3, 10),  # Sparse
+        ]
+    )
+    y_dense = np.sin(x_dense * 2 * np.pi)
+    signal_dense = sigima.objects.create_signal(
+        title="Dense Region Test", x=x_dense, y=y_dense
+    )
+
+    # Test conversion in dense region
+    dense_coords = [1.5]  # Middle of dense region
+    dense_idx = signal_dense.physical_to_indices(dense_coords)
+    recovered = signal_dense.indices_to_physical(dense_idx)
+    # Should find a very close match due to dense sampling
+    assert abs(recovered[0] - 1.5) < 0.02
+    execenv.print("    ✓ Dense sampling region handled correctly")
+
+    execenv.print(f"{test_coordinate_conversion.__doc__}: OK")
+
+
 if __name__ == "__main__":
     test_signal_parameters_interactive()
     test_all_signal_types()
@@ -392,3 +573,4 @@ if __name__ == "__main__":
     test_create_signal()
     test_create_signal_from_param()
     test_signal_copy()
+    test_coordinate_conversion()
