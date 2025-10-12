@@ -496,6 +496,224 @@ def test_image_copy() -> None:
     execenv.print(f"{test_image_copy.__doc__}: OK")
 
 
+def test_coordinate_conversion() -> None:
+    """Test physical_to_indices and indices_to_physical methods"""
+    execenv.print(f"{test_coordinate_conversion.__doc__}:")
+
+    # Create a test image
+    data = np.random.rand(100, 150)
+
+    # ==================== Test 1: Uniform coordinates ====================
+    execenv.print("  Test 1: Uniform coordinates - basic conversion")
+    image_uniform = sigima.objects.create_image(
+        title="Uniform Coordinates Test", data=data.copy()
+    )
+    dx, dy, x0, y0 = 0.5, 0.8, 10.0, 20.0
+    image_uniform.set_uniform_coords(dx, dy, x0=x0, y0=y0)
+
+    # Test basic forward conversion (physical → indices)
+    physical_coords = [10.0, 20.0, 15.0, 30.0]  # Two points
+    indices = image_uniform.physical_to_indices(physical_coords)
+    assert len(indices) == 4
+    assert indices[0] == 0  # (10.0 - 10.0) / 0.5 = 0
+    assert indices[1] == 0  # (20.0 - 20.0) / 0.8 = 0
+    assert indices[2] == 10  # (15.0 - 10.0) / 0.5 = 10
+    assert indices[3] == 13  # (30.0 - 20.0) / 0.8 = 12.5 → 13 (floor(12.5 + 0.5))
+    execenv.print("    ✓ Forward conversion (physical → indices) correct")
+
+    # Test basic backward conversion (indices → physical)
+    indices_input = [0, 0, 10, 12]
+    coords = image_uniform.indices_to_physical(indices_input)
+    assert len(coords) == 4
+    assert coords[0] == 10.0  # 0 * 0.5 + 10.0 = 10.0
+    assert coords[1] == 20.0  # 0 * 0.8 + 20.0 = 20.0
+    assert coords[2] == 15.0  # 10 * 0.5 + 10.0 = 15.0
+    assert coords[3] == 29.6  # 12 * 0.8 + 20.0 = 29.6
+    execenv.print("    ✓ Backward conversion (indices → physical) correct")
+
+    # Test round-trip accuracy
+    execenv.print("  Test 2: Uniform coordinates - round-trip accuracy")
+    original_physical = [12.5, 25.6, 18.3, 35.2]
+    indices_rt = image_uniform.physical_to_indices(
+        original_physical, as_float=True
+    )  # Use float to preserve precision
+    recovered_physical = image_uniform.indices_to_physical(indices_rt)
+    np.testing.assert_allclose(recovered_physical, original_physical, rtol=1e-10)
+    execenv.print("    ✓ Round-trip (physical → indices → physical) preserves values")
+
+    # Test with origin offset and different pixel spacing
+    execenv.print("  Test 3: Uniform coordinates - with non-zero origin")
+    image_offset = sigima.objects.create_image(
+        title="Offset Origin Test", data=data.copy()
+    )
+    image_offset.set_uniform_coords(dx=2.0, dy=3.0, x0=-5.0, y0=-10.0)
+    phys = [-5.0, -10.0, 5.0, 20.0]
+    idx = image_offset.physical_to_indices(phys)
+    assert idx[0] == 0  # (-5.0 - (-5.0)) / 2.0 = 0
+    assert idx[1] == 0  # (-10.0 - (-10.0)) / 3.0 = 0
+    assert idx[2] == 5  # (5.0 - (-5.0)) / 2.0 = 5
+    assert idx[3] == 10  # (20.0 - (-10.0)) / 3.0 = 10
+    execenv.print("    ✓ Non-zero origin handled correctly")
+
+    # Test clipping to image boundaries
+    execenv.print("  Test 4: Uniform coordinates - clipping to boundaries")
+    out_of_bounds = [-100.0, -100.0, 1000.0, 1000.0]
+    clipped = image_uniform.physical_to_indices(out_of_bounds, clip=True)
+    assert clipped[0] == 0  # Clipped to minimum X index
+    assert clipped[1] == 0  # Clipped to minimum Y index
+    assert clipped[2] == data.shape[1] - 1  # Clipped to maximum X index (149)
+    assert clipped[3] == data.shape[0] - 1  # Clipped to maximum Y index (99)
+    execenv.print("    ✓ Clipping to image boundaries works correctly")
+
+    # Test as_float option
+    execenv.print("  Test 5: Uniform coordinates - float indices")
+    float_coords = [10.25, 20.4]
+    float_indices = image_uniform.physical_to_indices(float_coords, as_float=True)
+    int_indices = image_uniform.physical_to_indices(float_coords, as_float=False)
+    assert isinstance(float_indices[0], float)
+    assert isinstance(int_indices[0], (int, np.integer))
+    assert float_indices[0] == 0.5  # (10.25 - 10.0) / 0.5 = 0.5
+    assert int_indices[0] == 1  # floor(0.5 + 0.5) = 1
+    execenv.print("    ✓ as_float option works correctly")
+
+    # ==================== Test 6: Uniform to non-uniform conversion ==========
+    execenv.print("  Test 6: Converting uniform to non-uniform coordinates")
+    # Create a uniform image and test conversions
+    image_to_convert = sigima.objects.create_image(
+        title="Uniform to Non-uniform Test", data=data.copy()
+    )
+    dx_conv, dy_conv, x0_conv, y0_conv = 0.5, 0.8, 10.0, 20.0
+    image_to_convert.set_uniform_coords(dx_conv, dy_conv, x0=x0_conv, y0=y0_conv)
+
+    # Test conversions with uniform coordinates
+    test_phys = [12.5, 25.6, 18.3, 35.2]
+    indices_before = image_to_convert.physical_to_indices(test_phys, as_float=True)
+    physical_before = image_to_convert.indices_to_physical([10.0, 20.0, 50.0, 60.0])
+
+    # Convert to non-uniform coordinates
+    image_to_convert.switch_coords_to("non-uniform")
+    assert not image_to_convert.is_uniform_coords
+    assert len(image_to_convert.xcoords) == data.shape[1]
+    assert len(image_to_convert.ycoords) == data.shape[0]
+
+    # Verify the generated xcoords and ycoords match the uniform grid
+    expected_xcoords = np.linspace(
+        x0_conv, x0_conv + dx_conv * (data.shape[1] - 1), data.shape[1]
+    )
+    expected_ycoords = np.linspace(
+        y0_conv, y0_conv + dy_conv * (data.shape[0] - 1), data.shape[0]
+    )
+    np.testing.assert_allclose(image_to_convert.xcoords, expected_xcoords, rtol=1e-10)
+    np.testing.assert_allclose(image_to_convert.ycoords, expected_ycoords, rtol=1e-10)
+    execenv.print("    ✓ Generated non-uniform coords match uniform grid")
+
+    # Test that conversions give the same results after switching to non-uniform
+    indices_after = image_to_convert.physical_to_indices(test_phys, as_float=True)
+    physical_after = image_to_convert.indices_to_physical([10.0, 20.0, 50.0, 60.0])
+    np.testing.assert_allclose(indices_after, indices_before, rtol=1e-10)
+    np.testing.assert_allclose(physical_after, physical_before, rtol=1e-10)
+    execenv.print("    ✓ Coordinate conversions consistent after switch to non-uniform")
+
+    # ==================== Test 7: Non-uniform coordinates ====================
+    execenv.print("  Test 7: Non-uniform coordinates - basic conversion")
+    image_nonuniform = sigima.objects.create_image(
+        title="Non-Uniform Coordinates Test", data=data.copy()
+    )
+
+    # Create non-uniform coordinates with logarithmic spacing
+    ny, nx = data.shape
+    xcoords = np.logspace(0, 2, nx)  # 1 to 100, logarithmic spacing
+    ycoords = np.linspace(0, 50, ny) ** 2  # 0 to 2500, quadratic spacing
+    image_nonuniform.set_coords(xcoords=xcoords, ycoords=ycoords)
+
+    # Test forward conversion with interpolation
+    phys_nu = [xcoords[0], ycoords[0], xcoords[10], ycoords[20]]
+    idx_nu = image_nonuniform.physical_to_indices(phys_nu, as_float=True)
+    assert abs(idx_nu[0] - 0.0) < 1e-10  # First X coord → index 0
+    assert abs(idx_nu[1] - 0.0) < 1e-10  # First Y coord → index 0
+    assert abs(idx_nu[2] - 10.0) < 1e-10  # 10th X coord → index 10
+    assert abs(idx_nu[3] - 20.0) < 1e-10  # 20th Y coord → index 20
+    execenv.print("    ✓ Non-uniform forward conversion correct")
+
+    # Test backward conversion with interpolation
+    idx_back = [0.0, 0.0, 10.0, 20.0]
+    coords_back = image_nonuniform.indices_to_physical(idx_back)
+    assert abs(coords_back[0] - xcoords[0]) < 1e-10
+    assert abs(coords_back[1] - ycoords[0]) < 1e-10
+    assert abs(coords_back[2] - xcoords[10]) < 1e-10
+    assert abs(coords_back[3] - ycoords[20]) < 1e-10
+    execenv.print("    ✓ Non-uniform backward conversion correct")
+
+    # Test round-trip for non-uniform coordinates
+    execenv.print("  Test 8: Non-uniform coordinates - round-trip accuracy")
+    original_nu = [xcoords[5], ycoords[15], xcoords[50], ycoords[75]]
+    indices_nu_rt = image_nonuniform.physical_to_indices(original_nu, as_float=True)
+    recovered_nu = image_nonuniform.indices_to_physical(indices_nu_rt)
+    np.testing.assert_allclose(recovered_nu, original_nu, rtol=1e-10)
+    execenv.print("    ✓ Round-trip for non-uniform coordinates preserves values")
+
+    # Test interpolation between grid points
+    execenv.print("  Test 9: Non-uniform coordinates - interpolation")
+    # Test a coordinate between grid points
+    mid_x = (xcoords[5] + xcoords[6]) / 2
+    mid_y = (ycoords[10] + ycoords[11]) / 2
+    mid_coords = [mid_x, mid_y]
+    mid_indices = image_nonuniform.physical_to_indices(mid_coords, as_float=True)
+    # Should be close to 5.5 and 10.5
+    assert 5.4 < mid_indices[0] < 5.6
+    assert 10.4 < mid_indices[1] < 10.6
+    execenv.print("    ✓ Interpolation between grid points works")
+
+    # ==================== Test 10: Edge cases ====================
+    execenv.print("  Test 10: Edge cases")
+
+    # Empty coordinate list
+    empty_coords = []
+    empty_indices = image_uniform.physical_to_indices(empty_coords)
+    assert len(empty_indices) == 0
+    execenv.print("    ✓ Empty coordinate list handled")
+
+    # Single point
+    single_point = [12.0, 25.0]
+    single_idx = image_uniform.physical_to_indices(single_point)
+    assert len(single_idx) == 2
+    execenv.print("    ✓ Single point conversion works")
+
+    # Multiple points
+    multi_points = [10.0, 20.0, 15.0, 30.0, 20.0, 40.0, 25.0, 50.0]
+    multi_idx = image_uniform.physical_to_indices(multi_points)
+    assert len(multi_idx) == 8
+    execenv.print("    ✓ Multiple points conversion works")
+
+    # Odd number of coordinates should raise ValueError
+    execenv.print("  Test 11: Error handling")
+    try:
+        image_uniform.physical_to_indices([10.0, 20.0, 15.0])  # Odd number
+        assert False, "Should have raised ValueError for odd number of coords"
+    except ValueError as e:
+        assert "even number" in str(e)
+        execenv.print("    ✓ ValueError raised for odd number of coordinates")
+
+    try:
+        image_uniform.indices_to_physical([0, 0, 5])  # Odd number
+        assert False, "Should have raised ValueError for odd number of indices"
+    except ValueError as e:
+        assert "even number" in str(e)
+        execenv.print("    ✓ ValueError raised for odd number of indices")
+
+    # Test clipping with non-uniform coordinates
+    execenv.print("  Test 12: Non-uniform coordinates - clipping")
+    out_of_bounds_nu = [-1000.0, -1000.0, 10000.0, 10000.0]
+    clipped_nu = image_nonuniform.physical_to_indices(out_of_bounds_nu, clip=True)
+    assert clipped_nu[0] == 0
+    assert clipped_nu[1] == 0
+    assert clipped_nu[2] == data.shape[1] - 1
+    assert clipped_nu[3] == data.shape[0] - 1
+    execenv.print("    ✓ Clipping works for non-uniform coordinates")
+
+    execenv.print(f"{test_coordinate_conversion.__doc__}: OK")
+
+
 if __name__ == "__main__":
     guiutils.enable_gui()
     test_create_image()
@@ -504,3 +722,4 @@ if __name__ == "__main__":
     test_hdf5_image_io()
     test_create_image_from_param()
     test_image_copy()
+    test_coordinate_conversion()
