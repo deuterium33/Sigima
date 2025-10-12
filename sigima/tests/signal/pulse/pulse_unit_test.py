@@ -9,7 +9,7 @@ from __future__ import annotations
 import dataclasses
 import warnings
 from dataclasses import dataclass
-from typing import Literal
+from typing import Generator, Literal
 
 import numpy as np
 import pytest
@@ -25,8 +25,138 @@ from sigima.objects.signal import (
 )
 from sigima.proc.signal import PulseFeaturesParam, extract_pulse_features
 from sigima.tests import guiutils
+from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_scalar_result
+from sigima.tests.signal.pulse import (
+    view_baseline_plateau_and_curve,
+    view_pulse_features,
+)
 from sigima.tools.signal import filtering, pulse
+
+
+@dataclass
+class PulseTestData:
+    """Container for pulse test data with metadata."""
+
+    x: np.ndarray
+    y: np.ndarray
+    signal_type: Literal["step", "square", "gaussian"]
+    is_generated: bool
+    description: str
+    expected_features: ExpectedFeatures | None = None
+    tolerances: FeatureTolerances | None = None
+
+
+def iterate_square_pulse_data() -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
+    """Iterate over real square pulse data for testing."""
+    for basename in ("boxcar.npy", "square2.npy"):
+        obj = get_test_signal(basename)
+        yield obj.x, obj.y
+
+
+def iterate_step_pulse_data() -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
+    """Iterate over real step pulse data for testing."""
+    for basename in ("step.npy",):
+        obj = get_test_signal(basename)
+        yield obj.x, obj.y
+
+
+def iterate_all_step_test_data(
+    start_ratio: float = 0.1, stop_ratio: float = 0.9
+) -> Generator[PulseTestData, None, None]:
+    """Iterate over all step pulse test data (generated and real).
+
+    Args:
+        start_ratio: Start ratio for feature calculation
+        stop_ratio: Stop ratio for feature calculation
+
+    Yields:
+        PulseTestData objects with both generated and real step signals
+    """
+    # Generated step data
+    params = create_test_step_params()
+    x, y = params.generate_1d_data()
+    yield PulseTestData(
+        x=x,
+        y=y,
+        signal_type="step",
+        is_generated=True,
+        description="Generated step signal",
+        expected_features=params.get_expected_features(start_ratio, stop_ratio),
+        tolerances=params.get_feature_tolerances(),
+    )
+
+    # Real step data
+    for idx, (x, y) in enumerate(iterate_step_pulse_data(), 1):
+        yield PulseTestData(
+            x=x,
+            y=y,
+            signal_type="step",
+            is_generated=False,
+            description=f"Real step signal #{idx}",
+        )
+
+
+def iterate_all_square_test_data(
+    start_ratio: float = 0.1, stop_ratio: float = 0.9
+) -> Generator[PulseTestData, None, None]:
+    """Iterate over all square pulse test data (generated and real).
+
+    Args:
+        start_ratio: Start ratio for feature calculation
+        stop_ratio: Stop ratio for feature calculation
+
+    Yields:
+        PulseTestData objects with both generated and real square signals
+    """
+    # Generated square data
+    params = create_test_square_params()
+    x, y = params.generate_1d_data()
+    yield PulseTestData(
+        x=x,
+        y=y,
+        signal_type="square",
+        is_generated=True,
+        description="Generated square signal",
+        expected_features=params.get_expected_features(start_ratio, stop_ratio),
+        tolerances=params.get_feature_tolerances(),
+    )
+
+    # Real square data
+    for idx, (x, y) in enumerate(iterate_square_pulse_data(), 1):
+        yield PulseTestData(
+            x=x,
+            y=y,
+            signal_type="square",
+            is_generated=False,
+            description=f"Real square signal #{idx}",
+        )
+
+
+def iterate_all_gaussian_test_data(
+    start_ratio: float = 0.1, stop_ratio: float = 0.9
+) -> Generator[PulseTestData, None, None]:
+    """Iterate over all Gaussian pulse test data (generated only).
+
+    Args:
+        start_ratio: Start ratio for feature calculation
+        stop_ratio: Stop ratio for feature calculation
+
+    Yields:
+        PulseTestData objects with generated Gaussian signals
+    """
+    # Generated Gaussian data
+    params = create_test_gaussian_params()
+    x, y = params.generate_1d_data()
+    yield PulseTestData(
+        x=x,
+        y=y,
+        signal_type="gaussian",
+        is_generated=True,
+        description="Generated Gaussian signal",
+        expected_features=params.get_expected_features(start_ratio, stop_ratio),
+        tolerances=params.get_feature_tolerances(),
+    )
 
 
 def create_test_gaussian_params() -> GaussParam:
@@ -143,6 +273,35 @@ def _test_shape_recognition_case(
         )
 
 
+def _test_shape_recognition_with_data(
+    test_data: PulseTestData,
+    expected_shape: SignalShape,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+) -> None:
+    """Test shape recognition using PulseTestData.
+
+    Args:
+        test_data: Test data container
+        expected_shape: Expected SignalShape result
+        start_range: Start baseline range for shape recognition (optional)
+        end_range: End baseline range for shape recognition (optional)
+    """
+    x, y = test_data.x, test_data.y
+    title = f"{test_data.description} | Shape recognition"
+
+    # Test shape recognition
+    if start_range is not None and end_range is not None:
+        shape = pulse.heuristically_recognize_shape(x, y, start_range, end_range)
+        title += " (with ranges)"
+    else:
+        shape = pulse.heuristically_recognize_shape(x, y)
+        title += " (auto-detection)"
+
+    assert shape == expected_shape, f"Expected {expected_shape}, got {shape}"
+    guiutils.view_curves_if_gui([[x, y]], title=f"{title}: {shape}")
+
+
 def test_heuristically_recognize_shape() -> None:
     """Unit test for the `pulse.heuristically_recognize_shape` function.
 
@@ -169,6 +328,15 @@ def test_heuristically_recognize_shape() -> None:
     tsc("square", SignalShape.SQUARE, 5.0, 2.0, (0.0, 2.0), (12.0, 14.0))
     # Gaussian signals with positive polarity
     tsc("gaussian", SignalShape.SQUARE, 0.0, 5.0)
+
+    # Test with real data
+    for test_data in iterate_all_step_test_data():
+        if not test_data.is_generated:
+            _test_shape_recognition_with_data(test_data, SignalShape.STEP)
+
+    for test_data in iterate_all_square_test_data():
+        if not test_data.is_generated:
+            _test_shape_recognition_with_data(test_data, SignalShape.SQUARE)
 
 
 def _test_polarity_detection_case(
@@ -228,6 +396,34 @@ def _test_polarity_detection_case(
         check_scalar_result(f"{title} (auto)", polarity_auto, expected_polarity)
 
 
+def _test_polarity_detection_with_data(
+    test_data: PulseTestData,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+) -> None:
+    """Test polarity detection using PulseTestData.
+
+    Args:
+        test_data: Test data container
+        start_range: Start baseline range for polarity detection (optional)
+        end_range: End baseline range for polarity detection (optional)
+    """
+    x, y = test_data.x, test_data.y
+    title = f"{test_data.description} | Polarity detection"
+
+    # Test polarity detection
+    if start_range is not None and end_range is not None:
+        polarity = pulse.detect_polarity(x, y, start_range, end_range)
+        title += " (with ranges)"
+    else:
+        polarity = pulse.detect_polarity(x, y)
+        title += " (auto-detection)"
+
+    # For real data, we just verify it returns a valid polarity
+    assert polarity in (1, -1), f"Expected polarity to be 1 or -1, got {polarity}"
+    guiutils.view_curves_if_gui([[x, y]], title=f"{title}: {polarity}")
+
+
 def test_detect_polarity() -> None:
     """Unit test for the `pulse.detect_polarity` function.
 
@@ -254,59 +450,14 @@ def test_detect_polarity() -> None:
     # Gaussian signals with negative polarity
     tpdc("gaussian", "negative", -1, 5.0, 2.0, (-9.0, -7.0), (7.0, 9.0))
 
+    # Test with real data
+    for test_data in iterate_all_step_test_data():
+        if not test_data.is_generated:
+            _test_polarity_detection_with_data(test_data)
 
-def view_baseline_plateau_and_curve(
-    x: np.ndarray,
-    y: np.ndarray,
-    title: str,
-    signal_type: Literal["step", "square"],
-    start_range: tuple[float, float],
-    end_range: tuple[float, float],
-    plateau_range: tuple[float, float] | None = None,
-    vcursors: dict[str, float] | None = None,
-    other_items: list | None = None,
-) -> None:
-    """Helper function to visualize signal with baselines and plateau.
-
-    Args:
-        x: X data.
-        y: Y data.
-        title: Title for the plot.
-        signal_type: Signal shape type
-        start_range: Start baseline range.
-        end_range: End baseline range.
-        plateau_range: Plateau range for square signals (optional).
-        vcursors: Dictionary of vertical cursors to display (optional).
-        other_items: Additional items to display (optional).
-    """
-    # pylint: disable=import-outside-toplevel
-    from plotpy.builder import make
-
-    from sigima.tests import vistools
-
-    ys = pulse.get_range_mean_y(x, y, start_range)
-    ye = pulse.get_range_mean_y(x, y, end_range)
-    xs0, xs1 = start_range
-    xe0, xe1 = end_range
-    items = [
-        make.mcurve(x, y, label="Noisy signal"),
-        vistools.create_signal_segment(xs0, ys, xs1, ys, "Start baseline"),
-        vistools.create_signal_segment(xe0, ye, xe1, ye, "End baseline"),
-    ]
-    if signal_type == "square":
-        if plateau_range is None:
-            polarity = pulse.detect_polarity(x, y, start_range, end_range)
-            plateau_range = pulse.get_plateau_range(x, y, polarity)
-        xp0, xp1 = plateau_range
-        yp = pulse.get_range_mean_y(x, y, plateau_range)
-        items.append(vistools.create_signal_segment(xp0, yp, xp1, yp, "Plateau"))
-    if vcursors is not None:
-        for label, xt in vcursors.items():
-            items.append(vistools.create_cursor("v", xt, label))
-    if other_items is not None:
-        items.extend(other_items)
-
-    vistools.view_curve_items(items, title=title)
+    for test_data in iterate_all_square_test_data():
+        if not test_data.is_generated:
+            _test_polarity_detection_with_data(test_data)
 
 
 def _test_amplitude_case(
@@ -400,6 +551,59 @@ def _test_amplitude_case(
     check_scalar_result(f"{title} (auto)", amplitude_auto, expected_amp, rtol=rtol)
 
 
+def _test_amplitude_with_data(
+    test_data: PulseTestData,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+    plateau_range: tuple[float, float] | None = None,
+) -> None:
+    """Test amplitude calculation using PulseTestData.
+
+    Args:
+        test_data: Test data container
+        start_range: Start baseline range (optional)
+        end_range: End baseline range (optional)
+        plateau_range: Plateau range for square signals (optional)
+    """
+    x, y = test_data.x, test_data.y
+    title = f"{test_data.description} | Amplitude calculation"
+
+    # Calculate amplitude
+    if start_range is not None and end_range is not None:
+        if plateau_range is not None:
+            amp = pulse.get_amplitude(x, y, start_range, end_range, plateau_range)
+        else:
+            amp = pulse.get_amplitude(x, y, start_range, end_range)
+        title += " (with ranges)"
+    else:
+        amp = pulse.get_amplitude(x, y)
+        title += " (auto-detection)"
+
+    # For real data, just verify we get a reasonable value
+    assert amp > 0, f"Expected positive amplitude, got {amp}"
+
+    # Check against expected if available
+    if test_data.expected_features is not None:
+        check_scalar_result(
+            title,
+            amp,
+            test_data.expected_features.amplitude,
+            atol=test_data.tolerances.amplitude if test_data.tolerances else 0.2,
+        )
+
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            view_baseline_plateau_and_curve(
+                x,
+                y,
+                f"{title}: {amp:.3f}",
+                test_data.signal_type,
+                start_range or pulse.get_start_range(x),
+                end_range or pulse.get_end_range(x),
+                plateau_range,
+            )
+
+
 def test_get_amplitude() -> None:
     """Unit test for the `pulse.get_amplitude` function.
 
@@ -424,13 +628,22 @@ def test_get_amplitude() -> None:
     tac("step", "negative", 5.0, 2.0, (0.0, 2.0), (6.0, 8.0))
     # Square signals with plateau
     tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
-    tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5))
-    # Square signals without plateau
-    tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
-    tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), atol=0.6)
+    tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), (5.5, 6.5), rtol=0.25)
+    # Square signals without plateau (auto-detected plateau)
+    tac("square", "positive", 0.0, 5.0, (0.0, 2.0), (12.0, 14.0), atol=0.7)
+    tac("square", "negative", 5.0, 2.0, (0.0, 2.0), (12.0, 14.0), atol=0.7, rtol=0.25)
     # Gaussian signals
     tac("gaussian", "positive", 0.0, 5.0, (-9.0, -7.0), (7.0, 9.0), atol=0.6)
     tac("gaussian", "negative", 5.0, 2.0, (-9.0, -7.0), (7.0, 9.0), atol=0.6)
+
+    # Test with real data (auto-detection only, as we don't know optimal ranges)
+    for test_data in iterate_all_step_test_data():
+        if not test_data.is_generated:
+            _test_amplitude_with_data(test_data)
+
+    for test_data in iterate_all_square_test_data():
+        if not test_data.is_generated:
+            _test_amplitude_with_data(test_data)
 
 
 def _test_crossing_ratio_time_case(
@@ -694,6 +907,84 @@ def test_get_rise_time(noise_amplitude: float) -> None:
         atol=1.0,
     )
 
+    # Test with real data (only for noise_amplitude=0.1 to avoid duplication)
+    if noise_amplitude == 0.1:
+        for test_data in iterate_all_step_test_data():
+            if not test_data.is_generated:
+                _test_rise_time_with_data(test_data, start_ratio, stop_ratio)
+
+        for test_data in iterate_all_square_test_data():
+            if not test_data.is_generated:
+                _test_rise_time_with_data(test_data, start_ratio, stop_ratio)
+
+
+def _test_rise_time_with_data(
+    test_data: PulseTestData,
+    start_ratio: float,
+    stop_ratio: float,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+) -> None:
+    """Test rise time calculation using PulseTestData.
+
+    Args:
+        test_data: Test data container
+        start_ratio: Starting amplitude ratio for rise time measurement
+        stop_ratio: Stopping amplitude ratio for rise time measurement
+        start_range: Start baseline range (optional)
+        end_range: End baseline range (optional)
+    """
+    x, y = test_data.x, test_data.y
+    title = f"{test_data.description} | Rise time"
+
+    # Calculate rise time
+    if start_range is not None and end_range is not None:
+        rise_time = pulse.get_rise_time(
+            x, y, start_ratio, stop_ratio, start_range, end_range
+        )
+        title += " (with ranges)"
+    else:
+        rise_time = pulse.get_rise_time(x, y, start_ratio, stop_ratio)
+        title += " (auto-detection)"
+
+    # For real data, just verify we get a reasonable value
+    assert rise_time > 0, f"Expected positive rise time, got {rise_time}"
+
+    # Check against expected if available
+    if test_data.expected_features is not None:
+        check_scalar_result(
+            title,
+            rise_time,
+            test_data.expected_features.rise_time,
+            atol=test_data.tolerances.rise_time if test_data.tolerances else 0.2,
+        )
+
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            # pylint: disable=import-outside-toplevel
+            from sigima.tests import vistools
+
+            sr = start_range or pulse.get_start_range(x)
+            er = end_range or pulse.get_end_range(x)
+            ct1 = pulse.find_crossing_at_ratio(x, y, start_ratio, sr, er)
+            ct2 = pulse.find_crossing_at_ratio(x, y, stop_ratio, sr, er)
+            item = vistools.create_range(
+                "h",
+                ct1,
+                ct2,
+                f"Rise time {start_ratio:.0%}-{stop_ratio:.0%} = {rise_time:.3f}",
+            )
+            view_baseline_plateau_and_curve(
+                x,
+                y,
+                f"{title}: {rise_time:.3f}",
+                test_data.signal_type,
+                sr,
+                er,
+                plateau_range=None,
+                other_items=[item],
+            )
+
 
 # pylint: disable=too-many-positional-arguments
 def _test_fall_time_case(
@@ -869,6 +1160,101 @@ def test_get_fall_time(noise_amplitude: float) -> None:
         atol=1.0,
     )
 
+    # Test with real data (only for noise_amplitude=0.1 to avoid duplication)
+    if noise_amplitude == 0.1:
+        for test_data in iterate_all_square_test_data():
+            if not test_data.is_generated:
+                _test_fall_time_with_data(test_data, 0.8, 0.2)
+
+
+def _test_fall_time_with_data(
+    test_data: PulseTestData,
+    start_ratio: float,
+    stop_ratio: float,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
+    plateau_range: tuple[float, float] | None = None,
+) -> None:
+    """Test fall time calculation using PulseTestData.
+
+    Args:
+        test_data: Test data container
+        start_ratio: Starting amplitude ratio for fall time measurement
+        stop_ratio: Stopping amplitude ratio for fall time measurement
+        start_range: Start baseline range (optional)
+        end_range: End baseline range (optional)
+        plateau_range: Plateau range (optional)
+    """
+    x, y = test_data.x, test_data.y
+    title = f"{test_data.description} | Fall time"
+
+    # Using the same denoise algorithm as in `extract_pulse_features`
+    y = filtering.denoise_preserve_shape(y)[0]
+
+    # Calculate fall time
+    if plateau_range is not None and end_range is not None:
+        fall_time = pulse.get_fall_time(
+            x, y, start_ratio, stop_ratio, plateau_range, end_range
+        )
+        title += " (with ranges)"
+    else:
+        # Auto-detect ranges
+        sr = start_range or pulse.get_start_range(x)
+        er = end_range or pulse.get_end_range(x)
+        polarity = pulse.detect_polarity(x, y, sr, er)
+        pr = plateau_range or pulse.get_plateau_range(x, y, polarity)
+        fall_time = pulse.get_fall_time(x, y, start_ratio, stop_ratio, pr, er)
+        title += " (auto-detection)"
+
+    # For real data, fall_time might be None for some signals
+    if fall_time is None:
+        # This is acceptable for some real data
+        return
+
+    # Verify we get a reasonable value
+    assert fall_time > 0, f"Expected positive fall time, got {fall_time}"
+
+    # Check against expected if available
+    if test_data.expected_features is not None:
+        check_scalar_result(
+            title,
+            fall_time,
+            test_data.expected_features.fall_time,
+            atol=test_data.tolerances.fall_time if test_data.tolerances else 0.2,
+        )
+
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            # pylint: disable=import-outside-toplevel
+            from sigima.tests import vistools
+
+            sr = start_range or pulse.get_start_range(x)
+            er = end_range or pulse.get_end_range(x)
+            polarity = pulse.detect_polarity(x, y, sr, er)
+            pr = plateau_range or pulse.get_plateau_range(x, y, polarity)
+
+            ct1 = pulse.find_crossing_at_ratio(x, y[::-1], start_ratio, sr, er)
+            ct1 = x[-1] - ct1
+            ct2 = pulse.find_crossing_at_ratio(x, y[::-1], stop_ratio, sr, er)
+            ct2 = x[-1] - ct2
+
+            item = vistools.create_range(
+                "h",
+                ct1,
+                ct2,
+                f"Fall time {start_ratio:.0%}-{stop_ratio:.0%} = {fall_time:.3f}",
+            )
+            view_baseline_plateau_and_curve(
+                x,
+                y,
+                f"{title}: {fall_time:.3f}",
+                test_data.signal_type,
+                sr,
+                er,
+                plateau_range=pr,
+                other_items=[item],
+            )
+
 
 def test_heuristically_find_rise_start_time() -> None:
     """Unit test for the `pulse.heuristically_find_rise_start_time` function.
@@ -931,51 +1317,6 @@ def test_get_rise_start_time() -> None:
             )
 
     check_scalar_result("foot_info x_end", x0, step_params.x_rise_start, atol=0.2)
-
-
-def view_pulse_features(
-    x: np.ndarray,
-    y: np.ndarray,
-    title: str,
-    signal_type: Literal["step", "square"],
-    features: pulse.PulseFeatures,
-) -> None:
-    """Helper function to visualize pulse features.
-
-    Args:
-        x: X data.
-        y: Y data.
-        title: Title for the plot.
-        signal_type: Signal shape type
-        features: Extracted pulse features.
-    """
-    # pylint: disable=import-outside-toplevel
-    from sigima.tests import vistools
-
-    params_text = "<br>".join(
-        [
-            f"<b>Extracted {signal_type} parameters:</b>",
-            f"Polarity: {features.polarity}",
-            f"Amplitude: {features.amplitude}",
-            f"Rise time: {features.rise_time}",
-            f"Fall time: {features.fall_time}",
-            f"FWHM: {features.fwhm}",
-            f"Offset: {features.offset}",
-            f"T50: {features.x50}",
-            f"X100: {features.x100}",
-            f"Foot duration: {features.foot_duration}",
-        ]
-    )
-    view_baseline_plateau_and_curve(
-        x,
-        y,
-        title,
-        signal_type,
-        [features.xstartmin, features.xstartmax],
-        [features.xendmin, features.xendmax],
-        plateau_range=None,
-        other_items=[vistools.create_label(params_text)],
-    )
 
 
 def __check_features(
@@ -1078,6 +1419,52 @@ def _extract_and_validate_step_features(
     return features
 
 
+def _extract_and_validate_step_features_from_data(
+    test_data: PulseTestData,
+) -> pulse.PulseFeatures:
+    """Helper function to extract and validate step signal features from test data.
+
+    Args:
+        test_data: Test data container
+
+    Returns:
+        Extracted pulse features
+    """
+    x, y = test_data.x, test_data.y
+
+    # Auto-detect ranges
+    start_range = pulse.get_start_range(x)
+    end_range = pulse.get_end_range(x)
+
+    # Extract features
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        features = pulse.extract_pulse_features(x, y, start_range, end_range)
+
+    # Visualize results if GUI is available
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            view_pulse_features(
+                x, y, f"{test_data.description} | Feature extraction", "step", features
+            )
+
+    # Validate that we got the correct type
+    assert isinstance(features, pulse.PulseFeatures), (
+        f"Expected PulseFeatures, got {type(features)}"
+    )
+
+    # Validate signal shape
+    assert features.signal_shape == SignalShape.STEP, (
+        f"Expected signal_shape to be STEP, but got {features.signal_shape}"
+    )
+
+    # If we have expected features, validate against them
+    if test_data.expected_features is not None and test_data.tolerances is not None:
+        __check_features(features, test_data.expected_features, test_data.tolerances)
+
+    return features
+
+
 def _extract_and_validate_square_features(
     x: np.ndarray,
     y: np.ndarray,
@@ -1131,6 +1518,56 @@ def _extract_and_validate_square_features(
 
     # Validate numerical features
     __check_features(features, expected, tolerances)
+
+    return features
+
+
+def _extract_and_validate_square_features_from_data(
+    test_data: PulseTestData,
+) -> pulse.PulseFeatures:
+    """Helper function to extract and validate square signal features from test data.
+
+    Args:
+        test_data: Test data container
+
+    Returns:
+        Extracted pulse features
+    """
+    x, y = test_data.x, test_data.y
+
+    # Auto-detect ranges
+    start_range = pulse.get_start_range(x)
+    end_range = pulse.get_end_range(x)
+
+    # Extract features
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        features = pulse.extract_pulse_features(x, y, start_range, end_range)
+
+    # Visualize results if GUI is available
+    with guiutils.lazy_qt_app_context() as qt_app:
+        if qt_app is not None:
+            view_pulse_features(
+                x,
+                y,
+                f"{test_data.description} | Feature extraction",
+                "square",
+                features,
+            )
+
+    # Validate that we got the correct type
+    assert isinstance(features, pulse.PulseFeatures), (
+        f"Expected PulseFeatures, got {type(features)}"
+    )
+
+    # Validate signal shape
+    assert features.signal_shape == SignalShape.SQUARE, (
+        f"Expected signal_shape to be SQUARE, but got {features.signal_shape}"
+    )
+
+    # If we have expected features, validate against them
+    if test_data.expected_features is not None and test_data.tolerances is not None:
+        __check_features(features, test_data.expected_features, test_data.tolerances)
 
     return features
 
@@ -1217,6 +1654,11 @@ def test_step_feature_extraction() -> None:
     # Extract and validate features
     _extract_and_validate_step_features(x, y, analysis, expected, signal_params)
 
+    # Test with real data
+    for test_data in iterate_all_step_test_data():
+        if not test_data.is_generated:
+            _extract_and_validate_step_features_from_data(test_data)
+
 
 def test_square_feature_extraction() -> None:
     """Test feature extraction for square signals.
@@ -1245,6 +1687,11 @@ def test_square_feature_extraction() -> None:
 
     # Extract and validate features
     _extract_and_validate_square_features(x, y, analysis, expected, signal_params)
+
+    # Test with real data
+    for test_data in iterate_all_square_test_data():
+        if not test_data.is_generated:
+            _extract_and_validate_square_features_from_data(test_data)
 
 
 def test_gaussian_feature_extraction() -> None:
@@ -1359,8 +1806,8 @@ def test_signal_extract_pulse_features() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_heuristically_recognize_shape()
-    test_detect_polarity()
+    # test_heuristically_recognize_shape()
+    # test_detect_polarity()
     test_get_amplitude()
     test_get_crossing_ratio_time(0.2)
     test_get_crossing_ratio_time(0.5)

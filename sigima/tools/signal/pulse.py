@@ -353,24 +353,78 @@ def get_end_range(x: np.ndarray, fraction: float = 0.05) -> tuple[float, float]:
 
 
 def get_plateau_range(
-    x: np.ndarray, y: np.ndarray, polarity: int, fraction: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    polarity: int,
+    fraction: float = 0.05,
+    start_range: tuple[float, float] | None = None,
+    end_range: tuple[float, float] | None = None,
 ) -> tuple[float, float]:
     """Get plateau range around the max y-value based on fraction of x-range.
+
+    The plateau is identified as the longest continuous region with values >= 90% of
+    the maximum, constrained to be after the start baseline and before the end baseline.
+    This ensures the plateau is detected in the correct temporal region of the signal,
+    avoiding isolated spikes.
 
     Args:
         x: 1D array of x values.
         y: 1D array of y values.
         polarity: Polarity of the signal (1 for positive, -1 for negative).
         fraction: Fraction of the x-range to use for the plateau range.
+        start_range: Start baseline range (optional, for constraining search).
+        end_range: End baseline range (optional, for constraining search).
 
     Returns:
         Tuple representing the plateau range (min, max).
     """
-    x_fraction = fraction * (x[-1] - x[0])
+    # Get baseline ranges if not provided
+    if start_range is None:
+        start_range = get_start_range(x, fraction)
+    if end_range is None:
+        end_range = get_end_range(x, fraction)
+
+    # Constrain search to region between end of start baseline and start of end baseline
+    # This avoids the circular dependency with find_crossing_at_ratio
+    mask = (x > start_range[1]) & (x < end_range[0])
+
+    # Apply polarity correction
     y_polarity_corrected = y if polarity == 1 else np.max(y) - y
-    max_indexes = y_polarity_corrected >= 0.95 * np.max(y_polarity_corrected)
-    max_index = max_indexes.nonzero()[0][len(max_indexes[max_indexes]) // 2]
-    return (x[max_index] - 0.5 * x_fraction, x[max_index] + 0.5 * x_fraction)
+
+    # Find points >= 90% of maximum within the constrained region
+    # (lower threshold for plateau)
+    y_masked = y_polarity_corrected[mask]
+    if len(y_masked) == 0:
+        # Fallback: use full signal if constrained region is empty
+        y_masked = y_polarity_corrected
+        mask = np.ones_like(x, dtype=bool)
+
+    # Use 90% threshold to capture the full plateau, not just the peak
+    threshold = 0.9 * np.max(y_masked)
+    above_threshold = y_masked >= threshold
+
+    # Find the longest continuous region above threshold
+    # This identifies the plateau, not isolated spikes
+    changes = np.diff(np.concatenate(([False], above_threshold, [False])).astype(int))
+    start_indices = np.where(changes == 1)[0]
+    end_indices = np.where(changes == -1)[0]
+
+    if len(start_indices) == 0:
+        # Fallback: if no regions found, use the maximum point
+        max_idx = np.argmax(y_masked)
+        x_fraction = fraction * (x[-1] - x[0])
+        x_masked = x[mask]
+        x_center = x_masked[max_idx]
+        return (x_center - 0.5 * x_fraction, x_center + 0.5 * x_fraction)
+
+    # Find the longest continuous region
+    region_lengths = end_indices - start_indices
+    longest_region_idx = np.argmax(region_lengths)
+    plateau_start_idx = start_indices[longest_region_idx]
+    plateau_end_idx = end_indices[longest_region_idx] - 1  # -1 because end is exclusive
+
+    x_masked = x[mask]
+    return (x_masked[plateau_start_idx], x_masked[plateau_end_idx])
 
 
 def get_range_mean_y(
@@ -440,7 +494,9 @@ def get_amplitude(
             return np.max(y) - np.min(y)
 
         if plateau_range is None:
-            plateau_range = get_plateau_range(x, y, polarity, fraction)
+            plateau_range = get_plateau_range(
+                x, y, polarity, fraction, start_range, end_range
+            )
 
         # reverse y if polarity is negative
         y_positive = y * polarity
@@ -517,14 +573,57 @@ def find_crossing_at_ratio(
     y_positive = y * polarity
     if start_range is None:
         start_range = get_start_range(x, fraction)
+    if end_range is None:
+        end_range = get_end_range(x, fraction)
     y_start = get_range_mean_y(x, y_positive, start_range)
     if amplitude == 0.0:
         return None
     y_norm = (y_positive - y_start) / amplitude
-    try:
-        roots = features.find_x_values_at_y(x, y_norm, ratio)
-    except ValueError:
+
+    # Constrain search to the rise/fall edge region (between baselines)
+    # This prevents finding spurious crossings in the baseline regions
+    mask = (x > start_range[1]) & (x < end_range[0])
+    x_search = x[mask]
+    y_norm_search = y_norm[mask]
+
+    if len(x_search) == 0:
         return None
+
+    # Special handling for low ratios (0% to 10%):
+    # For these, we need to avoid finding crossings in the baseline noise.
+    # Strategy: Find the 10% crossing first, then search backwards to find
+    # the requested crossing point near the actual rise edge.
+    if ratio < 0.1:
+        try:
+            # First find the 10% crossing point as a reference
+            roots_10pct = features.find_x_values_at_y(x_search, y_norm_search, 0.1)
+            if len(roots_10pct) > 0:
+                x_10pct = roots_10pct[0]
+                # Now search for the requested ratio only in the region
+                # leading up to the 10% crossing
+                mask_near_edge = x_search <= x_10pct
+                x_near_edge = x_search[mask_near_edge]
+                y_norm_near_edge = y_norm_search[mask_near_edge]
+                roots = features.find_x_values_at_y(
+                    x_near_edge, y_norm_near_edge, ratio
+                )
+                # Return the crossing closest to the 10% point
+                if len(roots) > 0:
+                    return roots[-1]  # Last crossing before 10% point
+        except ValueError:
+            pass
+        # Fallback to regular search if 10% crossing not found
+        try:
+            roots = features.find_x_values_at_y(x_search, y_norm_search, ratio)
+        except ValueError:
+            return None
+    else:
+        # For higher ratios, regular search works fine
+        try:
+            roots = features.find_x_values_at_y(x_search, y_norm_search, ratio)
+        except ValueError:
+            return None
+
     if len(roots) == 0:
         return None
     if len(roots) > 1 and warn_multiple_crossings:
@@ -1427,7 +1526,9 @@ def extract_pulse_features(
     polarity = detect_polarity(x, y, start_range, end_range, signal_shape=signal_shape)
     plateau_range = None
     if signal_shape == SignalShape.SQUARE:
-        plateau_range = get_plateau_range(x, y, polarity, fraction)
+        plateau_range = get_plateau_range(
+            x, y, polarity, fraction, start_range, end_range
+        )
     amplitude = get_amplitude(x, y, start_range, end_range, plateau_range, signal_shape)
 
     ymax_idx = np.argmax(y)
