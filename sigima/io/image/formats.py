@@ -4,8 +4,11 @@
 Sigima I/O image formats
 """
 
+# pylint: disable=invalid-name  # Allows short reference names like x, y, ...
+
 from __future__ import annotations
 
+import datetime
 import os.path as osp
 import re
 
@@ -16,6 +19,7 @@ import scipy.io as sio
 import skimage.io
 from guidata.io import HDF5Reader, HDF5Writer
 
+import sigima
 from sigima.config import _, options
 from sigima.io import ftlab
 from sigima.io.base import FormatInfo
@@ -619,10 +623,6 @@ class CoordinatedTextFileWriter:
         Raises:
             ValueError: If image has invalid coordinate system
         """
-        import datetime
-
-        import sigima
-
         # Validate that we can write this image
         if obj.data is None:
             raise ValueError(
@@ -798,7 +798,7 @@ class TextImageFormat(SingleImageFormatBase):
             try:
                 CoordinatedTextFileWriter.write_image(filename, obj)
                 return
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 # Fall back to regular text format if writing fails
                 pass
 

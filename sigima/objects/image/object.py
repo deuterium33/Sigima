@@ -165,10 +165,9 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             return 0.0
         if self.is_uniform_coords:
             return self.x0
-        else:
-            if self.xcoords is None or self.xcoords.size == 0:
-                return np.nan
-            return self.xcoords[0]
+        if self.xcoords is None or self.xcoords.size == 0:
+            return np.nan
+        return self.xcoords[0]
 
     def _compute_xmax(self) -> float:
         """Compute Xmax"""
@@ -176,10 +175,9 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             return 0.0
         if self.is_uniform_coords:
             return self.x0 + self.width - self.dx
-        else:
-            if self.xcoords is None or self.xcoords.size == 0:
-                return np.nan
-            return self.xcoords[-1]
+        if self.xcoords is None or self.xcoords.size == 0:
+            return np.nan
+        return self.xcoords[-1]
 
     def _compute_ymin(self) -> float:
         """Compute Ymin"""
@@ -187,10 +185,9 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             return 0.0
         if self.is_uniform_coords:
             return self.y0
-        else:
-            if self.ycoords is None or self.ycoords.size == 0:
-                return np.nan
-            return self.ycoords[0]
+        if self.ycoords is None or self.ycoords.size == 0:
+            return np.nan
+        return self.ycoords[0]
 
     def _compute_ymax(self) -> float:
         """Compute Ymax"""
@@ -198,10 +195,9 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
             return 0.0
         if self.is_uniform_coords:
             return self.y0 + self.height - self.dy
-        else:
-            if self.ycoords is None or self.ycoords.size == 0:
-                return np.nan
-            return self.ycoords[-1]
+        if self.ycoords is None or self.ycoords.size == 0:
+            return np.nan
+        return self.ycoords[-1]
 
     _dxdyg = gds.BeginGroup(f"{_('Origin')} / {_('Pixel spacing')}")
     _prop_uniform = gds.GetAttrProp("is_uniform_coords")

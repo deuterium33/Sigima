@@ -12,6 +12,8 @@ import numpy as np
 
 import sigima.io
 import sigima.objects
+import sigima.params
+import sigima.proc.image
 from sigima.io.image.formats import CoordinatedTextFileReader
 from sigima.tests.env import execenv
 from sigima.tests.helpers import (
@@ -363,10 +365,6 @@ def test_write_with_nan_values() -> None:
 def test_polynomial_calibration_txt_io() -> None:
     """Test I/O for images with polynomial calibration saved as TXT files"""
     execenv.print(f"{test_polynomial_calibration_txt_io.__doc__}:")
-
-    # Import here to avoid circular dependency
-    import sigima.params
-    import sigima.proc.image
 
     # Create test image
     data = np.random.rand(10, 10) * 100

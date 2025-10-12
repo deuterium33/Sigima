@@ -553,6 +553,7 @@ def find_crossing_at_ratio(
         InvalidSignalError: If the signal is invalid or if polarity cannot be
          determined.
     """
+    # pylint: disable=too-many-return-statements
     if not 0 <= ratio <= 1:
         raise ValueError("ratio must be between 0 and 1")
     if signal_shape is None:

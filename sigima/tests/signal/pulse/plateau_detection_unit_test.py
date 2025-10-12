@@ -37,9 +37,6 @@ def test_plateau_detection(
     the plateau region within the expected interval for various real signals.
     The test also includes optional visualization when run with GUI enabled.
     """
-    # pylint: disable=import-outside-toplevel
-    from sigima.tests import guiutils
-
     # Load real data
     obj = get_test_signal(basename)
     x, y = obj.x, obj.y
