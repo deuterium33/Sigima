@@ -130,7 +130,7 @@ print(f"Will use clipping threshold of {background_threshold} LSB")
 
 print("\n--- Applying Background Clipping ---")
 clip_param = ClipParam()
-clip_param.min = background_threshold  # Remove background noise below 35 LSB
+clip_param.lower = background_threshold  # Remove background noise below 35 LSB
 
 clipped_images = []
 for img in images:
@@ -138,7 +138,7 @@ for img in images:
     clipped_img.title = f"{img.title}_clipped"
     clipped_images.append(clipped_img)
 
-print(f"✓ Applied clipping of {clip_param.min} LSB to all {len(images)} images")
+print(f"✓ Applied clipping of {clip_param.lower} LSB to all {len(images)} images")
 print("Background noise below threshold has been removed")
 
 # %%
