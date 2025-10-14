@@ -63,7 +63,7 @@ Signals
 .. autofunction:: sigima.objects.create_signal_from_param
 .. autoclass:: sigima.objects.SignalTypes
 .. autoclass:: sigima.objects.NewSignalParam
-.. autodataset:: sigima.objects.ZerosParam
+.. autodataset:: sigima.objects.ZeroParam
 .. autodataset:: sigima.objects.UniformDistribution1DParam
 .. autodataset:: sigima.objects.NormalDistribution1DParam
 .. autodataset:: sigima.objects.PoissonDistribution1DParam
@@ -96,7 +96,7 @@ Images
 .. autofunction:: sigima.objects.create_image_from_param
 .. autoclass:: sigima.objects.ImageTypes
 .. autoclass:: sigima.objects.NewImageParam
-.. autodataset:: sigima.objects.Zeros2DParam
+.. autodataset:: sigima.objects.Zero2DParam
 .. autodataset:: sigima.objects.UniformDistribution2DParam
 .. autodataset:: sigima.objects.NormalDistribution2DParam
 .. autodataset:: sigima.objects.PoissonDistribution2DParam
@@ -129,7 +129,7 @@ __all__ = [
     "RectangularROI",
     "ROI2DParam",
     "UniformDistribution2DParam",
-    "Zeros2DParam",
+    "Zero2DParam",
     "create_image",
     "create_image_from_param",
     "create_image_parameters",
@@ -173,7 +173,7 @@ __all__ = [
     "TriangleParam",
     "UniformDistribution1DParam",
     "VoigtParam",
-    "ZerosParam",
+    "ZeroParam",
     "create_signal",
     "create_signal_from_param",
     "create_signal_parameters",
@@ -204,7 +204,7 @@ from sigima.objects.image import (
     RectangularROI,
     ROI2DParam,
     UniformDistribution2DParam,
-    Zeros2DParam,
+    Zero2DParam,
     create_image,
     create_image_from_param,
     create_image_parameters,
@@ -252,7 +252,7 @@ from sigima.objects.signal import (
     TriangleParam,
     UniformDistribution1DParam,
     VoigtParam,
-    ZerosParam,
+    ZeroParam,
     create_signal,
     create_signal_from_param,
     create_signal_parameters,

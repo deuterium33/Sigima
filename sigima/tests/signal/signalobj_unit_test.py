@@ -46,7 +46,7 @@ def postprocess_signal_object(
         obj: The signal object to postprocess.
         stype: The type of the signal.
     """
-    if stype == sigima.objects.SignalTypes.ZEROS:
+    if stype == sigima.objects.SignalTypes.ZERO:
         assert (obj.y == 0).all()
 
 
@@ -210,7 +210,7 @@ def test_create_signal_from_param() -> None:
         (sigima.objects.NormalDistribution1DParam, "normal_noise"),
         (sigima.objects.PoissonDistribution1DParam, "poisson_noise"),
         (sigima.objects.UniformDistribution1DParam, "uniform_noise"),
-        (sigima.objects.ZerosParam, "zeros"),
+        (sigima.objects.ZeroParam, "zero"),
         # Other signals
         (sigima.objects.CustomSignalParam, "custom"),
         (sigima.objects.VoigtParam, "voigt"),

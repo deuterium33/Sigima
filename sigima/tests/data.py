@@ -97,7 +97,7 @@ def iterate_signal_creation(
             f"(size={size}, non_zero={non_zero}):"
         )
     for stype in SignalTypes:
-        if non_zero and stype in (SignalTypes.ZEROS,):
+        if non_zero and stype in (SignalTypes.ZERO,):
             continue
         if verbose:
             execenv.print(f"    {stype.value}")

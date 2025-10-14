@@ -59,7 +59,7 @@ from .creation import (
     UniformDistribution1DParam,
     VoigtParam,
     # Distribution parameter classes
-    ZerosParam,
+    ZeroParam,
     check_all_signal_parameters_classes,
     # Core creation functions
     create_signal,
@@ -98,7 +98,7 @@ __all__ = [
     "create_signal_from_param",
     "SignalTypes",
     "NewSignalParam",
-    "ZerosParam",
+    "ZeroParam",
     "UniformDistribution1DParam",
     "NormalDistribution1DParam",
     "PoissonDistribution1DParam",

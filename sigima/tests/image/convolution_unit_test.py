@@ -9,7 +9,7 @@ import pytest
 import scipy.signal as sps
 
 from sigima.objects import create_image, create_image_from_param
-from sigima.objects.image import Gauss2DParam, ImageObj, Zeros2DParam
+from sigima.objects.image import Gauss2DParam, ImageObj, Zero2DParam
 from sigima.proc.image.mathops import convolution, deconvolution
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result
@@ -64,7 +64,7 @@ def _generate_identity_kernel(size: int = 7) -> ImageObj:
         An image object.
     """
     assert size % 2 == 1, "Identity kernel size must be odd."
-    kernel = create_image_from_param(Zeros2DParam.create(height=size, width=size))
+    kernel = create_image_from_param(Zero2DParam.create(height=size, width=size))
     assert kernel.data is not None
     kernel.data[size // 2, size // 2] = 1.0
     return kernel
@@ -138,7 +138,7 @@ def test_tools_image_deconvolve_null_kernel() -> None:
     size = 32
     src = _generate_image(size)
     assert src.data is not None
-    kernel = create_image_from_param(Zeros2DParam.create(height=size, width=size))
+    kernel = create_image_from_param(Zero2DParam.create(height=size, width=size))
     assert kernel.data is not None
     with pytest.raises(ValueError, match="Deconvolution kernel cannot be null."):
         deconvolve(src.data, kernel.data)

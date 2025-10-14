@@ -122,8 +122,8 @@ ImageDatatypes.check()
 class ImageTypes(gds.LabeledEnum):
     """Image types."""
 
-    #: Image filled with zeros
-    ZEROS = "zeros", _("Zeros")
+    #: Image filled with zero
+    ZEROS = "zero", _("Zero")
     #: Image filled with random data (normal distribution)
     NORMAL_DISTRIBUTION = "normal_distribution", _("Normal distribution")
     #: Image filled with random data (Poisson distribution)
@@ -256,8 +256,8 @@ def create_image_parameters(
     return p
 
 
-class Zeros2DParam(NewImageParam):
-    """Image parameters for a 2D image filled with zeros"""
+class Zero2DParam(NewImageParam):
+    """Image parameters for a 2D image filled with zero."""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
@@ -271,7 +271,7 @@ class Zeros2DParam(NewImageParam):
         return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
 
 
-register_image_parameters_class(ImageTypes.ZEROS, Zeros2DParam)
+register_image_parameters_class(ImageTypes.ZEROS, Zero2DParam)
 
 
 class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):

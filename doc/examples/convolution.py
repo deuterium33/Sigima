@@ -30,7 +30,7 @@ import numpy as np
 import scipy.signal as sps
 
 from sigima.objects import create_image, create_image_from_param
-from sigima.objects.image import Gauss2DParam, Zeros2DParam
+from sigima.objects.image import Gauss2DParam, Zero2DParam
 from sigima.proc.image.mathops import convolution, deconvolution
 from sigima.tests.vistools import view_images_side_by_side
 
@@ -55,7 +55,7 @@ gaussian_kernel.title = "Gaussian Kernel (σ=2.0)"
 # Generate an identity kernel (impulse response)
 identity_size = 15
 identity_kernel = create_image_from_param(
-    Zeros2DParam.create(height=identity_size, width=identity_size)
+    Zero2DParam.create(height=identity_size, width=identity_size)
 )
 identity_kernel.data[identity_size // 2, identity_size // 2] = 1.0
 identity_kernel.title = "Identity Kernel"

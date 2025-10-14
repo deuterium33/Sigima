@@ -83,8 +83,8 @@ def create_signal(
 class SignalTypes(gds.LabeledEnum):
     """Signal types"""
 
-    #: Signal filled with zeros
-    ZEROS = "zeros", _("Zeros")
+    #: Signal filled with zero
+    ZERO = "zero", _("Zero")
     #: Random signal (normal distribution)
     NORMAL_DISTRIBUTION = "normal_distribution", _("Normal distribution")
     #: Random signal (Poisson distribution)
@@ -254,20 +254,20 @@ def create_signal_parameters(
     return p
 
 
-class ZerosParam(NewSignalParam):
-    """Parameters for zero signal"""
+class ZeroParam(NewSignalParam):
+    """Parameters for zero signal."""
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Compute 1D data based on current parameters.
 
         Returns:
-            Tuple of (x, y) arrays
+            Tuple of (x, y) arrays.
         """
         x = self.generate_x_data()
         return x, np.zeros_like(x)
 
 
-register_signal_parameters_class(SignalTypes.ZEROS, ZerosParam)
+register_signal_parameters_class(SignalTypes.ZERO, ZeroParam)
 
 
 class UniformDistribution1DParam(NewSignalParam, base.UniformDistributionParam):

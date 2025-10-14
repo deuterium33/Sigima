@@ -32,7 +32,7 @@ from .creation import (
     Ramp2DParam,
     UniformDistribution2DParam,
     # Specific parameter classes
-    Zeros2DParam,
+    Zero2DParam,
     check_all_image_parameters_classes,
     # Core creation function
     create_image,
@@ -76,7 +76,7 @@ __all__ = [
     "ImageDatatypes",
     "ImageTypes",
     "NewImageParam",
-    "Zeros2DParam",
+    "Zero2DParam",
     "UniformDistribution2DParam",
     "NormalDistribution2DParam",
     "PoissonDistribution2DParam",
