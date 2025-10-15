@@ -115,7 +115,7 @@ class NormalDistributionParam(BaseRandomParam):
         self.sigma = float(self.DEFAULT_RELATIVE_SIGMA * delta)
 
     mu = gds.FloatItem(
-        "μ", default=DEFAULT_RELATIVE_MU, min=0.0, help=_("Normal distribution mean")
+        "μ", default=DEFAULT_RELATIVE_MU, help=_("Normal distribution mean")
     )
     sigma = gds.FloatItem(
         "σ",
