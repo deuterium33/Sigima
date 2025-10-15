@@ -330,6 +330,16 @@ def test_create_image_from_param() -> None:
             assert not (image_type.data == image_type.data[0, 0]).all()
             assert np.isfinite(image_type.data).all()
 
+        # Test automatic title generation for distribution types
+        if "DISTRIBUTION" in img_type.name:
+            param_autotitle = sigima.objects.create_image_parameters(
+                img_type, title="", height=50, width=60, idtype=dtype
+            )
+            image_autotitle = sigima.objects.create_image_from_param(param_autotitle)
+            assert "Random" in image_autotitle.title, (
+                f"Auto-generated title should contain 'Random' for {img_type.value}"
+            )
+
     # Test 4: Gaussian parameters with specific values
     gauss_param = sigima.objects.Gauss2DParam()
     gauss_param.title = "Custom Gauss"

@@ -140,7 +140,19 @@ DEFAULT_TITLE = _("Untitled image")
 
 
 class NewImageParam(gds.DataSet):
-    """New image dataset."""
+    """New image dataset.
+
+    Subclasses can optionally implement a ``generate_title()`` method to provide
+    automatic title generation based on their parameters. This method should return
+    a string containing the generated title, or an empty string if no title can be
+    generated.
+
+    Example::
+
+        def generate_title(self) -> str:
+            '''Generate a title based on current parameters.'''
+            return f"MyImage(param1={self.param1},param2={self.param2})"
+    """
 
     hide_height = False
     hide_width = False
@@ -157,10 +169,6 @@ class NewImageParam(gds.DataSet):
     dtype = gds.ChoiceItem(
         _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
     ).set_prop("display", hide=gds.GetAttrProp("hide_dtype"))
-
-    def generate_title(self) -> str:
-        """Generate a title based on current parameters."""
-        return ""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
@@ -473,11 +481,14 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
     incr_img_nb = not param.title
     title = param.title = param.title or DEFAULT_TITLE
     if incr_img_nb:
-        title = f"{title} {get_next_image_number()}"
+        # Try to generate a descriptive title - if the method exists and returns
+        # a non-empty string, use it; otherwise use the default title with a number
+        gen_title = getattr(param, "generate_title", lambda: "")()
+        if gen_title:
+            title = gen_title
+        else:
+            title = f"{title} {get_next_image_number()}"
     shape = (param.height, param.width)
     data = param.generate_2d_data(shape)
-    gen_title = param.generate_title()
-    if gen_title:
-        title = gen_title if param.title == DEFAULT_TITLE else param.title
     image = create_image(title, data)
     return image

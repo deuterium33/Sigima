@@ -135,7 +135,19 @@ DEFAULT_TITLE = _("Untitled signal")
 
 
 class NewSignalParam(gds.DataSet):
-    """New signal dataset"""
+    """New signal dataset.
+
+    Subclasses can optionally implement a ``generate_title()`` method to provide
+    automatic title generation based on their parameters. This method should return
+    a string containing the generated title, or an empty string if no title can be
+    generated.
+
+    Example::
+
+        def generate_title(self) -> str:
+            '''Generate a title based on current parameters.'''
+            return f"MySignal(param1={self.param1},param2={self.param2})"
+    """
 
     title = gds.StringItem(_("Title"), default=DEFAULT_TITLE)
     size = gds.IntItem(
@@ -155,10 +167,6 @@ class NewSignalParam(gds.DataSet):
     # items are present after it (i.e. when derived classes do not add any new items
     # or when the NewSignalParam class is used alone).
     sep = gds.SeparatorItem()
-
-    def generate_title(self) -> str:
-        """Generate a title based on current parameters."""
-        return ""
 
     def generate_x_data(self) -> np.ndarray:
         """Generate x data based on current parameters."""
@@ -1332,11 +1340,14 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     incr_sig_nb = not param.title
     title = param.title = param.title or DEFAULT_TITLE
     if incr_sig_nb:
-        title = f"{title} {get_next_signal_number():d}"
+        # Try to generate a descriptive title - if the method exists and returns
+        # a non-empty string, use it; otherwise use the default title with a number
+        gen_title = getattr(param, "generate_title", lambda: "")()
+        if gen_title:
+            title = gen_title
+        else:
+            title = f"{title} {get_next_signal_number():d}"
     x, y = param.generate_1d_data()
-    gen_title = param.generate_title()
-    if gen_title:
-        title = gen_title if param.title == DEFAULT_TITLE else param.title
     signal = create_signal(
         title,
         x,

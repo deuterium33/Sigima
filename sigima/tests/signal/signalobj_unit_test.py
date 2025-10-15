@@ -253,6 +253,19 @@ def test_create_signal_from_param() -> None:
         assert isinstance(signal.x, np.ndarray), f"X is not ndarray for {name}"
         assert isinstance(signal.y, np.ndarray), f"Y is not ndarray for {name}"
 
+        # Test automatic title generation for parameters that support it
+        param_autotitle = param_class.create(size=100, xmin=1.0, xmax=10.0)
+        param_autotitle.title = ""  # Empty title to trigger auto-generation
+        signal_autotitle = sigima.objects.create_signal_from_param(param_autotitle)
+        # Distribution params should generate descriptive titles
+        if "Distribution" in param_class.__name__:
+            assert signal_autotitle.title != "", (
+                f"Title should be auto-generated for {name}"
+            )
+            assert "Random" in signal_autotitle.title, (
+                f"Auto-generated title should contain 'Random' for {name}"
+            )
+
         execenv.print(f"  Created {name} signal: OK")
 
     # Test with custom parameters and title generation
