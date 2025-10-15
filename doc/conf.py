@@ -208,7 +208,7 @@ html_theme_options = {
             "attributes": {"target": "_blank"},
         },
         {
-            "name": "Codra",
+            "name": "CODRA",
             "url": "https://codra.net",
             "icon": "_static/codra.png",
             "type": "local",
