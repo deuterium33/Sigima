@@ -280,48 +280,81 @@ def get_script_output(
     return result.stdout.strip()
 
 
-def compare_lists(list1: list, list2: list, level: int = 1) -> bool:
+def compare_lists(
+    list1: list, list2: list, level: int = 1, raise_on_diff: bool = False
+) -> tuple[bool, list[str]]:
     """Compare two lists
 
     Args:
         list1: first list
         list2: second list
         level: recursion level
+        raise_on_diff: if True, raise an AssertionError on difference (default: False)
 
     Returns:
-        True if lists are the same, False otherwise
+        A tuple (same, diff) where `same` is True if lists are the same,
+        False otherwise, and `diff` is a list of differences found
+
+    Raises:
+        AssertionError: if raise_on_diff is True and lists are different
     """
     same = True
     prefix = "  " * level
+    diff = []
+    # Check for length mismatch
+    if len(list1) != len(list2):
+        same = False
+        diff += [f"{prefix}Lists have different lengths: {len(list1)} != {len(list2)}"]
     for idx, (elem1, elem2) in enumerate(zip(list1, list2)):
         execenv.print(f"{prefix}Checking element {idx}...", end=" ")
         if isinstance(elem1, (list, tuple)):
             execenv.print("")
-            same = same and compare_lists(elem1, elem2, level + 1)
+            cl_same, cl_diff = compare_lists(elem1, elem2, level + 1)
+            diff += cl_diff
+            same = same and cl_same
         elif isinstance(elem1, dict):
             execenv.print("")
-            same = same and compare_metadata(elem1, elem2, level + 1)
+            cm_same, cm_diff = compare_metadata(elem1, elem2, level + 1)
+            diff += cm_diff
+            same = same and cm_same
         else:
             same_value = str(elem1) == str(elem2)
             if not same_value:
-                execenv.print(f"Different values: {elem1} != {elem2}")
+                diff += [
+                    f"{prefix}Different values for element {idx}: {elem1} != {elem2}"
+                ]
             same = same and same_value
-            execenv.print("OK" if same else "KO")
-    return same
+            execenv.print("OK" if same_value else "KO")
+    if diff:
+        all_diff = os.linesep.join(diff)
+        if raise_on_diff:
+            raise AssertionError(all_diff)
+        else:
+            execenv.print("Lists are different:")
+            execenv.print(all_diff)
+    return same, diff
 
 
 def compare_metadata(
-    dict1: dict[str, Any], dict2: dict[str, Any], level: int = 1
-) -> bool:
+    dict1: dict[str, Any],
+    dict2: dict[str, Any],
+    level: int = 1,
+    raise_on_diff: bool = False,
+) -> tuple[bool, list[str]]:
     """Compare metadata dictionaries without private elements
 
     Args:
         dict1: first dictionary, exclusively with string keys
         dict2: second dictionary, exclusively with string keys
         level: recursion level
+        raise_on_diff: if True, raise an AssertionError on difference (default: False)
 
     Returns:
-        True if metadata is the same, False otherwise
+        A tuple (same, diff) where `same` is True if dictionaries are the same,
+        False otherwise, and `diff` is a list of differences found
+
+    Raises:
+        AssertionError: if raise_on_diff is True and metadata is different
     """
     dict_a, dict_b = dict1.copy(), dict2.copy()
     for dict_ in (dict_a, dict_b):
@@ -330,25 +363,44 @@ def compare_metadata(
                 dict_.pop(key)
     same = True
     prefix = "  " * level
+    diff = []
+    # Check for keys only in dict_a
     for key in dict_a:
         if key not in dict_b:
             same = False
-            break
+            diff += [f"{prefix}Key {key} found in first dict but not in second"]
+            continue
         val_a, val_b = dict_a[key], dict_b[key]
         execenv.print(f"{prefix}Checking key {key}...", end=" ")
         if isinstance(val_a, dict):
             execenv.print("")
-            same = same and compare_metadata(val_a, val_b, level + 1)
+            cm_same, cm_diff = compare_metadata(val_a, val_b, level + 1)
+            diff += cm_diff
+            same = same and cm_same
         elif isinstance(val_a, (list, tuple)):
             execenv.print("")
-            same = same and compare_lists(val_a, val_b, level + 1)
+            cl_same, cl_diff = compare_lists(val_a, val_b, level + 1)
+            diff += cl_diff
+            same = same and cl_same
         else:
             same_value = str(val_a) == str(val_b)
             if not same_value:
-                execenv.print(f"Different values for key {key}: {val_a} != {val_b}")
+                diff += [f"{prefix}Different values for key {key}: {val_a} != {val_b}"]
             same = same and same_value
-            execenv.print("OK" if same else "KO")
-    return same
+            execenv.print("OK" if same_value else "KO")
+    # Check for keys only in dict_b
+    for key in dict_b:
+        if key not in dict_a:
+            same = False
+            diff += [f"{prefix}Key {key} found in second dict but not in first"]
+    if diff:
+        all_diff = os.linesep.join(diff)
+        if raise_on_diff:
+            raise AssertionError(all_diff)
+        else:
+            execenv.print("Dictionaries are different:")
+            execenv.print(all_diff)
+    return same, diff
 
 
 def __evaluate_func_safely(func: Callable, fallback: float | int = np.nan) -> Any:

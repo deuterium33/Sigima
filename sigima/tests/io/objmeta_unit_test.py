@@ -36,9 +36,12 @@ def test_signal_roi_io():
             fname = osp.join(temp_dir, "test_signal_roi.json")
             write_roi(fname, orig_roi)
             roi = read_roi(fname)
-            assert compare_metadata(roi.to_dict(), orig_roi.to_dict()), (
-                "Signal ROI read from file does not match original"
-            )
+            try:
+                compare_metadata(roi.to_dict(), orig_roi.to_dict(), raise_on_diff=True)
+            except AssertionError as exc:
+                raise AssertionError(
+                    "Signal ROI read from file does not match original"
+                ) from exc
 
 
 def test_image_roi_io():
@@ -52,9 +55,12 @@ def test_image_roi_io():
             fname = osp.join(temp_dir, "test_image_roi.json")
             write_roi(fname, orig_roi)
             roi = read_roi(fname)
-            assert compare_metadata(roi.to_dict(), orig_roi.to_dict()), (
-                "Image ROI read from file does not match original"
-            )
+            try:
+                compare_metadata(roi.to_dict(), orig_roi.to_dict(), raise_on_diff=True)
+            except AssertionError as exc:
+                raise AssertionError(
+                    "Image ROI read from file does not match original"
+                ) from exc
 
 
 def test_metadata_io():
@@ -67,9 +73,12 @@ def test_metadata_io():
         fname = osp.join(temp_dir, "test_metadata.json")
         write_metadata(fname, orig_metadata)
         metadata = read_metadata(fname)
-        assert compare_metadata(metadata, orig_metadata), (
-            "Metadata read from file does not match original"
-        )
+        try:
+            compare_metadata(metadata, orig_metadata, raise_on_diff=True)
+        except AssertionError as exc:
+            raise AssertionError(
+                "Metadata read from file does not match original"
+            ) from exc
 
 
 if __name__ == "__main__":

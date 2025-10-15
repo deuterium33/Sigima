@@ -123,7 +123,9 @@ def test_hdf5_image_io() -> None:
             assert data.dtype == orig_data.dtype
             assert fetch_image.annotations == orig_image.annotations
             assert np.allclose(data, orig_data, atol=0.0, equal_nan=True)
-            assert compare_metadata(fetch_image.metadata, orig_image.metadata.copy())
+            compare_metadata(
+                fetch_image.metadata, orig_image.metadata.copy(), raise_on_diff=True
+            )
 
             # Verify uniform coordinate attributes are preserved
             if orig_image.is_uniform_coords:
