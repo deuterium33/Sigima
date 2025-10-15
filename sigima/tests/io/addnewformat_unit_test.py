@@ -65,7 +65,7 @@ def test_add_image_format() -> None:
     )
     finfo = image_class.FORMAT_INFO
     finfo_str = "\n".join([(" " * 4) + line for line in str(finfo).splitlines()])
-    assert finfo_str in ImageIORegistry.get_format_info(rst=False)
+    assert finfo_str in ImageIORegistry.get_format_info(mode="text")
 
 
 def _get_signal_format_number() -> int:
@@ -117,7 +117,7 @@ def test_add_signal_format() -> None:
     )
     finfo = signal_class.FORMAT_INFO
     finfo_str = "\n".join([(" " * 4) + line for line in str(finfo).splitlines()])
-    assert finfo_str in SignalIORegistry.get_format_info(rst=False)
+    assert finfo_str in SignalIORegistry.get_format_info(mode="text")
 
 
 if __name__ == "__main__":

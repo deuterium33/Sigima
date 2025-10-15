@@ -119,5 +119,5 @@ __all__ = [
     "IMAGE_FORMAT_INFO",
 ]
 
-SIGNAL_FORMAT_INFO = SignalIORegistry.get_format_info(rst=True)
-IMAGE_FORMAT_INFO = ImageIORegistry.get_format_info(rst=True)
+SIGNAL_FORMAT_INFO = SignalIORegistry.get_format_info(mode="rst")
+IMAGE_FORMAT_INFO = ImageIORegistry.get_format_info(mode="rst")

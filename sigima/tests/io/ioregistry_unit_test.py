@@ -36,7 +36,7 @@ def __test_io_registry(registry: SignalIORegistry | ImageIORegistry) -> None:
     execenv.print("*" * 80)
     formats = registry.get_formats()
     execenv.print(f"Supported formats: {len(formats)}")
-    execenv.print(registry.get_format_info(False))
+    execenv.print(registry.get_format_info(mode="text"))
     load_filters = registry.get_filters(IOAction.LOAD)
     assert (
         len(load_filters.splitlines())

@@ -13,7 +13,7 @@ import enum
 import os
 import os.path as osp
 import re
-from typing import Generic, Sequence
+from typing import Generic, Literal, Sequence
 
 from sigima.config import _
 from sigima.objects.base import BaseObj, TypeObj
@@ -157,16 +157,16 @@ class BaseIORegistry(Generic[TypeObj], type):
         return cls._io_format_instances
 
     @classmethod
-    def get_format_info(cls, rst: bool = True) -> str:
+    def get_format_info(cls, mode: Literal["rst", "text"] = "rst") -> str:
         """Return I/O format info
 
         Args:
-            rst: if True, return in reStructuredText format (default: True)
+            mode: Output format, either 'rst' (reStructuredText) or 'text'
 
         Returns:
             Text description for all I/O formats
         """
-        if rst:
+        if mode == "rst":
             txt = f"{cls.REGISTRY_INFO}:\n\n.. list-table::\n    :header-rows: 1\n\n"
             txt += "    * - Name\n      - Extensions\n      "
             txt += "- Readable\n      - Writeable\n      - Requires\n"
