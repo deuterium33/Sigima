@@ -60,34 +60,42 @@ def test_all_signal_types() -> None:
     execenv.print(f"{test_all_signal_types.__doc__}: OK")
 
 
-def test_hdf5_signal_io() -> None:
+@pytest.mark.parametrize(
+    "fname, orig_signal", list(read_test_objects(SignalIORegistry))
+)
+def test_hdf5_signal_io(fname: str, orig_signal: sigima.objects.SignalObj) -> None:
     """Test HDF5 I/O for signal objects"""
+    if orig_signal is None:
+        pytest.skip(f"Skipping {fname} (not implemented)")
     execenv.print(f"{test_hdf5_signal_io.__doc__}:")
     with WorkdirRestoringTempDir() as tmpdir:
-        for fname, orig_signal in read_test_objects(SignalIORegistry):
-            if orig_signal is None:
-                execenv.print(f"  Skipping {fname} (not implemented)")
-                continue
-            # Save to HDF5
-            filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5sig")
-            sigima.io.write_signal(filename, orig_signal)
-            execenv.print(f"  Saved {filename}")
-            # Read back
-            fetch_signal = sigima.io.read_signal(filename)
-            execenv.print(f"  Read {filename}")
-            orig_x, orig_y = orig_signal.x, orig_signal.y
-            orig_x: np.ndarray
-            orig_y: np.ndarray
-            x, y = fetch_signal.x, fetch_signal.y
-            assert isinstance(x, np.ndarray)
-            assert isinstance(y, np.ndarray)
-            assert x.shape == orig_x.shape
-            assert y.shape == orig_y.shape
-            assert x.dtype == orig_x.dtype
-            assert y.dtype == orig_y.dtype
-            assert np.isclose(x, orig_x, atol=0.0).all()
-            assert np.isclose(y, orig_y, atol=0.0).all()
-            assert compare_metadata(fetch_signal.metadata, orig_signal.metadata.copy())
+        # Save to HDF5
+        filename = osp.join(tmpdir, f"test_{osp.basename(fname)}.h5sig")
+        sigima.io.write_signal(filename, orig_signal)
+        execenv.print(f"  Saved {filename}")
+        # Read back
+        fetch_signal = sigima.io.read_signal(filename)
+        execenv.print(f"  Read {filename}")
+        orig_x, orig_y = orig_signal.x, orig_signal.y
+        orig_x: np.ndarray
+        orig_y: np.ndarray
+        x, y = fetch_signal.x, fetch_signal.y
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert x.shape == orig_x.shape
+        assert y.shape == orig_y.shape
+        assert x.dtype == orig_x.dtype
+        assert y.dtype == orig_y.dtype
+        assert np.isclose(x, orig_x, atol=0.0).all()
+        assert np.isclose(y, orig_y, atol=0.0).all()
+        try:
+            compare_metadata(
+                fetch_signal.metadata, orig_signal.metadata.copy(), raise_on_diff=True
+            )
+        except AssertionError as exc:
+            raise AssertionError(
+                f"Signal metadata read from file does not match original ({fname})"
+            ) from exc
     execenv.print(f"{test_hdf5_signal_io.__doc__}: OK")
 
 
@@ -566,11 +574,17 @@ def test_coordinate_conversion() -> None:
     execenv.print(f"{test_coordinate_conversion.__doc__}: OK")
 
 
-if __name__ == "__main__":
+def run_all_tests() -> None:
+    """Run all tests in this module"""
     test_signal_parameters_interactive()
     test_all_signal_types()
-    test_hdf5_signal_io()
+    for fname, orig_signal in read_test_objects(SignalIORegistry):
+        test_hdf5_signal_io(fname, orig_signal)
     test_create_signal()
     test_create_signal_from_param()
     test_signal_copy()
     test_coordinate_conversion()
+
+
+if __name__ == "__main__":
+    run_all_tests()
