@@ -1337,16 +1337,19 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     Raises:
         NotImplementedError: if the signal type is not supported
     """
-    incr_sig_nb = not param.title
-    title = param.title = param.title or DEFAULT_TITLE
-    if incr_sig_nb:
-        # Try to generate a descriptive title - if the method exists and returns
-        # a non-empty string, use it; otherwise use the default title with a number
+    # Check if user has customized the title or left it as default/empty
+    use_generated_title = not param.title or param.title == DEFAULT_TITLE
+    if use_generated_title:
+        # Try to generate a descriptive title
         gen_title = getattr(param, "generate_title", lambda: "")()
         if gen_title:
             title = gen_title
         else:
-            title = f"{title} {get_next_signal_number():d}"
+            # No generated title available, use default with number
+            title = f"{DEFAULT_TITLE} {get_next_signal_number():d}"
+    else:
+        # User has set a custom title, use it as-is
+        title = param.title
     x, y = param.generate_1d_data()
     signal = create_signal(
         title,

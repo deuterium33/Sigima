@@ -478,16 +478,19 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
         param.width = 1024
     if param.dtype is None:
         param.dtype = ImageDatatypes.UINT16
-    incr_img_nb = not param.title
-    title = param.title = param.title or DEFAULT_TITLE
-    if incr_img_nb:
-        # Try to generate a descriptive title - if the method exists and returns
-        # a non-empty string, use it; otherwise use the default title with a number
+    # Check if user has customized the title or left it as default/empty
+    use_generated_title = not param.title or param.title == DEFAULT_TITLE
+    if use_generated_title:
+        # Try to generate a descriptive title
         gen_title = getattr(param, "generate_title", lambda: "")()
         if gen_title:
             title = gen_title
         else:
-            title = f"{title} {get_next_image_number()}"
+            # No generated title available, use default with number
+            title = f"{DEFAULT_TITLE} {get_next_image_number()}"
+    else:
+        # User has set a custom title, use it as-is
+        title = param.title
     shape = (param.height, param.width)
     data = param.generate_2d_data(shape)
     image = create_image(title, data)
