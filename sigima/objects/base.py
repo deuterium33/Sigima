@@ -61,19 +61,6 @@ def deepcopy_metadata(
 class BaseProcParam(gds.DataSet):
     """Base class for processing parameters."""
 
-    def __init__(
-        self,
-        title: str | None = None,
-        comment: str | None = None,
-        icon: str = "",
-        readonly: bool = False,
-        skip_defaults: bool = False,
-    ) -> None:
-        super().__init__(
-            title, comment, icon, readonly=readonly, skip_defaults=skip_defaults
-        )
-        self.set_global_prop("data", min=None, max=None)
-
     def apply_integer_range(self, vmin, vmax):  # pylint: disable=unused-argument
         """Do something in case of integer min-max range."""
 
@@ -88,7 +75,6 @@ class BaseProcParam(gds.DataSet):
         else:
             info = np.finfo(dtype)
             self.apply_float_range(info.min, info.max)
-        self.set_global_prop("data", min=info.min, max=info.max)
 
 
 class BaseRandomParam(BaseProcParam):
