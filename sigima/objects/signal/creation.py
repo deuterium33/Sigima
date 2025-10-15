@@ -1337,6 +1337,8 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     Raises:
         NotImplementedError: if the signal type is not supported
     """
+    # Generate data first, as some `generate_title()` methods may depend on it:
+    x, y = param.generate_1d_data()
     # Check if user has customized the title or left it as default/empty
     use_generated_title = not param.title or param.title == DEFAULT_TITLE
     if use_generated_title:
@@ -1350,7 +1352,6 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
     else:
         # User has set a custom title, use it as-is
         title = param.title
-    x, y = param.generate_1d_data()
     signal = create_signal(
         title,
         x,

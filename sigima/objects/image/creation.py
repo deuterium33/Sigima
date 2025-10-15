@@ -478,6 +478,9 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
         param.width = 1024
     if param.dtype is None:
         param.dtype = ImageDatatypes.UINT16
+    # Generate data first, as some `generate_title()` methods may depend on it:
+    shape = (param.height, param.width)
+    data = param.generate_2d_data(shape)
     # Check if user has customized the title or left it as default/empty
     use_generated_title = not param.title or param.title == DEFAULT_TITLE
     if use_generated_title:
@@ -491,7 +494,5 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
     else:
         # User has set a custom title, use it as-is
         title = param.title
-    shape = (param.height, param.width)
-    data = param.generate_2d_data(shape)
     image = create_image(title, data)
     return image
