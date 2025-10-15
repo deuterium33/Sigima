@@ -329,9 +329,8 @@ def compare_lists(
         all_diff = os.linesep.join(diff)
         if raise_on_diff:
             raise AssertionError(all_diff)
-        else:
-            execenv.print("Lists are different:")
-            execenv.print(all_diff)
+        execenv.print("Lists are different:")
+        execenv.print(all_diff)
     return same, diff
 
 
@@ -397,9 +396,8 @@ def compare_metadata(
         all_diff = os.linesep.join(diff)
         if raise_on_diff:
             raise AssertionError(all_diff)
-        else:
-            execenv.print("Dictionaries are different:")
-            execenv.print(all_diff)
+        execenv.print("Dictionaries are different:")
+        execenv.print(all_diff)
     return same, diff
 
 

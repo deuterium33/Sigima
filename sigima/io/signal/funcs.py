@@ -643,6 +643,28 @@ class MCAFile:
             return match.group(2).strip()
         return None
 
+    @staticmethod
+    def _infer_string_value(value_str: str) -> str | float | int | datetime.datetime:
+        """Infer the type of a string value and convert it accordingly."""
+        # Try to convert the value to a number or datetime
+        try:
+            if value_str.isdigit():
+                value = int(value_str)
+            else:
+                try:
+                    value = float(value_str)
+                except ValueError:
+                    # Try to parse as datetime
+                    try:
+                        value = datetime.datetime.strptime(
+                            value_str, "%m/%d/%Y %H:%M:%S"
+                        )
+                    except ValueError:
+                        value = value_str  # Keep as string
+        except ValueError:
+            value = value_str
+        return value
+
     def _extract_metadata_from_section(
         self, section: str
     ) -> dict[str, str | float | int | datetime.datetime]:
@@ -657,25 +679,7 @@ class MCAFile:
                 match = re.match(pattern, line)
                 if match:
                     key, value_str = match.groups()
-                    value_str = value_str.strip()
-                    # Try to convert the value to a number or datetime
-                    try:
-                        if value_str.isdigit():
-                            value = int(value_str)
-                        else:
-                            try:
-                                value = float(value_str)
-                            except ValueError:
-                                # Try to parse as datetime
-                                try:
-                                    value = datetime.datetime.strptime(
-                                        value_str, "%m/%d/%Y %H:%M:%S"
-                                    )
-                                except ValueError:
-                                    value = value_str  # Keep as string
-                    except ValueError:
-                        value = value_str
-                    metadata[key.strip()] = value
+                    metadata[key.strip()] = self._infer_string_value(value_str.strip())
                     break
         return metadata
 
