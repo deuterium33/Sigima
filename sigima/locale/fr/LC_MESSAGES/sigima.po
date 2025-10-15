@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-11 11:30+0200\n"
+"POT-Creation-Date: 2025-10-15 10:29+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -164,6 +164,9 @@ msgstr "Fichiers binaires NumPy"
 
 msgid "FT-Lab"
 msgstr "FT-Lab"
+
+msgid "MCA files"
+msgstr "Fichiers MCA"
 
 msgid "Seed"
 msgstr "Graine"

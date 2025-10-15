@@ -72,6 +72,12 @@ def test_open_sigdata(fname: str | None = None, title: str | None = None) -> Non
     helpers.check_array_result(f"{fname}", data, ref.xydata)
 
 
+@helpers.try_open_test_data("Testing MCA file reader", "*.mca")
+def test_open_mca(fname: str | None = None, title: str | None = None) -> None:
+    """Testing MCA files."""
+    __read_and_view_objs(fname, title)
+
+
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
 def test_open_mat(fname: str | None = None, title: str | None = None) -> None:
     """Testing MAT files."""
@@ -113,6 +119,7 @@ def test_read_obj_interactive() -> None:
     test_open_txt()
     test_open_csv()
     test_open_sigdata()
+    test_open_mca()
     test_open_mat()
     test_open_sif()
     test_open_scordata()

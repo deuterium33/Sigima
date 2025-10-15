@@ -231,6 +231,12 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * New I/O features:
   * Added HDF5 format for signal and image objects (extensions `.h5sig` and `.h5ima`) that may be opened with any HDF5 viewer.
+  * Added support for MCA (Multi-Channel Analyzer) spectrum file format:
+    * Reading MCA files (`.mca` extension) commonly used in spectroscopy and radiation detection
+    * Automatically extracts spectrum data and calibration information
+    * Supports energy calibration with interpolation for accurate X-axis values
+    * Parses metadata from multiple sections (PMCA SPECTRUM, DPP STATUS, CALIBRATION)
+    * Handles various encoding formats (UTF-8, Latin-1, CP1252) for maximum compatibility
   * Added support for FT-Lab signal and image format.
   * Added functions to read and write metadata and ROIs in JSON format:
     * `sigima.io.read_metadata` and `sigima.io.write_metadata` for metadata.

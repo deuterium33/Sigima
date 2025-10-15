@@ -257,3 +257,34 @@ class FTLabSignalFormat(SignalFormatBase):
             Signal data.
         """
         return ftlab.sigread_ftlabsig(filename)
+
+
+class MCASignalFormat(SignalFormatBase):
+    """Object representing a MCA signal file type"""
+
+    FORMAT_INFO = FormatInfo(
+        name=_("MCA files"),
+        extensions="*.mca",
+        readable=True,
+        writeable=False,
+    )
+
+    def read(
+        self, filename: str, worker: CallbackWorkerProtocol | None = None
+    ) -> list[SignalObj]:
+        """Read list of signal objects from file
+
+        Args:
+            filename: File name
+            worker: Callback worker object
+
+        Returns:
+            List of signal objects
+        """
+        mca = funcs.MCAFile(filename)
+        mca.read()
+        obj = self.create_object(filename)
+        obj.set_xydata(mca.x, mca.y)
+        obj.xlabel = mca.xlabel or ""
+        obj.metadata = mca.metadata
+        return [obj]

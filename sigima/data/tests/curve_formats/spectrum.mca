@@ -1,20 +1,20 @@
 <<PMCA SPECTRUM>>
 TAG - live_data
 DESCRIPTION - 
-GAIN - 2
+GAIN - 3
 THRESHOLD - 0
 LIVE_MODE - 0
 PRESET_TIME - 0
-LIVE_TIME - 20.000000
-REAL_TIME - 20.000000
-START_TIME - 06/19/2024 18:25:57
+LIVE_TIME - 30.000000
+REAL_TIME - 30.000000
+START_TIME - 06/19/2025 16:22:57
 SERIAL_NUMBER - 0
 <<CALIBRATION>>
 LABEL - Channel
-604 5.89
-653 6.49
-1580 17.48
-1759 19.61
+504 5.89
+553 6.49
+1480 17.48
+1659 19.61
 <<DATA>>
 0
 0
@@ -2065,14 +2065,14 @@ LABEL - Channel
 0
 0
 <<END>>
-<<DP8 CONFIGURATION>>
+<<CUSTOM CONFIGURATION>>
 RESC=?;    Reset Configuration
-CLCK=20;    20MHz/80MHz
+CLCK=80;    20MHz/80MHz
 TPEA=1.200;    Peaking Time
 GAIF=1.0998;    Fine Gain
 GAIN=12.819;    Total Gain (Analog * Fine)
-RESL=70;    Detector Reset Lockout
-TFLA=0.500;    Flat Top
+RESL=60;    Detector Reset Lockout
+TFLA=0.400;    Flat Top
 TPFA=50;    Fast Channel Peaking Time
 PURE=ON;    PUR Interval On/Off
 RTDE=OFF;    RTD On/Off
@@ -2081,12 +2081,12 @@ MCAC=2048;    MCA/MCS Channels
 SOFF=OFF;    Set Spectrum Offset
 AINP=POS;    Analog Input Pos/Neg
 INOF=DEF;    Input Offset
-GAIA=14;    Analog Gain Index
+GAIA=12;    Analog Gain Index
 CUSP=0;    Non-Trapezoidal Shaping
 PDMD=NORM;    Peak Detect Mode (Min/Max)
-THSL=0.800;    Slow Threshold
+THSL=0.500;    Slow Threshold
 TLLD=OFF;    LLD Threshold
-THFA=14.14;    Fast Threshold
+THFA=12.12;    Fast Threshold
 DACO=SHAPED;    DAC Output
 DACF=50;    DAC Offset
 RTDS=0.0;    RTD Sensitivity
@@ -2095,12 +2095,12 @@ BLRM=1;    BLR Mode
 BLRD=3;    BLR Down Correction
 BLRU=1;    BLR Up Correction
 AUO1=SCA8;    AUX_OUT Selection
-PRET=20.0;    Preset Time
+PRET=30.0;    Preset Time
 PRER=OFF;    Preset Real Time
 PREC=OFF;    Preset Counts
 PRCL=1;    Preset Counts Low Threshold
 PRCH=8191;    Preset Counts High Threshold
-HVSE=-420;    HV Set
+HVSE=-130;    HV Set
 TECS=230;    TEC Set
 PAPZ=OFF;    Pole-Zero
 PAPS=8.5;    Preamp 8.5/5 (N/A)
@@ -2121,19 +2121,19 @@ MCAE=OFF;    MCA/MCS Enable
 VOLU=ON;    Speaker On/Off
 CON1=DAC;    Connector 1
 CON2=AUXOUT2;    Connector 2
-<<DP5 CONFIGURATION END>>
+<<CUSTOM CONFIGURATION END>>
 <<DPP STATUS>>
 Device Type: PX5
-Serial Number: 2078
-Firmware: 5.10  Build:  8
+Serial Number: 4521
+Firmware: 6.09  Build:  7
 FPGA: 7.01
 Fast Count: 27944
 Slow Count: 38575
 GP Count: 0
-Accumulation Time: 20.000000
-Real Time: 20.116000
+Accumulation Time: 30.000000
+Real Time: 30.116000
 Dead Time:       
-HV Volt: -420V
+HV Volt: -130V
 TEC Temp: 230K
-Board Temp: 32ï¿½C
+Board Temp: 34°C
 <<DPP STATUS END>>

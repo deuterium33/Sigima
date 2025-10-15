@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-11 11:36+0200\n"
+"POT-Creation-Date: 2025-10-15 10:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -601,6 +601,24 @@ msgstr "Nouvelles fonctionnalités d'E/S:"
 
 msgid "Added HDF5 format for signal and image objects (extensions `.h5sig` and `.h5ima`) that may be opened with any HDF5 viewer."
 msgstr "Ajout du format HDF5 pour les objets de signal et d'image (extensions `.h5sig` et `.h5ima`) qui peuvent être ouverts avec n'importe quel visualiseur HDF5."
+
+msgid "Added support for MCA (Multi-Channel Analyzer) spectrum file format:"
+msgstr "Ajout de la prise en charge du format de fichier de spectre MCA (Analyseur Multi-Canaux) :"
+
+msgid "Reading MCA files (`.mca` extension) commonly used in spectroscopy and radiation detection"
+msgstr "Lecture des fichiers MCA (extension `.mca`) couramment utilisés en spectroscopie et en détection de radiation"
+
+msgid "Automatically extracts spectrum data and calibration information"
+msgstr "Extraction automatique des données de spectre et des informations de calibration"
+
+msgid "Supports energy calibration with interpolation for accurate X-axis values"
+msgstr "Prise en charge de la calibration d'énergie avec interpolation pour des valeurs précises de l'axe X"
+
+msgid "Parses metadata from multiple sections (PMCA SPECTRUM, DPP STATUS, CALIBRATION)"
+msgstr "Analyse des métadonnées à partir de plusieurs sections (PMCA SPECTRUM, DPP STATUS, CALIBRATION)"
+
+msgid "Handles various encoding formats (UTF-8, Latin-1, CP1252) for maximum compatibility"
+msgstr "Prise en charge de divers formats d'encodage (UTF-8, Latin-1, CP1252) pour une compatibilité maximale"
 
 msgid "Added support for FT-Lab signal and image format."
 msgstr "Ajout de la prise en charge du format de signal et d'image FT-Lab."

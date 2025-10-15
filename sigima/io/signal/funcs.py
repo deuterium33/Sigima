@@ -8,12 +8,15 @@ I/O signal functions
 
 from __future__ import annotations
 
+import datetime
 import re
+import warnings
 from dataclasses import dataclass
 from typing import TextIO
 
 import numpy as np
 import pandas as pd
+import scipy.interpolate
 
 from sigima.io.common.textreader import count_lines, read_first_n_lines
 from sigima.objects.signal.constants import (
@@ -600,3 +603,105 @@ def write_csv(
             content = file.read()
             file.seek(0, 0)
             file.write(header + "\n" + content)
+
+
+class MCAFile:
+    """Class to handle MCA files."""
+
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+        self.raw_data: str = ""
+        self.xlabel: str | None = None
+        self.x: np.ndarray | None = None
+        self.y: np.ndarray | None = None
+        self.metadata: dict[str, str] = {}
+
+    def __try_decode(self, raw_bytes: bytes) -> str:
+        """Try to decode raw bytes with the specified encoding."""
+        encodings_to_try = ["utf-8", "utf-8-sig", "latin-1", "cp1252"]
+        for enc in encodings_to_try:
+            try:
+                return raw_bytes.decode(enc)
+            except UnicodeDecodeError:
+                continue
+        # If all attempts fail, use 'utf-8' with replacement
+        warnings.warn("All decoding attempts failed. Used 'utf-8' with replacement.")
+        return raw_bytes.decode("utf-8", errors="replace")
+
+    def _read_raw_data(self) -> str:
+        """Read the raw data from the MCA file, trying multiple encodings."""
+        with open(self.filename, "rb") as file:
+            raw_bytes = file.read()
+        raw_data = self.__try_decode(raw_bytes)
+        self.raw_data = raw_data.replace("\r\n", "\n").replace("\r", "\n")
+
+    def _read_section(self, section: str) -> str | None:
+        """Read a section from the raw data."""
+        pattern = f"(?:.*)(^<<{section}>>$)(.*?)(?:<<.*>>)"
+        match = re.search(pattern, self.raw_data, re.DOTALL + re.MULTILINE)
+        if match:
+            return match.group(2).strip()
+        return None
+
+    def _extract_metadata_from_section(
+        self, section: str
+    ) -> dict[str, str | float | int | datetime.datetime]:
+        """Extract metadata from a specific section."""
+        section_contents = self._read_section(section)
+        if section_contents is None:
+            return {}
+        metadata = {}
+        patterns = (r"(.*?) - (.*?)$", r"(.*?)\s*: \s*(.*)$", r"(.*?)\s*=\s*(.*);")
+        for line in section_contents.splitlines():
+            for pattern in patterns:
+                match = re.match(pattern, line)
+                if match:
+                    key, value_str = match.groups()
+                    value_str = value_str.strip()
+                    # Try to convert the value to a number or datetime
+                    try:
+                        if value_str.isdigit():
+                            value = int(value_str)
+                        else:
+                            try:
+                                value = float(value_str)
+                            except ValueError:
+                                # Try to parse as datetime
+                                try:
+                                    value = datetime.datetime.strptime(
+                                        value_str, "%m/%d/%Y %H:%M:%S"
+                                    )
+                                except ValueError:
+                                    value = value_str  # Keep as string
+                    except ValueError:
+                        value = value_str
+                    metadata[key.strip()] = value
+                    break
+        return metadata
+
+    def read(self) -> None:
+        """Read the MCA file and extract data and metadata."""
+        self._read_raw_data()
+        self.metadata = self._extract_metadata_from_section("PMCA SPECTRUM")
+        additional_metadata = self._extract_metadata_from_section("DPP STATUS")
+        self.metadata.update(additional_metadata)
+        data_section = self._read_section("DATA")
+        self.y = np.fromstring(data_section, sep=" ") if data_section else None
+        if self.y is not None:
+            self.x = np.arange(len(self.y))
+            cal_section = self._read_section("CALIBRATION")
+            if cal_section:
+                cal_metadata = self._extract_metadata_from_section(cal_section)
+                self.xlabel = cal_metadata.get("LABEL")
+                cal_data = np.array(
+                    [
+                        [float(v) for v in val.split(" ")]
+                        for val in cal_section.splitlines()[1:]
+                    ]
+                )
+                self.x = scipy.interpolate.interp1d(
+                    cal_data[:, 0],
+                    cal_data[:, 1],
+                    bounds_error=False,
+                    fill_value="extrapolate",
+                )(self.x)
