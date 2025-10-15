@@ -244,8 +244,8 @@ msgstr "`voigt_fit`: Ajustement de profil Voigt (convolution des profils gaussie
 msgid "`exponential_fit`: Single exponential fitting with overflow protection"
 msgstr "`exponential_fit`: Ajustement exponentiel simple avec protection contre les débordements"
 
-msgid "`doubleexponential_fit`: Double exponential fitting with advanced parameter estimation"
-msgstr "`doubleexponential_fit`: Ajustement exponentiel double avec estimation avancée des paramètres"
+msgid "`piecewiseexponential_fit`: Piecewise exponential (raise-decay) fitting with advanced parameter estimation"
+msgstr "`piecewiseexponential_fit`: Ajustement exponentiel par morceaux (croissante-décroissante) avec estimation avancée des paramètres"
 
 msgid "`planckian_fit`: Planckian (blackbody radiation) fitting with correct physics implementation"
 msgstr "`planckian_fit`: Ajustement planckien (radiation du corps noir) avec mise en œuvre physique correcte"
@@ -265,11 +265,11 @@ msgstr "`cdf_fit`: Ajustement de la fonction de distribution cumulative utilisan
 msgid "`sigmoid_fit`: Sigmoid (logistic) function fitting for S-shaped curves"
 msgstr "`sigmoid_fit`: Ajustement de la fonction sigmoïde (logistique) pour les courbes en S"
 
-msgid "**Advanced double exponential fitting**: Enhanced algorithm with:"
-msgstr "**Ajustement exponentiel double avancé**: Algorithme amélioré avec :"
+msgid "**Advanced piecewise exponential (raise-decay) fitting**: Enhanced algorithm with:"
+msgstr "**Ajustement exponentiel par morceaux (croissante-décroissante) avancé**: Algorithme amélioré avec :"
 
-msgid "Standard double exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
-msgstr "Modèle standard d'exponentiel double : `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
+msgid "Standard piecewise exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
+msgstr "Modèle standard exponentiel par morceaux : `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`"
 
 msgid "Multi-start optimization strategy for robust convergence to global minimum"
 msgstr "Stratégie d'optimisation multi-démarrage pour une convergence robuste vers le minimum global"

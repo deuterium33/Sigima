@@ -203,8 +203,9 @@ def sigmoid_fit(src: SignalObj) -> SignalObj:
 
 
 @computation_function()
-def doubleexponential_fit(src: SignalObj) -> SignalObj:
-    """Compute double-exponential fit with :py:func:`scipy.optimize.curve_fit`
+def piecewiseexponential_fit(src: SignalObj) -> SignalObj:
+    """Compute piecewise exponential fit (raise-decay) with
+    :py:func:`scipy.optimize.curve_fit`
 
     Args:
         src: source signal
@@ -212,7 +213,7 @@ def doubleexponential_fit(src: SignalObj) -> SignalObj:
     Returns:
         Result signal object
     """
-    return __generic_fit(src, fitting.doubleexponential_fit)
+    return __generic_fit(src, fitting.piecewiseexponential_fit)
 
 
 @computation_function()

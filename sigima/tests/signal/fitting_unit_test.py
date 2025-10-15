@@ -51,7 +51,7 @@ EXPECTED_FIT_PARAMS = {
         "y0_right": 2.4917164605006117,
         "fit_type": "twohalfgaussian",
     },
-    "doubleexponential_fit": {
+    "piecewiseexponential_fit": {
         "x_center": 4.985324084088387,
         "a_left": 0.9784183389713168,
         "b_left": 1.0050512118447683,
@@ -335,9 +335,9 @@ def test_signal_exponential_fit() -> None:
 
 
 @pytest.mark.validation
-def test_signal_doubleexponential_fit() -> None:
-    """Double exponential fitting validation test."""
-    execenv.print("Testing double exponential fitting...")
+def test_signal_piecewiseexponential_fit() -> None:
+    """Piecewise exponential (raise-decay) fitting validation test."""
+    execenv.print("Testing piecewise exponential (raise-decay) fitting...")
 
     # Set random seed for reproducible test results
     np.random.seed(42)
@@ -355,7 +355,10 @@ def test_signal_doubleexponential_fit() -> None:
     )
 
     fitted_y, _params = __check_tools_proc_interface(
-        fitting.doubleexponential_fit, sigima.proc.signal.doubleexponential_fit, x, y
+        fitting.piecewiseexponential_fit,
+        sigima.proc.signal.piecewiseexponential_fit,
+        x,
+        y,
     )
 
     # Verify the fit quality is good (R² > 0.95)
@@ -821,7 +824,7 @@ def test_fitting_functions_available() -> None:
         "lorentzian_fit",
         "voigt_fit",
         "exponential_fit",
-        "doubleexponential_fit",
+        "piecewiseexponential_fit",
         "planckian_fit",
         "cdf_fit",
         "sigmoid_fit",
@@ -870,7 +873,7 @@ if __name__ == "__main__":
     test_signal_lorentzian_fit()
     test_signal_voigt_fit()
     test_signal_exponential_fit()
-    test_signal_doubleexponential_fit()
+    test_signal_piecewiseexponential_fit()
     test_signal_planckian_fit()
     test_signal_cdf_fit()
     test_signal_sigmoid_fit()

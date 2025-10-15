@@ -85,15 +85,15 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
     * `lorentzian_fit`: Lorentzian profile fitting for spectroscopy
     * `voigt_fit`: Voigt profile fitting (convolution of Gaussian and Lorentzian profiles)
     * `exponential_fit`: Single exponential fitting with overflow protection
-    * `doubleexponential_fit`: Double exponential fitting with advanced parameter estimation
+    * `piecewiseexponential_fit`: Piecewise exponential (raise-decay) fitting with advanced parameter estimation
     * `planckian_fit`: Planckian (blackbody radiation) fitting with correct physics implementation
     * `twohalfgaussian_fit`: Asymmetric peak fitting with separate left/right parameters
     * `multilorentzian_fit`: Multi-peak Lorentzian fitting for complex spectra
     * `sinusoidal_fit`: Sinusoidal fitting with FFT-based frequency estimation
     * `cdf_fit`: Cumulative Distribution Function fitting using error function
     * `sigmoid_fit`: Sigmoid (logistic) function fitting for S-shaped curves
-  * **Advanced double exponential fitting**: Enhanced algorithm with:
-    * Standard double exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`
+  * **Advanced piecewise exponential (raise-decay) fitting**: Enhanced algorithm with:
+    * Standard piecewise exponential model: `y = a_left*exp(b_left*x) + a_right*exp(b_right*x) + y0`
     * Multi-start optimization strategy for robust convergence to global minimum
     * Support for both positive and negative exponential rates (growth and decay components)
     * Comprehensive parameter bounds validation to prevent optimization errors

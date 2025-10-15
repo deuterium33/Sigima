@@ -599,13 +599,13 @@ class TwoHalfGaussianFitComputer(FitComputer):
 
 
 class DoubleExponentialFitComputer(FitComputer):
-    """Double Exponential fit computer."""
+    """Piecewise exponential (raise-decay) fit computer."""
 
     PARAMS_NAMES = ("x_center", "a_left", "b_left", "a_right", "b_right", "y0")
 
     @classmethod
     def evaluate(cls, x: np.ndarray, *args, **kwargs) -> np.ndarray:
-        """Return double exponential fitting function
+        """Return piecewise exponential (raise-decay) fitting function
 
         Args:
             x: time values
@@ -626,7 +626,8 @@ class DoubleExponentialFitComputer(FitComputer):
         return y
 
     def compute_initial_params(self) -> dict[str, float]:
-        """Compute initial parameters for Double Exponential fitting."""
+        """Compute initial parameters for piecewise exponential (raise-decay)
+        fitting."""
         y_range = np.max(self.y) - np.min(self.y)
         x_range = np.max(self.x) - np.min(self.x)
         y_max = np.max(self.y)
@@ -1035,10 +1036,10 @@ def twohalfgaussian_fit(
     return TwoHalfGaussianFitComputer(x, y).fit()
 
 
-def doubleexponential_fit(
+def piecewiseexponential_fit(
     x: np.ndarray, y: np.ndarray
 ) -> tuple[np.ndarray, dict[str, float]]:
-    """Compute double exponential fit.
+    """Compute piecewise exponential fit (raise-decay).
 
     Args:
         x: time data array
