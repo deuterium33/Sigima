@@ -15,7 +15,7 @@ import pytest
 import sigima.objects
 import sigima.params
 import sigima.proc.signal
-from sigima.objects import GaussParam, SinusParam, create_signal_from_param
+from sigima.objects import GaussParam, SineParam, create_signal_from_param
 from sigima.tests.data import create_paracetamol_signal
 from sigima.tests.helpers import check_scalar_result
 
@@ -76,7 +76,7 @@ def test_signal_peak_detection() -> None:
 
     # Test 3: Edge case - signal with minimal peaks
     # Create a simple sinusoidal signal and use very restrictive parameters
-    param_simple = SinusParam.create(size=100, xmin=0, xmax=10, freq=1, a=0.1)
+    param_simple = SineParam.create(size=100, xmin=0, xmax=10, freq=1, a=0.1)
     simple_signal = create_signal_from_param(param_simple)
 
     # Use a very high threshold to minimize peak detection
@@ -107,7 +107,7 @@ def test_signal_peak_detection() -> None:
 def test_signal_peak_detection_parameters() -> None:
     """Test peak detection with different parameter values."""
     # Create a test signal with multiple peaks
-    param_signal = SinusParam.create(size=500, xmin=0, xmax=10, freq=2, a=1)
+    param_signal = SineParam.create(size=500, xmin=0, xmax=10, freq=2, a=1)
     test_signal = create_signal_from_param(param_signal)
 
     # Test different threshold values

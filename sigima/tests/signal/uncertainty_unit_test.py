@@ -28,14 +28,14 @@ from sigima.tests.helpers import check_array_result
 
 def __create_signal_with_uncertainty() -> sigima.objects.SignalObj:
     """Create a signal with uncertainty data for testing."""
-    obj = sigima.tests.data.create_periodic_signal(sigima.objects.SignalTypes.COSINUS)
+    obj = sigima.tests.data.create_periodic_signal(sigima.objects.SignalTypes.COSINE)
     obj.dy = 0.1 * np.abs(obj.y) + 0.01  # 10% relative + 0.01 absolute
     return obj
 
 
 def __create_signal_without_uncertainty() -> sigima.objects.SignalObj:
     """Create a signal without uncertainty data for testing."""
-    obj = sigima.tests.data.create_periodic_signal(sigima.objects.SignalTypes.COSINUS)
+    obj = sigima.tests.data.create_periodic_signal(sigima.objects.SignalTypes.COSINE)
     obj.dy = None
     return obj
 

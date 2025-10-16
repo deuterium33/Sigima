@@ -70,8 +70,8 @@ Signals
 .. autodataset:: sigima.objects.GaussParam
 .. autodataset:: sigima.objects.LorentzParam
 .. autodataset:: sigima.objects.VoigtParam
-.. autodataset:: sigima.objects.SinusParam
-.. autodataset:: sigima.objects.CosinusParam
+.. autodataset:: sigima.objects.SineParam
+.. autodataset:: sigima.objects.CosineParam
 .. autodataset:: sigima.objects.SawtoothParam
 .. autodataset:: sigima.objects.TriangleParam
 .. autodataset:: sigima.objects.SquareParam
@@ -145,7 +145,7 @@ __all__ = [
     "concat_tables",
     "filter_geometry_by_roi",
     "filter_table_by_roi",
-    "CosinusParam",
+    "CosineParam",
     "CustomSignalParam",
     "ExponentialParam",
     "GaussParam",
@@ -167,7 +167,7 @@ __all__ = [
     "SignalROI",
     "SignalTypes",
     "SincParam",
-    "SinusParam",
+    "SineParam",
     "SquareParam",
     "StepParam",
     "TriangleParam",
@@ -224,7 +224,7 @@ from sigima.objects.scalar import (
     filter_table_by_roi,
 )
 from sigima.objects.signal import (
-    CosinusParam,
+    CosineParam,
     CustomSignalParam,
     ExponentialParam,
     GaussParam,
@@ -244,7 +244,7 @@ from sigima.objects.signal import (
     SignalROI,
     SignalTypes,
     SincParam,
-    SinusParam,
+    SineParam,
     SquareParam,
     SquarePulseParam,
     StepParam,

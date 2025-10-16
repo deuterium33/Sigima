@@ -189,8 +189,8 @@ def test_create_signal_from_param() -> None:
     # Test with different signal parameter types
     test_cases = [
         # Basic periodic functions
-        (sigima.objects.SinusParam, "sinus"),
-        (sigima.objects.CosinusParam, "cosinus"),
+        (sigima.objects.SineParam, "sine"),
+        (sigima.objects.CosineParam, "cosine"),
         (sigima.objects.SawtoothParam, "sawtooth"),
         (sigima.objects.TriangleParam, "triangle"),
         (sigima.objects.SquareParam, "square"),
@@ -276,9 +276,9 @@ def test_create_signal_from_param() -> None:
     assert signal.title != "", "Empty title should be replaced"
 
     # Test parameter validation with units and labels
-    param = sigima.objects.SinusParam()
+    param = sigima.objects.SineParam()
     param.title = "Sine wave test"
-    # xunit is set by default to "s" in SinusParam
+    # xunit is set by default to "s" in SineParam
     assert param.xunit == "s"
     param.yunit = "V"
     param.xlabel = "Time"

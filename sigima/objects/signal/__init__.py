@@ -25,7 +25,7 @@ from .creation import (
     BaseGaussLorentzVoigtParam,
     BasePeriodicParam,
     BasePulseParam,
-    CosinusParam,
+    CosineParam,
     CustomSignalParam,
     # Pulse signal classes
     ExpectedFeatures,
@@ -50,7 +50,7 @@ from .creation import (
     # Enums
     SignalTypes,
     SincParam,
-    SinusParam,
+    SineParam,
     SquareParam,
     SquarePulseParam,
     StepParam,
@@ -109,8 +109,8 @@ __all__ = [
     "PlanckParam",
     "FreqUnits",
     "BasePeriodicParam",
-    "SinusParam",
-    "CosinusParam",
+    "SineParam",
+    "CosineParam",
     "SawtoothParam",
     "TriangleParam",
     "SquareParam",

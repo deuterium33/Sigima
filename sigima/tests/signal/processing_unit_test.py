@@ -333,7 +333,7 @@ def test_signal_wiener() -> None:
 def test_signal_resampling() -> None:
     """Validation test for the signal resampling processing."""
     src1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
+        sigima.objects.SignalTypes.SINE, freq=50.0, size=5
     )
     x1, y1 = src1.xydata
     p1 = sigima.params.Resampling1DParam.create(
@@ -346,7 +346,7 @@ def test_signal_resampling() -> None:
     check_array_result("y1new", dst1y, y1)
 
     src2 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=50.0, size=9
+        sigima.objects.SignalTypes.SINE, freq=50.0, size=9
     )
     p2 = sigima.params.Resampling1DParam.create(
         xmin=src1.x[0], xmax=src1.x[-1], nbpts=src1.x.size
@@ -361,10 +361,10 @@ def test_signal_resampling() -> None:
 def test_signal_xy_mode() -> None:
     """Validation test for the signal X-Y mode processing."""
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=50.0, size=5
+        sigima.objects.SignalTypes.COSINE, freq=50.0, size=5
     )
     s2 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
+        sigima.objects.SignalTypes.SINE, freq=50.0, size=5
     )
     dst = sigima.proc.signal.xy_mode(s1, s2)
     x, y = dst.xydata
@@ -373,10 +373,10 @@ def test_signal_xy_mode() -> None:
     check_array_result("XYMode", x**2 + y**2, np.ones_like(x))
 
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=50.0, size=9
+        sigima.objects.SignalTypes.COSINE, freq=50.0, size=9
     )
     s2 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=50.0, size=5
+        sigima.objects.SignalTypes.SINE, freq=50.0, size=5
     )
     dst = sigima.proc.signal.xy_mode(s1, s2)
     x, y = dst.xydata
@@ -390,7 +390,7 @@ def test_signal_histogram() -> None:
     """Validation test for the signal histogram processing."""
     # Create a test signal with known data for histogram analysis
     src = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=50.0, size=1000, a=2.0
+        sigima.objects.SignalTypes.SINE, freq=50.0, size=1000, a=2.0
     )
 
     # Test with default parameters

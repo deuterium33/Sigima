@@ -100,9 +100,9 @@ class SignalTypes(gds.LabeledEnum):
     #: Planck function
     PLANCK = "planck", _("Blackbody (Planck)")
     #: Sinusoid
-    SINUS = "sinus", _("Sinus")
+    SINE = "sine", _("Sine")
     #: Cosinusoid
-    COSINUS = "cosinus", _("Cosinus")
+    COSINE = "cosine", _("Cosine")
     #: Sawtooth function
     SAWTOOTH = "sawtooth", _("Sawtooth")
     #: Triangle function
@@ -636,8 +636,8 @@ class BasePeriodicParam(NewSignalParam):
         """
         x = self.generate_x_data()
         func = {
-            SignalTypes.SINUS: np.sin,
-            SignalTypes.COSINUS: np.cos,
+            SignalTypes.SINE: np.sin,
+            SignalTypes.COSINE: np.cos,
             SignalTypes.SAWTOOTH: sps.sawtooth,
             SignalTypes.TRIANGLE: triangle_func,
             SignalTypes.SQUARE: sps.square,
@@ -648,22 +648,22 @@ class BasePeriodicParam(NewSignalParam):
         return x, y
 
 
-class SinusParam(BasePeriodicParam):
-    """Parameters for sinus function"""
+class SineParam(BasePeriodicParam):
+    """Parameters for sine function"""
 
-    STYPE = SignalTypes.SINUS
-
-
-register_signal_parameters_class(SignalTypes.SINUS, SinusParam)
+    STYPE = SignalTypes.SINE
 
 
-class CosinusParam(BasePeriodicParam):
-    """Parameters for cosinus function"""
-
-    STYPE = SignalTypes.COSINUS
+register_signal_parameters_class(SignalTypes.SINE, SineParam)
 
 
-register_signal_parameters_class(SignalTypes.COSINUS, CosinusParam)
+class CosineParam(BasePeriodicParam):
+    """Parameters for cosine function"""
+
+    STYPE = SignalTypes.COSINE
+
+
+register_signal_parameters_class(SignalTypes.COSINE, CosineParam)
 
 
 class SawtoothParam(BasePeriodicParam):

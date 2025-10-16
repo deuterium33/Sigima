@@ -361,10 +361,10 @@ msgstr "Voigt"
 msgid "Blackbody (Planck)"
 msgstr "Corps noir (Planck)"
 
-msgid "Sinus"
+msgid "Sine"
 msgstr "Sinus"
 
-msgid "Cosinus"
+msgid "Cosine"
 msgstr "Cosinus"
 
 msgid "Sawtooth"

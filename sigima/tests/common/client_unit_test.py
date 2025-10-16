@@ -135,8 +135,8 @@ class RemoteClientTester:
 
         x = np.linspace(0, 10, 1000)
         signals_data = [
-            ("Sinus", np.sin(x)),
-            ("Cosinus", np.cos(x)),
+            ("Sine", np.sin(x)),
+            ("Cosine", np.cos(x)),
             ("Exponential", np.exp(-x / 5)),
         ]
 

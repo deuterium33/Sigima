@@ -27,7 +27,7 @@ from sigima.tools.signal import fourier
 def test_signal_zero_padding() -> None:
     """1D FFT zero padding validation test."""
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=50.0, size=1000
+        sigima.objects.SignalTypes.COSINE, freq=50.0, size=1000
     )
 
     # Validate padding length computation
@@ -125,7 +125,7 @@ def test_signal_fft() -> None:
     xmin = 0.0
 
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=freq, size=size, xmin=xmin
+        sigima.objects.SignalTypes.COSINE, freq=freq, size=size, xmin=xmin
     )
     fft = sigima.proc.signal.fft(s1)
     ifft = sigima.proc.signal.ifft(fft)
@@ -141,7 +141,7 @@ def test_signal_ifft() -> None:
 
     Check that the original and reconstructed signals are equal.
     """
-    param = sigima.objects.CosinusParam.create(size=500)
+    param = sigima.objects.CosineParam.create(size=500)
 
     # *** Note ***
     #
@@ -182,7 +182,7 @@ def test_signal_magnitude_spectrum() -> None:
     size = 10000
 
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
+        sigima.objects.SignalTypes.COSINE, freq=freq, size=size
     )
     fft = sigima.proc.signal.fft(s1)
     mag = sigima.proc.signal.magnitude_spectrum(s1)
@@ -223,7 +223,7 @@ def test_signal_phase_spectrum() -> None:
     size = 10000
 
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
+        sigima.objects.SignalTypes.COSINE, freq=freq, size=size
     )
     fft = sigima.proc.signal.fft(s1)
     phase = sigima.proc.signal.phase_spectrum(s1)
@@ -249,7 +249,7 @@ def test_signal_psd() -> None:
     size = 10000
 
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=freq, size=size
+        sigima.objects.SignalTypes.COSINE, freq=freq, size=size
     )
     param = sigima.params.SpectrumParam()
     for decibel in (False, True):

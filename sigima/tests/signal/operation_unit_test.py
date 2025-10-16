@@ -33,11 +33,11 @@ from sigima.tools.coordinates import polar_to_complex
 def __create_two_signals() -> tuple[sigima.objects.SignalObj, sigima.objects.SignalObj]:
     """Create two signals for testing."""
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
+        sigima.objects.SignalTypes.COSINE, freq=50.0, size=100
     )
     s1.dy = 0.05 * np.ones_like(s1.y)
     s2 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.SINUS, freq=25.0, size=100
+        sigima.objects.SignalTypes.SINE, freq=25.0, size=100
     )
     s2.dy = 0.8 * np.ones_like(s2.y)
     return s1, s2
@@ -48,7 +48,7 @@ def __create_n_signals(n: int = 100) -> list[sigima.objects.SignalObj]:
     signals = []
     for i in range(n):
         s = sigima.tests.data.create_periodic_signal(
-            sigima.objects.SignalTypes.COSINUS,
+            sigima.objects.SignalTypes.COSINE,
             freq=50.0 + i,
             size=100,
             a=(i + 1) * 0.1,
@@ -63,7 +63,7 @@ def __create_one_signal_and_constant() -> tuple[
 ]:
     """Create one signal and a constant for testing."""
     s1 = sigima.tests.data.create_periodic_signal(
-        sigima.objects.SignalTypes.COSINUS, freq=50.0, size=100
+        sigima.objects.SignalTypes.COSINE, freq=50.0, size=100
     )
     s1.dy = 0.5 * np.ones_like(s1.y)
     param = sigima.params.ConstantParam.create(value=-np.pi)
