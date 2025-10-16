@@ -267,6 +267,13 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * The conversion between physical coordinates and indices has been corrected (half pixel error was removed).
   * The `indices_to_physical` and `physical_to_indices` methods now raise a `ValueError` if the input does not contain an even number of elements (x, y pairs).
 
+🔒 Security fixes:
+
+* **Dependency vulnerability fix**: Fixed CVE-2023-4863 vulnerability in opencv-python-headless
+  * Updated minimum requirement from 4.5.4.60 to 4.8.1.78
+  * Addresses libwebp binaries vulnerability in bundled OpenCV wheels
+  * See [DataLab security advisory](https://github.com/DataLab-Platform/DataLab/security/dependabot/1) for details
+
 ## sigima 0.2.0 ##
 
 ⚠️ Major API changes:

@@ -54,7 +54,7 @@ Homepage = "https://github.com/DataLab-Platform/Sigima"
 Documentation = "https://sigima.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
-opencv = ["opencv-python-headless >= 4.5.4.60"]
+opencv = ["opencv-python-headless >= 4.8.1.78"]
 dev = ["build", "babel","ruff", "pylint", "Coverage", "pre-commit"]
 doc = [
     "sphinx",
