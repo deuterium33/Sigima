@@ -244,7 +244,7 @@ from sigima.proc.image.mathops import (
     imag,
     inverse,
     log10,
-    logp1,
+    log10_z_plus_n,
     phase,
     real,
 )
@@ -424,7 +424,7 @@ __all__ = [
     "imag",
     "inverse",
     "log10",
-    "logp1",
+    "log10_z_plus_n",
     "phase",
     "real",
     "centroid",

@@ -489,7 +489,7 @@ def test_image_logp1() -> None:
             execenv.print(f"  log1p({ima1.data.dtype}): ", end="")
             p = sigima.params.LogP1Param.create(n=2.0)
             exp = np.log10(ima1.data + p.n)
-            ima2 = sigima.proc.image.logp1(ima1, p)
+            ima2 = sigima.proc.image.log10_z_plus_n(ima1, p)
             check_array_result("Image log1p", ima2.data, exp)
 
 

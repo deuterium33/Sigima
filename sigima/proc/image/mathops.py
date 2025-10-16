@@ -54,7 +54,7 @@ __all__ = [
     "log10",
     "exp",
     "LogP1Param",
-    "logp1",
+    "log10_z_plus_n",
     "DataTypeIParam",
     "astype",
     "complex_from_magnitude_phase",
@@ -263,7 +263,7 @@ class LogP1Param(gds.DataSet):
 
 
 @computation_function()
-def logp1(src: ImageObj, p: LogP1Param) -> ImageObj:
+def log10_z_plus_n(src: ImageObj, p: LogP1Param) -> ImageObj:
     """Compute log10(z+n) with :py:data:`numpy.log10`
 
     Args:
@@ -273,7 +273,7 @@ def logp1(src: ImageObj, p: LogP1Param) -> ImageObj:
     Returns:
         Output image object
     """
-    dst = dst_1_to_1(src, "log_z_plus_n", f"n={p.n}")
+    dst = dst_1_to_1(src, "log10_z_plus_n", f"n={p.n}")
     dst.data = np.log10(src.data + p.n)
     restore_data_outside_roi(dst, src)
     return dst
