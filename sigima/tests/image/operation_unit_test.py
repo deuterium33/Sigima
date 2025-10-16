@@ -481,7 +481,7 @@ def test_image_log10() -> None:
 
 
 @pytest.mark.validation
-def test_image_logp1() -> None:
+def test_image_log10_z_plus_n() -> None:
     """Image log(1+n) test."""
     execenv.print("*** Testing image log(1+n):")
     with np.errstate(over="ignore"):
@@ -515,4 +515,4 @@ if __name__ == "__main__":
     test_image_astype()
     test_image_exp()
     test_image_log10()
-    test_image_logp1()
+    test_image_log10_z_plus_n()
