@@ -26,7 +26,7 @@ from math import ceil, log2
 import guidata.dataset as gds
 
 from sigima.config import _
-from sigima.enums import PadLocation
+from sigima.enums import PadLocation1D
 from sigima.objects import SignalObj
 from sigima.proc.base import FFTParam, SpectrumParam
 from sigima.proc.decorator import computation_function
@@ -101,12 +101,8 @@ class ZeroPadding1DParam(gds.DataSet):
     ).set_prop("display", store=_prop, callback=strategy_callback)
     location = gds.ChoiceItem(
         _("Location"),
-        [
-            (PadLocation.APPEND, "Append"),
-            (PadLocation.PREPEND, "Prepend"),
-            (PadLocation.BOTH, "Both"),
-        ],
-        default=PadLocation.APPEND,
+        PadLocation1D,
+        default=PadLocation1D.APPEND,
         help=_("Where to add the padding"),
     )
     _func_prop = gds.FuncProp(_prop, lambda x: x == "custom")
@@ -132,13 +128,13 @@ def zero_padding(src: SignalObj, p: ZeroPadding1DParam) -> SignalObj:
         suffix = f"strategy={p.strategy}"
 
     assert p.n is not None
-    if p.location == PadLocation.APPEND:
+    if p.location == PadLocation1D.APPEND:
         n_prepend = 0
         n_append = p.n
-    elif p.location == PadLocation.PREPEND:
+    elif p.location == PadLocation1D.PREPEND:
         n_prepend = p.n
         n_append = 0
-    elif p.location == PadLocation.BOTH:
+    elif p.location == PadLocation1D.BOTH:
         n_prepend = p.n // 2
         n_append = p.n - n_prepend
     else:

@@ -87,12 +87,19 @@ class ShrinkageMethod(gds.LabeledEnum):
     VISU_SHRINK = "VisuShrink"
 
 
-class PadLocation(gds.LabeledEnum):
-    """Padding location for signal processing."""
+class PadLocation1D(gds.LabeledEnum):
+    """Padding location for 1D signal processing."""
 
     APPEND = "append"
     PREPEND = "prepend"
     BOTH = "both"
+
+
+class PadLocation2D(gds.LabeledEnum):
+    """Padding location for 2D image processing."""
+
+    BOTTOM_RIGHT = "bottom-right", _("Bottom-right")
+    AROUND = "around", _("Around")
 
 
 class PowerUnit(gds.LabeledEnum):

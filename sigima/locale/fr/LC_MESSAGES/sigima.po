@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-11 11:30+0200\n"
+"POT-Creation-Date: 2025-10-16 14:58+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -51,6 +51,12 @@ msgstr "Cercle"
 
 msgid "Polygon"
 msgstr "Polygone"
+
+msgid "Bottom-right"
+msgstr "En bas à droite"
+
+msgid "Around"
+msgstr "Autour"
 
 msgid "Cosine"
 msgstr "Cosinus"
@@ -363,9 +369,6 @@ msgstr "Corps noir (Planck)"
 
 msgid "Sine"
 msgstr "Sinus"
-
-msgid "Cosine"
-msgstr "Cosinus"
 
 msgid "Sawtooth"
 msgstr "Dent de scie"

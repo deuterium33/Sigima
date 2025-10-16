@@ -73,11 +73,11 @@ def test_image_zero_padding() -> None:
     execenv.print("OK")
 
     # Validate the zero padding with center position
-    param.position = "center"
+    param.position = "around"
     ima3 = sigima.proc.image.zero_padding(ima1, param)
     sh3 = ima3.data.shape
     exp_sh3 = (sh1[0] + rows, sh1[1] + cols)
-    execenv.print("Validating zero padding for center position...", end=" ")
+    execenv.print("Validating zero padding for around position...", end=" ")
     assert sh3 == exp_sh3, f"Wrong shape: {sh3} (expected {exp_sh3})"
     assert np.all(
         ima3.data[rows // 2 : sh1[0] + rows // 2, cols // 2 : sh1[1] + cols // 2]

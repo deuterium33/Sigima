@@ -32,7 +32,7 @@ import scipy.signal as sps
 from guidata.dataset import FuncProp, FuncPropMulti, GetAttrProp
 
 from sigima.config import _
-from sigima.enums import FilterType, FrequencyFilterMethod, PadLocation
+from sigima.enums import FilterType, FrequencyFilterMethod, PadLocation1D
 from sigima.objects import (
     NormalDistribution1DParam,
     PoissonDistribution1DParam,
@@ -319,7 +319,7 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
                 src_padded = zero_padding(
                     src_padded,
                     ZeroPadding1DParam.create(
-                        location=PadLocation.APPEND,
+                        location=PadLocation1D.APPEND,
                         strategy="custom",
                         n=size_padded,
                     ),

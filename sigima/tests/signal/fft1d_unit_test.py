@@ -15,7 +15,7 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-from sigima.enums import PadLocation
+from sigima.enums import PadLocation1D
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.env import execenv
@@ -46,7 +46,7 @@ def test_signal_zero_padding() -> None:
     # Validate zero padding
     param = sigima.params.ZeroPadding1DParam.create(strategy="custom", n=250)
     assert param.n is not None
-    for location in PadLocation:
+    for location in PadLocation1D:
         execenv.print(f"Validating zero padding with location = {location.value}...")
         param.location = location
         param.update_from_obj(s1)
@@ -55,7 +55,7 @@ def test_signal_zero_padding() -> None:
         n = param.n
         exp_len2 = len1 + n
         assert s2.y.size == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
-        if location == PadLocation.APPEND:
+        if location == PadLocation1D.APPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -70,7 +70,7 @@ def test_signal_zero_padding() -> None:
             check_array_result(
                 f"{location.value}: Check padded y-data", s2.y[len1:], np.zeros(n)
             )
-        elif location == PadLocation.PREPEND:
+        elif location == PadLocation1D.PREPEND:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,
@@ -85,7 +85,7 @@ def test_signal_zero_padding() -> None:
             check_array_result(
                 f"{location.value}: Check padded y-data", s2.y[:n], np.zeros(n)
             )
-        elif location == PadLocation.BOTH:
+        elif location == PadLocation1D.BOTH:
             dx = s1.x[1] - s1.x[0]
             expected_x = np.pad(
                 s1.x,

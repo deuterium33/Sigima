@@ -105,6 +105,7 @@ from __future__ import annotations
 import guidata.dataset as gds
 
 from sigima.config import _
+from sigima.enums import PadLocation2D
 from sigima.proc.image.arithmetic import (
     addition,
     addition_constant,
@@ -387,6 +388,7 @@ __all__ = [
     "moving_average",
     "moving_median",
     "wiener",
+    "PadLocation2D",
     "ZeroPadding2DParam",
     "fft",
     "ifft",
