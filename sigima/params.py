@@ -222,7 +222,7 @@ Mathematical operation parameters
 
 .. autodataset:: sigima.params.DataTypeIParam
     :no-index:
-.. autodataset:: sigima.params.LogP1Param
+.. autodataset:: sigima.params.Log10ZPlusNParam
     :no-index:
 
 Morphological parameters
@@ -284,7 +284,7 @@ __all__ = [
     "GridParam",
     "HoughCircleParam",
     "LineProfileParam",
-    "LogP1Param",
+    "Log10ZPlusNParam",
     "MorphologyParam",
     "Peak2DDetectionParam",
     "RadialProfileParam",
@@ -363,7 +363,7 @@ from sigima.proc.image import (
     GridParam,
     HoughCircleParam,
     LineProfileParam,
-    LogP1Param,
+    Log10ZPlusNParam,
     MorphologyParam,
     Peak2DDetectionParam,
     RadialProfileParam,

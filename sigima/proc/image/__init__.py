@@ -233,7 +233,7 @@ from sigima.proc.image.geometry import (
 )
 from sigima.proc.image.mathops import (
     DataTypeIParam,
-    LogP1Param,
+    Log10ZPlusNParam,
     absolute,
     astype,
     complex_from_magnitude_phase,
@@ -413,7 +413,7 @@ __all__ = [
     "transpose",
     "transformer",
     "DataTypeIParam",
-    "LogP1Param",
+    "Log10ZPlusNParam",
     "absolute",
     "astype",
     "complex_from_magnitude_phase",

@@ -53,7 +53,7 @@ __all__ = [
     "imag",
     "log10",
     "exp",
-    "LogP1Param",
+    "Log10ZPlusNParam",
     "log10_z_plus_n",
     "DataTypeIParam",
     "astype",
@@ -256,14 +256,14 @@ def exp(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(np.exp)(src)
 
 
-class LogP1Param(gds.DataSet):
-    """Log10 parameters"""
+class Log10ZPlusNParam(gds.DataSet):
+    """Log10(z+n) parameters"""
 
     n = gds.FloatItem("n")
 
 
 @computation_function()
-def log10_z_plus_n(src: ImageObj, p: LogP1Param) -> ImageObj:
+def log10_z_plus_n(src: ImageObj, p: Log10ZPlusNParam) -> ImageObj:
     """Compute log10(z+n) with :py:data:`numpy.log10`
 
     Args:

@@ -487,7 +487,7 @@ def test_image_log10_z_plus_n() -> None:
     with np.errstate(over="ignore"):
         for ima1 in iterate_noisy_images(size=128):
             execenv.print(f"  log1p({ima1.data.dtype}): ", end="")
-            p = sigima.params.LogP1Param.create(n=2.0)
+            p = sigima.params.Log10ZPlusNParam.create(n=2.0)
             exp = np.log10(ima1.data + p.n)
             ima2 = sigima.proc.image.log10_z_plus_n(ima1, p)
             check_array_result("Image log1p", ima2.data, exp)
