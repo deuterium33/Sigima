@@ -139,7 +139,7 @@ from sigima.objects import (
 # Set validation mode to ENABLED by default (issue warnings for invalid inputs)
 set_validation_mode(ValidationMode.ENABLED)
 
-__version__ = "1.0.0a1"
+__version__ = "1.0.0b1"
 __docurl__ = "https://sigima.readthedocs.io/en/latest/"
 __homeurl__ = "https://github.com/DataLab-Platform/Sigima"
 __supporturl__ = "https://github.com/DataLab-Platform/sigima/issues/new/choose"
