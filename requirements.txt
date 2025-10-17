@@ -5,7 +5,7 @@ PyWavelets >= 1.2
 SciPy >= 1.10.1
 babel
 build
-guidata >= 3.12
+guidata >= 3.13
 makefun >= 1.13.1
 myst_parser
 opencv-python-headless >= 4.8.1.78
