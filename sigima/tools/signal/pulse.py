@@ -1238,7 +1238,7 @@ def full_width_at_y(
         level: The Y level at which to compute the width
 
     Returns:
-        Full width segment coordinates
+        Full width segment coordinates (x1, level, x2, level)
     """
     tmax_idx = np.argmax(y)
 
@@ -1258,7 +1258,7 @@ def full_width_at_y(
         warnings.warn("Multiple crossing points found. Returning last.")
     t1 = roots1[0] if len(roots1) > 0 else np.nan
     t2 = roots2[-1] if len(roots2) > 0 else np.nan
-    return t1, y.dtype.type(level), t2, y.dtype.type(level)
+    return t1, level, t2, level
 
 
 def full_width_at_ratio(
@@ -1286,8 +1286,8 @@ def full_width_at_ratio(
          start_range or end_range are None.
 
     Returns:
-        (x1, level, x2, level), where x1 and x2 are the crossing points at the specified
-        ratio, and level is the y-value at that ratio.
+        Full width segment coordinates (x1, level, x2, level), where x1 and x2 are the
+         crossing points at the specified ratio, and level is the corresponding y-value.
 
     Raises:
         ValueError: If the amplitude of the signal is zero.
