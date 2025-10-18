@@ -31,6 +31,7 @@ import scipy.signal as sps
 from guidata.dataset import FuncProp, GetAttrProp
 
 from sigima.config import _
+from sigima.config import options as sigima_options
 from sigima.enums import Interpolation1DMethod, NormalizationMethod, WindowingMethod
 from sigima.objects import ROI1DParam, SignalObj
 from sigima.proc.base import ClipParam, NormalizeParam, dst_2_to_1
@@ -191,12 +192,31 @@ def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
     Returns:
         Result signal.
+
+    Notes:
+        The kernel normalization behavior can be configured globally using:
+        - ``sigima.config.options.auto_normalize_kernel``: Auto-normalize kernel
+        - ``sigima.config.options.warn_unnormalized_kernel``: Warn if unnormalized
     """
     check_same_sample_rate(src1, src2)
-    dst = dst_2_to_1(src1, src2, "deconvolution", f"filter={src2.title}")
+    dst = dst_2_to_1(src1, src2, "⊛⁻¹", f"filter={src2.title}")
     x1, y1 = src1.get_data()
     _x2, y2 = src2.get_data()
-    result_y = fourier.deconvolve(x1, y1, y2, reg=2.0, gain_max=None, auto_scale=True)
+
+    # Get kernel normalization options from configuration
+    normalize_kernel = sigima_options.auto_normalize_kernel.get()
+    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
+
+    result_y = fourier.deconvolve(
+        x1,
+        y1,
+        y2,
+        normalize_kernel=normalize_kernel,
+        warn_unnormalized=warn_unnormalized,
+        reg=2.0,
+        gain_max=None,
+        auto_scale=True,
+    )
     dst.set_xydata(x1, result_y, None, None)
     restore_data_outside_roi(dst, src1)
     return dst
@@ -499,12 +519,28 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
 
     Returns:
         Result signal.
+
+    Notes:
+        The behavior of kernel normalization is controlled by the global configuration
+        options ``sigima.config.options.auto_normalize_kernel`` and
+        ``sigima.config.options.warn_unnormalized_kernel``.
     """
     check_same_sample_rate(src1, src2)
     dst = dst_2_to_1(src1, src2, "⊛")
     x1, y1 = src1.get_data()
     _x2, y2 = src2.get_data()
-    ynew = fourier.convolve(x1, y1, y2)
+
+    # Get configuration options for kernel normalization
+    normalize_kernel = sigima_options.auto_normalize_kernel.get()
+    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
+
+    ynew = fourier.convolve(
+        x1,
+        y1,
+        y2,
+        normalize_kernel=normalize_kernel,
+        warn_unnormalized=warn_unnormalized,
+    )
     dst.set_xydata(x1, ynew, None, None)
     restore_data_outside_roi(dst, src1)
     return dst

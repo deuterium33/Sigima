@@ -40,6 +40,7 @@ from sigima.tools.image.detection import (
 from sigima.tools.image.exposure import flatfield, normalize
 from sigima.tools.image.extraction import get_radial_profile
 from sigima.tools.image.fourier import (
+    convolve,
     deconvolve,
     fft2d,
     gaussian_freq_filter,
@@ -80,6 +81,7 @@ __all__ = [
     # Data extraction and analysis (extraction.py)
     "get_radial_profile",
     # Fourier analysis (fourier.py)
+    "convolve",
     "deconvolve",
     "fft2d",
     "gaussian_freq_filter",

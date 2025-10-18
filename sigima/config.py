@@ -295,6 +295,31 @@ class OptionsContainer:
                 "visualizing frequency components in a more intuitive way."
             ),
         )
+        self.auto_normalize_kernel = TypedOptionField(
+            self,
+            "auto_normalize_kernel",
+            default=True,
+            expected_type=bool,
+            description=_(
+                "If True, convolution kernels will be automatically normalized to "
+                "sum to 1.0 before convolution. This ensures that the output signal "
+                "or image has the same overall magnitude as the input when using "
+                "smoothing kernels. Set to False to preserve the mathematical "
+                "properties of the original kernel."
+            ),
+        )
+        self.warn_unnormalized_kernel = TypedOptionField(
+            self,
+            "warn_unnormalized_kernel",
+            default=True,
+            expected_type=bool,
+            description=_(
+                "If True, a warning will be issued when a convolution kernel is not "
+                "normalized (i.e., its sum significantly deviates from 1.0). This "
+                "helps users understand when convolution operations may affect the "
+                "overall magnitude of the output."
+            ),
+        )
         self.imageio_formats = ImageIOOptionField(
             self,
             "imageio_formats",

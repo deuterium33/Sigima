@@ -14,7 +14,7 @@ from typing import Literal
 import numpy as np
 import scipy.signal  # type: ignore[import]
 
-from sigima.tools.checks import check_1d_arrays
+from sigima.tools.checks import check_1d_arrays, normalize_kernel_with_warning
 from sigima.tools.signal.dynamic import sampling_rate
 
 
@@ -179,6 +179,7 @@ def convolve(
     h: np.ndarray,
     boundary: Literal["reflect", "symmetric", "edge", "wrap"] = "reflect",
     normalize_kernel: bool = True,
+    warn_unnormalized: bool = True,
     method: Literal["auto", "direct", "fft"] = "auto",
     correct_group_delay: bool = True,
 ) -> np.ndarray:
@@ -196,10 +197,11 @@ def convolve(
         h: 1D convolution kernel (impulse response).
         boundary: Padding mode passed to ``np.pad`` ("reflect" recommended).
         normalize_kernel: If True, normalize kernel so that ``h.sum() == 1`` to
-            preserve DC level.
+         preserve DC level.
+        warn_unnormalized: If True, warn when kernel is not normalized (sum != 1.0).
         method: Convolution method for ``scipy.signal.convolve``.
         correct_group_delay: If True, compensate the kernel center-of-mass shift
-            (group delay) to avoid any x-shift in the output.
+         (group delay) to avoid any x-shift in the output.
 
     Returns:
         Convolved signal with the same length as ``y``, aligned on ``x``.
@@ -215,10 +217,10 @@ def convolve(
     if h.size != y.size:
         raise ValueError("X data and Y data of the filter must have the same size.")
 
-    # ---- Optional DC preservation
-    hsum = h.sum()
-    if normalize_kernel and np.isfinite(hsum) and hsum != 0.0:
-        h = h / hsum
+    # ---- Optional DC preservation and normalization warning
+    h = normalize_kernel_with_warning(
+        h, normalize_kernel, warn_unnormalized, context="signal amplitude"
+    )
 
     M = int(h.size)
     if M == 1:
@@ -283,6 +285,7 @@ def deconvolve(
     *,
     boundary: Literal["reflect", "symmetric", "edge", "wrap"] = "reflect",
     normalize_kernel: bool = True,
+    warn_unnormalized: bool = True,
     # regularized inverse with derivative prior (recommended):
     method: Literal["wiener", "fft"] = "wiener",
     reg: float = 5e-2,  # increase to reduce ringing (e.g. 5e-2, 1e-1)
@@ -309,6 +312,7 @@ def deconvolve(
         h: Centered convolution kernel (PSF).
         boundary: Padding mode (should match your convolution).
         normalize_kernel: If True, normalize ``h`` to preserve DC.
+        warn_unnormalized: If True, warn when kernel is not normalized.
         method: ``"wiener"`` (regularized inverse) or ``"fft"`` (bare inverse).
         reg: Regularization strength for the derivative prior.
         gain_max: Optional clamp on ``|G(f)|`` to avoid wild amplification.
@@ -330,11 +334,10 @@ def deconvolve(
     y = np.asarray(y, dtype=float)
     h = np.asarray(h, dtype=float)
 
-    # Normalize kernel to keep DC consistent
-    if normalize_kernel:
-        s = h.sum()
-        if np.isfinite(s) and s != 0.0:
-            h = h / s
+    # Check if kernel is normalized and warn if requested
+    h = normalize_kernel_with_warning(
+        h, normalize_kernel, warn_unnormalized, context="signal amplitude"
+    )
 
     M = int(h.size)
     if M == 1:

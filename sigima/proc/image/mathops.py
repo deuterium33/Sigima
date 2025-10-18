@@ -30,10 +30,10 @@ import warnings
 
 import guidata.dataset as gds
 import numpy as np
-import scipy.signal as sps
 
 import sigima.tools.image
 from sigima.config import _
+from sigima.config import options as sigima_options
 from sigima.enums import AngleUnit
 from sigima.objects.image import ImageObj
 from sigima.proc.base import AngleUnitParam, PhaseParam, dst_1_to_1, dst_2_to_1
@@ -59,6 +59,8 @@ __all__ = [
     "astype",
     "complex_from_magnitude_phase",
     "complex_from_real_imag",
+    "convolution",
+    "deconvolution",
 ]
 
 
@@ -202,15 +204,32 @@ def complex_from_real_imag(src1: ImageObj, src2: ImageObj) -> ImageObj:
 def convolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
     """Convolve an image with a kernel.
 
+    The kernel should ideally be smaller than the input image and centered.
+
     Args:
         src: Input image object.
         kernel: Kernel image object.
 
     Returns:
         Output image object.
+
+    Notes:
+        The behavior of kernel normalization is controlled by the global configuration
+        options ``sigima.config.options.auto_normalize_kernel`` and
+        ``sigima.config.options.warn_unnormalized_kernel``.
     """
-    dst = dst_2_to_1(src, kernel, "convolution")
-    dst.data = sps.convolve(src.data, kernel.data, mode="same", method="auto")
+    # Get configuration options for kernel normalization
+    normalize_kernel = sigima_options.auto_normalize_kernel.get()
+    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
+
+    dst = dst_2_to_1(src, kernel, "⊛")
+    dst.data = sigima.tools.image.convolve(
+        src.data,
+        kernel.data,
+        normalize_kernel=normalize_kernel,
+        warn_unnormalized=warn_unnormalized,
+    )
+    restore_data_outside_roi(dst, src)
     return dst
 
 
@@ -224,9 +243,24 @@ def deconvolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
 
     Returns:
         Output image object.
+
+    Notes:
+        The behavior of kernel normalization is controlled by the global configuration
+        options ``sigima.config.options.auto_normalize_kernel`` and
+        ``sigima.config.options.warn_unnormalized_kernel``.
     """
-    dst = dst_2_to_1(src, kernel, "deconvolution")
-    dst.data = sigima.tools.image.deconvolve(src.data, kernel.data)
+    # Get configuration options for kernel normalization
+    normalize_kernel = sigima_options.auto_normalize_kernel.get()
+    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
+
+    dst = dst_2_to_1(src, kernel, "⊛⁻¹")
+    dst.data = sigima.tools.image.deconvolve(
+        src.data,
+        kernel.data,
+        normalize_kernel=normalize_kernel,
+        warn_unnormalized=warn_unnormalized,
+    )
+    restore_data_outside_roi(dst, src)
     return dst
 
 
