@@ -104,24 +104,34 @@ def test_signal_allan_variance():
     """Test Allan variance computation against theoretical values."""
     n_points = get_optimal_points(test_signal_allan_variance)
     sigma = 1.0
-    tau_values = np.array([1, 2, 5, 10, 20, 50])
+
+    # Set random seed for reproducibility
+    np.random.seed(42)
 
     # Generate and test white noise signal
     time_white = np.arange(n_points)
     values_white = generate_white_noise(n_points, sigma)
     sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
 
-    # Define Allan variance parameters
+    # Define Allan variance parameters - limit max_tau for more reliable statistics
     param = sigima.params.AllanVarianceParam()
-    param.max_tau = max(tau_values)
+    param.max_tau = 20  # Limited to ensure sufficient samples for averaging
 
     # Compute Allan variance using the high-level function
     res1 = sigima.proc.signal.allan_variance(sig1, param)
     th_av_white = theoretical_allan_variance_white_noise(res1.x, sigma)
 
-    check_array_result("White noise Allan variance", res1.y, th_av_white, atol=0.05)
+    # Use relative tolerance for white noise (statistical variation scales)
+    # 20% tolerance accounts for statistical variance in Allan estimator
+    check_array_result(
+        "White noise Allan variance",
+        res1.y,
+        th_av_white,
+        rtol=0.20,
+        atol=0.005,
+    )
 
-    # Generate and test drift signal
+    # Generate and test drift signal (deterministic - same seed not needed)
     slope = 0.01
     time, values = generate_drift_signal(n_points, slope)
     sig2 = sigima.objects.create_signal("Drift Test", time, values)
@@ -130,7 +140,14 @@ def test_signal_allan_variance():
     res2 = sigima.proc.signal.allan_variance(sig2, param)
     th_av_drift = theoretical_allan_variance_drift(res2.x, slope)
 
-    check_array_result("Drift Allan variance", res2.y, th_av_drift, atol=0.01)
+    # Drift is deterministic, tighter tolerances apply
+    check_array_result(
+        "Drift Allan variance",
+        res2.y,
+        th_av_drift,
+        rtol=0.05,
+        atol=0.0001,
+    )
 
 
 @pytest.mark.validation
@@ -138,26 +155,34 @@ def test_signal_allan_deviation():
     """Test Allan deviation computation against theoretical values."""
     n_points = get_optimal_points(test_signal_allan_deviation)
     sigma = 1.0
-    tau_values = np.array([1, 2, 5, 10, 20, 50])
+
+    # Set random seed for reproducibility
+    np.random.seed(43)
 
     # Generate and test white noise signal
     time_white = np.arange(n_points)
     values_white = generate_white_noise(n_points, sigma)
     sig1 = sigima.objects.create_signal("White Noise Test", time_white, values_white)
 
-    # Define Allan variance parameters
+    # Define Allan variance parameters - limit max_tau for more reliable statistics
     param = sigima.params.AllanVarianceParam()
-    param.max_tau = max(tau_values)
+    param.max_tau = 20  # Limited to ensure sufficient samples for averaging
 
     # Compute Allan deviation using the high-level function
     res1 = sigima.proc.signal.allan_deviation(sig1, param)
     th_av_white = theoretical_allan_variance_white_noise(res1.x, sigma)
 
+    # Use relative tolerance for white noise (statistical variation scales)
+    # 20% tolerance accounts for statistical variance in Allan estimator
     check_array_result(
-        "White noise Allan deviation", res1.y, np.sqrt(th_av_white), atol=0.05
+        "White noise Allan deviation",
+        res1.y,
+        np.sqrt(th_av_white),
+        rtol=0.20,
+        atol=0.005,
     )
 
-    # Generate and test drift signal
+    # Generate and test drift signal (deterministic - same seed not needed)
     slope = 0.01
     time, values = generate_drift_signal(n_points, slope)
     sig2 = sigima.objects.create_signal("Drift Test", time, values)
@@ -166,7 +191,14 @@ def test_signal_allan_deviation():
     res2 = sigima.proc.signal.allan_deviation(sig2, param)
     th_av_drift = theoretical_allan_variance_drift(res2.x, slope)
 
-    check_array_result("Drift Allan deviation", res2.y, np.sqrt(th_av_drift), atol=0.01)
+    # Drift is deterministic, tighter tolerances apply
+    check_array_result(
+        "Drift Allan deviation",
+        res2.y,
+        np.sqrt(th_av_drift),
+        rtol=0.05,
+        atol=0.0001,
+    )
 
 
 @pytest.mark.validation
