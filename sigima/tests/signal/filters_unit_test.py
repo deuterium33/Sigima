@@ -124,34 +124,54 @@ def _test_filter_method(
         original_signal: Original signal for variance checks
         **filter_params: Additional parameters for the filter
     """
-    param = param_class.create(method=method, zero_padding=False, **filter_params)
-    result_signal = filter_func(test_signal, param)
-    guiutils.view_curves_if_gui([expected_signal or test_signal, result_signal])
-
-    # Validate based on whether we have expected results
-    if expected_signal is not None and tolerance is not None:
-        # Detailed comparison for brickwall filters
-        if filter_type == "highpass":
-            # Special case for highpass: check mean is close to zero
-            check_scalar_result(
-                f"{method.value} {filter_type} removes low freq",
-                float(np.mean(result_signal.y)),
-                0,
-                atol=tolerance,
-            )
-        else:
-            # Array comparison for other filters
-            check_array_result(
-                f"{method.value} {filter_type}",
-                result_signal.y[10 : len(result_signal.y) - 10],
-                expected_signal.y[10 : len(expected_signal.y) - 10],
-                atol=tolerance,
-            )
-    else:
-        # Basic validation for scipy filters
-        _validate_scipy_filter_output(
-            result_signal, method, filter_type, original_signal
+    for zero_padding in (True, False):
+        param = param_class.create(
+            method=method, zero_padding=zero_padding, **filter_params
         )
+
+        prefix = f"{method.value} {filter_type} (zero_padding={zero_padding}) "
+
+        # Store original x data to verify it's not modified
+        original_x = test_signal.x.copy()
+
+        result_signal: SignalObj = filter_func(test_signal, param)
+        guiutils.view_curves_if_gui([expected_signal or test_signal, result_signal])
+
+        # CRITICAL: Check that the input signal's X data was NOT modified
+        check_array_result(
+            f"{prefix} input X data unchanged", test_signal.x, original_x
+        )
+
+        if expected_signal is not None:
+            # Check that X data is unchanged
+            check_array_result(
+                f"{prefix} X data check", result_signal.x, expected_signal.x
+            )
+
+        # Validate based on whether we have expected results
+        if expected_signal is not None and tolerance is not None:
+            # Detailed comparison for brickwall filters
+            if filter_type == "highpass":
+                # Special case for highpass: check mean is close to zero
+                check_scalar_result(
+                    f"{prefix} removes low freq",
+                    float(np.mean(result_signal.y)),
+                    0,
+                    atol=tolerance,
+                )
+            else:
+                # Array comparison for other filters
+                check_array_result(
+                    f"{prefix}",
+                    result_signal.y[10 : len(result_signal.y) - 10],
+                    expected_signal.y[10 : len(expected_signal.y) - 10],
+                    atol=tolerance,
+                )
+        elif not zero_padding:
+            # Basic validation for scipy filters
+            _validate_scipy_filter_output(
+                result_signal, method, filter_type, original_signal
+            )
 
 
 @pytest.mark.validation
@@ -375,9 +395,9 @@ def test_tools_to_proc_interface():
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_signal_lowpass()
-    test_signal_highpass()
-    test_signal_bandstop()
+    # test_signal_lowpass()
+    # test_signal_highpass()
+    # test_signal_bandstop()
     test_signal_bandpass()
     test_brickwall_filter_invalid_x()
     test_tools_to_proc_interface()

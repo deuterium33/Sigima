@@ -469,4 +469,4 @@ def brickwall_filter(
     ffty_filtered = ffty * frequency_mask
     _, y_filtered = ifft1d(freqs, ffty_filtered)
     y_filtered = y_filtered.real
-    return x, y_filtered
+    return x.copy(), y_filtered
