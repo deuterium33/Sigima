@@ -354,20 +354,20 @@ register_image_parameters_class(
 class Gauss2DParam(
     NewImageParam,
     title=_("Gaussian"),
-    comment="z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + "
+    comment="z = A exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + "
     "(y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))",
 ):
     """2D Gaussian parameters."""
 
     a = gds.FloatItem("A", default=None, check=False)
-    xmin = gds.FloatItem("Xmin", default=-10.0).set_pos(col=1)
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_pos(col=1)
     sigma = gds.FloatItem("σ", default=1.0)
-    xmax = gds.FloatItem("Xmax", default=10.0).set_pos(col=1)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_pos(col=1)
     mu = gds.FloatItem("μ", default=0.0)
-    ymin = gds.FloatItem("Ymin", default=-10.0).set_pos(col=1)
-    x0 = gds.FloatItem("X0", default=0.0)
-    ymax = gds.FloatItem("Ymax", default=10.0).set_pos(col=1)
-    y0 = gds.FloatItem("Y0", default=0.0).set_pos(col=0, colspan=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=-10.0).set_pos(col=1)
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=10.0).set_pos(col=1)
+    y0 = gds.FloatItem("y<sub>0</sub>", default=0.0).set_pos(col=0, colspan=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -407,14 +407,14 @@ register_image_parameters_class(ImageTypes.GAUSS, Gauss2DParam)
 class Ramp2DParam(
     NewImageParam,
     title=_("2D ramp"),
-    comment="z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c",
+    comment="z = A (x - x<sub>0</sub>) + B (y - y<sub>0</sub>) + C",
 ):
     """Define the parameters of a 2D ramp (planar ramp)."""
 
     _g0_begin = gds.BeginGroup(_("Coefficients"))
-    a = gds.FloatItem(_("a"), default=1.0).set_pos(col=0)
-    b = gds.FloatItem(_("b"), default=1.0).set_pos(col=1)
-    c = gds.FloatItem(_("c"), default=0.0).set_pos(colspan=1)
+    a = gds.FloatItem(_("A"), default=1.0).set_pos(col=0)
+    b = gds.FloatItem(_("B"), default=1.0).set_pos(col=1)
+    c = gds.FloatItem(_("C"), default=0.0).set_pos(colspan=1)
     x0 = gds.FloatItem(_("x<sub>0</sub>"), default=0.0).set_pos(col=0)
     y0 = gds.FloatItem(_("y<sub>0</sub>"), default=0.0).set_pos(col=1)
     _g0_end = gds.EndGroup(_(""))
@@ -427,10 +427,22 @@ class Ramp2DParam(
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
-        return (
-            f"z = {self.a:g} (x - {self.x0:g})"
-            f" + {self.b:g} (y - {self.y0:g}) + {self.c:g}"
-        )
+        terms = []  # Build terms list for non-zero coefficients
+        if self.a != 0.0:
+            if self.x0 == 0.0:
+                x_part = f"{self.a:g} x"
+            else:
+                x_part = f"{self.a:g} (x - {self.x0:g})"
+            terms.append(x_part)
+        if self.b != 0.0:
+            if self.y0 == 0.0:
+                y_part = f"{self.b:g} y"
+            else:
+                y_part = f"{self.b:g} (y - {self.y0:g})"
+            terms.append(y_part)
+        if self.c != 0.0 or not terms:  # Include c if it's the only term
+            terms.append(f"{self.c:g}")
+        return f"z = {' + '.join(terms)}"
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
