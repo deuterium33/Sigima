@@ -317,6 +317,7 @@ __all__ = [
     "PulseFeaturesParam",
     "Resampling1DParam",
     "Resampling2DParam",
+    "SignalsToImageParam",
     "WindowingParam",
     "XYCalibrateParam",
     "ZeroPadding1DParam",
@@ -336,6 +337,7 @@ from sigima.proc.base import (
     MovingMedianParam,
     NormalizeParam,
     PhaseParam,
+    SignalsToImageParam,
     SpectrumParam,
 )
 from sigima.proc.image import (

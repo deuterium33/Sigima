@@ -7,6 +7,22 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **Signals to image conversion**: New feature to combine multiple signals into a 2D image
+  * New computation function `signals_to_image()` in `sigima.proc.signal.arithmetic`
+  * Takes a list of signals and combines them into an image by stacking Y-arrays
+  * Two orientation modes:
+    * **Rows**: Each signal becomes a row in the image (default)
+    * **Columns**: Each signal becomes a column in the image
+  * Optional normalization:
+    * Supports multiple normalization methods (Z-score, Min-Max, Maximum)
+    * Normalizes each signal independently before stacking
+    * Useful for visualizing signals with different amplitude ranges
+  * Validates that all signals have the same size before combining
+  * New parameter class `SignalsToImageParam` with orientation and normalization settings
+  * New enum `SignalsToImageOrientation` for specifying row/column orientation
+  * Comprehensive validation tests for all combinations of parameters
+  * Ideal for creating spectrograms, heatmaps, or waterfall displays from signal collections
+
 * **Non-uniform coordinate support for images**: Added comprehensive support for non-uniform pixel coordinates
   * `ImageObj` now supports both uniform and non-uniform coordinate systems:
     * Uniform coordinates: defined by origin (`x0`, `y0`) and pixel spacing (`dx`, `dy`)

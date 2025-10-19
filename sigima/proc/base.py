@@ -19,7 +19,13 @@ import numpy as np
 
 from sigima import ImageObj, SignalObj, create_signal
 from sigima.config import _, options
-from sigima.enums import AngleUnit, FilterMode, MathOperator, NormalizationMethod
+from sigima.enums import (
+    AngleUnit,
+    FilterMode,
+    MathOperator,
+    NormalizationMethod,
+    SignalsToImageOrientation,
+)
 from sigima.proc.title_formatting import get_default_title_formatter
 
 # NOTE: This module is a shared utilities library that defines common parameter classes
@@ -205,6 +211,29 @@ class PhaseParam(gds.DataSet):
         default=AngleUnit.DEGREE,
         help=_("Unit of angle measurement"),
     )
+
+
+class SignalsToImageParam(gds.DataSet):
+    """Parameters for combining signals into an image."""
+
+    orientation = gds.ChoiceItem(
+        _("Orientation"),
+        SignalsToImageOrientation,
+        default=SignalsToImageOrientation.ROWS,
+        help=_("How to arrange signals: as rows or as columns"),
+    )
+    _prop = gds.GetAttrProp("normalize")
+    normalize = gds.BoolItem(
+        _("Normalize"),
+        default=False,
+        help=_("Normalize each signal before combining"),
+    )
+    normalize_method = gds.ChoiceItem(
+        _("Normalization method"),
+        NormalizationMethod,
+        default=NormalizationMethod.MAXIMUM,
+        help=_("Method used for normalization"),
+    ).set_prop("display", active=_prop)
 
 
 # MARK: Helper functions for creating result objects -----------------------------------
