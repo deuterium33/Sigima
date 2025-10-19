@@ -208,7 +208,11 @@ class SimpleRemoteProxy(SimpleBaseProxy):
 
         server_ver = Version(version)
         client_ver = Version(__version__)
-        if server_ver < Version(__required_server_version__):
+        required_ver = Version(__required_server_version__)
+
+        # Compare base versions (ignore pre-release/dev identifiers)
+        # This allows 1.0.0b1 to satisfy >= 1.0.0 requirement
+        if server_ver.base_version < required_ver.base_version:
             warnings.warn(
                 f"DataLab server version ({server_ver}) may not be fully compatible "
                 f"with Sigima client version {client_ver} "
