@@ -50,16 +50,52 @@ def get_xmlrpcport_from_env() -> int | None:
 
 
 def get_cdl_xmlrpc_port():
-    """Return DataLab current XML-RPC port"""
+    """Return DataLab current XML-RPC port.
+
+    This function attempts to read the XML-RPC port from DataLab's configuration file.
+    It first tries the versioned configuration folders (starting with the latest
+    version), and falls back to the legacy .DataLab folder for backward compatibility
+    with DataLab v0.x.
+
+    Returns:
+        str: XML-RPC port number
+
+    Raises:
+        ConnectionRefusedError: DataLab has not yet been executed or configuration
+            file is not accessible
+    """
     if sys.platform == "win32" and "HOME" in os.environ:
         os.environ.pop("HOME")  # Avoid getting old WinPython settings dir
-    fname = osp.join(get_config_basedir(), ".DataLab", "DataLab.ini")
-    ini = cp.ConfigParser()
-    ini.read(fname)
-    try:
-        return ini.get("main", "rpc_server_port")
-    except (cp.NoSectionError, cp.NoOptionError) as exc:
-        raise ConnectionRefusedError("DataLab has not yet been executed") from exc
+
+    config_basedir = get_config_basedir()
+
+    # List of configuration folders to try, in order of preference
+    # Try versioned folders first (v3, v2, v1), then legacy .DataLab
+    config_folders = [
+        (".DataLab_v3", "DataLab_v3.ini"),  # Future versions
+        (".DataLab_v2", "DataLab_v2.ini"),
+        (".DataLab_v1", "DataLab_v1.ini"),  # Current stable (v1.x)
+        (".DataLab", "DataLab.ini"),  # Legacy (v0.x)
+    ]
+
+    # Try each configuration folder in order
+    for folder_name, ini_name in config_folders:
+        fname = osp.join(config_basedir, folder_name, ini_name)
+        if osp.exists(fname):
+            ini = cp.ConfigParser()
+            try:
+                ini.read(fname)
+                port = ini.get("main", "rpc_server_port")
+                # Successfully read port from this version's config
+                return port
+            except (cp.NoSectionError, cp.NoOptionError):
+                # Config file exists but doesn't have the port yet, try next version
+                continue
+
+    # No valid configuration found
+    raise ConnectionRefusedError(
+        "DataLab has not yet been executed or no valid configuration found"
+    )
 
 
 def items_to_json(items: list) -> str | None:
