@@ -277,8 +277,16 @@ def _detect_datetime_col(df: pd.DataFrame) -> tuple[pd.DataFrame, dict | None]:
         col_data = df.iloc[:, col_idx]
         # Try to convert to datetime
         try:
-            # Attempt to parse as datetime using 'mixed' format to avoid warnings
-            datetime_series = pd.to_datetime(col_data, errors="coerce", format="mixed")
+            # Attempt to parse as datetime
+            # Note: format="mixed" was causing failures in some pandas versions,
+            # so we use warnings filter to suppress the UserWarning instead
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "ignore",
+                    message="Could not infer format",
+                    category=UserWarning,
+                )
+                datetime_series = pd.to_datetime(col_data, errors="coerce")
             # Check if most values were successfully converted (>90%)
             valid_ratio = datetime_series.notna().sum() / len(datetime_series)
 
@@ -312,7 +320,11 @@ def _detect_datetime_col(df: pd.DataFrame) -> tuple[pd.DataFrame, dict | None]:
     if datetime_col_idx is not None:
         # Convert datetime column to float timestamps
         col_data = df.iloc[:, datetime_col_idx]
-        datetime_series = pd.to_datetime(col_data, errors="coerce", format="mixed")
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", message="Could not infer format", category=UserWarning
+            )
+            datetime_series = pd.to_datetime(col_data, errors="coerce")
         x_float = datetime_series.astype(np.int64) / 1e9
         # Store datetime metadata (unit will be stored in xunit attribute)
         datetime_metadata = {
