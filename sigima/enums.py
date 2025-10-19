@@ -186,3 +186,10 @@ class SignalShape(gds.LabeledEnum):
 
     STEP = "step"
     SQUARE = "square"
+
+
+class SignalsToImageOrientation(gds.LabeledEnum):
+    """Orientation for combining signals into an image."""
+
+    ROWS = "rows", _("As rows")
+    COLUMNS = "columns", _("As columns")

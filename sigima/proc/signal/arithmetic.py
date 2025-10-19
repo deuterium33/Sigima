@@ -8,14 +8,16 @@ Arithmetic operations on signals
 from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from sigima.enums import MathOperator
-from sigima.objects import SignalObj
+from sigima.enums import MathOperator, SignalsToImageOrientation
+from sigima.objects import SignalObj, create_image
 from sigima.proc.base import (
     ArithmeticParam,
     ConstantParam,
+    SignalsToImageParam,
     dst_1_to_1,
     dst_2_to_1,
     dst_n_to_1,
@@ -28,6 +30,10 @@ from sigima.proc.signal.base import (
     signals_y_to_array,
 )
 from sigima.proc.signal.mathops import inverse
+from sigima.tools.signal import scaling
+
+if TYPE_CHECKING:
+    from sigima.objects import ImageObj
 
 
 @computation_function()
@@ -474,3 +480,72 @@ def signals_to_array(
         dtype = getattr(signals[0], attr).dtype
     arr = np.array([getattr(sig, attr) for sig in signals], dtype=dtype)
     return arr
+
+
+@computation_function()
+def signals_to_image(src_list: list[SignalObj], p: SignalsToImageParam) -> ImageObj:
+    """Combine multiple signals into an image.
+
+    The function takes a list of signals and combines them into a 2D image,
+    arranging them either as rows or columns based on the specified orientation.
+    Optionally, each signal can be normalized before combining.
+
+    .. note::
+
+        All signals must have the same size (number of data points).
+
+    .. note::
+
+        If normalization is enabled, each signal is normalized independently
+        using the specified normalization method before being added to the image.
+
+    Args:
+        src_list: List of source signals to combine.
+        p: Parameters specifying orientation and normalization options.
+
+    Returns:
+        Image object representing the combined signals.
+
+    Raises:
+        ValueError: If the signal list is empty or signals have different sizes.
+    """
+    if not src_list:
+        raise ValueError("The signal list is empty.")
+
+    # Check that all signals have the same size
+    sizes = [len(sig.y) for sig in src_list]
+    if len(set(sizes)) > 1:
+        raise ValueError(
+            f"All signals must have the same size. Found sizes: {set(sizes)}"
+        )
+
+    # Prepare data array
+    y_array = signals_y_to_array(src_list)
+
+    # Normalize if requested
+    if p.normalize:
+        for i in range(len(src_list)):
+            y_array[i] = scaling.normalize(y_array[i], p.normalize_method)
+
+    # Arrange as rows or columns
+    if p.orientation == SignalsToImageOrientation.COLUMNS:
+        data = y_array.T
+    else:  # ROWS
+        data = y_array
+
+    # Create the result image
+    suffix_parts = [f"n={len(src_list)}", f"orientation={p.orientation}"]
+    if p.normalize:
+        suffix_parts.append(f"norm={p.normalize_method}")
+    suffix = ", ".join(suffix_parts)
+    title = f"combined_signals|{suffix}"
+
+    dst = create_image(title, data)
+    if p.orientation == SignalsToImageOrientation.ROWS:
+        dst.xlabel = src_list[0].ylabel
+    else:
+        dst.ylabel = src_list[0].ylabel
+    dst.zlabel = src_list[0].ylabel
+    dst.zunit = src_list[0].yunit
+
+    return dst

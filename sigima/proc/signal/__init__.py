@@ -112,6 +112,7 @@ from sigima.proc.signal.arithmetic import (
     product_constant,
     quadratic_difference,
     signals_to_array,
+    signals_to_image,
     standard_deviation,
 )
 from sigima.proc.signal.base import (
@@ -267,6 +268,7 @@ __all__ = [
     "product",
     "product_constant",
     "quadratic_difference",
+    "signals_to_image",
     "standard_deviation",
     "extract_roi",
     "extract_rois",

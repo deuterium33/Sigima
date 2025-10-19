@@ -22,7 +22,12 @@ import sigima.objects
 import sigima.params
 import sigima.proc.signal
 import sigima.tests.data
-from sigima.enums import AngleUnit, MathOperator
+from sigima.enums import (
+    AngleUnit,
+    MathOperator,
+    NormalizationMethod,
+    SignalsToImageOrientation,
+)
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import AngleUnitParam
 from sigima.proc.signal import complex_from_magnitude_phase, complex_from_real_imag
@@ -416,6 +421,47 @@ def test_signal_arithmetic() -> None:
                 check_array_result(f"Arithmetic [{p.get_operation()}]", s3.y, exp)
 
 
+@pytest.mark.validation
+def test_signal_signals_to_image() -> None:
+    """Signals to image conversion test."""
+    # Create test signals
+    slist = __create_n_signals(n=5)
+    n = len(slist)
+    size = len(slist[0].y)
+
+    # Test without normalization, as rows
+    p = sigima.params.SignalsToImageParam()
+    p.orientation = SignalsToImageOrientation.ROWS
+    p.normalize = False
+    img = sigima.proc.signal.signals_to_image(slist, p)
+    assert img.data.shape == (n, size), (
+        f"Expected shape ({n}, {size}), got {img.data.shape}"
+    )
+    for i, sig in enumerate(slist):
+        title = f"Signals to image (rows) - signal {i}"
+        check_array_result(title, img.data[i], sig.y)
+
+    # Test without normalization, as columns
+    p.orientation = SignalsToImageOrientation.COLUMNS
+    img = sigima.proc.signal.signals_to_image(slist, p)
+    assert img.data.shape == (size, n), (
+        f"Expected shape ({size}, {n}), got {img.data.shape}"
+    )
+    for i, sig in enumerate(slist):
+        title = f"Signals to image (columns) - signal {i}"
+        check_array_result(title, img.data[:, i], sig.y)
+
+    # Test with normalization
+    p.normalize = True
+    p.normalize_method = NormalizationMethod.MAXIMUM
+    p.orientation = SignalsToImageOrientation.ROWS
+    img = sigima.proc.signal.signals_to_image(slist, p)
+    for i, sig in enumerate(slist):
+        expected = sig.y / np.max(np.abs(sig.y))
+        title = f"Signals to image (normalized rows) - signal {i}"
+        check_array_result(title, img.data[i], expected)
+
+
 if __name__ == "__main__":
     test_signal_addition()
     test_signal_average()
@@ -440,3 +486,4 @@ if __name__ == "__main__":
     test_signal_sqrt()
     test_signal_power()
     test_signal_arithmetic()
+    test_signal_signals_to_image()
