@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-16 09:56+0200\n"
+"POT-Creation-Date: 2025-10-19 11:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,51 @@ msgstr "sigima 1.0.0"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**Signals to image conversion**: New feature to combine multiple signals into a 2D image"
+msgstr "**Conversion de signaux en image** : Nouvelle fonctionnalité pour combiner plusieurs signaux en une image 2D"
+
+msgid "New computation function `signals_to_image()` in `sigima.proc.signal.arithmetic`"
+msgstr "Nouvelle fonction de calcul `signals_to_image()` dans `sigima.proc.signal.arithmetic`"
+
+msgid "Takes a list of signals and combines them into an image by stacking Y-arrays"
+msgstr "Prend une liste de signaux et les combine en une image en empilant des tableaux Y"
+
+msgid "Two orientation modes:"
+msgstr "Deux modes d'orientation :"
+
+msgid "**Rows**: Each signal becomes a row in the image (default)"
+msgstr "**Lignes** : Chaque signal devient une ligne dans l'image (par défaut)"
+
+msgid "**Columns**: Each signal becomes a column in the image"
+msgstr "**Colonnes** : Chaque signal devient une colonne dans l'image"
+
+msgid "Optional normalization:"
+msgstr "Normalisation facultative :"
+
+msgid "Supports multiple normalization methods (Z-score, Min-Max, Maximum)"
+msgstr "Prend en charge plusieurs méthodes de normalisation (Z-score, Min-Max, Maximum)"
+
+msgid "Normalizes each signal independently before stacking"
+msgstr "Normalise chaque signal indépendamment avant l'empilement"
+
+msgid "Useful for visualizing signals with different amplitude ranges"
+msgstr "Utile pour visualiser des signaux avec différentes plages d'amplitude"
+
+msgid "Validates that all signals have the same size before combining"
+msgstr "Valide que tous les signaux ont la même taille avant de les combiner"
+
+msgid "New parameter class `SignalsToImageParam` with orientation and normalization settings"
+msgstr "Nouvelle classe de paramètres `SignalsToImageParam` avec des paramètres d'orientation et de normalisation"
+
+msgid "New enum `SignalsToImageOrientation` for specifying row/column orientation"
+msgstr "Nouvel énuméré `SignalsToImageOrientation` pour spécifier l'orientation des lignes/colonnes"
+
+msgid "Comprehensive validation tests for all combinations of parameters"
+msgstr "Tests de validation complets pour toutes les combinaisons de paramètres"
+
+msgid "Ideal for creating spectrograms, heatmaps, or waterfall displays from signal collections"
+msgstr "Idéal pour créer des spectrogrammes, des cartes thermiques ou des affichages en cascade à partir de collections de signaux"
 
 msgid "**Non-uniform coordinate support for images**: Added comprehensive support for non-uniform pixel coordinates"
 msgstr "**Prise en charge des coordonnées non uniformes pour les images** : Ajout d'une prise en charge complète des coordonnées de pixels non uniformes"

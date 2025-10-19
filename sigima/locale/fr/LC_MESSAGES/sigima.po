@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-19 10:35+0200\n"
+"POT-Creation-Date: 2025-10-19 11:55+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -117,6 +117,14 @@ msgstr "Filtre idéal"
 
 msgid "Elliptic"
 msgstr "Elliptique"
+
+#, fuzzy
+msgid "As rows"
+msgstr "Lignes"
+
+#, fuzzy
+msgid "As columns"
+msgstr "Colonnes"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -624,6 +632,21 @@ msgstr "Phase"
 
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"
+
+msgid "Orientation"
+msgstr "Orientation"
+
+msgid "How to arrange signals: as rows or as columns"
+msgstr "Comment organiser les signaux : en lignes ou en colonnes"
+
+msgid "Normalize each signal before combining"
+msgstr "Normaliser chaque signal avant de combiner"
+
+msgid "Normalization method"
+msgstr "Méthode de normalisation"
+
+msgid "Method used for normalization"
+msgstr ""
 
 msgid "columns"
 msgstr "colonnes"
