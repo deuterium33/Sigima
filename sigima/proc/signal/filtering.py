@@ -107,7 +107,7 @@ def wiener(src: SignalObj) -> SignalObj:
     return Wrap1to1Func(sps.wiener)(src)
 
 
-class BaseHighLowBandParam(gds.DataSet):
+class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
     """Base class for high-pass, low-pass, band-pass and band-stop filters"""
 
     TYPE = FilterType.LOWPASS

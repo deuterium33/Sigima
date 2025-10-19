@@ -28,6 +28,7 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects import SignalObj
+from sigima.proc.base import dst_2_to_1
 from sigima.proc.decorator import computation_function
 from sigima.tools.signal import fitting
 
@@ -76,7 +77,7 @@ def linear_fit(src: SignalObj) -> SignalObj:
     return __generic_fit(src, fitting.linear_fit)
 
 
-class PolynomialFitParam(gds.DataSet):
+class PolynomialFitParam(gds.DataSet, title=_("Polynomial fit")):
     """Polynomial fitting parameters"""
 
     degree = gds.IntItem(_("Degree"), 3, min=1, max=10, slider=True)
@@ -245,20 +246,31 @@ def extract_fit_params(signal: SignalObj) -> dict[str, float | str]:
     return fit_params_dict
 
 
-def evaluate_fit(signal_template: SignalObj, **fit_params) -> SignalObj:
-    """Evaluate fit function to create a new signal.
+@computation_function()
+def evaluate_fit(src1: SignalObj, src2: SignalObj) -> SignalObj:
+    """Evaluate fit function from src1 on the x-axis of src2.
+
+    This function extracts fit parameters from `src1` (which must contain fit metadata
+    from a previous fitting operation) and evaluates the fit function on the x-axis
+    of `src2`.
 
     Args:
-        signal_template: Template signal to copy x-axis and metadata from
-        **fit_params: Fit parameters
+        src1: Signal object containing fit parameters in metadata (from a fit operation)
+        src2: Signal object whose x-axis will be used for evaluation
 
     Returns:
-        New signal with evaluated fit
+        New signal with the fit evaluated on src2's x-axis
     """
-    x = signal_template.x
+    fit_params = extract_fit_params(src1)
+    dst = dst_2_to_1(src1, src2, "evaluate_fit")
+
+    # Evaluate fit on src2's x-axis
+    x = src2.x
     y = fitting.evaluate_fit(x, **fit_params)
 
-    result = signal_template.copy()
-    result.y = y
-    result.title = f"Fitted {fit_params['fit_type']}"
-    return result
+    dst.set_xydata(x, y)
+    dst.title = f"Fitted {fit_params['fit_type']}"
+
+    # Copy fit parameters to destination metadata
+    dst.metadata["fit_params"] = fit_params
+    return dst

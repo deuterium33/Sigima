@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 
-class ArithmeticParam(gds.DataSet):
+class ArithmeticParam(gds.DataSet, title=_("Arithmetic")):
     """Arithmetic parameters"""
 
     def get_operation(self) -> str:
@@ -91,7 +91,7 @@ class ArithmeticParam(gds.DataSet):
     )
 
 
-class GaussianParam(gds.DataSet):
+class GaussianParam(gds.DataSet, title=_("Gaussian filter")):
     """Gaussian filter parameters."""
 
     sigma = gds.FloatItem(
@@ -110,7 +110,7 @@ HELP_MODE = _("""Mode of the filter:
 - 'wrap': Circular boundary""")
 
 
-class MovingAverageParam(gds.DataSet):
+class MovingAverageParam(gds.DataSet, title=_("Moving average")):
     """Moving average parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1)
@@ -119,7 +119,7 @@ class MovingAverageParam(gds.DataSet):
     )
 
 
-class MovingMedianParam(gds.DataSet):
+class MovingMedianParam(gds.DataSet, title=_("Moving median")):
     """Moving median parameters"""
 
     n = gds.IntItem(_("Size of the moving window"), default=3, min=1, even=False)
@@ -128,20 +128,20 @@ class MovingMedianParam(gds.DataSet):
     )
 
 
-class ClipParam(gds.DataSet):
+class ClipParam(gds.DataSet, title=_("Clip")):
     """Data clipping parameters"""
 
     lower = gds.FloatItem(_("Lower clipping value"), check=False)
     upper = gds.FloatItem(_("Upper clipping value"), check=False)
 
 
-class NormalizeParam(gds.DataSet):
+class NormalizeParam(gds.DataSet, title=_("Normalize")):
     """Normalize parameters"""
 
     method = gds.ChoiceItem(_("Normalize with respect to"), NormalizationMethod)
 
 
-class HistogramParam(gds.DataSet):
+class HistogramParam(gds.DataSet, title=_("Histogram")):
     """Histogram parameters"""
 
     def get_suffix(self, data: np.ndarray) -> str:
@@ -166,7 +166,7 @@ class HistogramParam(gds.DataSet):
     upper = gds.FloatItem(_("Upper limit"), default=None, check=False)
 
 
-class FFTParam(gds.DataSet):
+class FFTParam(gds.DataSet, title=_("FFT")):
     """FFT parameters"""
 
     shift = gds.BoolItem(_("Shift"), help=_("Shift zero frequency to center"))
@@ -176,19 +176,19 @@ class FFTParam(gds.DataSet):
         self.shift = options.fft_shift_enabled.get()
 
 
-class SpectrumParam(gds.DataSet):
+class SpectrumParam(gds.DataSet, title=_("Spectrum")):
     """Spectrum parameters."""
 
     decibel = gds.BoolItem(_("Output in decibel (dB)"), default=False)
 
 
-class ConstantParam(gds.DataSet):
+class ConstantParam(gds.DataSet, title=_("Constant")):
     """Parameter used to set a constant value to used in operations"""
 
     value = gds.FloatItem(_("Constant value"))
 
 
-class AngleUnitParam(gds.DataSet):
+class AngleUnitParam(gds.DataSet, title=_("Angle unit")):
     """Choice of angle unit."""
 
     unit = gds.ChoiceItem(
@@ -199,7 +199,7 @@ class AngleUnitParam(gds.DataSet):
     )
 
 
-class PhaseParam(gds.DataSet):
+class PhaseParam(gds.DataSet, title=_("Phase")):
     """Parameters for phase computation."""
 
     unwrap = gds.BoolItem(

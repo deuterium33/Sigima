@@ -67,7 +67,7 @@ def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
     return dst
 
 
-class PulseFeaturesParam(gds.DataSet):
+class PulseFeaturesParam(gds.DataSet, title=_("Pulse features")):
     """Pulse features parameters."""
 
     signal_shape = gds.ChoiceItem(

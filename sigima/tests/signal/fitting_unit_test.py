@@ -839,6 +839,44 @@ def test_fitting_functions_available() -> None:
         assert callable(func), f"Function {func_name} should be callable"
 
 
+@pytest.mark.validation
+def test_signal_evaluate_fit() -> None:
+    """Test evaluate_fit as a computation function (2-to-1)."""
+    execenv.print("Testing evaluate_fit computation function...")
+
+    # Create a signal with linear data
+    x1 = np.linspace(0, 10, 100)
+    y1 = 3.0 * x1 + 1.0 + np.random.normal(0, 0.5, len(x1))
+    src1 = sigima.objects.create_signal("Test data 1", x1, y1)
+
+    # Perform a fit to get fit parameters
+    fitted_signal = sigima.proc.signal.linear_fit(src1)
+    assert "fit_params" in fitted_signal.metadata, "Fit should produce metadata"
+
+    # Create a second signal with a different x-axis
+    x2 = np.linspace(-5, 15, 50)
+    y2 = np.zeros_like(x2)  # Data doesn't matter, only x-axis is used
+    src2 = sigima.objects.create_signal("Test data 2", x2, y2)
+
+    # Evaluate fit from src1 on x-axis of src2 (2-to-1 operation)
+    result = sigima.proc.signal.evaluate_fit(fitted_signal, src2)
+
+    # Verify the result
+    assert len(result.x) == len(x2), "Result should have same length as src2"
+    check_array_result("X-axis", result.x, x2, rtol=1e-10)
+
+    # The y values should be the fit evaluated on x2
+    fit_params = sigima.proc.signal.extract_fit_params(fitted_signal)
+    expected_y = fitting.evaluate_fit(x2, **fit_params)
+    check_array_result("Evaluated fit", result.y, expected_y, rtol=1e-10)
+
+    # Check that fit parameters are preserved
+    assert "fit_params" in result.metadata, "Result should contain fit_params"
+    result_params = sigima.proc.signal.extract_fit_params(result)
+    assert result_params["a"] == fit_params["a"], "Fitted a should match"
+    assert result_params["b"] == fit_params["b"], "Fitted b should match"
+
+
 def test_fitting_user_experience() -> None:
     """Test user experience aspects of fitting functions."""
     execenv.print("Testing user experience of fitting functions...")
@@ -861,7 +899,8 @@ def test_fitting_user_experience() -> None:
     assert "a" in fit_params and "b" in fit_params, "fit_params should contain a and b"
     assert fit_params["a"] == params["a"], "Fitted a should match"
     assert fit_params["b"] == params["b"], "Fitted b should match"
-    dst2 = sigima.proc.signal.evaluate_fit(src, **fit_params)
+    # Use the new 2-to-1 signature: evaluate fit from dst on x-axis of src
+    dst2 = sigima.proc.signal.evaluate_fit(dst, src)
     check_array_result("Evaluate fit on SignalObj", dst2.y, dst.y, rtol=1e-10)
 
 
@@ -885,5 +924,6 @@ if __name__ == "__main__":
     test_sinusoidal_fit()
     test_fitting_error_handling()
     test_fitting_functions_available()
+    test_signal_evaluate_fit()
     test_fitting_user_experience()
     execenv.print("All fitting unit tests passed!")
