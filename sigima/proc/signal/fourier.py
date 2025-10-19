@@ -34,7 +34,7 @@ from sigima.proc.signal.base import dst_1_to_1
 from sigima.tools.signal import fourier
 
 
-class ZeroPadding1DParam(gds.DataSet):
+class ZeroPadding1DParam(gds.DataSet, title=_("Zero padding")):
     """ZeroPadding1DParam manages the parameters for applying zero-padding to signals.
 
     Attributes:

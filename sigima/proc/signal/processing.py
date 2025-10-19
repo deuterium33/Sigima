@@ -41,7 +41,7 @@ from sigima.tools.signal import fourier, interpolation, scaling, windowing
 from .base import dst_1_to_1, is_uncertainty_data_available, restore_data_outside_roi
 
 
-class InterpolationParam(gds.DataSet):
+class InterpolationParam(gds.DataSet, title=_("Interpolation")):
     """Interpolation parameters"""
 
     method = gds.ChoiceItem(
@@ -324,7 +324,7 @@ def integral(src: SignalObj) -> SignalObj:
     return dst
 
 
-class XYCalibrateParam(gds.DataSet):
+class XYCalibrateParam(gds.DataSet, title=_("Calibration")):
     """Signal calibration parameters"""
 
     axes = (("x", _("X-axis")), ("y", _("Y-axis")))
@@ -411,7 +411,7 @@ def offset_correction(src: SignalObj, p: ROI1DParam) -> SignalObj:
     return dst
 
 
-class DetrendingParam(gds.DataSet):
+class DetrendingParam(gds.DataSet, title=_("Detrending")):
     """Detrending parameters"""
 
     methods = (("linear", _("Linear")), ("constant", _("Constant")))
@@ -436,7 +436,7 @@ def detrending(src: SignalObj, p: DetrendingParam) -> SignalObj:
     return dst
 
 
-class WindowingParam(gds.DataSet):
+class WindowingParam(gds.DataSet, title=_("Windowing")):
     """Windowing parameters."""
 
     _meth_prop = gds.GetAttrProp("method")

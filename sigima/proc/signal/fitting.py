@@ -77,7 +77,7 @@ def linear_fit(src: SignalObj) -> SignalObj:
     return __generic_fit(src, fitting.linear_fit)
 
 
-class PolynomialFitParam(gds.DataSet):
+class PolynomialFitParam(gds.DataSet, title=_("Polynomial fit")):
     """Polynomial fitting parameters"""
 
     degree = gds.IntItem(_("Degree"), 3, min=1, max=10, slider=True)

@@ -210,7 +210,7 @@ def complex_from_magnitude_phase(
     return dst
 
 
-class DataTypeSParam(gds.DataSet):
+class DataTypeSParam(gds.DataSet, title=_("Convert data type")):
     """Convert signal data type parameters"""
 
     dtype_str = gds.ChoiceItem(
@@ -317,7 +317,7 @@ def sqrt(src: SignalObj) -> SignalObj:
     return dst
 
 
-class PowerParam(gds.DataSet):
+class PowerParam(gds.DataSet, title=_("Power")):
     """Power parameters"""
 
     power = gds.FloatItem(_("Power"), default=2.0)

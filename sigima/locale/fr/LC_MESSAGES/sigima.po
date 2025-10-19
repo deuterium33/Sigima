@@ -196,13 +196,13 @@ msgid "Zero"
 msgstr "Zéro"
 
 msgid "Normal distribution"
-msgstr "Moyenne de la distribution normale"
+msgstr "Distribution normale"
 
 msgid "Poisson distribution"
-msgstr "Moyenne de la distribution de Poisson"
+msgstr "Distribution de Poisson"
 
 msgid "Uniform distribution"
-msgstr "Moyenne de la distribution uniforme"
+msgstr "Distribution uniforme"
 
 msgid "2D ramp"
 msgstr "Rampe 2D"

@@ -26,6 +26,7 @@ from __future__ import annotations
 import guidata.dataset as gds
 import numpy as np
 
+from sigima.config import _
 from sigima.objects import SignalObj
 from sigima.proc.decorator import computation_function
 from sigima.tools.signal import stability
@@ -33,7 +34,7 @@ from sigima.tools.signal import stability
 from .base import dst_1_to_1
 
 
-class AllanVarianceParam(gds.DataSet):
+class AllanVarianceParam(gds.DataSet, title=_("Allan variance")):
     """Allan variance parameters"""
 
     max_tau = gds.IntItem("Max τ", default=100, min=1, unit="pts")

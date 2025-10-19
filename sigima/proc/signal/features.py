@@ -42,7 +42,7 @@ from sigima.proc.signal.base import compute_geometry_from_obj
 from sigima.tools.signal import dynamic, features, peakdetection, pulse
 
 
-class PeakDetectionParam(gds.DataSet):
+class PeakDetectionParam(gds.DataSet, title=_("Peak detection")):
     """Peak detection parameters"""
 
     threshold = gds.FloatItem(_("Threshold"), default=0.1, min=0.0)
@@ -73,7 +73,7 @@ def peak_detection(src: SignalObj, p: PeakDetectionParam) -> SignalObj:
     return dst
 
 
-class FWHMParam(gds.DataSet):
+class FWHMParam(gds.DataSet, title=_("FWHM")):
     """FWHM parameters"""
 
     methods = (
@@ -132,7 +132,7 @@ def fw1e2(obj: SignalObj) -> GeometryResult | None:
     return compute_geometry_from_obj("fw1e2", "segment", obj, pulse.fw1e2)
 
 
-class OrdinateParam(gds.DataSet):
+class OrdinateParam(gds.DataSet, title=_("Ordinate")):
     """Ordinate parameter."""
 
     y = gds.FloatItem(_("Ordinate"), default=0.0)
@@ -185,7 +185,7 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     return table.compute(obj)
 
 
-class AbscissaParam(gds.DataSet):
+class AbscissaParam(gds.DataSet, title=_("Abscissa")):
     """Abscissa parameter."""
 
     x = gds.FloatItem(_("Abscissa"), default=0.0)
@@ -260,7 +260,7 @@ def bandwidth_3db(obj: SignalObj) -> GeometryResult | None:
     )
 
 
-class DynamicParam(gds.DataSet):
+class DynamicParam(gds.DataSet, title=_("Dynamic parameters")):
     """Parameters for dynamic range computation (ENOB, SNR, SINAD, THD, SFDR)"""
 
     full_scale = gds.FloatItem(_("Full scale"), default=0.16, min=0.0, unit="V")

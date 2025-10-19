@@ -256,7 +256,7 @@ def create_image_parameters(
     return p
 
 
-class Zero2DParam(NewImageParam):
+class Zero2DParam(NewImageParam, title=_("Zero")):
     """Image parameters for a 2D image filled with zero."""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
@@ -274,7 +274,9 @@ class Zero2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.ZEROS, Zero2DParam)
 
 
-class UniformDistribution2DParam(NewImageParam, base.UniformDistributionParam):
+class UniformDistribution2DParam(
+    NewImageParam, base.UniformDistributionParam, title=_("Uniform distribution")
+):
     """Uniform-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
@@ -298,7 +300,9 @@ register_image_parameters_class(
 )
 
 
-class NormalDistribution2DParam(NewImageParam, base.NormalDistributionParam):
+class NormalDistribution2DParam(
+    NewImageParam, base.NormalDistributionParam, title=_("Normal distribution")
+):
     """Normal-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
@@ -322,7 +326,9 @@ register_image_parameters_class(
 )
 
 
-class PoissonDistribution2DParam(NewImageParam, base.PoissonDistributionParam):
+class PoissonDistribution2DParam(
+    NewImageParam, base.PoissonDistributionParam, title=_("Poisson distribution")
+):
     """Poisson-distribution image parameters."""
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
@@ -345,12 +351,13 @@ register_image_parameters_class(
 )
 
 
-class Gauss2DParam(NewImageParam):
-    """2D Gaussian parameters
-
-    z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup>
-    + (y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))
-    """
+class Gauss2DParam(
+    NewImageParam,
+    title=_("Gaussian"),
+    comment="z = a exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + "
+    "(y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))",
+):
+    """2D Gaussian parameters."""
 
     a = gds.FloatItem("A", default=None, check=False)
     xmin = gds.FloatItem("Xmin", default=-10.0).set_pos(col=1)
@@ -397,11 +404,12 @@ class Gauss2DParam(NewImageParam):
 register_image_parameters_class(ImageTypes.GAUSS, Gauss2DParam)
 
 
-class Ramp2DParam(NewImageParam):
-    """Define the parameters of a 2D ramp (planar ramp).
-
-    z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c
-    """
+class Ramp2DParam(
+    NewImageParam,
+    title=_("2D ramp"),
+    comment="z = a (x - x<sub>0</sub>) + b (y - y<sub>0</sub>) + c",
+):
+    """Define the parameters of a 2D ramp (planar ramp)."""
 
     _g0_begin = gds.BeginGroup(_("Coefficients"))
     a = gds.FloatItem(_("a"), default=1.0).set_pos(col=0)
