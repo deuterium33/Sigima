@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-16 14:58+0200\n"
+"POT-Creation-Date: 2025-10-19 10:35+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -19,6 +19,12 @@ msgstr ""
 
 msgid "If True, the FFT operations will apply a shift to the zero frequency component to the center of the spectrum. This is useful for visualizing frequency components in a more intuitive way."
 msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante de fréquence nulle au centre du spectre. Cela est utile pour visualiser les composantes de fréquence de manière plus intuitive."
+
+msgid "If True, convolution kernels will be automatically normalized to sum to 1.0 before convolution. This ensures that the output signal or image has the same overall magnitude as the input when using smoothing kernels. Set to False to preserve the mathematical properties of the original kernel."
+msgstr "Si vrai, les noyaux de convolution seront automatiquement normalisés pour que leur somme soit égale à 1.0 avant la convolution. Cela garantit que le signal ou l'image de sortie a la même magnitude globale que l'entrée lors de l'utilisation de noyaux de lissage. Réglez sur Faux pour préserver les propriétés mathématiques du noyau original."
+
+msgid "If True, a warning will be issued when a convolution kernel is not normalized (i.e., its sum significantly deviates from 1.0). This helps users understand when convolution operations may affect the overall magnitude of the output."
+msgstr "Si vrai, un avertissement sera émis lorsqu'un noyau de convolution n'est pas normalisé (c'est-à-dire que sa somme s'écarte significativement de 1.0). Cela aide les utilisateurs à comprendre quand les opérations de convolution peuvent affecter la magnitude globale de la sortie."
 
 msgid ""
 "List of supported image I/O formats. Each format is a tuple of\n"
@@ -231,13 +237,16 @@ msgstr "Type de données"
 msgid "Coefficients"
 msgstr "Coefficients"
 
-msgid "a"
+#, fuzzy
+msgid "A"
 msgstr "a"
 
-msgid "b"
+#, fuzzy
+msgid "B"
 msgstr "b"
 
-msgid "c"
+#, fuzzy
+msgid "C"
 msgstr "c"
 
 msgid "x<sub>0</sub>"
@@ -430,15 +439,6 @@ msgstr "Unité Y"
 msgid "Temperature"
 msgstr "Température"
 
-msgid "Offset"
-msgstr "Décalage"
-
-msgid "Frequency"
-msgstr "Fréquence"
-
-msgid "Phase"
-msgstr "Phase"
-
 msgid "Initial phase"
 msgstr "Phase initiale"
 
@@ -451,9 +451,6 @@ msgstr "Décalage vertical"
 msgid "Initial frequency (Hz)"
 msgstr "Fréquence intiale (Hz)"
 
-msgid "Exponent"
-msgstr "Exposant"
-
 msgid "Horizontal offset"
 msgstr "Décalage horizontal"
 
@@ -462,6 +459,9 @@ msgstr "Taux de croissance ou de décroissance"
 
 msgid "Start"
 msgstr "Démarrer"
+
+msgid "Offset"
+msgstr "Décalage"
 
 msgid "End"
 msgstr "Fin"
@@ -487,11 +487,20 @@ msgstr "Instant de début de montée"
 msgid "Total rise time"
 msgstr "Temps de montée total"
 
+msgid "Step pulse with noise"
+msgstr "Impulsion échelon avec bruit"
+
+msgid "Square pulse with noise"
+msgstr "Impulsion carrée avec bruit"
+
 msgid "Full Width at Half Maximum"
 msgstr "Largeur à mi-hauteur"
 
 msgid "Total fall time"
 msgstr "Temps de descente total"
+
+msgid "Custom signal"
+msgstr "Signal personnalisé"
 
 msgid "Data and metadata"
 msgstr "Données et métadonnées"
@@ -504,6 +513,9 @@ msgstr "Coordonnée du premier point"
 
 msgid "Last point coordinate"
 msgstr "Coordonnée du dernier point"
+
+msgid "Arithmetic"
+msgstr "Arithmétique"
 
 msgid "Operator"
 msgstr "Opérateur"
@@ -523,6 +535,9 @@ msgstr "Convertir vers le type de données de `obj1`"
 msgid "Result"
 msgstr "Résultat"
 
+msgid "Gaussian filter"
+msgstr "Filtre gaussien"
+
 msgid "Standard deviation of the Gaussian filter"
 msgstr "Ecart-type du filtre gaussien"
 
@@ -541,11 +556,20 @@ msgstr ""
 "- 'mirror' : Réfléchir les données à la frontière avec les données elles-mêmes\n"
 "- 'wrap' : Frontière circulaire"
 
+msgid "Moving average"
+msgstr "Moyenne mobile"
+
 msgid "Size of the moving window"
 msgstr "Taille de la fenêtre glissante"
 
 msgid "Mode"
 msgstr "Mode"
+
+msgid "Moving median"
+msgstr "Médiane mobile"
+
+msgid "Clip"
+msgstr "Ecrêtage"
 
 msgid "Lower clipping value"
 msgstr "Borne inférieure d'écrêtage"
@@ -553,8 +577,14 @@ msgstr "Borne inférieure d'écrêtage"
 msgid "Upper clipping value"
 msgstr "Borne supérieure d'écrêtage"
 
+msgid "Normalize"
+msgstr "Normaliser"
+
 msgid "Normalize with respect to"
 msgstr "Normaliser par rapport à"
+
+msgid "Histogram"
+msgstr "Histogramme"
 
 msgid "Number of bins"
 msgstr "Nombre de classes"
@@ -565,11 +595,17 @@ msgstr "Limite inférieure"
 msgid "Upper limit"
 msgstr "Limite supérieure"
 
+msgid "FFT"
+msgstr "FFT"
+
 msgid "Shift"
 msgstr "Décalage"
 
 msgid "Shift zero frequency to center"
 msgstr "Décaler la fréquence nulle au centre"
+
+msgid "Spectrum"
+msgstr "Spectre"
 
 msgid "Output in decibel (dB)"
 msgstr "Sortie en décibels (dB)"
@@ -582,6 +618,9 @@ msgstr "Unité de l'angle"
 
 msgid "Unit of angle measurement"
 msgstr "Unité de mesure de l'angle"
+
+msgid "Phase"
+msgstr "Phase"
 
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"
@@ -964,6 +1003,9 @@ msgstr "Valeur absolue"
 msgid "How to return the inverse FFT result"
 msgstr "Comment retourner le résultat de la FFT inverse"
 
+msgid "Frequency"
+msgstr "Fréquence"
+
 msgid "cval"
 msgstr "cval"
 
@@ -1141,6 +1183,9 @@ msgstr "Supérieur à"
 msgid "Less than"
 msgstr "Inférieur à"
 
+msgid "Pulse features"
+msgstr "Caractéristiques"
+
 msgid "Signal shape"
 msgstr "Forme du signal"
 
@@ -1193,9 +1238,6 @@ msgstr "25% - 75% (alternative)"
 msgid "Reference levels for rise/fall time measurement. 10%-90% is the IEEE standard for digital signal analysis."
 msgstr "Niveaux de référence pour la mesure du temps de montée/descente. 10%-90% est la norme IEEE pour l'analyse des signaux numériques."
 
-msgid "Pulse features"
-msgstr "Caractéristiques"
-
 msgid "Sampling rate and period"
 msgstr "Taux d'échantillonnage et période"
 
@@ -1205,8 +1247,14 @@ msgstr "Contraste"
 msgid "X at min/max"
 msgstr "X à min/max"
 
+msgid "Peak detection"
+msgstr "Détection de pics"
+
 msgid "Minimum distance"
 msgstr "Distance minimale"
+
+msgid "FWHM"
+msgstr "FWHM"
 
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
@@ -1235,6 +1283,9 @@ msgstr "Abscisse"
 msgid "Signal statistics"
 msgstr "Statistiques du signal"
 
+msgid "Dynamic parameters"
+msgstr "Paramètres dynamiques"
+
 msgid "Full scale"
 msgstr "Pleine échelle"
 
@@ -1247,8 +1298,8 @@ msgstr "Nombre d'harmoniques"
 msgid "Number of harmonics to consider for THD"
 msgstr "Nombre d'harmoniques à considérer pour le THD"
 
-msgid "Dynamic parameters"
-msgstr "Paramètres dynamiques"
+msgid "Filter"
+msgstr "Filtre"
 
 msgid "Filter method"
 msgstr "Méthode de filtrage"
@@ -1277,6 +1328,9 @@ msgstr "Nombre minimum de points FFT"
 msgid "Cutoff frequency"
 msgstr "Fréquence de coupure"
 
+msgid "Polynomial fit"
+msgstr "Ajustement polynomial"
+
 msgid "Degree"
 msgstr "Degré"
 
@@ -1292,6 +1346,9 @@ msgstr "Où ajouter le complément de zéros"
 msgid "Number of points to add"
 msgstr "Nombre de points à ajouter"
 
+msgid "Convert data type"
+msgstr "Convertir le type de données"
+
 msgid "Power"
 msgstr "Puissance"
 
@@ -1304,6 +1361,9 @@ msgstr "x"
 msgid "y"
 msgstr "y"
 
+msgid "Interpolation"
+msgstr "Interpolation"
+
 msgid "Value to use for points outside the interpolation domain (used only with linear, cubic and pchip methods)."
 msgstr "Valeur à utiliser pour les points en dehors du domaine d'interpolation (utilisé uniquement avec les méthodes linéaire, cubique et pchip)."
 
@@ -1313,8 +1373,17 @@ msgstr "X<sub>min</sub>"
 msgid "X<sub>max</sub>"
 msgstr "X<sub>max</sub>"
 
+msgid "Calibration"
+msgstr "Étalonnage"
+
+msgid "Detrending"
+msgstr "Élimination de tendance"
+
 msgid "Detrending method"
-msgstr "Méthode d'élimation de la tendance"
+msgstr "Méthode d'élimination de tendance"
+
+msgid "Windowing"
+msgstr "Fenêtrage"
 
 msgid "Shape parameter of the Tukey windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage de Tukey"
@@ -1324,6 +1393,9 @@ msgstr "Paramètre de forme de la fonction de fenêtrage de Kaiser"
 
 msgid "Shape parameter of the Gaussian windowing function"
 msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
+
+msgid "Allan variance"
+msgstr "Variance d'Allan"
 
 msgid "Size"
 msgstr "Taille"
