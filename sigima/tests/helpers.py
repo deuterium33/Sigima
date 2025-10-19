@@ -469,11 +469,15 @@ def check_array_result(
     restxt = f"{title}: {__array_to_str(res)} (expected: {__array_to_str(exp)})"
     if verbose:
         execenv.print(restxt)
-    if similar:
-        assert __array_to_str(res) == __array_to_str(exp), restxt
-    else:
-        assert np.allclose(res, exp, rtol=rtol, atol=atol, equal_nan=True), restxt
-    assert res.dtype == exp.dtype, restxt
+    assert res.shape == exp.shape, f"{restxt} - Different shapes"
+    try:
+        if similar:
+            assert __array_to_str(res) == __array_to_str(exp), restxt
+        else:
+            assert np.allclose(res, exp, rtol=rtol, atol=atol, equal_nan=True), restxt
+    except AssertionError as exc:
+        raise AssertionError(restxt) from exc
+    assert res.dtype == exp.dtype, f"{restxt} - Different dtypes"
 
 
 def check_scalar_result(
