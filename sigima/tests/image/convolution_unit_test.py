@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import numpy as np
 import pytest
 import scipy.signal as sps
@@ -17,9 +19,9 @@ from sigima.tests.helpers import check_array_result
 from sigima.tools.image import deconvolve
 
 
-@pytest.fixture
+@contextmanager
 def disable_kernel_normalization():
-    """Temporarily disable kernel normalization for tests."""
+    """Context manager to temporarily disable kernel normalization."""
     # Save current values
     original_auto_normalize = sigima_options.auto_normalize_kernel.get()
     original_warn = sigima_options.warn_unnormalized_kernel.get()
@@ -28,11 +30,12 @@ def disable_kernel_normalization():
     sigima_options.auto_normalize_kernel.set(False)
     sigima_options.warn_unnormalized_kernel.set(False)
 
-    yield
-
-    # Restore original values
-    sigima_options.auto_normalize_kernel.set(original_auto_normalize)
-    sigima_options.warn_unnormalized_kernel.set(original_warn)
+    try:
+        yield
+    finally:
+        # Restore original values
+        sigima_options.auto_normalize_kernel.set(original_auto_normalize)
+        sigima_options.warn_unnormalized_kernel.set(original_warn)
 
 
 def _generate_rectangle_image(title: str = "Rectangle", size: int = 32) -> ImageObj:
@@ -103,59 +106,61 @@ def __convolve_image(kernel: ImageObj, size: int = 32) -> tuple[ImageObj, ImageO
 
 
 @pytest.mark.validation
-def test_image_convolution(disable_kernel_normalization, size: int = 32) -> None:
+def test_image_convolution(size: int = 32) -> None:
     """Validation test for the image convolution processing.
 
     Note: This test disables kernel normalization to compare against raw scipy results.
     """
-    # Test with a Gaussian kernel.
-    kernel = _generate_gaussian_kernel(size=size, sigma=1.0)
-    original, convolved = __convolve_image(kernel, size=size)
-    exp = sps.convolve(original.data, kernel.data, mode="same", method="auto")
-    check_array_result("Convolution", convolved.data, exp)
-    guiutils.view_images_side_by_side_if_gui(
-        [original, kernel, convolved],
-        ["Original", "Kernel", "Convolved"],
-        title="Image Convolution Test: Gaussian Kernel",
-    )
-    # Test with an identity kernel.
-    kernel = _generate_identity_kernel(size=7)
-    original, convolved = __convolve_image(kernel, size=size)
-    # check_array_result("Convolution identity", convolved.data, original.data)
-    guiutils.view_images_side_by_side_if_gui(
-        [original, kernel, convolved],
-        ["Original", "Kernel", "Convolved"],
-        title="Image Convolution Test: Identity Kernel",
-    )
+    with disable_kernel_normalization():
+        # Test with a Gaussian kernel.
+        kernel = _generate_gaussian_kernel(size=size, sigma=1.0)
+        original, convolved = __convolve_image(kernel, size=size)
+        exp = sps.convolve(original.data, kernel.data, mode="same", method="auto")
+        check_array_result("Convolution", convolved.data, exp)
+        guiutils.view_images_side_by_side_if_gui(
+            [original, kernel, convolved],
+            ["Original", "Kernel", "Convolved"],
+            title="Image Convolution Test: Gaussian Kernel",
+        )
+        # Test with an identity kernel.
+        kernel = _generate_identity_kernel(size=7)
+        original, convolved = __convolve_image(kernel, size=size)
+        # check_array_result("Convolution identity", convolved.data, original.data)
+        guiutils.view_images_side_by_side_if_gui(
+            [original, kernel, convolved],
+            ["Original", "Kernel", "Convolved"],
+            title="Image Convolution Test: Identity Kernel",
+        )
 
 
 @pytest.mark.validation
-def test_image_deconvolution(disable_kernel_normalization, size: int = 32) -> None:
+def test_image_deconvolution(size: int = 32) -> None:
     """Validation test for image deconvolution.
 
     Note: This test disables kernel normalization to compare against expected results.
     """
-    # Test with an identity kernel.
-    kernel = _generate_identity_kernel(size=31)
-    original, convolved = __convolve_image(kernel, size=size)
-    deconvolved = deconvolution(convolved, kernel)
-    guiutils.view_images_side_by_side_if_gui(
-        [original, kernel, convolved, deconvolved],
-        ["Original", "Kernel", "Convolved", "Deconvolved"],
-        title="Image Deconvolution Test: Identity Kernel",
-    )
-    check_array_result("Deconvolution identity", deconvolved.data, original.data)
+    with disable_kernel_normalization():
+        # Test with an identity kernel.
+        kernel = _generate_identity_kernel(size=31)
+        original, convolved = __convolve_image(kernel, size=size)
+        deconvolved = deconvolution(convolved, kernel)
+        guiutils.view_images_side_by_side_if_gui(
+            [original, kernel, convolved, deconvolved],
+            ["Original", "Kernel", "Convolved", "Deconvolved"],
+            title="Image Deconvolution Test: Identity Kernel",
+        )
+        check_array_result("Deconvolution identity", deconvolved.data, original.data)
 
-    # # Test with a Gaussian kernel.
-    kernel = _generate_gaussian_kernel(size=31, sigma=1.0)
-    original, convolved = __convolve_image(kernel, size=64)
-    deconvolved = deconvolution(convolved, kernel)
-    # check_array_result("Deconvolution Gaussian", deconvolved.data, original.data)
-    guiutils.view_images_side_by_side_if_gui(
-        [original, kernel, convolved, deconvolved],
-        ["Original", "Kernel", "Convolved", "Deconvolved"],
-        title="Image Deconvolution Test: Gaussian Kernel",
-    )
+        # # Test with a Gaussian kernel.
+        kernel = _generate_gaussian_kernel(size=31, sigma=1.0)
+        original, convolved = __convolve_image(kernel, size=64)
+        deconvolved = deconvolution(convolved, kernel)
+        # check_array_result("Deconvolution Gaussian", deconvolved.data, original.data)
+        guiutils.view_images_side_by_side_if_gui(
+            [original, kernel, convolved, deconvolved],
+            ["Original", "Kernel", "Convolved", "Deconvolved"],
+            title="Image Deconvolution Test: Gaussian Kernel",
+        )
 
 
 def test_tools_image_deconvolve_null_kernel() -> None:
