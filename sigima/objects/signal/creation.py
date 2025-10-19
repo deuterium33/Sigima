@@ -355,7 +355,7 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
         """Generate a title based on current parameters."""
         assert isinstance(self.STYPE, SignalTypes)
         return (
-            f"{self.STYPE.name.lower()}(a={self.a:.3g},σ={self.sigma:.3g},"
+            f"{self.STYPE.name.lower()}(A={self.a:.3g},σ={self.sigma:.3g},"
             f"μ={self.mu:.3g},y0={self.y0:.3g})"
         )
 
@@ -501,7 +501,12 @@ class BaseGaussLorentzVoigtParam(NewSignalParam):
         raise ValueError("Edge must be 'rise' or 'fall'")
 
 
-class GaussParam(BaseGaussLorentzVoigtParam, title=_("Gaussian")):
+class GaussParam(
+    BaseGaussLorentzVoigtParam,
+    title=_("Gaussian"),
+    comment="y = y<sub>0</sub> + "
+    "A/(σ √(2π)) exp(-((x - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))",
+):
     """Parameters for Gaussian function."""
 
     STYPE = SignalTypes.GAUSS
@@ -510,7 +515,11 @@ class GaussParam(BaseGaussLorentzVoigtParam, title=_("Gaussian")):
 register_signal_parameters_class(SignalTypes.GAUSS, GaussParam)
 
 
-class LorentzParam(BaseGaussLorentzVoigtParam, title=_("Lorentzian")):
+class LorentzParam(
+    BaseGaussLorentzVoigtParam,
+    title=_("Lorentzian"),
+    comment="y = y<sub>0</sub> + A/(π σ (1 + ((x - μ)/σ)<sup>2</sup>))",
+):
     """Parameters for Lorentzian function."""
 
     STYPE = SignalTypes.LORENTZ
@@ -519,7 +528,13 @@ class LorentzParam(BaseGaussLorentzVoigtParam, title=_("Lorentzian")):
 register_signal_parameters_class(SignalTypes.LORENTZ, LorentzParam)
 
 
-class VoigtParam(BaseGaussLorentzVoigtParam, title=_("Voigt")):
+class VoigtParam(
+    BaseGaussLorentzVoigtParam,
+    title=_("Voigt"),
+    comment="y = y<sub>0</sub> + "
+    "A Re[exp(-z<sup>2</sup>) erfc(-j z)] / (σ √(2π)), "
+    "with z = (x - μ - j σ) / (σ √2)",
+):
     """Parameters for Voigt function."""
 
     STYPE = SignalTypes.VOIGT
@@ -618,13 +633,13 @@ class BasePeriodicParam(NewSignalParam):
     # Redefining some parameters with more appropriate defaults
     xunit = gds.StringItem(_("X unit"), default="s")
 
-    a = gds.FloatItem(_("Amplitude"), default=1.0)
-    offset = gds.FloatItem(_("Offset"), default=0.0).set_pos(col=1)
-    freq = gds.FloatItem(_("Frequency"), default=1.0)
+    a = gds.FloatItem("A", default=1.0)
+    offset = gds.FloatItem("y<sub>0</sub>", default=0.0).set_pos(col=1)
+    freq = gds.FloatItem("f", default=1.0)
     freq_unit = gds.ChoiceItem(_("Unit"), FreqUnits, default=FreqUnits.HZ).set_pos(
         col=1
     )
-    phase = gds.FloatItem(_("Phase"), default=0.0, unit="°")
+    phase = gds.FloatItem("φ", default=0.0, unit="°")
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -632,7 +647,7 @@ class BasePeriodicParam(NewSignalParam):
         freq_hz = self.get_frequency_in_hz()
         title = (
             f"{self.STYPE.name.lower()}(f={freq_hz:.3g}Hz,"
-            f"a={self.a:.3g},offset={self.offset:.3g},phase={self.phase:.3g}°)"
+            f"A={self.a:.3g},y0={self.offset:.3g},φ={self.phase:.3g}°)"
         )
         return title
 
@@ -656,7 +671,9 @@ class BasePeriodicParam(NewSignalParam):
         return x, y
 
 
-class SineParam(BasePeriodicParam, title=_("Sine")):
+class SineParam(
+    BasePeriodicParam, title=_("Sine"), comment="y = y<sub>0</sub> + A sin(2π f x + φ)"
+):
     """Parameters for sine function."""
 
     STYPE = SignalTypes.SINE
@@ -665,7 +682,11 @@ class SineParam(BasePeriodicParam, title=_("Sine")):
 register_signal_parameters_class(SignalTypes.SINE, SineParam)
 
 
-class CosineParam(BasePeriodicParam, title=_("Cosine")):
+class CosineParam(
+    BasePeriodicParam,
+    title=_("Cosine"),
+    comment="y = y<sub>0</sub> + A cos(2π f x + φ)",
+):
     """Parameters for cosine function."""
 
     STYPE = SignalTypes.COSINE
@@ -674,7 +695,11 @@ class CosineParam(BasePeriodicParam, title=_("Cosine")):
 register_signal_parameters_class(SignalTypes.COSINE, CosineParam)
 
 
-class SawtoothParam(BasePeriodicParam, title=_("Sawtooth")):
+class SawtoothParam(
+    BasePeriodicParam,
+    title=_("Sawtooth"),
+    comment="y = y<sub>0</sub> + A (2 (f x + φ/(2π) - |f x + φ/(2π) + 1/2|))",
+):
     """Parameters for sawtooth function."""
 
     STYPE = SignalTypes.SAWTOOTH
@@ -683,7 +708,11 @@ class SawtoothParam(BasePeriodicParam, title=_("Sawtooth")):
 register_signal_parameters_class(SignalTypes.SAWTOOTH, SawtoothParam)
 
 
-class TriangleParam(BasePeriodicParam, title=_("Triangle")):
+class TriangleParam(
+    BasePeriodicParam,
+    title=_("Triangle"),
+    comment="y = y<sub>0</sub> + A sawtooth(2π f x + φ, width=0.5)",
+):
     """Parameters for triangle function."""
 
     STYPE = SignalTypes.TRIANGLE
@@ -692,7 +721,11 @@ class TriangleParam(BasePeriodicParam, title=_("Triangle")):
 register_signal_parameters_class(SignalTypes.TRIANGLE, TriangleParam)
 
 
-class SquareParam(BasePeriodicParam, title=_("Square")):
+class SquareParam(
+    BasePeriodicParam,
+    title=_("Square"),
+    comment="y = y<sub>0</sub> + A sgn(sin(2π f x + φ))",
+):
     """Parameters for square function."""
 
     STYPE = SignalTypes.SQUARE
@@ -701,7 +734,11 @@ class SquareParam(BasePeriodicParam, title=_("Square")):
 register_signal_parameters_class(SignalTypes.SQUARE, SquareParam)
 
 
-class SincParam(BasePeriodicParam, title=_("Cardinal sine")):
+class SincParam(
+    BasePeriodicParam,
+    title=_("Cardinal sine"),
+    comment="y = y<sub>0</sub> + A sinc(f x + φ)",
+):
     """Parameters for cardinal sine function."""
 
     STYPE = SignalTypes.SINC
@@ -718,7 +755,7 @@ class LinearChirpParam(
 ):
     """Linear chirp function."""
 
-    a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    a = gds.FloatItem("A", default=1.0, help=_("Amplitude"))
     phi0 = gds.FloatItem(
         "φ<sub>0</sub>", default=0.0, help=_("Initial phase")
     ).set_prop("display", col=1)
@@ -735,11 +772,11 @@ class LinearChirpParam(
             Title string.
         """
         return (
-            f"chirp(a={self.a:.3g},"
+            f"chirp(A={self.a:.3g},"
             f"k={self.k:.3g},"
             f"f0={self.f0:.3g},"
-            f"phi0={self.phi0:.3g},"
-            f"ymin={self.offset:.3g})"
+            f"φ0={self.phi0:.3g},"
+            f"y0={self.offset:.3g})"
         )
 
     @classmethod
@@ -807,16 +844,18 @@ class StepParam(NewSignalParam, title=_("Step")):
 register_signal_parameters_class(SignalTypes.STEP, StepParam)
 
 
-class ExponentialParam(NewSignalParam, title=_("Exponential")):
+class ExponentialParam(
+    NewSignalParam, title=_("Exponential"), comment="y = A exp(B x) + y<sub>0</sub>"
+):
     """Parameters for exponential function."""
 
     a = gds.FloatItem("A", default=1.0)
-    offset = gds.FloatItem(_("Offset"), default=0.0)
-    exponent = gds.FloatItem(_("Exponent"), default=1.0)
+    offset = gds.FloatItem("y<sub>0</sub>", default=0.0)
+    exponent = gds.FloatItem("B", default=1.0)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
-        return f"exponential(a={self.a:.3g},k={self.exponent:.3g},y0={self.offset:.3g})"
+        return f"exponential(A={self.a:.3g},B={self.exponent:.3g},y0={self.offset:.3g})"
 
     def generate_1d_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Compute 1D data based on current parameters.
@@ -835,11 +874,11 @@ register_signal_parameters_class(SignalTypes.EXPONENTIAL, ExponentialParam)
 class LogisticParam(
     NewSignalParam,
     title=_("Logistic"),
-    comment="y = y<sub>0</sub> + a / (1 + exp(-k (x - x<sub>0</sub>)))",
+    comment="y = y<sub>0</sub> + A / (1 + exp(-k (x - x<sub>0</sub>)))",
 ):
     """Logistic function."""
 
-    a = gds.FloatItem("a", default=1.0, help=_("Amplitude"))
+    a = gds.FloatItem("A", default=1.0, help=_("Amplitude"))
     x0 = gds.FloatItem(
         "x<sub>0</sub>", default=0.0, help=_("Horizontal offset")
     ).set_prop("display", col=1)
@@ -855,10 +894,10 @@ class LogisticParam(
             Title string.
         """
         return (
-            f"logistic(a={self.a:.3g},"
+            f"logistic(A={self.a:.3g},"
             f"k={self.k:.3g},"
             f"x0={self.x0:.3g},"
-            f"ymin={self.offset:.3g})"
+            f"y0={self.offset:.3g})"
         )
 
     @classmethod
