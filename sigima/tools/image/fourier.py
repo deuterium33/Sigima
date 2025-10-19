@@ -25,7 +25,7 @@ import warnings
 import numpy as np
 import scipy.signal as sps
 
-from sigima.tools.checks import check_2d_array, normalize_kernel_with_warning
+from sigima.tools.checks import check_2d_array, normalize_kernel
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
 
@@ -151,21 +151,18 @@ def gaussian_freq_filter(
 def convolve(
     data: np.ndarray,
     kernel: np.ndarray,
-    normalize_kernel: bool = True,
-    warn_unnormalized: bool = True,
+    normalize_kernel_flag: bool = True,
 ) -> np.ndarray:
     """
     Perform 2D convolution with a kernel using scipy.signal.convolve.
 
-    This function adds optional kernel normalization and warning capabilities
-    to the standard scipy convolution.
+    This function adds optional kernel normalization to the standard scipy convolution.
 
     Args:
         data: Input image (2D array).
         kernel: Convolution kernel.
-        normalize_kernel: If True, normalize kernel so that ``kernel.sum() == 1``
+        normalize_kernel_flag: If True, normalize kernel so that ``kernel.sum() == 1``
             to preserve image brightness.
-        warn_unnormalized: If True, warn when kernel is not normalized (sum != 1.0).
 
     Returns:
         Convolved image (same shape as input).
@@ -176,10 +173,9 @@ def convolve(
     if kernel.size == 0 or not np.any(kernel):
         raise ValueError("Convolution kernel cannot be null.")
 
-    # Check if kernel is unnormalized and warn if requested
-    kernel = normalize_kernel_with_warning(
-        kernel, normalize_kernel, warn_unnormalized, context="image brightness"
-    )
+    # Optionally normalize the kernel
+    if normalize_kernel_flag:
+        kernel = normalize_kernel(kernel)
 
     # Use scipy.signal.convolve with 'same' mode to preserve image size
     return sps.convolve(data, kernel, mode="same", method="auto")
@@ -191,8 +187,7 @@ def deconvolve(
     kernel: np.ndarray,
     reg: float = 0.0,
     boundary: str = "edge",
-    normalize_kernel: bool = True,
-    warn_unnormalized: bool = True,
+    normalize_kernel_flag: bool = True,
 ) -> np.ndarray:
     """
     Perform 2D FFT deconvolution with correct 'same' geometry (no shift).
@@ -207,9 +202,8 @@ def deconvolve(
          ``H* / (|H|^2 + reg))``.
         boundary: Padding mode ('edge' for constant plateau,
          'reflect' for symmetric mirror).
-        normalize_kernel: If True, normalize kernel so that ``kernel.sum() == 1``
+        normalize_kernel_flag: If True, normalize kernel so that ``kernel.sum() == 1``
             to preserve image brightness.
-        warn_unnormalized: If True, warn when kernel is not normalized (sum != 1.0).
 
     Returns:
         Deconvolved image (same shape as input).
@@ -220,10 +214,9 @@ def deconvolve(
     if kernel.size == 0 or not np.any(kernel):
         raise ValueError("Deconvolution kernel cannot be null.")
 
-    # Check if kernel is unnormalized and warn if requested
-    kernel = normalize_kernel_with_warning(
-        kernel, normalize_kernel, warn_unnormalized, context="image brightness"
-    )
+    # Optionally normalize the kernel
+    if normalize_kernel_flag:
+        kernel = normalize_kernel(kernel)
 
     H, W = data.shape
     kh, kw = kernel.shape

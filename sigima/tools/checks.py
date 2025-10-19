@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable
@@ -270,54 +269,22 @@ def check_2d_array(
     return decorator
 
 
-def normalize_kernel_with_warning(
-    kernel: np.ndarray,
-    normalize_kernel: bool,
-    warn_unnormalized: bool,
-    context: str = "data",
-) -> np.ndarray:
-    """Check and optionally normalize a convolution/deconvolution kernel.
+def normalize_kernel(kernel: np.ndarray) -> np.ndarray:
+    """Normalize a convolution/deconvolution kernel if requested.
 
-    This utility function checks if a kernel is normalized (sum ≈ 1.0) and
-    can optionally normalize it and/or issue warnings based on the provided flags.
+    This utility function can optionally normalize the kernel to sum to 1.0.
 
     Args:
-        kernel: The kernel array to check and potentially normalize.
-        normalize_kernel: If True, the kernel will be normalized automatically.
-        warn_unnormalized: If True, issue a warning when the kernel is not normalized.
-        context: Context string for warning messages (e.g., "signal amplitude",
-            "image brightness").
+        kernel: The kernel array to potentially normalize.
 
     Returns:
-        The normalized kernel if normalize_kernel is True, otherwise the
-        original kernel.
+        The normalized kernel if it's not already normalized and if its sum is not
+        zero, otherwise the original kernel.
 
     Note:
         A kernel is considered unnormalized if |sum(kernel) - 1.0| > 0.01.
     """
     kernel_sum = np.sum(kernel)
-    threshold = 0.01
-    is_unnormalized = abs(kernel_sum - 1.0) > threshold
-
-    if is_unnormalized and warn_unnormalized:
-        if normalize_kernel:
-            warnings.warn(
-                f"Kernel is not normalized (sum={kernel_sum:.6f}). "
-                "The kernel will be automatically normalized.",
-                UserWarning,
-                stacklevel=3,
-            )
-        else:
-            warnings.warn(
-                f"Kernel is not normalized (sum={kernel_sum:.6f}). "
-                f"This may affect {context}. "
-                "Set normalize_kernel=True to auto-normalize or disable this warning "
-                "with warn_unnormalized=False.",
-                UserWarning,
-                stacklevel=3,
-            )
-
-    if normalize_kernel and is_unnormalized:
+    if not np.isclose(kernel_sum, 1.0) and kernel_sum != 0.0:
         return kernel / kernel_sum
-
     return kernel

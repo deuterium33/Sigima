@@ -29,9 +29,10 @@ that allow you to explore the convolution results in detail.
 import numpy as np
 import scipy.signal as sps
 
+import sigima.params
 from sigima.objects import create_image, create_image_from_param
 from sigima.objects.image import Gauss2DParam, Zero2DParam
-from sigima.proc.image.mathops import convolution, deconvolution
+from sigima.proc.image import convolution, deconvolution, normalize
 from sigima.tests.vistools import view_images_side_by_side
 
 # %%
@@ -49,7 +50,8 @@ original_image = create_image("Original Rectangle", data)
 
 # Generate a Gaussian kernel
 gparam = Gauss2DParam.create(height=31, width=31, sigma=2.0)
-gaussian_kernel = create_image_from_param(gparam)
+nparam = sigima.params.NormalizeParam.create(method="area")
+gaussian_kernel = normalize(create_image_from_param(gparam), nparam)
 gaussian_kernel.title = "Gaussian Kernel (σ=2.0)"
 
 # Generate an identity kernel (impulse response)
@@ -150,7 +152,7 @@ view_images_side_by_side(
 
 # Create a Gaussian kernel with smaller sigma for better deconvolution
 gparam.sigma = 1.5
-deconv_gaussian = create_image_from_param(gparam)
+deconv_gaussian = normalize(create_image_from_param(gparam), nparam)
 deconv_gaussian.title = "Gaussian Kernel (σ=1.5)"
 
 # Convolve the original image with this kernel
@@ -182,11 +184,11 @@ view_images_side_by_side(
 
 # Create kernels with different sigma parameters
 gparam.sigma = 0.8
-small_sigma = create_image_from_param(gparam)
+small_sigma = normalize(create_image_from_param(gparam), nparam)
 gparam.sigma = 2.0
-medium_sigma = create_image_from_param(gparam)
+medium_sigma = normalize(create_image_from_param(gparam), nparam)
 gparam.sigma = 4.0
-large_sigma = create_image_from_param(gparam)
+large_sigma = normalize(create_image_from_param(gparam), nparam)
 
 # Convolve the original image with each kernel
 conv_small = convolution(original_image, small_sigma)

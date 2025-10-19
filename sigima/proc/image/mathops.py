@@ -215,19 +215,16 @@ def convolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
 
     Notes:
         The behavior of kernel normalization is controlled by the global configuration
-        options ``sigima.config.options.auto_normalize_kernel`` and
-        ``sigima.config.options.warn_unnormalized_kernel``.
+        option ``sigima.config.options.auto_normalize_kernel``.
     """
-    # Get configuration options for kernel normalization
+    # Get configuration option for kernel normalization
     normalize_kernel = sigima_options.auto_normalize_kernel.get()
-    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
 
     dst = dst_2_to_1(src, kernel, "⊛")
     dst.data = sigima.tools.image.convolve(
         src.data,
         kernel.data,
-        normalize_kernel=normalize_kernel,
-        warn_unnormalized=warn_unnormalized,
+        normalize_kernel_flag=normalize_kernel,
     )
     restore_data_outside_roi(dst, src)
     return dst
@@ -246,19 +243,16 @@ def deconvolution(src: ImageObj, kernel: ImageObj) -> ImageObj:
 
     Notes:
         The behavior of kernel normalization is controlled by the global configuration
-        options ``sigima.config.options.auto_normalize_kernel`` and
-        ``sigima.config.options.warn_unnormalized_kernel``.
+        option ``sigima.config.options.auto_normalize_kernel``.
     """
-    # Get configuration options for kernel normalization
+    # Get configuration option for kernel normalization
     normalize_kernel = sigima_options.auto_normalize_kernel.get()
-    warn_unnormalized = sigima_options.warn_unnormalized_kernel.get()
 
     dst = dst_2_to_1(src, kernel, "⊛⁻¹")
     dst.data = sigima.tools.image.deconvolve(
         src.data,
         kernel.data,
-        normalize_kernel=normalize_kernel,
-        warn_unnormalized=warn_unnormalized,
+        normalize_kernel_flag=normalize_kernel,
     )
     restore_data_outside_roi(dst, src)
     return dst

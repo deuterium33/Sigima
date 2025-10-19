@@ -24,18 +24,15 @@ def disable_kernel_normalization():
     """Context manager to temporarily disable kernel normalization."""
     # Save current values
     original_auto_normalize = sigima_options.auto_normalize_kernel.get()
-    original_warn = sigima_options.warn_unnormalized_kernel.get()
 
     # Disable for test
     sigima_options.auto_normalize_kernel.set(False)
-    sigima_options.warn_unnormalized_kernel.set(False)
 
     try:
         yield
     finally:
         # Restore original values
         sigima_options.auto_normalize_kernel.set(original_auto_normalize)
-        sigima_options.warn_unnormalized_kernel.set(original_warn)
 
 
 def _generate_rectangle_image(title: str = "Rectangle", size: int = 32) -> ImageObj:
