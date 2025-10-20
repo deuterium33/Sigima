@@ -4,6 +4,7 @@
 
 import os
 import os.path as osp
+import re
 import shutil
 import sys
 
@@ -111,12 +112,79 @@ def patch_datalab_client_example():
     return patch_simpleremoteproxy_for_stub()
 
 
+# -- Remove execution time from gallery examples ------------------------------
+def _remove_execution_time_from_gallery(app, docname, source):
+    """
+    Remove only the last occurrence of the line containing
+    'Total running time of the script' (in various forms) from gallery pages.
+
+    Strategy:
+    - Only operate on gallery-generated pages (default prefix 'auto_examples').
+    - Find all matches with the same regex used previously.
+    - If at least one match is found, remove only the last match by slicing.
+    - Collapse excessive blank lines afterwards.
+    """
+    # Change this prefix if your gallery files live somewhere else
+    gallery_prefix = "auto_examples"
+    if not docname.startswith(gallery_prefix):
+        return
+
+    text = source[0]
+
+    # Optional: get Sphinx logger for debug info
+    try:
+        log = app.logger
+        log.info("[gallery-cleanup] processing docname=%s (len=%d)", docname, len(text))
+    except Exception:
+        log = None
+
+    # Regex that matches the execution-time line in multiple formats:
+    # - optional surrounding <div> / <p>
+    # - optional HTML bold tags (<strong> or <b>)
+    # - optional RST bold markers (** or __)
+    # - optional colon and any trailing text (the numeric time)
+    pattern = re.compile(
+        r'(?im)^\s*'                                # start of line + optional whitespace
+        r'(?:<div[^>]*>\s*)?'                       # optional surrounding div
+        r'(?:<p[^>]*>\s*)?'                         # optional surrounding p
+        r'(?:<(?:strong|b)[^>]*>\s*)?'              # optional opening HTML bold
+        r'(?:\*\*|__)?\s*'                          # optional RST bold opening
+        r'Total running time of the script'         # the exact phrase
+        r'(?:\*\*|__)?\s*'                          # optional RST bold closing
+        r'(?:</(?:strong|b)>)?'                     # optional closing HTML bold
+        r'\s*:?.*?'                                 # optional colon and the rest (time)
+        r'(?:</p>)?(?:</div>)?'                     # optional closing p/div
+        r'\s*$'                                     # trailing whitespace to end of line
+    )
+
+    # Find all matches; we will remove only the last one if any
+    matches = list(pattern.finditer(text))
+    if not matches:
+        # nothing to do
+        return
+
+    last = matches[-1]
+    start, end = last.span()
+
+    # Remove only the last matched slice
+    cleaned = text[:start] + text[end:]
+
+    # Collapse multiple consecutive blank lines to at most two
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+
+    if log:
+        log.info("[gallery-cleanup] removed last 'Total running time' occurrence in %s (start=%d end=%d)", docname, start, end)
+
+    source[0] = cleaned
+
+
 def setup(app):
     """Setup function for Sphinx."""
     app.connect("builder-inited", copy_changelog)
     app.connect("build-finished", cleanup_changelog)
     app.add_directive("options-table", OptionsTableDirective)
     app.connect("builder-inited", exclude_api_from_gettext)
+    app.connect("source-read", _remove_execution_time_from_gallery)
 
 
 # -- Project information -----------------------------------------------------
