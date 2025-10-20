@@ -282,7 +282,7 @@ def normalize_kernel(kernel: np.ndarray) -> np.ndarray:
         zero, otherwise the original kernel.
 
     Note:
-        A kernel is considered unnormalized if |sum(kernel) - 1.0| > 0.01.
+        A kernel is considered unnormalized if ``abs(sum(kernel) - 1.0) > 0.01``.
     """
     kernel_sum = np.sum(kernel)
     if not np.isclose(kernel_sum, 1.0) and kernel_sum != 0.0:
