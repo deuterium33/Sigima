@@ -30,7 +30,11 @@ from guidata.userconfig import get_config_basedir
 from packaging.version import Version
 
 from sigima.client.base import SimpleBaseProxy
-from sigima.client.utils import array_to_rpcbinary, dataset_to_json, json_to_dataset
+from sigima.client.utils import (
+    array_to_rpcbinary,
+    dataset_to_rpcjson,
+    rpcjson_to_dataset,
+)
 from sigima.objects import ImageObj, SignalObj
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
@@ -401,7 +405,7 @@ class SimpleRemoteProxy(SimpleBaseProxy):
         """
         if param is None:
             return self._datalab.calc(name)
-        return self._datalab.calc(name, dataset_to_json(param))
+        return self._datalab.calc(name, dataset_to_rpcjson(param))
 
     def get_object(
         self,
@@ -424,7 +428,7 @@ class SimpleRemoteProxy(SimpleBaseProxy):
         param_data = self._datalab.get_object(nb_id_title, panel)
         if param_data is None:
             return None
-        return json_to_dataset(param_data)
+        return rpcjson_to_dataset(param_data)
 
     def get_object_shapes(
         self,
