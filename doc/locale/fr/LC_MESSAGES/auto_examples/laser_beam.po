@@ -1,0 +1,137 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-20 18:01+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_laser_beam.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_laser_beam.py>` pour télécharger le code complet de l'exemple."
+
+msgid "Laser Beam Size Measurement Example"
+msgstr "Analyser la taille d'un faisceau laser"
+
+msgid "This example demonstrates comprehensive laser beam analysis techniques following the laser beam tutorial workflow. It shows how to load multiple laser beam images, analyze background noise with histograms, apply proper clipping, detect beam centroids, extract line and radial profiles, compute FWHM measurements, and track beam size evolution along the propagation axis."
+msgstr "Ce tutoriel présente des techniques complètes d'analyse de faisceau laser en suivant le déroulé du guide. On y montre comment charger plusieurs images de faisceau, analyser le bruit de fond avec des histogrammes, appliquer un seuillage adapté, détecter les centroïdes, extraire des profils linéaires et radiaux, calculer des mesures de FWHM et suivre l'évolution de la taille du faisceau le long de l'axe de propagation."
+
+msgid "The script demonstrates advanced optical beam characterization workflows commonly used in laser physics, beam quality assessment, and optical system design."
+msgstr "Ce script illustre des procédés avancés de caractérisation optique couramment utilisés en physique des lasers, pour qualifier un faisceau et concevoir des systèmes optiques."
+
+msgid "Importing necessary modules"
+msgstr "Importer les modules nécessaires"
+
+msgid "We start by importing all the required modules for image processing and visualization. To run this example, ensure you have all the required dependencies installed."
+msgstr "On commence par importer tous les modules nécessaires au traitement d'image et à la visualisation. Pour exécuter cet exemple, assurez-vous que toutes les dépendances requises sont installées."
+
+msgid "Load all laser beam images"
+msgstr "Charger toutes les images du faisceau laser"
+
+msgid "We load a series of laser beam images taken at different positions along the propagation axis (z-axis). The images are contained in the folder laser_beam and named following the pattern TEM00_z_*.jpg, where * is the z position in arbitrary units."
+msgstr "On charge une série d'images de faisceau laser prises à différentes positions le long de l'axe de propagation (axe z). Les images se trouvent dans le dossier laser_beam et respectent le motif TEM00_z_*.jpg, où * est la position z en unités arbitraires."
+
+msgid "Visualize the first few images"
+msgstr "Visualiser les premières images"
+
+msgid "Qt widget 1"
+msgstr "Widget Qt 1"
+
+msgid "Background noise analysis with histogram"
+msgstr "Analyser le bruit de fond avec un histogramme"
+
+msgid "To analyze the background noise characteristics of the laser beam images, we create a histogram of pixel values from the first image. This helps us identify the noise floor and determine an appropriate clipping threshold."
+msgstr "Pour analyser le bruit de fond des images du faisceau, on crée un histogramme des valeurs de pixels à partir de la première image. Cela nous aide à identifier le niveau de bruit et à fixer un seuil de seuillage adapté."
+
+msgid "Based on the histogram analysis, we determine a clipping threshold around 30-35 LSB to effectively remove background noise from all images."
+msgstr "D'après l'analyse de l'histogramme, on fixe un seuil de seuillage autour de 30-35 LSB pour supprimer efficacement le bruit de fond sur toutes les images."
+
+msgid "Background noise removal via clipping"
+msgstr "Éliminer le bruit de fond par seuillage"
+
+msgid "We set the threshold to 35 and we apply this clipping to each image in the dataset."
+msgstr "On règle le seuil à 35 et on applique ce seuillage à chaque image du jeu de données."
+
+msgid "In order to perform the clipping, we create a ClipParam object and set the minimum value to the background threshold. We then apply the clipping to each image in the dataset."
+msgstr "Pour réaliser ce seuillage, on crée un objet ClipParam et on fixe la valeur minimale au seuil du bruit de fond. On applique ensuite le traitement à chaque image du jeu de données."
+
+msgid "We can now visualize some clipped images:"
+msgstr "On peut maintenant afficher quelques images seuillées :"
+
+msgid "Compute centroids for beam center detection"
+msgstr "Calculer les centroïdes pour détecter le centre du faisceau"
+
+msgid "Next, we compute the centroid of each clipped image to determine the beam center. This is important for accurate profile extraction and FWHM measurements."
+msgstr "Ensuite, on calcule le centroïde de chaque image seuillée afin de déterminer le centre du faisceau. C'est essentiel pour extraire des profils précis et mesurer correctement la FWHM."
+
+msgid "Extract line profiles through beam centers"
+msgstr "Extraire des profils linéaires passant par le centre"
+
+msgid "We extract horizontal line profiles through the detected centroids of each clipped image. This provides insight into the beam intensity distribution along a horizontal cross-section."
+msgstr "On extrait des profils horizontaux passant par les centroïdes détectés de chaque image seuillée. Cela renseigne sur la distribution d'intensité du faisceau le long d'une coupe horizontale."
+
+msgid "Extract radial profiles around beam centers"
+msgstr "Extraire des profils radiaux autour du centre"
+
+msgid "We extract radial profiles centered on the detected centroids of each clipped image. This provides a circular intensity distribution useful for FWHM measurements."
+msgstr "On extrait des profils radiaux centrés sur les centroïdes détectés pour chaque image seuillée. On obtient ainsi une distribution d'intensité circulaire utile pour les mesures de FWHM."
+
+msgid "We can now visualize some radial profiles"
+msgstr "On peut maintenant visualiser quelques profils radiaux"
+
+msgid "Compute FWHM for radial profiles"
+msgstr "Calculer la FWHM des profils radiaux"
+
+msgid "We compute the Full Width at Half Maximum (FWHM) for each radial profile to quantify the beam size. The FWHM is a standard metric for beam width."
+msgstr "On calcule la largeur à mi-hauteur (FWHM) de chaque profil radial pour quantifier la taille du faisceau. La FWHM est un indicateur standard de la largeur du faisceau."
+
+msgid "That's done, we can now print some FWHM statistics to check our results:"
+msgstr "C'est fait, on peut maintenant afficher quelques statistiques de FWHM pour vérifier les résultats :"
+
+msgid "Everything seems fine, we can now analyze the beam size evolution along the z-axis."
+msgstr "Tout semble correct, on peut maintenant analyser l'évolution de la taille du faisceau le long de l'axe z."
+
+msgid "Analyze beam size evolution"
+msgstr "Analyser l'évolution de la taille du faisceau"
+
+msgid "Having computed the FWHM for each radial profile, we can now analyze how the beam size evolves along the propagation axis (z-axis). This is useful to extract some meaningful information from all the numbers we have obtained. We create a signal representing the beam size evolution and visualize it."
+msgstr "Après avoir calculé la FWHM pour chaque profil radial, on peut analyser comment la taille du faisceau évolue le long de l'axe de propagation (axe z). Cela permet d'extraire des informations pertinentes à partir des valeurs obtenues. On crée un signal représentant cette évolution et on le visualise."
+
+msgid "The beam evolution signal currently uses image index as the x-axis, and even if we can see the trend, it is not very informative. It would be way better to have the x-axis in mm."
+msgstr "Le signal d'évolution du faisceau utilise actuellement l'indice d'image sur l'axe x. Même si la tendance est visible, ce n'est pas très parlant ; ce serait bien mieux d'exprimer l'axe x en mm."
+
+msgid "Apply z-axis calibration"
+msgstr "Appliquer l'étalonnage de l'axe z"
+
+msgid "We apply a linear calibration to the x-axis of the beam evolution signal to convert image index to physical distance in mm. In Sigima there is the possibility to perform a linear axis calibration. We use the formula x' = 5*x + 15, where x is the image index and x' is the calibrated distance in mm."
+msgstr "On applique un étalonnage linéaire à l'axe x du signal d'évolution pour convertir l'indice d'image en distance physique en mm. Sigima permet de réaliser un étalonnage linéaire d'axe. On utilise la formule x' = 5*x + 15, où x est l'indice d'image et x' la distance calibrée en mm."
+
+msgid "Comprehensive analysis summary"
+msgstr "Résumer l'analyse complète"
+
+msgid "We summarize the key results and findings from the laser beam analysis workflow."
+msgstr "On récapitule les principaux résultats et enseignements tirés de ce flux d'analyse du faisceau laser."
+
+msgid ":download:`Download Jupyter notebook: laser_beam.ipynb <laser_beam.ipynb>`"
+msgstr ":download:`Télécharger le notebook Jupyter : laser_beam.ipynb <laser_beam.ipynb>`"
+
+msgid ":download:`Download Python source code: laser_beam.py <laser_beam.py>`"
+msgstr ":download:`Télécharger le code source Python : laser_beam.py <laser_beam.py>`"
+
+msgid ":download:`Download zipped: laser_beam.zip <laser_beam.zip>`"
+msgstr ":download:`Télécharger l'archive zip : laser_beam.zip <laser_beam.zip>`"
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr "`Galerie générée par Sphinx-Gallery <https://sphinx-gallery.github.io>`_"

@@ -1,0 +1,136 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-20 18:01+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_paracetamol.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_paracetamol.py>` pour télécharger le code complet de l'exemple."
+
+msgid "Paracetamol Spectrum Analysis Example"
+msgstr "Analyser le spectre du paracétamol"
+
+msgid "This example demonstrates advanced signal processing for spectroscopy analysis using a paracetamol spectrum. It shows how to apply noise reduction, region of interest selection, peak fitting, and detrending techniques available in Sigima. Each step builds upon the previous one to create a comprehensive analysis workflow."
+msgstr "Cet exemple présente un traitement avancé du signal pour l'analyse spectroscopique d'un spectre de paracétamol. On y montre comment appliquer une réduction de bruit, sélectionner une région d'intérêt, ajuster des pics et supprimer une tendance grâce aux fonctionnalités de Sigima. Chaque étape s'appuie sur la précédente pour construire un flux d'analyse complet."
+
+msgid "Usage:"
+msgstr "Utilisation :"
+
+msgid "python paracetamol_example.py"
+msgstr "python paracetamol_example.py"
+
+msgid "The script demonstrates spectroscopy data processing workflows commonly used in analytical chemistry and materials science applications."
+msgstr "Ce script illustre des flux de traitement de données spectroscopiques couramment utilisés en chimie analytique et en science des matériaux."
+
+msgid "Created on September 23, 2025"
+msgstr "Créé le 23 septembre 2025"
+
+msgid "@author: DataLab Platform Developers"
+msgstr "Auteur : DataLab Platform Developers"
+
+msgid "Load test signal and initial visualization"
+msgstr "Charger le signal test et visualiser l'aperçu initial"
+
+msgid "We load a sample paracetamol spectrum included in the Sigima test data. This spectrum contains characteristic absorption peaks that we will analyze using various signal processing techniques."
+msgstr "On charge un spectre de paracétamol fourni dans les données de test de Sigima. Ce spectre contient des pics d'absorption caractéristiques que l'on analyse à l'aide de différentes techniques de traitement du signal."
+
+msgid "Qt widget 1"
+msgstr "Widget Qt 1"
+
+msgid "Apply Wiener filter for noise reduction"
+msgstr "Appliquer un filtre de Wiener pour réduire le bruit"
+
+msgid "The signal is quite clean. Anyway, to illustrate the filtering capabilities of Sigima, we apply a Wiener filter to reduce any residual noise while preserving the spectral features."
+msgstr "Le signal est déjà très propre. Toutefois, pour illustrer les capacités de filtrage de Sigima, on applique un filtre de Wiener afin de réduire tout bruit résiduel tout en préservant les caractéristiques spectrales."
+
+msgid "Region of Interest (ROI) selection"
+msgstr "Sélectionner une région d'intérêt (ROI)"
+
+msgid "We fistly focus our analysis on one of the peaks of interest. To to that, we define a region of interest (ROI) around the feature we want to analyze."
+msgstr "On concentre d'abord l'analyse sur un pic d'intérêt. Pour cela, on définit une région d'intérêt (ROI) autour de la caractéristique que l'on souhaite analyser."
+
+msgid "Gaussian fit on the peak"
+msgstr "Ajuster le pic avec une gaussienne"
+
+msgid "We can now fit the peak within the selected ROI using a Gaussian model. This provides quantitative parameters such as peak position, amplitude, and width."
+msgstr "On peut maintenant ajuster le pic dans la ROI sélectionnée à l'aide d'un modèle gaussien. Cela fournit des paramètres quantitatifs tels que la position, l'amplitude et la largeur du pic."
+
+msgid "Linear detrending"
+msgstr "Supprimer la tendance linéaire"
+
+msgid "After fitting the main peak, we may want to remove any baseline drift present in the entire spectrum."
+msgstr "Après avoir ajusté le pic principal, on peut vouloir supprimer toute dérive de ligne de base présente dans l'ensemble du spectre."
+
+msgid "The detrending function of Sigima performs a linear fit on the whole signal, including the peaks. In our signal peaks take a large part of the signal itself, witch is enough for signals where the peak are symmetrically distributed around the center, with more or less the same amplitude. This is not the case here, and we cannot expect this function to work well. It is however an interesting example to illustrate how Sigima functions can be combined to perform a more advanced analysis."
+msgstr "La fonction de suppression de tendance de Sigima réalise un ajustement linéaire sur tout le signal, y compris les pics. Dans notre spectre, les pics occupent une grande partie du signal, ce qui convient aux signaux où ils sont répartis symétriquement autour du centre avec des amplitudes similaires. Ce n'est pas le cas ici et on ne peut pas s'attendre à ce que cette fonction soit performante. C'est toutefois un exemple intéressant pour montrer comment combiner les fonctions de Sigima afin de mener une analyse plus avancée."
+
+msgid "In order to visualize the limitation cited above, we apply the detrending function directly on the filtered signal. It's important to remembre that we setted a ROI on the signal to focus the analysis on the main peak. We need to remove this ROI constraint to perform the detrending on the full signal."
+msgstr "Pour illustrer la limitation mentionnée ci-dessus, on applique la fonction de suppression de tendance directement sur le signal filtré. Il est important de se souvenir que l'on avait défini une ROI afin de se concentrer sur le pic principal. On doit supprimer cette contrainte de ROI pour appliquer la suppression de tendance sur l'intégralité du signal."
+
+msgid "The comparison shows, as expected, that the detrending function does not work well on this signal. This, as explained before, is due to the alogirithm used, which performs a linear fit on the whole signal, including the peaks. This effect is clearly visible on the plot: the peaks on the left, that are higher than the ones on the right, starts after the detrending at an intensity value lower than the ones on the right, and all peaks has a baseline under the zero."
+msgstr "La comparaison montre, comme prévu, que la fonction de suppression de tendance n'est pas adaptée à ce signal. Comme expliqué plus haut, l'algorithme réalise un ajustement linéaire sur tout le signal, y compris les pics. Cet effet apparaît clairement sur la figure : les pics de gauche, plus élevés que ceux de droite, se retrouvent après la suppression de tendance avec une intensité initiale plus faible que ceux de droite, et tous les pics possèdent une ligne de base négative."
+
+msgid "Improved detrending with peak exclusion"
+msgstr "Améliorer la suppression de tendance en excluant les pics"
+
+msgid "An idea to overcome the limitation of the detrending function is suggested from the behavior of the detrended signal: we already identified the problem, which is that the linear fit is not performed on the baseline only, but also on the peaks."
+msgstr "Une idée pour contourner la limitation de la fonction de suppression de tendance vient du comportement du signal traité : on a identifié que le problème vient du fait que l'ajustement linéaire n'est pas effectué uniquement sur la ligne de base mais aussi sur les pics."
+
+msgid "To perform a better detrending, we can first thus detect the peaks and then perform a linear fit only on the non-peak regions. We reasonably expect this approach to provide a more accurate baseline estimation and a better detrended signal."
+msgstr "Pour obtenir une meilleure suppression de tendance, on peut donc détecter d'abord les pics puis ajuster une droite uniquement sur les zones sans pic. On s'attend raisonnablement à ce que cette approche fournisse une estimation de ligne de base plus précise et un signal mieux corrigé."
+
+msgid "Automatic peak detection"
+msgstr "Détecter automatiquement les pics"
+
+msgid "We can use the peak detection function of Sigima to automatically identify the peaks in the spectrum. This function analyzes the signal and returns the indices of the detected peaks."
+msgstr "On peut utiliser la fonction de détection de pics de Sigima pour identifier automatiquement les pics du spectre. Cette fonction analyse le signal et renvoie les indices des pics détectés."
+
+msgid "Multi-Gaussian fitting"
+msgstr "Ajuster plusieurs gaussiennes"
+
+msgid "We can now fit multiple Gaussian functions to the detected peaks. This allows us to characterize each peak individually and obtain parameters such as position, amplitude, and width for each peak."
+msgstr "On peut maintenant ajuster plusieurs fonctions gaussiennes sur les pics détectés. Cela permet de caractériser chaque pic individuellement et d'obtenir pour chacun la position, l'amplitude et la largeur."
+
+msgid "Defining ROI outside peaks for better detrending"
+msgstr "Définir des ROI hors pics pour améliorer la suppression de tendance"
+
+msgid "To improve the detrending, we define ROIs that exclude the detected peaks. This allows us to fit the baseline only on the non-peak regions."
+msgstr "Pour améliorer la suppression de tendance, on définit des ROI qui excluent les pics détectés. Cela permet d'ajuster la ligne de base uniquement sur les zones sans pic."
+
+msgid "We can now perform a linear fit on the signal using the defined ROIs to exclude the peaks. This will provide a more accurate baseline estimation."
+msgstr "On peut ensuite ajuster une droite sur le signal en utilisant les ROI définies pour exclure les pics. On obtient ainsi une estimation plus précise de la ligne de base."
+
+msgid "Finally, we can subtract the extended linear fit from the original filtered signal to obtain a better detrended signal. We can see that the baseline is now properly estimated, leading to a more accurate detrended signal."
+msgstr "On peut enfin soustraire l'ajustement linéaire étendu du signal filtré original pour obtenir un signal mieux débarrassé de sa tendance. On constate que la ligne de base est désormais correctement estimée, ce qui conduit à une correction plus fiable."
+
+msgid "To go futher..."
+msgstr "Pour aller plus loin..."
+
+msgid "In the last step we really improved the detrending of our signal. Anyway, several pics on the left of the signal are still not detected and the dentrending can be futher improved. We suggest you to experiment by tuning the parameters of the peak detection function and put your hands on the source code of this function to better understand how it works."
+msgstr "À la dernière étape, on a nettement amélioré la suppression de tendance du signal. Toutefois, plusieurs pics situés à gauche ne sont toujours pas détectés et la correction peut encore progresser. Nous vous invitons à expérimenter en ajustant les paramètres de la fonction de détection de pics et à explorer son code source pour mieux comprendre son fonctionnement."
+
+msgid ":download:`Download Jupyter notebook: paracetamol.ipynb <paracetamol.ipynb>`"
+msgstr ":download:`Télécharger le notebook Jupyter : paracetamol.ipynb <paracetamol.ipynb>`"
+
+msgid ":download:`Download Python source code: paracetamol.py <paracetamol.py>`"
+msgstr ":download:`Télécharger le code source Python : paracetamol.py <paracetamol.py>`"
+
+msgid ":download:`Download zipped: paracetamol.zip <paracetamol.zip>`"
+msgstr ":download:`Télécharger l'archive zip : paracetamol.zip <paracetamol.zip>`"
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr "`Galerie générée par Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
