@@ -1409,4 +1409,5 @@ def create_signal_from_param(param: NewSignalParam) -> SignalObj:
         units=(param.xunit, param.yunit),
         labels=(param.xlabel, param.ylabel),
     )
+    signal.insert_creation_param(param)
     return signal

@@ -29,6 +29,7 @@ else:
     from typing_extensions import Self
 
 ROI_KEY = "_roi_"
+CREATION_PARAM_KEY = "__creation_param_json"
 
 
 def deepcopy_metadata(
@@ -559,6 +560,26 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         """
         value = self.metadata.pop(f"orig_{attrname}", default)
         setattr(self, attrname, value)
+
+    def insert_creation_param(self, param: gds.DataSet) -> None:
+        """Insert creation parameters into metadata
+
+        Args:
+            param: creation parameters
+        """
+        # Store creation parameters in metadata for interactive editing
+        self.metadata[CREATION_PARAM_KEY] = gds.dataset_to_json(param)
+
+    def extract_creation_param(self) -> gds.DataSet | None:
+        """Extract creation parameters from metadata
+
+        Returns:
+            Creation parameters or None if not found
+        """
+        param_json = self.metadata.get(CREATION_PARAM_KEY)
+        if param_json is None:
+            return None
+        return gds.json_to_dataset(param_json)
 
 
 class BaseROIParamMeta(abc.ABCMeta, gds.DataSetMeta):
