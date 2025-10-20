@@ -277,6 +277,8 @@
                 ".",
                 "--copyright-holder",
                 "DataLab Platform Developers",
+                "--languages",
+                "fr",
             ],
             "group": {
                 "kind": "build",
