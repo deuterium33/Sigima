@@ -157,8 +157,7 @@ qt_scraper.set_qt_scraper_config(
     thumbnail_source="last", hide_toolbars=True, capture_inside_layout=True
 )
 sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
-    filename_pattern="",
-    show_memory=False,
+    filename_pattern="", min_reported_time=60, show_memory=False
 )
 
 # Patch datalab_client example to use stub server during documentation build
