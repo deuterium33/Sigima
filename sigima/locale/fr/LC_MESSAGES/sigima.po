@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-19 11:55+0200\n"
+"POT-Creation-Date: 2025-10-21 20:33+0200\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -22,9 +22,6 @@ msgstr "Si vrai, les opérations FFT appliqueront un décalage de la composante 
 
 msgid "If True, convolution kernels will be automatically normalized to sum to 1.0 before convolution. This ensures that the output signal or image has the same overall magnitude as the input when using smoothing kernels. Set to False to preserve the mathematical properties of the original kernel."
 msgstr "Si vrai, les noyaux de convolution seront automatiquement normalisés pour que leur somme soit égale à 1.0 avant la convolution. Cela garantit que le signal ou l'image de sortie a la même magnitude globale que l'entrée lors de l'utilisation de noyaux de lissage. Réglez sur Faux pour préserver les propriétés mathématiques du noyau original."
-
-msgid "If True, a warning will be issued when a convolution kernel is not normalized (i.e., its sum significantly deviates from 1.0). This helps users understand when convolution operations may affect the overall magnitude of the output."
-msgstr "Si vrai, un avertissement sera émis lorsqu'un noyau de convolution n'est pas normalisé (c'est-à-dire que sa somme s'écarte significativement de 1.0). Cela aide les utilisateurs à comprendre quand les opérations de convolution peuvent affecter la magnitude globale de la sortie."
 
 msgid ""
 "List of supported image I/O formats. Each format is a tuple of\n"
@@ -1461,3 +1458,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+
