@@ -432,7 +432,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
     ) -> None:
         """Set default values for metadata options
 
-        A metadata option is a metadata entry starting with an underscore.
+        A metadata option is a metadata entry starting with a double underscore.
         It is a way to store application-specific options in object metadata.
 
         .. note::
@@ -454,7 +454,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
     def get_metadata_options_defaults(self) -> dict[str, Any]:
         """Return default values for metadata options
 
-        A metadata option is a metadata entry starting with an underscore.
+        A metadata option is a metadata entry starting with a double underscore.
         It is a way to store application-specific options in object metadata.
 
         Returns:
@@ -465,7 +465,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
     def get_metadata_option(self, name: str, default: Any = NoDefaultOption) -> Any:
         """Return metadata option value
 
-        A metadata option is a metadata entry starting with an underscore.
+        A metadata option is a metadata entry starting with a double underscore.
         It is a way to store application-specific options in object metadata.
 
         Args:
@@ -504,7 +504,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
     ) -> None:
         """Set metadata option value
 
-        A metadata option is a metadata entry starting with an underscore.
+        A metadata option is a metadata entry starting with a double underscore.
         It is a way to store application-specific options in object metadata.
 
         Args:
@@ -520,7 +520,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
 
     def get_metadata_options(self) -> dict[str, Any]:
         """Return metadata options
-        A metadata option is a metadata entry starting with an underscore.
+        A metadata option is a metadata entry starting with a double underscore.
 
         Returns:
             Dictionary of metadata options (name: value)
