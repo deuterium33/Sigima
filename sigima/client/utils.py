@@ -50,8 +50,8 @@ def rpcbinary_to_array(binary: Binary) -> np.ndarray:
     return np.load(dbytes, allow_pickle=False)
 
 
-def dataset_to_json(param: gds.DataSet) -> list[str]:
-    """Convert guidata DataSet to JSON data.
+def dataset_to_rpcjson(param: gds.DataSet) -> list[str]:
+    """Convert guidata DataSet to XML-RPC compatible JSON data.
 
     The JSON data is a list of three elements:
 
@@ -63,7 +63,7 @@ def dataset_to_json(param: gds.DataSet) -> list[str]:
         param: guidata DataSet to convert
 
     Returns:
-        JSON data
+        XML-RPC compatible JSON data (3-element list)
     """
     writer = JSONWriter()
     param.serialize(writer)
@@ -72,11 +72,11 @@ def dataset_to_json(param: gds.DataSet) -> list[str]:
     return [klass.__module__, klass.__name__, param_json]
 
 
-def json_to_dataset(param_data: list[str]) -> gds.DataSet:
-    """Convert JSON data to guidata DataSet.
+def rpcjson_to_dataset(param_data: list[str]) -> gds.DataSet:
+    """Convert XML-RPC compatible JSON data to guidata DataSet.
 
     Args:
-        param_data: JSON data
+        param_data: XML-RPC compatible JSON data (3-element list)
 
     Returns:
         guidata DataSet
@@ -84,7 +84,7 @@ def json_to_dataset(param_data: list[str]) -> gds.DataSet:
     param_module, param_clsname, param_json = param_data
     mod = importlib.__import__(param_module, fromlist=[param_clsname])
     klass = getattr(mod, param_clsname)
-    param = klass()
+    param: gds.DataSet = klass()
     reader = JSONReader(param_json)
     param.deserialize(reader)
     return param

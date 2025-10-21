@@ -378,7 +378,7 @@ class DataLabStubServer:
             group_id: group id in which to add the object. Defaults to ""
             set_current: if True, set the added object as current
         """
-        obj: SignalObj | ImageObj = utils.json_to_dataset(obj_data)
+        obj: SignalObj | ImageObj = utils.rpcjson_to_dataset(obj_data)
         if self.verbose:
             obj_str = "signal" if isinstance(obj, SignalObj) else "image"
             obj_uuid = str(uuid.uuid4())
@@ -473,7 +473,7 @@ class DataLabStubServer:
                     return None
 
         # Use standard serialization with real objects
-        return utils.dataset_to_json(obj)
+        return utils.dataset_to_rpcjson(obj)
 
     # pylint: disable=unused-argument
     def get_object_shapes(
@@ -558,8 +558,8 @@ class DataLabStubServer:
             return None
 
         # Create a copy using serialization/deserialization
-        json_data = utils.dataset_to_json(obj)
-        new_obj: SignalObj | ImageObj = utils.json_to_dataset(json_data)
+        json_data = utils.dataset_to_rpcjson(obj)
+        new_obj: SignalObj | ImageObj = utils.rpcjson_to_dataset(json_data)
         obj_uuid = str(uuid.uuid4())
         new_obj.title = f"{obj.title} (copy)"
 
