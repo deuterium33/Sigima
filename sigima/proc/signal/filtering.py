@@ -29,7 +29,6 @@ import guidata.dataset as gds
 import numpy as np
 import scipy.ndimage as spi
 import scipy.signal as sps
-from guidata.dataset import FuncProp, FuncPropMulti, GetAttrProp
 
 from sigima.config import _
 from sigima.enums import FilterType, FrequencyFilterMethod, PadLocation1D
@@ -39,6 +38,11 @@ from sigima.objects import (
     SignalObj,
     UniformDistribution1DParam,
     create_signal_from_param,
+)
+from sigima.objects.base import (
+    NormalDistributionParam,
+    PoissonDistributionParam,
+    UniformDistributionParam,
 )
 from sigima.proc.base import GaussianParam, MovingAverageParam, MovingMedianParam
 from sigima.proc.decorator import computation_function
@@ -111,10 +115,10 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
     """Base class for high-pass, low-pass, band-pass and band-stop filters"""
 
     TYPE = FilterType.LOWPASS
-    _type_prop = GetAttrProp("TYPE")
+    _type_prop = gds.GetAttrProp("TYPE")
 
     # Must be overwriten by the child class
-    _method_prop = GetAttrProp("method")
+    _method_prop = gds.GetAttrProp("method")
     method = gds.ChoiceItem(
         _("Filter method"),
         [
@@ -140,7 +144,9 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
 
     order = gds.IntItem(_("Filter order"), default=3, min=1).set_prop(
         "display",
-        active=FuncProp(_method_prop, lambda x: x != FrequencyFilterMethod.BRICKWALL),
+        active=gds.FuncProp(
+            _method_prop, lambda x: x != FrequencyFilterMethod.BRICKWALL
+        ),
     )
     cut0 = gds.FloatItem(
         _("Low cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
@@ -149,7 +155,7 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         _("High cutoff frequency"), min=0.0, nonzero=True, unit="Hz", allow_none=True
     ).set_prop(
         "display",
-        hide=FuncProp(
+        hide=gds.FuncProp(
             _type_prop, lambda x: x in (FilterType.LOWPASS, FilterType.HIGHPASS)
         ),
     )
@@ -157,7 +163,7 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         _("Passband ripple"), min=0.0, default=1.0, nonzero=True, unit="dB"
     ).set_prop(
         "display",
-        active=FuncProp(
+        active=gds.FuncProp(
             _method_prop,
             lambda x: x
             in (FrequencyFilterMethod.CHEBYSHEV1, FrequencyFilterMethod.ELLIPTIC),
@@ -167,20 +173,22 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         _("Stopband attenuation"), min=0.0, default=60.0, nonzero=True, unit="dB"
     ).set_prop(
         "display",
-        active=FuncProp(
+        active=gds.FuncProp(
             _method_prop,
             lambda x: x
             in (FrequencyFilterMethod.CHEBYSHEV2, FrequencyFilterMethod.ELLIPTIC),
         ),
     )
 
-    _zp_prop = GetAttrProp("zero_padding")
+    _zp_prop = gds.GetAttrProp("zero_padding")
     zero_padding = gds.BoolItem(
         _("Zero padding"),
         default=True,
     ).set_prop(
         "display",
-        active=FuncProp(_method_prop, lambda x: x == FrequencyFilterMethod.BRICKWALL),
+        active=gds.FuncProp(
+            _method_prop, lambda x: x == FrequencyFilterMethod.BRICKWALL
+        ),
         store=_zp_prop,
     )
     nfft = gds.IntItem(
@@ -188,7 +196,7 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         default=0,
     ).set_prop(
         "display",
-        active=FuncPropMulti(
+        active=gds.FuncPropMulti(
             [_method_prop, _zp_prop],
             lambda x, y: x == FrequencyFilterMethod.BRICKWALL and y,
         ),
@@ -411,7 +419,7 @@ def bandstop(src: SignalObj, p: BandStopFilterParam) -> SignalObj:
 
 # Noise addition functions
 @computation_function()
-def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalObj:
+def add_gaussian_noise(src: SignalObj, p: NormalDistributionParam) -> SignalObj:
     """Add normal noise to the input signal.
 
     Args:
@@ -421,7 +429,8 @@ def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalOb
     Returns:
         Result signal object.
     """
-    param = NormalDistribution1DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param = NormalDistribution1DParam()  # Do not confuse with NormalDistributionParam
+    gds.update_dataset(param, p)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
@@ -432,7 +441,7 @@ def add_gaussian_noise(src: SignalObj, p: NormalDistribution1DParam) -> SignalOb
 
 
 @computation_function()
-def add_poisson_noise(src: SignalObj, p: PoissonDistribution1DParam) -> SignalObj:
+def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     """Add Poisson noise to the input signal.
 
     Args:
@@ -442,7 +451,8 @@ def add_poisson_noise(src: SignalObj, p: PoissonDistribution1DParam) -> SignalOb
     Returns:
         Result signal object.
     """
-    param = PoissonDistribution1DParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution1DParam()  # Do not confuse with PoissonDistributionParam
+    gds.update_dataset(param, p)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size
@@ -453,7 +463,7 @@ def add_poisson_noise(src: SignalObj, p: PoissonDistribution1DParam) -> SignalOb
 
 
 @computation_function()
-def add_uniform_noise(src: SignalObj, p: UniformDistribution1DParam) -> SignalObj:
+def add_uniform_noise(src: SignalObj, p: UniformDistributionParam) -> SignalObj:
     """Add uniform noise to the input signal.
 
     Args:
@@ -463,7 +473,8 @@ def add_uniform_noise(src: SignalObj, p: UniformDistribution1DParam) -> SignalOb
     Returns:
         Result signal object.
     """
-    param = UniformDistribution1DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param = UniformDistribution1DParam()  # Do not confuse with UniformDistributionParam
+    gds.update_dataset(param, p)
     param.xmin = src.x[0]
     param.xmax = src.x[-1]
     param.size = src.x.size

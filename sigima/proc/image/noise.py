@@ -16,6 +16,13 @@ Noise addition computation module.
 
 from __future__ import annotations
 
+import guidata.dataset as gds
+
+from sigima.objects.base import (
+    NormalDistributionParam,
+    PoissonDistributionParam,
+    UniformDistributionParam,
+)
 from sigima.objects.image import (
     ImageObj,
     NormalDistribution2DParam,
@@ -29,7 +36,7 @@ from sigima.proc.image.arithmetic import addition
 
 
 @computation_function()
-def add_gaussian_noise(src: ImageObj, p: NormalDistribution2DParam) -> ImageObj:
+def add_gaussian_noise(src: ImageObj, p: NormalDistributionParam) -> ImageObj:
     """Add Gaussian (normal) noise to the input image.
 
     Args:
@@ -39,7 +46,8 @@ def add_gaussian_noise(src: ImageObj, p: NormalDistribution2DParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = NormalDistribution2DParam.create(seed=p.seed, mu=p.mu, sigma=p.sigma)
+    param = NormalDistribution2DParam()  # Do not confuse with NormalDistributionParam
+    gds.update_dataset(param, p)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]
@@ -52,7 +60,7 @@ def add_gaussian_noise(src: ImageObj, p: NormalDistribution2DParam) -> ImageObj:
 
 
 @computation_function()
-def add_poisson_noise(src: ImageObj, p: PoissonDistribution2DParam) -> ImageObj:
+def add_poisson_noise(src: ImageObj, p: PoissonDistributionParam) -> ImageObj:
     """Add Poisson noise to the input image.
 
     Args:
@@ -62,7 +70,8 @@ def add_poisson_noise(src: ImageObj, p: PoissonDistribution2DParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = PoissonDistribution2DParam.create(seed=p.seed, lam=p.lam)
+    param = PoissonDistribution2DParam()  # Do not confuse with PoissonDistributionParam
+    gds.update_dataset(param, p)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]
@@ -75,7 +84,7 @@ def add_poisson_noise(src: ImageObj, p: PoissonDistribution2DParam) -> ImageObj:
 
 
 @computation_function()
-def add_uniform_noise(src: ImageObj, p: UniformDistribution2DParam) -> ImageObj:
+def add_uniform_noise(src: ImageObj, p: UniformDistributionParam) -> ImageObj:
     """Add uniform noise to the input image.
 
     Args:
@@ -85,7 +94,8 @@ def add_uniform_noise(src: ImageObj, p: UniformDistribution2DParam) -> ImageObj:
     Returns:
         Result image object.
     """
-    param = UniformDistribution2DParam.create(seed=p.seed, vmin=p.vmin, vmax=p.vmax)
+    param = UniformDistribution2DParam()  # Do not confuse with UniformDistributionParam
+    gds.update_dataset(param, p)
     assert src.data is not None
     shape = src.data.shape
     param.height = shape[0]
