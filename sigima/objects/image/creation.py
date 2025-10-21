@@ -515,5 +515,4 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
         # User has set a custom title, use it as-is
         title = param.title
     image = create_image(title, data)
-    image.insert_creation_param(param)
     return image
