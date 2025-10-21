@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 15:00+0200\n"
+"POT-Creation-Date: 2025-10-21 09:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -33,9 +33,6 @@ msgstr "Cet exemple démontre comment contrôler DataLab à distance en utilisan
 
 msgid "This example is not executed during documentation build as it requires an active DataLab session to connect to. It is included in the gallery for reference and can be run manually when DataLab is running."
 msgstr "Cet exemple n'est pas exécuté lors de la construction de la documentation car il nécessite une session DataLab active à laquelle se connecter. Il est inclus dans la galerie à titre de référence et peut être exécuté manuellement lorsque DataLab est en cours d'exécution."
-
-msgid "**Total running time of the script:** (0 minutes 0.660 seconds)"
-msgstr ""
 
 msgid ":download:`Download Jupyter notebook: datalab_client.ipynb <datalab_client.ipynb>`"
 msgstr ""
