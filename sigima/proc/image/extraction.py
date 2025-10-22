@@ -54,6 +54,7 @@ __all__ = [
     "average_profile",
     "extract_roi",
     "extract_rois",
+    "generate_image_grid_roi",
     "line_profile",
     "radial_profile",
     "segment_profile",

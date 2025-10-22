@@ -25,6 +25,12 @@ Measurements
 .. automodule:: sigima.proc.image.measurement
     :members:
 
+Extraction
+~~~~~~~~~~
+
+.. automodule:: sigima.proc.image.extraction
+    :members:
+
 Filtering
 ~~~~~~~~~
 
@@ -59,6 +65,12 @@ Restoration
 ~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.restoration
+    :members:
+
+Noise
+~~~~~
+
+.. automodule:: sigima.proc.image.noise
     :members:
 
 Morphology

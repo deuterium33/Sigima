@@ -58,10 +58,12 @@ __all__ = [
     "difference",
     "difference_constant",
     "division",
+    "division",
     "division_constant",
     "product",
     "product_constant",
     "quadratic_difference",
+    "standard_deviation",
 ]
 
 # MARK: compute_n_to_1 functions -------------------------------------------------------
