@@ -10,6 +10,7 @@ concurrency = multiprocessing,thread
 
 omit =
     */sigima/tests/*
+    */sigima/client/stub.py
     */guidata/*
     */plotpy/*
     */qwt/*
