@@ -44,13 +44,13 @@ if TYPE_CHECKING:
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "DenoiseTVParam",
-    "denoise_tv",
     "DenoiseBilateralParam",
-    "denoise_bilateral",
+    "DenoiseTVParam",
     "DenoiseWaveletParam",
-    "denoise_wavelet",
+    "denoise_bilateral",
     "denoise_tophat",
+    "denoise_tv",
+    "denoise_wavelet",
     "erase",
 ]
 

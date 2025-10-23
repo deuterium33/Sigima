@@ -37,8 +37,8 @@ from sigima.proc.title_formatting import get_default_title_formatter
 # all parameter classes from their canonical locations.
 __all__ = [
     "dst_1_to_1",
-    "dst_n_to_1",
     "dst_2_to_1",
+    "dst_n_to_1",
     "new_signal_result",
 ]
 

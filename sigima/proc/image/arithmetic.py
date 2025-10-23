@@ -52,16 +52,16 @@ from sigima.tools.datatypes import clip_astype
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "addition",
-    "average",
-    "product",
     "addition_constant",
-    "difference_constant",
-    "product_constant",
-    "division_constant",
     "arithmetic",
+    "average",
     "difference",
-    "quadratic_difference",
+    "difference_constant",
     "division",
+    "division_constant",
+    "product",
+    "product_constant",
+    "quadratic_difference",
 ]
 
 # MARK: compute_n_to_1 functions -------------------------------------------------------

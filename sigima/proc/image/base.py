@@ -31,10 +31,10 @@ from sigima.proc.base import dst_1_to_1, new_signal_result
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "restore_data_outside_roi",
     "Wrap1to1Func",
-    "dst_1_to_1_signal",
     "compute_geometry_from_obj",
+    "dst_1_to_1_signal",
+    "restore_data_outside_roi",
 ]
 
 

@@ -66,38 +66,32 @@ from sigima.tools.image.preprocessing import (
 # Define __all__ to specify what gets imported with
 # "from sigima.tools.image import *"
 __all__ = [
-    # Detection algorithms (detection.py)
+    "binning",
+    "convolve",
+    "deconvolve",
+    "distance_matrix",
+    "fft2d",
     "find_blobs_dog",
     "find_blobs_doh",
     "find_blobs_log",
     "find_blobs_opencv",
-    "get_2d_peaks_coords",
-    "get_contour_shapes",
-    "get_hough_circle_peaks",
-    "remove_overlapping_disks",
-    # Exposure and level adjustment (exposure.py)
     "flatfield",
-    "normalize",
-    # Data extraction and analysis (extraction.py)
-    "get_radial_profile",
-    # Fourier analysis (fourier.py)
-    "convolve",
-    "deconvolve",
-    "fft2d",
     "gaussian_freq_filter",
-    "ifft2d",
-    "magnitude_spectrum",
-    "phase_spectrum",
-    "psd",
-    # Geometric analysis and transformations (geometry.py)
+    "get_2d_peaks_coords",
+    "get_absolute_level",
     "get_centroid_auto",
     "get_centroid_fourier",
+    "get_contour_shapes",
     "get_enclosing_circle",
+    "get_hough_circle_peaks",
     "get_projected_profile_centroid",
-    # Data preprocessing and transformation (preprocessing.py)
-    "binning",
-    "distance_matrix",
-    "get_absolute_level",
+    "get_radial_profile",
+    "ifft2d",
+    "magnitude_spectrum",
+    "normalize",
+    "phase_spectrum",
+    "psd",
+    "remove_overlapping_disks",
     "scale_data_to_min_max",
     "zero_padding",
 ]

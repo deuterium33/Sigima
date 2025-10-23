@@ -45,23 +45,23 @@ from sigima.proc.image.transformations import transformer
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "TranslateParam",
-    "translate",
+    "Resampling2DParam",
+    "ResizeParam",
     "RotateParam",
+    "TranslateParam",
+    "UniformCoordsParam",
+    "XYZCalibrateParam",
+    "calibration",
+    "fliph",
+    "flipv",
+    "resampling",
+    "resize",
     "rotate",
     "rotate90",
     "rotate270",
-    "fliph",
-    "flipv",
-    "ResizeParam",
-    "resize",
-    "Resampling2DParam",
-    "resampling",
-    "transpose",
-    "UniformCoordsParam",
     "set_uniform_coords",
-    "XYZCalibrateParam",
-    "calibration",
+    "translate",
+    "transpose",
 ]
 
 

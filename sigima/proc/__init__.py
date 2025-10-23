@@ -88,9 +88,9 @@ from sigima.proc.title_formatting import (
 )
 
 __all__ = [
-    "TitleFormatter",
-    "SimpleTitleFormatter",
     "PlaceholderTitleFormatter",
+    "SimpleTitleFormatter",
+    "TitleFormatter",
     "get_default_title_formatter",
     "set_default_title_formatter",
 ]

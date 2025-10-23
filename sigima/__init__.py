@@ -30,12 +30,6 @@ the DataLab application.
 # --------------------------------------------------------------------------------------
 
 __all__ = [
-    "read_image",
-    "read_images",
-    "read_signal",
-    "read_signals",
-    "write_image",
-    "write_signal",
     "NO_ROI",
     "CircularROI",
     "ExponentialParam",
@@ -50,18 +44,20 @@ __all__ = [
     "LinearChirpParam",
     "LogisticParam",
     "LorentzParam",
-    "NormalDistribution2DParam",
     "NormalDistribution1DParam",
+    "NormalDistribution2DParam",
     "PlanckParam",
     "PolygonalROI",
-    "Ramp2DParam",
-    "RectangularROI",
     "ROI1DParam",
     "ROI2DParam",
+    "Ramp2DParam",
+    "RectangularROI",
     "SegmentROI",
     "SignalObj",
     "SignalROI",
     "SignalTypes",
+    "SimpleBaseProxy",
+    "SimpleRemoteProxy",
     "StepParam",
     "TableResult",
     "TypeObj",
@@ -76,9 +72,12 @@ __all__ = [
     "create_signal",
     "create_signal_from_param",
     "create_signal_roi",
-    # Client functionality
-    "SimpleBaseProxy",
-    "SimpleRemoteProxy",
+    "read_image",
+    "read_images",
+    "read_signal",
+    "read_signals",
+    "write_image",
+    "write_signal",
 ]
 
 

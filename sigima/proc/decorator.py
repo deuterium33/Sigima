@@ -33,9 +33,9 @@ else:
 # public API. Only utility functions should be exported from this module.
 __all__ = [
     "computation_function",
-    "is_computation_function",
-    "get_computation_metadata",
     "find_computation_functions",
+    "get_computation_metadata",
+    "is_computation_function",
 ]
 
 # Marker attribute used by @computation_function and introspection

@@ -47,20 +47,20 @@ from sigima.tools.datatypes import clip_astype
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "inverse",
-    "absolute",
-    "real",
-    "imag",
-    "log10",
-    "exp",
-    "Log10ZPlusNParam",
-    "log10_z_plus_n",
     "DataTypeIParam",
+    "Log10ZPlusNParam",
+    "absolute",
     "astype",
     "complex_from_magnitude_phase",
     "complex_from_real_imag",
     "convolution",
     "deconvolution",
+    "exp",
+    "imag",
+    "inverse",
+    "log10",
+    "log10_z_plus_n",
+    "real",
 ]
 
 

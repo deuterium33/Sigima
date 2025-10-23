@@ -48,10 +48,10 @@ from sigima.proc.image.base import Wrap1to1Func, restore_data_outside_roi
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "ButterworthParam",
-    "butterworth",
     "GaussianFreqFilterParam",
-    "gaussian_freq_filter",
+    "butterworth",
     "gaussian_filter",
+    "gaussian_freq_filter",
     "moving_average",
     "moving_median",
     "wiener",

@@ -46,17 +46,17 @@ from sigima.proc.image.base import dst_1_to_1_signal
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "extract_rois",
-    "extract_roi",
-    "ROIGridParam",
-    "LineProfileParam",
-    "line_profile",
-    "SegmentProfileParam",
-    "segment_profile",
     "AverageProfileParam",
-    "average_profile",
+    "LineProfileParam",
+    "ROIGridParam",
     "RadialProfileParam",
+    "SegmentProfileParam",
+    "average_profile",
+    "extract_roi",
+    "extract_rois",
+    "line_profile",
     "radial_profile",
+    "segment_profile",
 ]
 
 

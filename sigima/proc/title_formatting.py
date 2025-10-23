@@ -17,9 +17,9 @@ if TYPE_CHECKING:
     from sigima.objects.base import BaseObj
 
 __all__ = [
-    "TitleFormatter",
-    "SimpleTitleFormatter",
     "PlaceholderTitleFormatter",
+    "SimpleTitleFormatter",
+    "TitleFormatter",
     "get_default_title_formatter",
     "set_default_title_formatter",
 ]

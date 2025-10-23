@@ -36,12 +36,12 @@ from sigima.proc.image.base import restore_data_outside_roi
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
     "MorphologyParam",
-    "white_tophat",
     "black_tophat",
-    "erosion",
-    "dilation",
-    "opening",
     "closing",
+    "dilation",
+    "erosion",
+    "opening",
+    "white_tophat",
 ]
 
 

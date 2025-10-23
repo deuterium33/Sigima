@@ -42,19 +42,16 @@ from sigima.objects.scalar.table import (
 # Define __all__ to specify what gets imported with
 # "from sigima.objects.scalar import *"
 __all__ = [
-    # Common
     "NO_ROI",
+    "GeometryResult",
+    "KindShape",
     "ResultHtmlGenerator",
-    # Table results
     "TableKind",
     "TableResult",
     "TableResultBuilder",
     "calc_table_from_data",
-    "concat_tables",
-    "filter_table_by_roi",
-    # Geometry results
-    "GeometryResult",
-    "KindShape",
     "concat_geometries",
+    "concat_tables",
     "filter_geometry_by_roi",
+    "filter_table_by_roi",
 ]

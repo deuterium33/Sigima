@@ -39,22 +39,22 @@ from sigima.proc.image.base import compute_geometry_from_obj
 # be re-exported to avoid Sphinx cross-reference conflicts. The sigima.params module
 # serves as the central API point that imports and re-exports all parameter classes.
 __all__ = [
-    "GenericDetectionParam",
-    "Peak2DDetectionParam",
-    "peak_detection",
-    "ContourShapeParam",
-    "contour_shape",
     "BaseBlobParam",
     "BlobDOGParam",
-    "blob_dog",
     "BlobDOHParam",
-    "blob_doh",
     "BlobLOGParam",
-    "blob_log",
     "BlobOpenCVParam",
-    "blob_opencv",
+    "ContourShapeParam",
+    "GenericDetectionParam",
     "HoughCircleParam",
+    "Peak2DDetectionParam",
+    "blob_dog",
+    "blob_doh",
+    "blob_log",
+    "blob_opencv",
+    "contour_shape",
     "hough_circle_peaks",
+    "peak_detection",
 ]
 
 
