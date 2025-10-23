@@ -108,9 +108,19 @@ def test_format_basenames_with_unknown_placeholder():
         format_basenames([make_signal("x")], fmt="{unknown}")
 
 
+def test_format_basenames_with_direct_metadata_use():
+    """Test that direct {metadata} use returns empty string (silently ignored)."""
+    sig = make_signal(title="Test", metadata={"key1": "value1", "key2": "value2"})
+    names = format_basenames([sig], fmt="{title} {metadata}")
+    # The {metadata} placeholder should be replaced with empty string
+    # The trailing space gets sanitized away
+    assert names == ["Test"]
+
+
 if __name__ == "__main__":
     test_format_basenames_with_indices_and_total_count()
     test_format_basenames_with_metadata_and_axes_placeholders()
     test_format_basenames_sanitization()
     test_format_basenames_sanitization_with_custom_replacement()
     test_format_basenames_with_unknown_placeholder()
+    test_format_basenames_with_direct_metadata_use()

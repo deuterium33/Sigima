@@ -34,6 +34,9 @@ class CustomFormatter(string.Formatter):
         Raises:
             ValueError: If `format_spec` is invalid.
         """
+        # Ignore dict objects silently (metadata should only be accessed via keys)
+        if isinstance(value, dict):
+            return ""
         if isinstance(value, str):
             if format_spec.endswith("upper"):
                 value = value.upper()
@@ -57,7 +60,8 @@ def format_basenames(
         - {index}: 1-based index
         - {count}: total number of objects
         - {xlabel}, {xunit}, {ylabel}, {yunit}: axis labels/units (if present)
-        - {metadata}: metadata dictionary (use {metadata[key]} for specific keys)
+        - {metadata[key]}: specific metadata value
+          (direct {metadata} use is silently ignored)
 
     Args:
         objects: Objects to name.
@@ -73,6 +77,9 @@ def format_basenames(
     result: list[str] = []
     formatter = CustomFormatter()
     for i, obj in enumerate(objects):
+        # Note: We provide metadata dict only for {metadata[key]} access,
+        # not for direct {metadata} use (which would create overly long filenames)
+        metadata = getattr(obj, "metadata", {})
         context: dict[str, Any] = {
             "title": getattr(obj, "title", ""),
             "index": i + 1,
@@ -82,13 +89,18 @@ def format_basenames(
             "xunit": getattr(obj, "xunit", ""),
             "ylabel": getattr(obj, "ylabel", ""),
             "yunit": getattr(obj, "yunit", ""),
-            "metadata": getattr(obj, "metadata", {}),
+            "metadata": metadata,
         }
         try:
             formatted = formatter.format(fmt, **context)
-        except KeyError as e:
-            missing = str(e.args[0]) if e.args else str(e)
-            raise KeyError(f"Unknown format key in fmt: {missing!r}") from e
+        except KeyError as exc:
+            missing = str(exc.args[0]) if exc.args else str(exc)
+            raise KeyError(f"Unknown format key in fmt: {missing!r}") from exc
+        except ValueError as exc:
+            # Re-raise with more context about which object failed
+            raise ValueError(
+                f"Invalid format string '{fmt}' for object '{context['title']}': {exc}"
+            ) from exc
         # Sanitize final result to ensure it's a safe basename.
         result.append(sanitize_basename(formatted, replacement=replacement))
     return result
