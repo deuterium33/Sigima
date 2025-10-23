@@ -270,19 +270,19 @@ def check_2d_array(
 
 
 def normalize_kernel(kernel: np.ndarray) -> np.ndarray:
-    """Normalize a convolution/deconvolution kernel if requested.
+    """Normalize a convolution/deconvolution kernel if needed.
 
-    This utility function can optionally normalize the kernel to sum to 1.0.
+    This utility function can normalize the kernel to sum to 1.0.
 
     Args:
-        kernel: The kernel array to potentially normalize.
+        kernel: The kernel array to normalize.
 
     Returns:
         The normalized kernel if it's not already normalized and if its sum is not
         zero, otherwise the original kernel.
 
     Note:
-        A kernel is considered unnormalized if |sum(kernel) - 1.0| > 0.01.
+        A kernel is considered normalized if ``np.isclose(sum(kernel), 1.0)``.
     """
     kernel_sum = np.sum(kernel)
     if not np.isclose(kernel_sum, 1.0) and kernel_sum != 0.0:
