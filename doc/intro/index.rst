@@ -22,6 +22,7 @@ Getting started
    :maxdepth: 2
    :caption: Contents:
 
+   overview
    installation
    ../auto_examples/index
 ..    crash_course
