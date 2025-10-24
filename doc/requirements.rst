@@ -112,6 +112,18 @@ Optional modules for building the documentation:
     * - pydata-sphinx-theme
       - 
       - Bootstrap-based Sphinx theme from the PyData community
+    * - sphinx-gallery
+      - 
+      - A Sphinx extension that builds an HTML gallery of examples from any set of Python scripts.
+    * - qtpy
+      - 
+      - Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6).
+    * - PyQt5
+      - 
+      - Python bindings for the Qt cross platform application toolkit
+    * - plotpy
+      - 
+      - Curve and image plotting tools for Python/Qt applications
 
 Optional modules for running test suite:
 
