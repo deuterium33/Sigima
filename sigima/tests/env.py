@@ -47,9 +47,11 @@ class SigimaExecEnv:
     UNATTENDED_ARG = "unattended"
     VERBOSE_ARG = "verbose"
     SCREENSHOT_ARG = "screenshot"
+    SCREENSHOT_PATH_ARG = "screenshot_path"
     UNATTENDED_ENV = GuiDataExecEnv.UNATTENDED_ENV
     VERBOSE_ENV = GuiDataExecEnv.VERBOSE_ENV
     SCREENSHOT_ENV = GuiDataExecEnv.SCREENSHOT_ENV
+    SCREENSHOT_PATH_ENV = GuiDataExecEnv.SCREENSHOT_PATH_ENV
 
     def __init__(self):
         # Check if "pytest" is in the command line arguments:
@@ -133,6 +135,19 @@ class SigimaExecEnv:
         self.__set_mode(self.SCREENSHOT_ENV, value)
 
     @property
+    def screenshot_path(self):
+        """Get screenshot path"""
+        return os.environ.get(self.SCREENSHOT_PATH_ENV, "")
+
+    @screenshot_path.setter
+    def screenshot_path(self, value):
+        """Set screenshot path"""
+        if value:
+            os.environ[self.SCREENSHOT_PATH_ENV] = str(value)
+        elif self.SCREENSHOT_PATH_ENV in os.environ:
+            os.environ.pop(self.SCREENSHOT_PATH_ENV)
+
+    @property
     def verbose(self):
         """Get verbosity level"""
         env_val = os.environ.get(self.VERBOSE_ENV)
@@ -161,6 +176,12 @@ class SigimaExecEnv:
             default=None,
         )
         parser.add_argument(
+            "--" + self.SCREENSHOT_PATH_ARG,
+            type=str,
+            help="path to save screenshots",
+            default=None,
+        )
+        parser.add_argument(
             "--" + self.VERBOSE_ARG,
             choices=[lvl.value for lvl in VerbosityLevels],
             required=False,
@@ -172,7 +193,12 @@ class SigimaExecEnv:
 
     def set_env_from_args(self, args):
         """Set appropriate environment variables"""
-        for argname in (self.UNATTENDED_ARG, self.SCREENSHOT_ARG, self.VERBOSE_ARG):
+        for argname in (
+            self.UNATTENDED_ARG,
+            self.SCREENSHOT_ARG,
+            self.SCREENSHOT_PATH_ARG,
+            self.VERBOSE_ARG,
+        ):
             argvalue = getattr(args, argname)
             if argvalue is not None:
                 setattr(self, argname, argvalue)
