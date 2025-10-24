@@ -982,6 +982,9 @@ def view_images_side_by_side(
         dlg.add_plot(row, col, plot, sync=share_axes)
     dlg.finalize_configuration()
     if maximized:
-        dlg.resize(1200, 800)
         dlg.showMaximized()
+    elif os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+        # Set explicit size for proper rendering in headless mode
+        # Qt size hints don't work reliably without a display
+        dlg.resize(20 + 440 * cols, 20 + 400 * rows)
     exec_dialog(dlg)

@@ -160,15 +160,8 @@ sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
     filename_pattern="", min_reported_time=60, show_memory=False
 )
 
-# Qt rendering configuration for headless environments
-# When DISPLAY is set (Xvfb running), use it for proper text rendering
-# Otherwise fall back to offscreen mode (won't render text properly but won't crash)
-if "DISPLAY" not in os.environ:
-    # No display available, use offscreen as fallback
+if "READTHEDOCS" in os.environ or "CI" in os.environ:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    print(
-        "Warning: No DISPLAY set, using offscreen mode. Text may not render properly."
-    )
 
 # Patch datalab_client example to use stub server during documentation build
 _stub_server = None
