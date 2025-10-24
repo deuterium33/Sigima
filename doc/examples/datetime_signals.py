@@ -53,7 +53,7 @@ temperature = (
 
 # Create the signal with datetime X-axis
 temp_signal = create_signal("Temperature Monitor")
-temp_signal.set_x_from_datetime(timestamps, unit="s")
+temp_signal.set_x_from_datetime(timestamps, unit="s", format_str="%H:%M:%S")
 temp_signal.y = temperature
 temp_signal.ylabel = "Temperature"
 temp_signal.yunit = "°C"
@@ -92,7 +92,7 @@ date_strings = [
 pressure = np.array([1013.25, 1013.20, 1013.15, 1013.10, 1013.18, 1013.22, 1013.25])
 
 pressure_signal = create_signal("Atmospheric Pressure")
-pressure_signal.set_x_from_datetime(date_strings, unit="min")
+pressure_signal.set_x_from_datetime(date_strings, unit="min", format_str="%H:%M:%S")
 pressure_signal.y = pressure
 pressure_signal.ylabel = "Pressure"
 pressure_signal.yunit = "hPa"
@@ -126,7 +126,7 @@ hourly_times = [hourly_base + timedelta(hours=i) for i in range(24)]
 daily_temp = 15 + 8 * np.sin(2 * np.pi * (np.arange(24) - 6) / 24)
 
 hourly_signal = SignalObj()
-hourly_signal.set_x_from_datetime(hourly_times, unit="h")
+hourly_signal.set_x_from_datetime(hourly_times, unit="h", format_str="%H:%M")
 hourly_signal.y = daily_temp
 hourly_signal.title = "Daily Temperature Cycle"
 hourly_signal.ylabel = "Temperature"
@@ -142,42 +142,6 @@ view_curves(
     hourly_signal,
     title="24-Hour Temperature Cycle",
     object_name="datetime_hourly",
-)
-
-# %%
-# High-resolution signals with milliseconds
-# -----------------------------------------
-# For high-frequency measurements, use millisecond or microsecond resolution.
-
-# ECG-like pulse signal at 1000 Hz (1 ms sampling)
-ms_base = datetime(2025, 10, 7, 12, 0, 0)
-ms_timestamps = [ms_base + timedelta(milliseconds=i) for i in range(1000)]
-
-# Create synthetic ECG-like signal
-t = np.arange(1000) / 1000.0  # Time in seconds
-ecg_signal_data = (
-    np.sin(2 * np.pi * 1.2 * t)  # Base rhythm (~72 bpm)
-    + 0.3 * np.sin(2 * np.pi * 5 * t)  # Harmonic
-    + 0.1 * np.random.randn(1000)  # Noise
-)
-
-ecg_signal = SignalObj()
-ecg_signal.set_x_from_datetime(ms_timestamps, unit="ms")
-ecg_signal.y = ecg_signal_data
-ecg_signal.title = "ECG-Like Signal"
-ecg_signal.ylabel = "Amplitude"
-ecg_signal.yunit = "mV"
-
-print("\n✓ High-resolution millisecond signal created!")
-print("   Sampling rate: 1000 Hz (1 sample/ms)")
-print(f"   Duration: {len(ecg_signal_data)} ms = 1 second")
-print(f"   Time unit: {ecg_signal.xunit}")
-
-# Visualize the ECG signal
-view_curves(
-    ecg_signal,
-    title="High-Resolution ECG Signal (1000 Hz)",
-    object_name="datetime_ecg",
 )
 
 # %%
