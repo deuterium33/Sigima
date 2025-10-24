@@ -182,6 +182,12 @@ def _reset_example_namespace(gallery_conf, fname):
 # Add reset handler to sphinx_gallery_conf
 sphinx_gallery_conf["reset_modules"] = _reset_example_namespace
 sphinx_gallery_conf["reset_modules_order"] = "before"
+sphinx_gallery_conf["subsection_order"] = [
+    "./examples/introduction",
+    "./examples/features",
+    "./examples/advanced",
+]
+sphinx_gallery_conf["within_subsection_order"] = "ExampleTitleSortKey"
 # Note: The handler also cleans up the stub server from previous examples
 
 # -- Options for HTML output -------------------------------------------------

@@ -50,7 +50,7 @@ def test_examples_directory_exists() -> None:
     examples_dir = get_example_dir()
     assert examples_dir.exists(), "doc/examples directory should exist"
 
-    python_files = list(examples_dir.glob("*.py"))
+    python_files = list(examples_dir.rglob("*.py"))
     assert len(python_files) > 0, "doc/examples should contain at least one Python file"
 
 
