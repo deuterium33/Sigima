@@ -159,8 +159,8 @@ class NewSignalParam(gds.DataSet):
     xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0)
     xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_prop("display", col=1)
     xlabel = gds.StringItem(_("X label"), default="")
-    ylabel = gds.StringItem(_("Y label"), default="").set_prop("display", col=1)
-    xunit = gds.StringItem(_("X unit"), default="")
+    xunit = gds.StringItem(_("X unit"), default="").set_prop("display", col=1)
+    ylabel = gds.StringItem(_("Y label"), default="")
     yunit = gds.StringItem(_("Y unit"), default="").set_prop("display", col=1)
 
     # As it is the last item of the dataset, the separator will be hidden if no other
@@ -223,9 +223,13 @@ def check_all_signal_parameters_classes() -> None:
 def create_signal_parameters(
     stype: SignalTypes,
     title: str | None = None,
+    size: int | None = None,
     xmin: float | None = None,
     xmax: float | None = None,
-    size: int | None = None,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
     **kwargs: dict,
 ) -> NewSignalParam:
     """Create parameters for a given signal type.
@@ -233,9 +237,13 @@ def create_signal_parameters(
     Args:
         stype: signal type
         title: signal title
+        size: signal size (number of points)
         xmin: minimum x value
         xmax: maximum x value
-        size: signal size (number of points)
+        xlabel: x axis label
+        ylabel: y axis label
+        xunit: x axis unit
+        yunit: y axis unit
         **kwargs: additional parameters (specific to the signal type)
 
     Returns:
@@ -245,12 +253,20 @@ def create_signal_parameters(
     p = pclass.create(**kwargs)
     if title is not None:
         p.title = title
+    if size is not None:
+        p.size = size
     if xmin is not None:
         p.xmin = xmin
     if xmax is not None:
         p.xmax = xmax
-    if size is not None:
-        p.size = size
+    if xlabel is not None:
+        p.xlabel = xlabel
+    if ylabel is not None:
+        p.ylabel = ylabel
+    if xunit is not None:
+        p.xunit = xunit
+    if yunit is not None:
+        p.yunit = yunit
     return p
 
 
