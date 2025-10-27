@@ -1,7 +1,7 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 """
-Convolution and Deconvolution with Sigima
-=========================================
+Image Blurring and Sharpening with Convolution
+==============================================
 
 This example demonstrates the image convolution and deconvolution features
 available in Sigima, showing various kernels and their effects on images.
