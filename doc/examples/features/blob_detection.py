@@ -26,9 +26,7 @@ import skimage.draw
 
 import sigima.objects
 import sigima.proc.image
-from sigima.proc.image.detection import BlobOpenCVParam
-from sigima.proc.image.filtering import moving_median
-from sigima.tests.vistools import view_images, view_images_side_by_side
+from sigima.tests import vistools
 
 # %%
 # Generate synthetic test image with known blobs
@@ -79,7 +77,7 @@ print("✓ Test image created successfully!")
 # to help reducing the impact of GUI code in documentation and let you concentrate in
 # the analysis
 
-view_images([original_image], title="Original Test Image with Synthetic Blobs")
+vistools.view_images([original_image], title="Original Test Image with Synthetic Blobs")
 
 # %%
 # Image preprocessing - Binning
@@ -96,7 +94,7 @@ print(f"Binned size: {binned_image.data.shape}")
 print("Binning reduces computational load and can improve blob detection")
 
 # Compare original and binned images
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, binned_image],
     titles=["Original Image", "Binned Image (2x2)"],
     title="Image Binning Comparison",
@@ -112,12 +110,12 @@ view_images_side_by_side(
 # resolution. Lets see how to do that.
 
 filter_size = 5
-filtered_image = moving_median(binned_image, n=filter_size)
+filtered_image = sigima.proc.image.moving_median(binned_image, n=filter_size)
 
 print(f"\n✓ Moving median filter applied (window size: {filter_size})")
 
 # Show progression of preprocessing steps
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, binned_image, filtered_image],
     titles=["Original", "Binned", "Median Filtered"],
     title="Image Preprocessing Pipeline",
@@ -132,7 +130,7 @@ view_images_side_by_side(
 # parameters that can be tuned.
 #
 # Create blob detection parameter object:
-blob_param = BlobOpenCVParam()
+blob_param = sigima.proc.image.BlobOpenCVParam()
 
 # %%
 # Threshold parameters for blob detection:
@@ -188,7 +186,9 @@ blobs = sigima.proc.image.blob_opencv(filtered_image, blob_param)
 print("\n✓ Blob detection completed!")
 print(f"Number of blobs detected: {len(blobs.coords) if blobs else 0}")
 
-view_images([filtered_image], title="Filtered Image with Blob Detection", results=blobs)
+vistools.view_images(
+    [filtered_image], title="Filtered Image with Blob Detection", results=blobs
+)
 
 # %%
 # We print the detected blobs and their properties:

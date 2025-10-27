@@ -25,14 +25,10 @@ import numpy as np
 
 import sigima.io
 import sigima.objects
+import sigima.params
 import sigima.proc.image
 import sigima.proc.signal
-from sigima.params import FWHMParam
-from sigima.proc.image.exposure import ClipParam, HistogramParam, clip, histogram
-from sigima.proc.image.extraction import LineProfileParam, RadialProfileParam
-from sigima.proc.image.measurement import centroid
-from sigima.tests.helpers import get_test_fnames
-from sigima.tests.vistools import view_curves, view_images_side_by_side
+from sigima.tests import helpers, vistools
 
 # %%
 # Load all laser beam images
@@ -53,7 +49,7 @@ def load_laser_beam_images():
         List of image objects loaded from TEM00_z_*.jpg files
     """
     # Get all TEM00 laser beam image files
-    image_files = get_test_fnames("laser_beam/TEM00_z_*.jpg")
+    image_files = helpers.get_test_fnames("laser_beam/TEM00_z_*.jpg")
 
     # Sort files by z-position (extract number from filename)
     image_files.sort(key=lambda f: int(f.split("_z_")[1].split(".")[0]))
@@ -82,7 +78,7 @@ for i, img in enumerate(images):
 # %%
 # Visualize the first few images
 print("\n✓ Visualizing sample images...")
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     images[:3],
     titles=["Laser beam image 1", "Laser beam image 2", "Laser beam image 3"],
 )
@@ -97,11 +93,11 @@ view_images_side_by_side(
 
 print("\n--- Background Noise Analysis ---")
 
-hist_param = HistogramParam()
+hist_param = sigima.params.HistogramParam()
 hist_param.bins = 100
 hist_param.range = (0, images[0].data.max())
 
-hist = histogram(images[0], hist_param)
+hist = sigima.proc.image.histogram(images[0], hist_param)
 hist.title = "Pixel value histogram of image 1"
 
 print(f"✓ Generated histogram with {hist_param.bins} bins")
@@ -109,7 +105,7 @@ print(f"Histogram range: {hist_param.range[0]} - {hist_param.range[1]}")
 print("The histogram shows background noise distribution")
 
 # Visualize histogram
-view_curves([hist], title="Pixel Value Histogram - Background Analysis")
+vistools.view_curves([hist], title="Pixel Value Histogram - Background Analysis")
 
 # %%
 # Based on the histogram analysis, we determine a clipping threshold around 30-35 LSB to
@@ -129,12 +125,12 @@ print(f"Will use clipping threshold of {background_threshold} LSB")
 # the clipping to each image in the dataset.
 
 print("\n--- Applying Background Clipping ---")
-clip_param = ClipParam()
+clip_param = sigima.params.ClipParam()
 clip_param.lower = background_threshold  # Remove background noise below 35 LSB
 
 clipped_images = []
 for img in images:
-    clipped_img = clip(img, clip_param)
+    clipped_img = sigima.proc.image.clip(img, clip_param)
     clipped_img.title = f"{img.title}_clipped"
     clipped_images.append(clipped_img)
 
@@ -143,7 +139,7 @@ print("Background noise below threshold has been removed")
 
 # %%
 # We can now visualize some clipped images:
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     images[:3] + clipped_images[:3],
     titles=["Laser beam image 1", "Laser beam image 2", "Laser beam image 3"]
     + [
@@ -164,7 +160,7 @@ print("\n--- Computing Beam Centroids ---")
 
 centroids = []
 for img in clipped_images:
-    centroid_result = centroid(img)
+    centroid_result = sigima.proc.image.centroid(img)
     if centroid_result is not None and len(centroid_result.coords) > 0:
         # Extract centroid coordinates (x, y)
         coords = centroid_result.coords[0]
@@ -190,7 +186,7 @@ line_profiles = []
 for i, (img, centroid_coords) in enumerate(zip(clipped_images, centroids)):
     if centroid_coords is not None:
         # Create line profile parameters for horizontal line through centroid
-        line_param = LineProfileParam()
+        line_param = sigima.proc.image.LineProfileParam()
         line_param.direction = "horizontal"
         line_param.row = int(centroid_coords[1])  # Use centroid y-coordinate as row
 
@@ -208,7 +204,7 @@ successful_profiles = [p for p in line_profiles if p is not None]
 print(f"\n✓ Generated {len(successful_profiles)} line profiles")
 
 # Visualize some line profiles
-view_curves(
+vistools.view_curves(
     successful_profiles[:3],
     title="Horizontal Line Profiles (First 3 Images)",
     xlabel="Position (pixels)",
@@ -226,7 +222,7 @@ print("\n--- Extracting Radial Profiles ---")
 radial_profiles = []
 for img in clipped_images:
     # Create radial profile parameters using automatic centroid detection
-    radial_param = RadialProfileParam()
+    radial_param = sigima.proc.image.RadialProfileParam()
     radial_param.center = "centroid"  # Use automatic centroid detection
 
     # Extract radial profile
@@ -244,7 +240,7 @@ print(f"\n✓ Generated {len(successful_radial)} radial profiles")
 
 # %%
 # We can now visualize some radial profiles
-view_curves(
+vistools.view_curves(
     successful_radial[:3],
     title="Radial Profiles (First 3 Images)",
     xlabel="Radial Distance (pixels)",
@@ -260,7 +256,7 @@ view_curves(
 print("\n--- Computing FWHM Measurements ---")
 
 fwhm_values = []
-fwhm_param = FWHMParam()
+fwhm_param = sigima.params.FWHMParam()
 fwhm_param.method = "zero-crossing"  # Standard FWHM method
 
 for profile in radial_profiles:
@@ -319,7 +315,9 @@ beam_evolution = sigima.objects.create_signal(
 print(f"✓ Created beam evolution signal with {len(z_positions)} data points")
 
 # Visualize beam size evolution
-view_curves([beam_evolution], title="Beam Size Evolution vs Z-Position (uncalibrated)")
+vistools.view_curves(
+    [beam_evolution], title="Beam Size Evolution vs Z-Position (uncalibrated)"
+)
 
 # %%
 # The beam evolution signal currently uses image index as the x-axis, and even if we can
@@ -349,7 +347,7 @@ print(f"✓ Applied calibration: z' = {calib_param.a}*z + {calib_param.b}")
 print("Z-axis now represents physical distance in mm")
 
 # Visualize calibrated beam evolution
-view_curves(
+vistools.view_curves(
     [beam_evolution_calibrated],
     title="Beam Size Evolution vs Z-Position (calibrated)",
     xlabel="Z Position (mm)",

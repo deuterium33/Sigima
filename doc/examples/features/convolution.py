@@ -28,13 +28,12 @@ that allow you to explore the convolution results in detail.
 # and visualization.
 
 import numpy as np
-import scipy.signal as sps
+import scipy.signal
 
+import sigima.objects
 import sigima.params
-from sigima.objects import create_image, create_image_from_param
-from sigima.objects.image import Gauss2DParam, Zero2DParam
-from sigima.proc.image import convolution, deconvolution, normalize
-from sigima.tests.vistools import view_images_side_by_side
+import sigima.proc.image
+from sigima.tests import vistools
 
 # %%
 # Creating test images and kernels
@@ -47,18 +46,19 @@ size = 128
 # Generate a test square image with a rectangle in the center
 data = np.zeros((size, size), dtype=np.float64)
 data[size // 5 : 2 * size // 5, size // 7 : 5 * size // 7] = 1.0
-original_image = create_image("Original Rectangle", data)
+original_image = sigima.objects.create_image("Original Rectangle", data)
 
 # Generate a Gaussian kernel
-gparam = Gauss2DParam.create(height=31, width=31, sigma=2.0)
+gparam = sigima.objects.Gauss2DParam.create(height=31, width=31, sigma=2.0)
 nparam = sigima.params.NormalizeParam.create(method="area")
-gaussian_kernel = normalize(create_image_from_param(gparam), nparam)
+gaussian_kernel = sigima.objects.create_image_from_param(gparam)
+gaussian_kernel = sigima.proc.image.normalize(gaussian_kernel, nparam)
 gaussian_kernel.title = "Gaussian Kernel (σ=2.0)"
 
 # Generate an identity kernel (impulse response)
 identity_size = 15
-identity_kernel = create_image_from_param(
-    Zero2DParam.create(height=identity_size, width=identity_size)
+identity_kernel = sigima.objects.create_image_from_param(
+    sigima.objects.Zero2DParam.create(height=identity_size, width=identity_size)
 )
 identity_kernel.data[identity_size // 2, identity_size // 2] = 1.0
 identity_kernel.title = "Identity Kernel"
@@ -70,7 +70,7 @@ print(f"Gaussian kernel shape: {gaussian_kernel.data.shape}")
 print(f"Identity kernel shape: {identity_kernel.data.shape}")
 
 # Display the original image and kernels
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, gaussian_kernel, identity_kernel],
     ["Original Image", "Gaussian Kernel (σ=2.0)", "Identity Kernel"],
     title="Test Images and Kernels",
@@ -83,11 +83,11 @@ view_images_side_by_side(
 # the result with scipy's implementation to verify correctness.
 
 # Perform convolution with Gaussian kernel
-convolved_gauss = convolution(original_image, gaussian_kernel)
+convolved_gauss = sigima.proc.image.convolution(original_image, gaussian_kernel)
 convolved_gauss.title = "Convolved with Gaussian"
 
 # Compare with scipy implementation
-expected_result = sps.convolve(
+expected_result = scipy.signal.convolve(
     original_image.data, gaussian_kernel.data, mode="same", method="auto"
 )
 print("\n✓ Convolution completed!")
@@ -95,7 +95,7 @@ max_diff = np.max(np.abs(convolved_gauss.data - expected_result))
 print(f"Max difference from scipy: {max_diff:.2e}")
 
 # Visualize the convolution process
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, gaussian_kernel, convolved_gauss],
     ["Original Image", "Gaussian Kernel (σ=2.0)", "Convolved Result"],
     title="Gaussian Convolution Example",
@@ -108,7 +108,7 @@ view_images_side_by_side(
 # This demonstrates that our convolution implementation is working correctly.
 
 # Perform convolution with identity kernel
-convolved_identity = convolution(original_image, identity_kernel)
+convolved_identity = sigima.proc.image.convolution(original_image, identity_kernel)
 convolved_identity.title = "Convolved with Identity"
 
 # This should be nearly identical to the original
@@ -117,7 +117,7 @@ print("\n✓ Identity convolution completed!")
 print(f"Max difference from original: {difference:.2e}")
 
 # Visualize the identity convolution
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, identity_kernel, convolved_identity],
     ["Original Image", "Identity Kernel", "Convolved with Identity"],
     "Identity Convolution Example",
@@ -130,7 +130,9 @@ view_images_side_by_side(
 # with a simple case using the identity kernel.
 
 # Start with the convolved image and deconvolve using identity kernel
-deconvolved_identity = deconvolution(convolved_identity, identity_kernel)
+deconvolved_identity = sigima.proc.image.deconvolution(
+    convolved_identity, identity_kernel
+)
 deconvolved_identity.title = "Deconvolved (Identity)"
 
 # Check how well we recovered the original
@@ -139,7 +141,7 @@ print("\n✓ Identity deconvolution completed!")
 print(f"Recovery error: {recovery_error:.2e}")
 
 # Visualize the deconvolution process
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, convolved_identity, deconvolved_identity],
     ["Original", "Convolved", "Deconvolved"],
     title="Identity Deconvolution Example",
@@ -153,15 +155,17 @@ view_images_side_by_side(
 
 # Create a Gaussian kernel with smaller sigma for better deconvolution
 gparam.sigma = 1.5
-deconv_gaussian = normalize(create_image_from_param(gparam), nparam)
+deconv_gaussian = sigima.proc.image.normalize(
+    sigima.objects.create_image_from_param(gparam), nparam
+)
 deconv_gaussian.title = "Gaussian Kernel (σ=1.5)"
 
 # Convolve the original image with this kernel
-large_convolved = convolution(original_image, deconv_gaussian)
+large_convolved = sigima.proc.image.convolution(original_image, deconv_gaussian)
 large_convolved.title = "Convolved Image"
 
 # Attempt deconvolution to recover the original
-large_deconvolved = deconvolution(large_convolved, deconv_gaussian)
+large_deconvolved = sigima.proc.image.deconvolution(large_convolved, deconv_gaussian)
 large_deconvolved.title = "Deconvolved Result"
 
 print("\n✓ Gaussian deconvolution completed!")
@@ -171,7 +175,7 @@ print(f"Original image range: [{orig_min:.3f}, {orig_max:.3f}]")
 print(f"Deconvolved image range: [{deconv_min:.3f}, {deconv_max:.3f}]")
 
 # Visualize the full deconvolution process
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, deconv_gaussian, large_convolved, large_deconvolved],
     ["Original", "Gaussian Kernel", "Convolved", "Deconvolved"],
     title="Gaussian Deconvolution Example",
@@ -185,28 +189,34 @@ view_images_side_by_side(
 
 # Create kernels with different sigma parameters
 gparam.sigma = 0.8
-small_sigma = normalize(create_image_from_param(gparam), nparam)
+small_sigma = sigima.proc.image.normalize(
+    sigima.objects.create_image_from_param(gparam), nparam
+)
 gparam.sigma = 2.0
-medium_sigma = normalize(create_image_from_param(gparam), nparam)
+medium_sigma = sigima.proc.image.normalize(
+    sigima.objects.create_image_from_param(gparam), nparam
+)
 gparam.sigma = 4.0
-large_sigma = normalize(create_image_from_param(gparam), nparam)
+large_sigma = sigima.proc.image.normalize(
+    sigima.objects.create_image_from_param(gparam), nparam
+)
 
 # Convolve the original image with each kernel
-conv_small = convolution(original_image, small_sigma)
-conv_medium = convolution(original_image, medium_sigma)
-conv_large = convolution(original_image, large_sigma)
+conv_small = sigima.proc.image.convolution(original_image, small_sigma)
+conv_medium = sigima.proc.image.convolution(original_image, medium_sigma)
+conv_large = sigima.proc.image.convolution(original_image, large_sigma)
 
 print("\n✓ Multiple kernel comparison completed!")
 
 # Show the effect of different sigma values on kernels
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [small_sigma, medium_sigma, large_sigma],
     ["Kernel σ=0.8", "Kernel σ=2.0", "Kernel σ=4.0"],
     title="Gaussian Kernels with Different Sigma Values",
 )
 
 # Show the effect of different sigma values on convolution results
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [conv_small, conv_medium, conv_large],
     ["Convolved σ=0.8", "Convolved σ=2.0", "Convolved σ=4.0"],
     title="Convolution Results with Different Sigma Values",
@@ -220,30 +230,30 @@ view_images_side_by_side(
 
 # Edge detection kernel (Sobel-like)
 edge_data = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float64)
-edge_kernel = create_image("Edge Detection Kernel", edge_data)
+edge_kernel = sigima.objects.create_image("Edge Detection Kernel", edge_data)
 
 # Sharpening kernel
 sharpen_data = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float64)
-sharpen_kernel = create_image("Sharpening Kernel", sharpen_data)
+sharpen_kernel = sigima.objects.create_image("Sharpening Kernel", sharpen_data)
 
 # Apply custom kernels to the original image
-edge_result = convolution(original_image, edge_kernel)
+edge_result = sigima.proc.image.convolution(original_image, edge_kernel)
 edge_result.title = "Edge Detection"
 
-sharpen_result = convolution(original_image, sharpen_kernel)
+sharpen_result = sigima.proc.image.convolution(original_image, sharpen_kernel)
 sharpen_result.title = "Sharpened"
 
 print("\n✓ Custom kernel convolutions completed!")
 
 # Visualize custom kernels
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [edge_kernel, sharpen_kernel],
     ["Edge Detection Kernel", "Sharpening Kernel"],
     title="Custom Convolution Kernels",
 )
 
 # Visualize custom kernel results
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [original_image, edge_result, sharpen_result],
     ["Original", "Edge Detection", "Sharpened"],
     title="Custom Kernel Convolution Results",
@@ -271,7 +281,7 @@ print("• Deconvolution can recover original features (with limitations)")
 print("• Custom kernels enable specialized image processing effects")
 
 # Final comparison showing the complete pipeline
-dialog10 = view_images_side_by_side(
+dialog10 = vistools.view_images_side_by_side(
     [original_image, gaussian_kernel, convolved_gauss, large_deconvolved],
     ["Original", "Gaussian Kernel", "Convolved", "Deconvolved"],
     title="Complete Convolution-Deconvolution Pipeline",

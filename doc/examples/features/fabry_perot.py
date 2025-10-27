@@ -30,10 +30,8 @@ Created on September 23, 2025
 import sigima.enums
 import sigima.objects
 import sigima.proc.image
-from sigima.proc.image.detection import ContourShapeParam
-from sigima.proc.image.extraction import LineProfileParam
+from sigima.tests import vistools
 from sigima.tests.data import get_test_image
-from sigima.tests.vistools import view_curves, view_images
 
 # %%
 # Load Fabry-Perot test images
@@ -55,7 +53,7 @@ print(f"Data type: {img1.data.dtype}")
 print(f"Intensity range: {img1.data.min()} - {img1.data.max()}")
 
 # Visualize the original interference pattern
-view_images(img1, title="Fabry-Perot Interference Pattern #1")
+vistools.view_images(img1, title="Fabry-Perot Interference Pattern #1")
 
 # %%
 # Define circular ROI for fringe analysis
@@ -80,7 +78,7 @@ img1.roi = sigima.objects.create_image_roi("circle", roi_coords, indices=True)
 print("✓ Circular ROI applied to image")
 
 # Visualize image with ROI
-view_images(img1, title="Fabry-Perot with Circular ROI")
+vistools.view_images(img1, title="Fabry-Perot with Circular ROI")
 
 # %%
 # Configure contour detection for circular fringes
@@ -90,7 +88,7 @@ view_images(img1, title="Fabry-Perot with Circular ROI")
 # detection parameter.
 
 # Set up contour shape detection parameter for circles
-contour_param = ContourShapeParam()
+contour_param = sigima.proc.image.ContourShapeParam()
 contour_param.shape = sigima.enums.ContourShape.CIRCLE
 contour_param.threshold = 0.5  # Threshold for fringe detection
 
@@ -139,7 +137,7 @@ if radii:
 # parameter.
 
 # Configure line profile extraction
-profile_param = LineProfileParam()
+profile_param = sigima.proc.image.LineProfileParam()
 profile_param.direction = "horizontal"
 profile_param.row = center_y  # Extract profile through image center
 
@@ -154,7 +152,7 @@ print(f"✓ Profile extracted: {len(profile_signal1.y)} data points")
 print(f"Intensity range: {profile_signal1.y.min():.1f} - {profile_signal1.y.max():.1f}")
 
 # Visualize the intensity profile
-view_curves(
+vistools.view_curves(
     [profile_signal1],
     title="Horizontal Intensity Profile - Image 1",
     xlabel="Position (pixels)",
@@ -176,7 +174,7 @@ try:
     img2.metadata = img1.metadata  # This includes the ROI information
 
     # Visualize second image
-    view_images([img2], title="Fabry-Perot Interference Pattern #2")
+    vistools.view_images([img2], title="Fabry-Perot Interference Pattern #2")
 
 except Exception as exc:
     raise RuntimeError("Failed to load second Fabry-Perot test image.") from exc
@@ -222,7 +220,7 @@ print(f"\n✓ Profile extracted from second image: {len(profile_signal2.y)} poin
 print(f"Intensity range: {profile_signal2.y.min():.1f} - {profile_signal2.y.max():.1f}")
 
 # Compare profiles from both images
-view_curves(
+vistools.view_curves(
     [profile_signal1, profile_signal2],
     title="Intensity Profile Comparison",
     xlabel="Position (pixels)",

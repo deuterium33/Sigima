@@ -25,11 +25,10 @@ Created on September 23, 2025
 
 import numpy as np
 
+import sigima.objects
 import sigima.proc.signal
-from sigima.objects.signal import create_signal_roi
-from sigima.proc.signal import wiener
+from sigima.tests import vistools
 from sigima.tests.data import create_paracetamol_signal
-from sigima.tests.vistools import view_curves
 from sigima.tools.signal import fitting, peakdetection
 
 # Constants
@@ -53,7 +52,7 @@ print(f"Energy range: {x_orig.min():.1f} to {x_orig.max():.1f} eV")
 print(f"Intensity range: {y_orig.min():.1f} to {y_orig.max():.1f}")
 
 # Visualize the original spectrum
-view_curves(
+vistools.view_curves(
     sig,
     title="Paracetamol Spectrum - Original",
     xlabel=XLABEL_ANGLE,
@@ -67,14 +66,14 @@ view_curves(
 # of Sigima, we apply a Wiener filter to reduce any residual noise while
 # preserving the spectral features.
 
-sig_filt = wiener(sig)
+sig_filt = sigima.proc.signal.wiener(sig)
 
 print("\n✓ Wiener filter applied!")
 print("The Wiener filter provides optimal noise reduction for signals")
 print("with known statistical properties.")
 
 # Compare original and filtered signals
-view_curves(
+vistools.view_curves(
     [sig, sig_filt],
     title="Paracetamol Spectrum - Original vs Wiener Filtered",
     xlabel=XLABEL_ANGLE,
@@ -89,13 +88,13 @@ view_curves(
 
 # Define ROI around the peak
 roi_bounds = [35.5, 41.3]  # Energy range in eV
-sig_filt.roi = create_signal_roi(roi_bounds)
+sig_filt.roi = sigima.objects.create_signal_roi(roi_bounds)
 
 print(f"\n✓ ROI defined from {roi_bounds[0]} to {roi_bounds[1]} eV")
 print("This focuses analysis on the primary absorption feature")
 
 # Visualize the signal with ROI
-view_curves(
+vistools.view_curves(
     sig_filt,
     title="Paracetamol Spectrum - Filtered with ROI",
     xlabel=XLABEL_ANGLE,
@@ -119,7 +118,7 @@ print("- Peak amplitude (intensity)")
 print("- Peak width (FWHM)")
 
 # Visualize the signal with Gaussian fit
-view_curves(
+vistools.view_curves(
     [sig_filt, fit],
     title="Paracetamol Spectrum - ROI with Gaussian Fit",
     xlabel=XLABEL_ANGLE,
@@ -154,7 +153,7 @@ detrended_signal = sigima.proc.signal.detrending(sig_filt, method="linear")
 print("\n✓ Linear detrending applied!")
 
 # Compare filtered and detrended signals
-view_curves(
+vistools.view_curves(
     [sig_filt, detrended_signal],
     title="Paracetamol Spectrum - Filtered vs Detrended",
     xlabel=XLABEL_ANGLE,
@@ -223,7 +222,7 @@ print("\n✓ Multi-Gaussian fitting completed!")
 print("Each detected peak is fitted with individual Gaussian functions")
 
 # Visualize the final fitting result
-view_curves(
+vistools.view_curves(
     [sig_filt, fitted_signal],
     title="Paracetamol Spectrum - Detrended with Multi-Gaussian Fit",
     xlabel=XLABEL_ANGLE,
@@ -259,13 +258,13 @@ for i in range(num_peaks):
     print(f"  Exclusion zone: [{exclusion_start:.2f}, {exclusion_end:.2f}] eV")
 
 # Create ROIs including detected peaks
-roi = create_signal_roi(peaks_roi_bounds)
+roi = sigima.objects.create_signal_roi(peaks_roi_bounds)
 
 # invert ROIs to exclude peaks
 sig_filt.roi = roi.inverted(sig_filt.x.min(), sig_filt.x.max())
 
 # Visualize the signal with new ROI
-view_curves(
+vistools.view_curves(
     sig_filt,
     title="Paracetamol Spectrum - Filtered with Peak Exclusion ROIs",
     xlabel=XLABEL_ANGLE,
@@ -289,7 +288,7 @@ better_detrended_signal = sigima.proc.signal.difference(sig_filt, fitted_signal)
 print("\n✓ Improved detrending applied!")
 
 # Compare filtered and better detrended signals
-view_curves(
+vistools.view_curves(
     [sig_filt, better_detrended_signal],
     title="Paracetamol Spectrum - Filtered vs Improved Detrended",
     xlabel=XLABEL_ANGLE,
