@@ -1,0 +1,416 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 16:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "Overview"
+msgstr "Vue d'ensemble"
+
+msgid "What is Sigima?"
+msgstr "Qu'est-ce que Sigima ?"
+
+msgid "**Sigima** is an open-source Python library for scientific signal and image processing. It provides a unified, object-oriented approach to working with 1D signals and 2D images, combining the power of NumPy arrays with rich metadata and processing capabilities."
+msgstr "**Sigima** est une bibliothèque Python open-source pour le traitement scientifique de signaux et d'images. Elle fournit une approche unifiée et orientée objet pour travailler avec des signaux 1D et des images 2D, combinant la puissance des tableaux NumPy avec des métadonnées riches et des capacités de traitement."
+
+msgid "Sigima was created from the externalization of `DataLab <https://datalab-platform.com/>`_'s computing engine and is now an essential building block of the DataLab ecosystem, but is designed to be GUI-independent (and independent of DataLab itself) and can be used in a variety of scientific computing contexts."
+msgstr "Sigima a été créé à partir de l'externalisation du moteur de calcul de `DataLab <https://datalab-platform.com/>`_ et constitue maintenant un élément essentiel de l'écosystème DataLab, mais est conçu pour être indépendant de toute interface graphique (et indépendant de DataLab lui-même) et peut être utilisé dans une variété de contextes de calcul scientifique."
+
+msgid "Why Sigima?"
+msgstr "Pourquoi Sigima ?"
+
+msgid "Scientific data processing often requires more than just raw numerical arrays. Real-world applications demand:"
+msgstr "Le traitement de données scientifiques nécessite souvent plus que de simples tableaux numériques. Les applications réelles requièrent :"
+
+msgid "**Context-aware data**: physical units, coordinate systems, and measurement uncertainties"
+msgstr "**Données contextualisées** : unités physiques, systèmes de coordonnées et incertitudes de mesure"
+
+msgid "**Reproducible workflows**: clear separation between data and processing logic"
+msgstr "**Flux de travail reproductibles** : séparation claire entre les données et la logique de traitement"
+
+msgid "**Testable components**: modular functions that can be validated independently"
+msgstr "**Composants testables** : fonctions modulaires qui peuvent être validées indépendamment"
+
+msgid "**Flexible integration**: ability to work both with high-level objects and low-level arrays"
+msgstr "**Intégration flexible** : capacité de travailler à la fois avec des objets de haut niveau et des tableaux de bas niveau"
+
+msgid "Sigima addresses these needs by providing a structured framework that bridges the gap between raw numerical operations and scientific data analysis. It is designed to be the processing backend for scientific applications, particularly those requiring headless execution or remote processing capabilities."
+msgstr "Sigima répond à ces besoins en fournissant un cadre structuré qui comble le fossé entre les opérations numériques brutes et l'analyse de données scientifiques. Il est conçu pour être le moteur de traitement des applications scientifiques, en particulier celles nécessitant une exécution sans interface graphique ou des capacités de traitement à distance."
+
+msgid "Signals in Sigima"
+msgstr "Signaux dans Sigima"
+
+msgid "What are Signals?"
+msgstr "Qu'est-ce qu'un signal ?"
+
+msgid "In Sigima, a **signal** is a 1D data object represented by the :py:class:`~sigima.objects.signal.object.SignalObj` class. Unlike a simple NumPy array, a signal carries complete information about your measurement or calculation."
+msgstr "Dans Sigima, un **signal** est un objet de données 1D représenté par la classe :py:class:`~sigima.objects.signal.object.SignalObj`. Contrairement à un simple tableau NumPy, un signal contient l'ensemble des informations concernant votre mesure ou calcul."
+
+msgid "Core Components"
+msgstr "Composants principaux"
+
+msgid "A signal consists of:"
+msgstr "Un signal se compose de :"
+
+msgid "**X and Y Data**"
+msgstr "**Données X et Y**"
+
+msgid "The fundamental coordinate-value pairs that define your signal. The x-axis typically     represents the independent variable (time, frequency, position, etc.) while the y-axis     contains the measured or calculated values."
+msgstr "Les paires fondamentales coordonnée-valeur qui définissent votre signal. L'axe des x représente généralement la variable indépendante (temps, fréquence, position, etc.) tandis que l'axe des y contient les valeurs mesurées ou calculées."
+
+msgid "**Error Bars (dx, dy)**"
+msgstr "**Barres d'erreur (dx, dy)**"
+
+msgid "Sigima natively supports uncertainty quantification through optional error bars:"
+msgstr "Sigima prend en charge nativement la quantification de l'incertitude via des barres d'erreur optionnelles :"
+
+msgid "``dx``: uncertainties in the x-coordinate (e.g., timing jitter, position uncertainty)"
+msgstr "``dx`` : incertitudes sur la coordonnée x (par exemple, gigue temporelle, incertitude de position)"
+
+msgid "``dy``: uncertainties in the y-values (e.g., measurement noise, statistical errors)"
+msgstr "``dy`` : incertitudes sur les valeurs y (par exemple, bruit de mesure, erreurs statistiques)"
+
+msgid "These error bars propagate through many processing operations, allowing you to track how uncertainties evolve in your analysis pipeline."
+msgstr "Ces barres d'erreur se propagent à travers de nombreuses opérations de traitement, vous permettant de suivre l'évolution des incertitudes dans votre pipeline d'analyse."
+
+msgid "**Metadata**"
+msgstr "**Métadonnées**"
+
+msgid "A flexible dictionary for storing any additional information about your signal: acquisition parameters, processing history, physical constants, or any custom data your application needs."
+msgstr "Un dictionnaire flexible pour stocker toute information supplémentaire concernant votre signal : paramètres d'acquisition, historique de traitement, constantes physiques ou toute donnée personnalisée dont votre application a besoin."
+
+msgid "**Units and Labels**"
+msgstr "**Unités et étiquettes**"
+
+msgid "Clear labeling of physical quantities:"
+msgstr "Étiquetage clair des grandeurs physiques :"
+
+msgid "``xlabel`` / ``ylabel``: descriptive names (e.g., \"Time\", \"Temperature\")"
+msgstr "``xlabel`` / ``ylabel`` : noms descriptifs (par exemple, \"Temps\", \"Température\")"
+
+msgid "``xunit`` / ``yunit``: physical units (e.g., \"s\", \"°C\")"
+msgstr "``xunit`` / ``yunit`` : unités physiques (par exemple, \"s\", \"°C\")"
+
+msgid "**Annotations**"
+msgstr "**Annotations**"
+
+msgid "User-defined notes or comments about specific features or regions of the signal."
+msgstr "Notes ou commentaires définis par l'utilisateur concernant des caractéristiques ou régions spécifiques du signal."
+
+msgid "Why This Matters"
+msgstr "Pourquoi c'est important"
+
+msgid "Consider a temperature measurement over time. With a simple NumPy array, you just have numbers. With a Sigima signal, you have:"
+msgstr "Considérez une mesure de température au cours du temps. Avec un simple tableau NumPy, vous n'avez que des nombres. Avec un signal Sigima, vous avez :"
+
+msgid "This signal object can now be processed, analyzed, saved, and loaded while preserving all its context. When you apply operations like filtering, peak detection, or statistics, the units, labels, and error bars remain attached to your data."
+msgstr "Cet objet signal peut maintenant être traité, analysé, sauvegardé et chargé tout en préservant son contexte. Lorsque vous appliquez des opérations comme le filtrage, la détection de pics ou les statistiques, les unités, étiquettes et barres d'erreur restent attachées à vos données."
+
+msgid "Specialized Features"
+msgstr "Fonctionnalités spécialisées"
+
+msgid "Sigima signals support advanced use cases:"
+msgstr "Les signaux Sigima prennent en charge des cas d'usage avancés :"
+
+msgid "**Datetime Coordinates**"
+msgstr "**Coordonnées temporelles**"
+
+msgid "For time-series data, x-coordinates can represent actual datetime values, with automatic handling of time units and formatting."
+msgstr "Pour les données de séries temporelles, les coordonnées x peuvent représenter des valeurs de date/heure réelles, avec gestion automatique des unités de temps et du formatage."
+
+msgid "**ROI Operations**"
+msgstr "**Opérations ROI**"
+
+msgid "Define regions of interest (ROIs) to process or analyze specific portions of your signal independently."
+msgstr "Définissez des régions d'intérêt (ROI) pour traiter ou analyser des portions spécifiques de votre signal de manière indépendante."
+
+msgid "**Scale Management**"
+msgstr "**Gestion des échelles**"
+
+msgid "Control visualization aspects like logarithmic scales and axis bounds."
+msgstr "Contrôlez les aspects de visualisation comme les échelles logarithmiques et les limites d'axes."
+
+msgid "Images in Sigima"
+msgstr "Images dans Sigima"
+
+msgid "What are Images?"
+msgstr "Qu'est-ce qu'une image ?"
+
+msgid "An **image** in Sigima is a 2D data object represented by the :py:class:`~sigima.objects.image.object.ImageObj` class. Like signals, images extend beyond simple 2D NumPy arrays by providing comprehensive metadata and coordinate system support."
+msgstr "Une **image** dans Sigima est un objet de données 2D représenté par la classe :py:class:`~sigima.objects.image.object.ImageObj`. Comme les signaux, les images vont au-delà des simples tableaux NumPy 2D en fournissant des métadonnées complètes et un support de système de coordonnées."
+
+msgid "An image consists of:"
+msgstr "Une image se compose de :"
+
+msgid "**2D Data Array**"
+msgstr "**Tableau de données 2D**"
+
+msgid "The pixel values forming your image. Sigima supports various data types including unsigned integers (uint8, uint16), signed integers (int16, int32), floating-point (float32, float64), and complex numbers (complex128)."
+msgstr "Les valeurs de pixels formant votre image. Sigima prend en charge divers types de données incluant les entiers non signés (uint8, uint16), les entiers signés (int16, int32), les nombres à virgule flottante (float32, float64) et les nombres complexes (complex128)."
+
+msgid "**Coordinate Systems**"
+msgstr "**Systèmes de coordonnées**"
+
+msgid "Two types of coordinate systems are supported:"
+msgstr "Deux types de systèmes de coordonnées sont pris en charge :"
+
+msgid "**Uniform coordinates**: regular pixel spacing, common for most imaging systems"
+msgstr "**Coordonnées uniformes** : espacement de pixels régulier, courant pour la plupart des systèmes d'imagerie"
+
+msgid "``dx``, ``dy``: pixel spacing in physical units"
+msgstr "``dx``, ``dy`` : espacement des pixels en unités physiques"
+
+msgid "``x0``, ``y0``: origin coordinates"
+msgstr "``x0``, ``y0`` : coordonnées d'origine"
+
+msgid "**Non-uniform coordinates**: variable pixel spacing for adaptive sampling or irregular grids"
+msgstr "**Coordonnées non uniformes** : espacement de pixels variable pour l'échantillonnage adaptatif ou les grilles irrégulières"
+
+msgid "``xcoords``, ``ycoords``: explicit coordinate arrays"
+msgstr "``xcoords``, ``ycoords`` : tableaux de coordonnées explicites"
+
+msgid "Rich metadata support including:"
+msgstr "Support riche de métadonnées incluant :"
+
+msgid "DICOM template integration for medical imaging"
+msgstr "Intégration de modèles DICOM pour l'imagerie médicale"
+
+msgid "Custom key-value pairs for any application-specific data"
+msgstr "Paires clé-valeur personnalisées pour toute donnée spécifique à l'application"
+
+msgid "Automatic extraction from common file formats"
+msgstr "Extraction automatique depuis les formats de fichiers courants"
+
+msgid "Physical quantities for all three dimensions:"
+msgstr "Grandeurs physiques pour les trois dimensions :"
+
+msgid "``xlabel``, ``ylabel``, ``zlabel``: axis descriptions"
+msgstr "``xlabel``, ``ylabel``, ``zlabel`` : descriptions d'axes"
+
+msgid "``xunit``, ``yunit``, ``zunit``: physical units"
+msgstr "``xunit``, ``yunit``, ``zunit`` : unités physiques"
+
+msgid "The z-axis typically represents the pixel values (intensity, height, temperature, etc.)"
+msgstr "L'axe z représente généralement les valeurs de pixels (intensité, hauteur, température, etc.)"
+
+msgid "Structured annotations for documenting features, regions, or processing steps."
+msgstr "Annotations structurées pour documenter les caractéristiques, régions ou étapes de traitement."
+
+msgid "**Data Type Flexibility**"
+msgstr "**Flexibilité des types de données**"
+
+msgid "Unlike signals (which are typically float64), images support multiple data types optimized for different use cases:"
+msgstr "Contrairement aux signaux (qui sont généralement en float64), les images prennent en charge plusieurs types de données optimisés pour différents cas d'usage :"
+
+msgid "``uint8``, ``uint16``: efficient storage for camera data, medical images"
+msgstr "``uint8``, ``uint16`` : stockage efficace pour les données de caméras, images médicales"
+
+msgid "``int16``, ``int32``: signed data, difference images"
+msgstr "``int16``, ``int32`` : données signées, images de différence"
+
+msgid "``float32``, ``float64``: scientific measurements, calculated results"
+msgstr "``float32``, ``float64`` : mesures scientifiques, résultats calculés"
+
+msgid "``complex128``: Fourier transforms, wave simulations"
+msgstr "``complex128`` : transformées de Fourier, simulations d'ondes"
+
+msgid "Consider microscopy data. A raw 2D array gives you pixel values, but an ``ImageObj`` provides the complete picture:"
+msgstr "Considérez des données de microscopie. Un tableau 2D brut vous donne des valeurs de pixels, mais un ``ImageObj`` fournit l'image complète :"
+
+msgid "Processing operations automatically work in physical units. Measurements return results in micrometers, not pixels. The metadata travels with your data through the entire analysis pipeline."
+msgstr "Les opérations de traitement fonctionnent automatiquement en unités physiques. Les mesures retournent des résultats en micromètres, pas en pixels. Les métadonnées accompagnent vos données tout au long du pipeline d'analyse."
+
+msgid "**Native Support for Multiple Image Formats**"
+msgstr "**Support natif de multiples formats d'image**"
+
+msgid "Sigima can directly read and write images from various scientific and common file formats, making it easy to integrate into existing workflows:"
+msgstr "Sigima peut lire et écrire directement des images depuis divers formats de fichiers scientifiques et courants, facilitant l'intégration dans les flux de travail existants :"
+
+msgid "**Common formats**: BMP, JPEG, PNG, TIFF, JPEG 2000"
+msgstr "**Formats courants** : BMP, JPEG, PNG, TIFF, JPEG 2000"
+
+msgid "**Scientific formats**: DICOM (medical imaging), Andor SIF (spectroscopy cameras)"
+msgstr "**Formats scientifiques** : DICOM (imagerie médicale), Andor SIF (caméras de spectroscopie)"
+
+msgid "**Data exchange**: NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
+msgstr "**Échange de données** : NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
+
+msgid "**Text-based**: CSV, TXT, ASC (with coordinate metadata support)"
+msgstr "**Basés sur du texte** : CSV, TXT, ASC (avec support des métadonnées de coordonnées)"
+
+msgid "**Specialized**: Spiricon (.scor-data), Dürr NDT (.xyz), FT-Lab (.ima)"
+msgstr "**Spécialisés** : Spiricon (.scor-data), Dürr NDT (.xyz), FT-Lab (.ima)"
+
+msgid "Each format preserves relevant metadata when available, such as DICOM medical imaging headers or acquisition parameters from scientific instruments."
+msgstr "Chaque format préserve les métadonnées pertinentes lorsqu'elles sont disponibles, comme les en-têtes d'imagerie médicale DICOM ou les paramètres d'acquisition d'instruments scientifiques."
+
+msgid "Define rectangular, circular, or polygonal regions of interest for localized analysis or processing."
+msgstr "Définissez des régions d'intérêt rectangulaires, circulaires ou polygonales pour une analyse ou un traitement localisé."
+
+msgid "**Masked Arrays**"
+msgstr "**Tableaux masqués**"
+
+msgid "Support for NumPy masked arrays to handle invalid pixels, saturated regions, or excluded areas."
+msgstr "Support des tableaux masqués NumPy pour gérer les pixels invalides, les régions saturées ou les zones exclues."
+
+msgid "**Coordinate Conversion**"
+msgstr "**Conversion de coordonnées**"
+
+msgid "Seamless conversion between pixel indices and physical coordinates, essential for multi-scale or multi-modal imaging."
+msgstr "Conversion transparente entre les indices de pixels et les coordonnées physiques, essentielle pour l'imagerie multi-échelle ou multi-modale."
+
+msgid "Key Differences from Raw Arrays"
+msgstr "Différences clés par rapport aux tableaux bruts"
+
+msgid "Here's why Sigima objects are more powerful than plain NumPy arrays in physical data processing:"
+msgstr "Voici pourquoi les objets Sigima sont plus puissants que les simples tableaux NumPy pour le traitement de données physiques :"
+
+msgid "Feature"
+msgstr "Fonctionnalité"
+
+msgid "NumPy Array"
+msgstr "Tableau NumPy"
+
+msgid "Sigima Object"
+msgstr "Objet Sigima"
+
+msgid "Data storage"
+msgstr "Stockage de données"
+
+msgid "Numbers only"
+msgstr "Nombres uniquement"
+
+msgid "Numbers + context"
+msgstr "Nombres + contexte"
+
+msgid "Units"
+msgstr "Unités"
+
+msgid "Implicit/external"
+msgstr "Implicites/externes"
+
+msgid "Explicit and tracked"
+msgstr "Explicites et suivies"
+
+msgid "Error propagation"
+msgstr "Propagation d'erreur"
+
+msgid "Manual"
+msgstr "Manuelle"
+
+msgid "Automatic (where supported)"
+msgstr "Automatique (lorsque pris en charge)"
+
+msgid "Metadata"
+msgstr "Métadonnées"
+
+msgid "Separate variables"
+msgstr "Variables séparées"
+
+msgid "Integrated dictionary"
+msgstr "Dictionnaire intégré"
+
+msgid "Coordinate systems"
+msgstr "Systèmes de coordonnées"
+
+msgid "Index-based only"
+msgstr "Uniquement basé sur les indices"
+
+msgid "Physical coordinates"
+msgstr "Coordonnées physiques"
+
+msgid "Serialization"
+msgstr "Sérialisation"
+
+msgid "Just data"
+msgstr "Données seules"
+
+msgid "Complete context"
+msgstr "Contexte complet"
+
+msgid "Processing history"
+msgstr "Historique de traitement"
+
+msgid "Lost"
+msgstr "Perdu"
+
+msgid "Can be tracked"
+msgstr "Peut être suivi"
+
+msgid "Common Use Cases"
+msgstr "Cas d'usage courants"
+
+msgid "Sigima excels in scenarios requiring:"
+msgstr "Sigima excelle dans les scénarios nécessitant :"
+
+msgid "**Scientific Instrumentation**"
+msgstr "**Instrumentation scientifique**"
+
+msgid "Process data from sensors, cameras, spectrometers, or any measurement device while preserving calibration, units, and acquisition parameters."
+msgstr "Traitez les données de capteurs, caméras, spectromètres ou tout dispositif de mesure en préservant l'étalonnage, les unités et les paramètres d'acquisition."
+
+msgid "**Automated Analysis Pipelines**"
+msgstr "**Pipelines d'analyse automatisés**"
+
+msgid "Build reproducible workflows that maintain data provenance and context through multiple processing steps."
+msgstr "Construisez des flux de travail reproductibles qui maintiennent la provenance et le contexte des données à travers plusieurs étapes de traitement."
+
+msgid "**Remote Processing**"
+msgstr "**Traitement à distance**"
+
+msgid "Execute signal and image processing on remote servers or in cloud environments without GUI dependencies."
+msgstr "Exécutez le traitement de signaux et d'images sur des serveurs distants ou dans des environnements cloud sans dépendances d'interface graphique."
+
+msgid "**Application Backends**"
+msgstr "**Moteurs d'application**"
+
+msgid "Provide the computation engine for scientific software, keeping processing logic independent from user interface concerns."
+msgstr "Fournissez le moteur de calcul pour des logiciels scientifiques, en gardant la logique de traitement indépendante des préoccupations d'interface utilisateur."
+
+msgid "**Research and Development**"
+msgstr "**Recherche et développement**"
+
+msgid "Develop and validate new processing algorithms in a testable, modular framework."
+msgstr "Développez et validez de nouveaux algorithmes de traitement dans un cadre testable et modulaire."
+
+msgid "GUI Connection"
+msgstr "Connexion avec l'interface graphique"
+
+msgid "As the core computing engine externalized from `DataLab <https://datalab-platform.com/>`_, Sigima seamlessly integrates with it as an essential building block of the DataLab stack. You can leverage Sigima's powerful processing features within DataLab's graphical interface, using for example Sigima to handle your signal and image acquisition and sending the results back to DataLab for visualization and further interactive analysis."
+msgstr "En tant que moteur de calcul principal externalisé de `DataLab <https://datalab-platform.com/>`_, Sigima s'intègre parfaitement avec lui comme élément essentiel de la pile DataLab. Vous pouvez exploiter les puissantes fonctionnalités de traitement de Sigima au sein de l'interface graphique de DataLab, en utilisant par exemple Sigima pour gérer votre acquisition de signaux et d'images et en renvoyant les résultats vers DataLab pour la visualisation et l'analyse interactive approfondie."
+
+msgid "Getting Started"
+msgstr "Premiers pas"
+
+msgid "To start using Sigima, check out:"
+msgstr "Pour commencer à utiliser Sigima, consultez :"
+
+msgid ":doc:`installation` - Set up Sigima in your environment"
+msgstr ":doc:`installation` - Installez Sigima dans votre environnement"
+
+msgid ":doc:`features` - Explore Sigima's key features and capabilities"
+msgstr ":doc:`features` - Explorez les fonctionnalités et capacités clés de Sigima"
+
+msgid ":doc:`../auto_examples/index` - Practical examples showing signals and images in action"
+msgstr ":doc:`../auto_examples/index` - Exemples pratiques montrant les signaux et images en action"
+
+msgid ":doc:`../api/index` - Complete API reference"
+msgstr ":doc:`../api/index` - Référence API complète"
+
+msgid "Sigima is designed to be **GUI-independent**. If you need interactive visualization and analysis tools, check out `DataLab <https://datalab-platform.com/>`_, which uses Sigima as its processing backend and adds a complete graphical interface."
+msgstr "Sigima est conçu pour être **indépendant de toute interface graphique**. Si vous avez besoin d'outils de visualisation et d'analyse interactifs, consultez `DataLab <https://datalab-platform.com/>`_, qui utilise Sigima comme moteur de traitement et ajoute une interface graphique complète."

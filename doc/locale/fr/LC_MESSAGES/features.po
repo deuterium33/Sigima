@@ -1,0 +1,1331 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 16:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid "Features"
+msgstr "Fonctionnalités"
+
+msgid "Sigima provides a comprehensive suite of signal and image processing computational features organized into logical categories. This page provides an organized overview of all available computation functions with direct links to their API documentation."
+msgstr "Sigima offre une suite complète de fonctionnalités de traitement des signaux et des images, organisées en catégories logiques. Cette page fournit un aperçu organisé de toutes les fonctions de calcul disponibles avec des liens directs vers leur documentation API."
+
+msgid "All computation functions are available in the :mod:`sigima.proc` module. The :mod:`sigima.tools` modules provide lower-level utility functions used internally by the proc functions."
+msgstr "Toutes les fonctions de calcul sont disponibles dans le module :mod:`sigima.proc`. Les modules :mod:`sigima.tools` fournissent des fonctions utilitaires de bas niveau utilisées en interne par les fonctions proc."
+
+msgid "Common Operations"
+msgstr "Opérations courantes"
+
+msgid "These operations are available for both signals and images with similar functionality."
+msgstr "Ces opérations sont disponibles à la fois pour les signaux et les images avec une fonctionnalité similaire."
+
+msgid "Arithmetic Operations"
+msgstr "Opérations arithmétiques"
+
+msgid "Signal Functions"
+msgstr "Fonctions de signal"
+
+msgid "Image Functions"
+msgstr "Fonctions d'image"
+
+msgid "Description"
+msgstr "Description"
+
+msgid ":func:`addition <sigima.proc.signal.addition>`"
+msgstr ""
+
+msgid ":func:`addition <sigima.proc.image.addition>`"
+msgstr ""
+
+msgid "Add two signals/images"
+msgstr "Ajouter deux signaux/images"
+
+msgid ":func:`difference <sigima.proc.signal.difference>`"
+msgstr ""
+
+msgid ":func:`difference <sigima.proc.image.difference>`"
+msgstr ""
+
+msgid "Subtract one signal/image from another"
+msgstr "Soustraire un signal/image d'un autre"
+
+msgid ":func:`product <sigima.proc.signal.product>`"
+msgstr ""
+
+msgid ":func:`product <sigima.proc.image.product>`"
+msgstr ""
+
+msgid "Multiply two signals/images"
+msgstr "Multiplier deux signaux/images"
+
+msgid ":func:`division <sigima.proc.signal.division>`"
+msgstr ""
+
+msgid ":func:`division <sigima.proc.image.division>`"
+msgstr ""
+
+msgid "Divide one signal/image by another"
+msgstr "Diviser un signal/image par un autre"
+
+msgid ":func:`average <sigima.proc.signal.average>`"
+msgstr ""
+
+msgid ":func:`average <sigima.proc.image.average>`"
+msgstr ""
+
+msgid "Compute average of multiple signals/images"
+msgstr "Calculer la moyenne de plusieurs signaux/images"
+
+msgid ":func:`standard_deviation <sigima.proc.signal.standard_deviation>`"
+msgstr ""
+
+msgid ":func:`standard_deviation <sigima.proc.image.standard_deviation>`"
+msgstr ""
+
+msgid "Compute standard deviation of multiple signals/images"
+msgstr "Calculer l'écart-type de plusieurs signaux/images"
+
+msgid ":func:`quadratic_difference <sigima.proc.signal.quadratic_difference>`"
+msgstr ""
+
+msgid ":func:`quadratic_difference <sigima.proc.image.quadratic_difference>`"
+msgstr ""
+
+msgid "Compute quadratic difference between signals/images"
+msgstr "Calculer la différence quadratique entre signaux/images"
+
+msgid ":func:`arithmetic <sigima.proc.signal.arithmetic>`"
+msgstr ""
+
+msgid ":func:`arithmetic <sigima.proc.image.arithmetic>`"
+msgstr ""
+
+msgid "Generic arithmetic operations with parameters"
+msgstr "Opérations arithmétiques génériques avec paramètres"
+
+msgid "Constant Operations"
+msgstr "Opérations avec constantes"
+
+msgid ":func:`addition_constant <sigima.proc.signal.addition_constant>`"
+msgstr ""
+
+msgid ":func:`addition_constant <sigima.proc.image.addition_constant>`"
+msgstr ""
+
+msgid "Add a constant value to signal/image"
+msgstr "Ajouter une constante au signal/image"
+
+msgid ":func:`difference_constant <sigima.proc.signal.difference_constant>`"
+msgstr ""
+
+msgid ":func:`difference_constant <sigima.proc.image.difference_constant>`"
+msgstr ""
+
+msgid "Subtract a constant from signal/image"
+msgstr "Soustraire une constante du signal/image"
+
+msgid ":func:`product_constant <sigima.proc.signal.product_constant>`"
+msgstr ""
+
+msgid ":func:`product_constant <sigima.proc.image.product_constant>`"
+msgstr ""
+
+msgid "Multiply signal/image by a constant"
+msgstr "Multiplier le signal/image par une constante"
+
+msgid ":func:`division_constant <sigima.proc.signal.division_constant>`"
+msgstr ""
+
+msgid ":func:`division_constant <sigima.proc.image.division_constant>`"
+msgstr ""
+
+msgid "Divide signal/image by a constant"
+msgstr "Diviser le signal/image par une constante"
+
+msgid "Mathematical Operations"
+msgstr "Opérations mathématiques"
+
+msgid ":func:`absolute <sigima.proc.signal.absolute>`"
+msgstr ""
+
+msgid ":func:`absolute <sigima.proc.image.absolute>`"
+msgstr ""
+
+msgid "Compute absolute value"
+msgstr "Calculer la valeur absolue"
+
+msgid ":func:`exp <sigima.proc.signal.exp>`"
+msgstr ""
+
+msgid ":func:`exp <sigima.proc.image.exp>`"
+msgstr ""
+
+msgid "Exponential function"
+msgstr "Fonction exponentielle"
+
+msgid ":func:`log10 <sigima.proc.signal.log10>`"
+msgstr ""
+
+msgid ":func:`log10 <sigima.proc.image.log10>`"
+msgstr ""
+
+msgid "Base-10 logarithm"
+msgstr "Logarithme en base 10"
+
+msgid ":func:`inverse <sigima.proc.signal.inverse>`"
+msgstr ""
+
+msgid ":func:`inverse <sigima.proc.image.inverse>`"
+msgstr ""
+
+msgid "Compute reciprocal"
+msgstr "Calculer l'inverse"
+
+msgid ":func:`real <sigima.proc.signal.real>`"
+msgstr ""
+
+msgid ":func:`real <sigima.proc.image.real>`"
+msgstr ""
+
+msgid "Extract real part of complex data"
+msgstr "Extraire la partie réelle des données complexes"
+
+msgid ":func:`imag <sigima.proc.signal.imag>`"
+msgstr ""
+
+msgid ":func:`imag <sigima.proc.image.imag>`"
+msgstr ""
+
+msgid "Extract imaginary part of complex data"
+msgstr "Extraire la partie imaginaire des données complexes"
+
+msgid ":func:`phase <sigima.proc.signal.phase>`"
+msgstr ""
+
+msgid ":func:`phase <sigima.proc.image.phase>`"
+msgstr ""
+
+msgid "Extract phase of complex data"
+msgstr "Extraire la phase des données complexes"
+
+msgid ":func:`astype <sigima.proc.signal.astype>`"
+msgstr ""
+
+msgid ":func:`astype <sigima.proc.image.astype>`"
+msgstr ""
+
+msgid "Convert data type"
+msgstr "Convertir le type de données"
+
+msgid ":func:`transpose <sigima.proc.signal.transpose>`"
+msgstr ""
+
+msgid ":func:`transpose <sigima.proc.image.transpose>`"
+msgstr ""
+
+msgid "Transpose coordinates/axes"
+msgstr "Transposer les coordonnées/axes"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid ":func:`log10_z_plus_n <sigima.proc.image.log10_z_plus_n>`"
+msgstr ""
+
+msgid "Log10 with offset for zero handling"
+msgstr "Log10 avec décalage pour la gestion des zéros"
+
+msgid "Signal-Specific Mathematical Operations"
+msgstr "Opérations mathématiques spécifiques aux signaux"
+
+msgid "Function"
+msgstr "Fonction"
+
+msgid ":func:`sqrt <sigima.proc.signal.sqrt>`"
+msgstr ""
+
+msgid "Square root"
+msgstr "Racine carrée"
+
+msgid ":func:`power <sigima.proc.signal.power>`"
+msgstr ""
+
+msgid "Raise to power"
+msgstr "Élever à une puissance"
+
+msgid ":func:`to_cartesian <sigima.proc.signal.to_cartesian>`"
+msgstr ""
+
+msgid "Convert to Cartesian coordinates"
+msgstr "Convertir en coordonnées cartésiennes"
+
+msgid ":func:`to_polar <sigima.proc.signal.to_polar>`"
+msgstr ""
+
+msgid "Convert to polar coordinates"
+msgstr "Convertir en coordonnées polaires"
+
+msgid "Complex Number Operations"
+msgstr "Opérations sur les nombres complexes"
+
+msgid ":func:`complex_from_real_imag <sigima.proc.signal.complex_from_real_imag>`"
+msgstr ""
+
+msgid ":func:`complex_from_real_imag <sigima.proc.image.complex_from_real_imag>`"
+msgstr ""
+
+msgid "Create complex data from real and imaginary parts"
+msgstr "Créer des données complexes à partir des parties réelle et imaginaire"
+
+msgid ":func:`complex_from_magnitude_phase <sigima.proc.signal.complex_from_magnitude_phase>`"
+msgstr ""
+
+msgid ":func:`complex_from_magnitude_phase <sigima.proc.image.complex_from_magnitude_phase>`"
+msgstr ""
+
+msgid "Create complex data from magnitude and phase"
+msgstr "Créer des données complexes à partir du module et de la phase"
+
+msgid "Fourier Analysis"
+msgstr "Analyse de Fourier"
+
+msgid ":func:`fft <sigima.proc.signal.fft>`"
+msgstr ""
+
+msgid ":func:`fft <sigima.proc.image.fft>`"
+msgstr ""
+
+msgid "Fast Fourier Transform (1D/2D)"
+msgstr "Transformée de Fourier rapide (1D/2D)"
+
+msgid ":func:`ifft <sigima.proc.signal.ifft>`"
+msgstr ""
+
+msgid ":func:`ifft <sigima.proc.image.ifft>`"
+msgstr ""
+
+msgid "Inverse Fast Fourier Transform (1D/2D)"
+msgstr "Transformée de Fourier rapide inverse (1D/2D)"
+
+msgid ":func:`magnitude_spectrum <sigima.proc.signal.magnitude_spectrum>`"
+msgstr ""
+
+msgid ":func:`magnitude_spectrum <sigima.proc.image.magnitude_spectrum>`"
+msgstr ""
+
+msgid "Magnitude spectrum"
+msgstr "Spectre de magnitude"
+
+msgid ":func:`phase_spectrum <sigima.proc.signal.phase_spectrum>`"
+msgstr ""
+
+msgid ":func:`phase_spectrum <sigima.proc.image.phase_spectrum>`"
+msgstr ""
+
+msgid "Phase spectrum"
+msgstr "Spectre de phase"
+
+msgid ":func:`psd <sigima.proc.signal.psd>`"
+msgstr ""
+
+msgid ":func:`psd <sigima.proc.image.psd>`"
+msgstr ""
+
+msgid "Power spectral density"
+msgstr "Densité spectrale de puissance"
+
+msgid "Convolution Operations"
+msgstr "Opérations de convolution"
+
+msgid ":func:`convolution <sigima.proc.signal.convolution>`"
+msgstr ""
+
+msgid ":func:`convolution <sigima.proc.image.convolution>`"
+msgstr ""
+
+msgid "Convolution operation"
+msgstr "Opération de convolution"
+
+msgid ":func:`deconvolution <sigima.proc.signal.deconvolution>`"
+msgstr ""
+
+msgid ":func:`deconvolution <sigima.proc.image.deconvolution>`"
+msgstr ""
+
+msgid "Deconvolution operation"
+msgstr "Opération de déconvolution"
+
+msgid "Filtering"
+msgstr "Filtrage"
+
+msgid ":func:`gaussian_filter <sigima.proc.signal.gaussian_filter>`"
+msgstr ""
+
+msgid ":func:`gaussian_filter <sigima.proc.image.gaussian_filter>`"
+msgstr ""
+
+msgid "Gaussian smoothing filter"
+msgstr "Filtre de lissage gaussien"
+
+msgid ":func:`moving_average <sigima.proc.signal.moving_average>`"
+msgstr ""
+
+msgid ":func:`moving_average <sigima.proc.image.moving_average>`"
+msgstr ""
+
+msgid "Moving average filter"
+msgstr "Filtre moyenne mobile"
+
+msgid ":func:`moving_median <sigima.proc.signal.moving_median>`"
+msgstr ""
+
+msgid ":func:`moving_median <sigima.proc.image.moving_median>`"
+msgstr ""
+
+msgid "Moving median filter"
+msgstr "Filtre médian mobile"
+
+msgid ":func:`wiener <sigima.proc.signal.wiener>`"
+msgstr ""
+
+msgid ":func:`wiener <sigima.proc.image.wiener>`"
+msgstr ""
+
+msgid "Wiener filter"
+msgstr "Filtre de Wiener"
+
+msgid "Noise Addition"
+msgstr "Ajout de bruit"
+
+msgid ":func:`add_gaussian_noise <sigima.proc.signal.add_gaussian_noise>`"
+msgstr ""
+
+msgid ":func:`add_gaussian_noise <sigima.proc.image.add_gaussian_noise>`"
+msgstr ""
+
+msgid "Add Gaussian noise for testing"
+msgstr "Ajouter du bruit gaussien pour les tests"
+
+msgid ":func:`add_poisson_noise <sigima.proc.signal.add_poisson_noise>`"
+msgstr ""
+
+msgid ":func:`add_poisson_noise <sigima.proc.image.add_poisson_noise>`"
+msgstr ""
+
+msgid "Add Poisson noise for testing"
+msgstr "Ajouter du bruit de Poisson pour les tests"
+
+msgid ":func:`add_uniform_noise <sigima.proc.signal.add_uniform_noise>`"
+msgstr ""
+
+msgid ":func:`add_uniform_noise <sigima.proc.image.add_uniform_noise>`"
+msgstr ""
+
+msgid "Add uniform noise for testing"
+msgstr "Ajouter du bruit uniforme pour les tests"
+
+msgid "Signal Conditioning"
+msgstr "Conditionnement du signal"
+
+msgid ":func:`normalize <sigima.proc.signal.normalize>`"
+msgstr ""
+
+msgid ":func:`normalize <sigima.proc.image.normalize>`"
+msgstr ""
+
+msgid "Normalize amplitude/intensity values"
+msgstr "Normaliser les valeurs d'amplitude/intensité"
+
+msgid ":func:`clip <sigima.proc.signal.clip>`"
+msgstr ""
+
+msgid ":func:`clip <sigima.proc.image.clip>`"
+msgstr ""
+
+msgid "Clip values to specified range"
+msgstr "Écrêter les valeurs à une plage spécifiée"
+
+msgid ":func:`offset_correction <sigima.proc.signal.offset_correction>`"
+msgstr ""
+
+msgid ":func:`offset_correction <sigima.proc.image.offset_correction>`"
+msgstr ""
+
+msgid "Remove DC offset/background"
+msgstr "Supprimer le décalage DC/fond continu"
+
+msgid "Region of Interest (ROI)"
+msgstr "Région d'intérêt (ROI)"
+
+msgid ":func:`extract_roi <sigima.proc.signal.extract_roi>`"
+msgstr ""
+
+msgid ":func:`extract_roi <sigima.proc.image.extract_roi>`"
+msgstr ""
+
+msgid "Extract single ROI from data"
+msgstr "Extraire une seule ROI des données"
+
+msgid ":func:`extract_rois <sigima.proc.signal.extract_rois>`"
+msgstr ""
+
+msgid ":func:`extract_rois <sigima.proc.image.extract_rois>`"
+msgstr ""
+
+msgid "Extract multiple ROIs from data"
+msgstr "Extraire plusieurs ROI des données"
+
+msgid "Calibration"
+msgstr "Étalonnage"
+
+msgid ":func:`calibration <sigima.proc.signal.calibration>`"
+msgstr ""
+
+msgid ":func:`calibration <sigima.proc.image.calibration>`"
+msgstr ""
+
+msgid "Apply coordinate system calibration"
+msgstr "Appliquer l'étalonnage du système de coordonnées"
+
+msgid "Signal Processing"
+msgstr "Traitement du signal"
+
+msgid "Array Operations"
+msgstr "Opérations sur les tableaux"
+
+msgid ":func:`signals_to_array <sigima.proc.signal.signals_to_array>`"
+msgstr ""
+
+msgid "Convert multiple signals to array"
+msgstr "Convertir plusieurs signaux en tableau"
+
+msgid ":func:`signals_to_image <sigima.proc.signal.signals_to_image>`"
+msgstr ""
+
+msgid "Convert signals to image representation"
+msgstr "Convertir les signaux en représentation image"
+
+msgid "Frequency Filtering"
+msgstr "Filtrage fréquentiel"
+
+msgid ":func:`lowpass <sigima.proc.signal.lowpass>`"
+msgstr ""
+
+msgid "Low-pass filter"
+msgstr "Filtre passe-bas"
+
+msgid ":func:`highpass <sigima.proc.signal.highpass>`"
+msgstr ""
+
+msgid "High-pass filter"
+msgstr "Filtre passe-haut"
+
+msgid ":func:`bandpass <sigima.proc.signal.bandpass>`"
+msgstr ""
+
+msgid "Band-pass filter"
+msgstr "Filtre passe-bande"
+
+msgid ":func:`bandstop <sigima.proc.signal.bandstop>`"
+msgstr ""
+
+msgid "Band-stop filter"
+msgstr "Filtre coupe-bande"
+
+msgid ":func:`frequency_filter <sigima.proc.signal.frequency_filter>`"
+msgstr ""
+
+msgid "Generic frequency filtering"
+msgstr "Filtrage fréquentiel générique"
+
+msgid "Signal Conditioning & Processing"
+msgstr "Conditionnement et traitement du signal"
+
+msgid ":func:`detrending <sigima.proc.signal.detrending>`"
+msgstr ""
+
+msgid "Remove linear trend"
+msgstr "Supprimer la tendance linéaire"
+
+msgid ":func:`apply_window <sigima.proc.signal.apply_window>`"
+msgstr ""
+
+msgid "Apply windowing function"
+msgstr "Appliquer une fonction de fenêtrage"
+
+msgid ":func:`resampling <sigima.proc.signal.resampling>`"
+msgstr ""
+
+msgid "Resample signal"
+msgstr "Rééchantillonner le signal"
+
+msgid ":func:`interpolate <sigima.proc.signal.interpolate>`"
+msgstr ""
+
+msgid "Interpolate signal"
+msgstr "Interpoler le signal"
+
+msgid ":func:`reverse_x <sigima.proc.signal.reverse_x>`"
+msgstr ""
+
+msgid "Reverse x-axis order"
+msgstr "Inverser l'ordre de l'axe des x"
+
+msgid ":func:`xy_mode <sigima.proc.signal.xy_mode>`"
+msgstr ""
+
+msgid "Handle XY coordinate modes"
+msgstr "Gérer les modes de coordonnées XY"
+
+msgid ":func:`zero_padding <sigima.proc.signal.zero_padding>`"
+msgstr ""
+
+msgid "Zero-padding for signals"
+msgstr "Remplissage de zéros pour les signaux"
+
+msgid "Signal Analysis"
+msgstr "Analyse de signal"
+
+msgid ":func:`stats <sigima.proc.signal.stats>`"
+msgstr ""
+
+msgid "Statistical measurements"
+msgstr "Mesures statistiques"
+
+msgid ":func:`histogram <sigima.proc.signal.histogram>`"
+msgstr ""
+
+msgid "Compute signal histogram"
+msgstr "Calculer l'histogramme du signal"
+
+msgid ":func:`contrast <sigima.proc.signal.contrast>`"
+msgstr ""
+
+msgid "Compute signal contrast"
+msgstr "Calculer le contraste du signal"
+
+msgid ":func:`derivative <sigima.proc.signal.derivative>`"
+msgstr ""
+
+msgid "Compute signal derivative"
+msgstr "Calculer la dérivée du signal"
+
+msgid ":func:`integral <sigima.proc.signal.integral>`"
+msgstr ""
+
+msgid "Compute signal integral"
+msgstr "Calculer l'intégrale du signal"
+
+msgid ":func:`sampling_rate_period <sigima.proc.signal.sampling_rate_period>`"
+msgstr ""
+
+msgid "Analyze sampling rate and period"
+msgstr "Analyser le taux et la période d'échantillonnage"
+
+msgid "Peak and Feature Detection"
+msgstr "Détection de pics et de caractéristiques"
+
+msgid ":func:`peak_detection <sigima.proc.signal.peak_detection>`"
+msgstr ""
+
+msgid "Peak detection in signals"
+msgstr "Détection de pics dans les signaux"
+
+msgid ":func:`bandwidth_3db <sigima.proc.signal.bandwidth_3db>`"
+msgstr ""
+
+msgid "3dB bandwidth measurement"
+msgstr "Mesure de la bande passante à 3 dB"
+
+msgid ":func:`fwhm <sigima.proc.signal.fwhm>`"
+msgstr ""
+
+msgid "Full Width at Half Maximum"
+msgstr "Largeur à mi-hauteur"
+
+msgid ":func:`fw1e2 <sigima.proc.signal.fw1e2>`"
+msgstr ""
+
+msgid "Full Width at 1/e²"
+msgstr "Largeur à 1/e²"
+
+msgid ":func:`full_width_at_y <sigima.proc.signal.full_width_at_y>`"
+msgstr ""
+
+msgid "Full width at custom level"
+msgstr "Largeur à un niveau personnalisé"
+
+msgid ":func:`dynamic_parameters <sigima.proc.signal.dynamic_parameters>`"
+msgstr ""
+
+msgid "Dynamic range parameters"
+msgstr "Paramètres de dynamique"
+
+msgid ":func:`x_at_y <sigima.proc.signal.x_at_y>`"
+msgstr ""
+
+msgid "Find x-coordinates at given y-value"
+msgstr "Trouver les coordonnées x pour une valeur y donnée"
+
+msgid ":func:`y_at_x <sigima.proc.signal.y_at_x>`"
+msgstr ""
+
+msgid "Find y-values at given x-coordinate"
+msgstr "Trouver les valeurs y pour une coordonnée x donnée"
+
+msgid ":func:`x_at_minmax <sigima.proc.signal.x_at_minmax>`"
+msgstr ""
+
+msgid "Find x-coordinates of extrema"
+msgstr "Trouver les coordonnées x des extrema"
+
+msgid "Curve Fitting"
+msgstr "Ajustement de courbes"
+
+msgid ":func:`linear_fit <sigima.proc.signal.linear_fit>`"
+msgstr ""
+
+msgid "Linear regression"
+msgstr "Régression linéaire"
+
+msgid ":func:`polynomial_fit <sigima.proc.signal.polynomial_fit>`"
+msgstr ""
+
+msgid "Polynomial fitting"
+msgstr "Ajustement polynomial"
+
+msgid ":func:`gaussian_fit <sigima.proc.signal.gaussian_fit>`"
+msgstr ""
+
+msgid "Gaussian curve fitting"
+msgstr "Ajustement gaussien"
+
+msgid ":func:`lorentzian_fit <sigima.proc.signal.lorentzian_fit>`"
+msgstr ""
+
+msgid "Lorentzian curve fitting"
+msgstr "Ajustement lorentzien"
+
+msgid ":func:`voigt_fit <sigima.proc.signal.voigt_fit>`"
+msgstr ""
+
+msgid "Voigt profile fitting"
+msgstr "Ajustement de profil de Voigt"
+
+msgid ":func:`twohalfgaussian_fit <sigima.proc.signal.twohalfgaussian_fit>`"
+msgstr ""
+
+msgid "Two-half Gaussian fitting"
+msgstr "Ajustement bi-gaussien"
+
+msgid ":func:`exponential_fit <sigima.proc.signal.exponential_fit>`"
+msgstr ""
+
+msgid "Exponential decay fitting"
+msgstr "Ajustement exponentiel décroissant"
+
+msgid ":func:`piecewiseexponential_fit <sigima.proc.signal.piecewiseexponential_fit>`"
+msgstr ""
+
+msgid "Piecewise exponential fitting"
+msgstr "Ajustement exponentiel par morceaux"
+
+msgid ":func:`sigmoid_fit <sigima.proc.signal.sigmoid_fit>`"
+msgstr ""
+
+msgid "Sigmoid curve fitting"
+msgstr "Ajustement sigmoïde"
+
+msgid ":func:`sinusoidal_fit <sigima.proc.signal.sinusoidal_fit>`"
+msgstr ""
+
+msgid "Sinusoidal fitting"
+msgstr "Ajustement sinusoïdal"
+
+msgid ":func:`planckian_fit <sigima.proc.signal.planckian_fit>`"
+msgstr ""
+
+msgid "Planckian (blackbody) fitting"
+msgstr "Ajustement planckien (corps noir)"
+
+msgid ":func:`cdf_fit <sigima.proc.signal.cdf_fit>`"
+msgstr ""
+
+msgid "Cumulative distribution function fitting"
+msgstr "Ajustement de fonction de distribution cumulative"
+
+msgid ":func:`evaluate_fit <sigima.proc.signal.evaluate_fit>`"
+msgstr ""
+
+msgid "Evaluate fitted function"
+msgstr "Évaluer la fonction ajustée"
+
+msgid ":func:`extract_fit_params <sigima.proc.signal.extract_fit_params>`"
+msgstr ""
+
+msgid "Extract fitting parameters"
+msgstr "Extraire les paramètres d'ajustement"
+
+msgid "Stability Analysis"
+msgstr "Analyse de stabilité"
+
+msgid ":func:`allan_variance <sigima.proc.signal.allan_variance>`"
+msgstr ""
+
+msgid "Allan variance"
+msgstr "Variance d'Allan"
+
+msgid ":func:`allan_deviation <sigima.proc.signal.allan_deviation>`"
+msgstr ""
+
+msgid "Allan deviation"
+msgstr "Déviation d'Allan"
+
+msgid ":func:`modified_allan_variance <sigima.proc.signal.modified_allan_variance>`"
+msgstr ""
+
+msgid "Modified Allan variance"
+msgstr "Variance d'Allan modifiée"
+
+msgid ":func:`overlapping_allan_variance <sigima.proc.signal.overlapping_allan_variance>`"
+msgstr ""
+
+msgid "Overlapping Allan variance"
+msgstr "Variance d'Allan avec chevauchement"
+
+msgid ":func:`hadamard_variance <sigima.proc.signal.hadamard_variance>`"
+msgstr ""
+
+msgid "Hadamard variance"
+msgstr "Variance de Hadamard"
+
+msgid ":func:`time_deviation <sigima.proc.signal.time_deviation>`"
+msgstr ""
+
+msgid "Time deviation"
+msgstr "Déviation temporelle"
+
+msgid ":func:`total_variance <sigima.proc.signal.total_variance>`"
+msgstr ""
+
+msgid "Total variance"
+msgstr "Variance totale"
+
+msgid "Pulse Analysis"
+msgstr "Analyse d'impulsion"
+
+msgid ":func:`extract_pulse_features <sigima.proc.signal.extract_pulse_features>`"
+msgstr ""
+
+msgid "Extract comprehensive pulse characteristics"
+msgstr "Extraire les caractéristiques complètes de l'impulsion"
+
+msgid "Utility Functions"
+msgstr "Fonctions utilitaires"
+
+msgid ":func:`check_same_sample_rate <sigima.proc.signal.check_same_sample_rate>`"
+msgstr ""
+
+msgid "Verify consistent sampling rates"
+msgstr "Vérifier la cohérence des taux d'échantillonnage"
+
+msgid ":func:`get_nyquist_frequency <sigima.proc.signal.get_nyquist_frequency>`"
+msgstr ""
+
+msgid "Calculate Nyquist frequency"
+msgstr "Calculer la fréquence de Nyquist"
+
+msgid "Image Processing"
+msgstr "Traitement d'image"
+
+msgid "Geometry and Transformations"
+msgstr "Géométrie et transformations"
+
+msgid ":func:`rotate <sigima.proc.image.rotate>`"
+msgstr ""
+
+msgid "Rotate image by arbitrary angle"
+msgstr "Faire pivoter l'image d'un angle quelconque"
+
+msgid ":func:`rotate90 <sigima.proc.image.rotate90>`"
+msgstr ""
+
+msgid "Rotate image 90° clockwise"
+msgstr "Faire pivoter l'image de 90° dans le sens horaire"
+
+msgid ":func:`rotate270 <sigima.proc.image.rotate270>`"
+msgstr ""
+
+msgid "Rotate image 270° clockwise"
+msgstr "Faire pivoter l'image de 270° dans le sens horaire"
+
+msgid ":func:`fliph <sigima.proc.image.fliph>`"
+msgstr ""
+
+msgid "Flip image horizontally"
+msgstr "Retourner l'image horizontalement"
+
+msgid ":func:`flipv <sigima.proc.image.flipv>`"
+msgstr ""
+
+msgid "Flip image vertically"
+msgstr "Retourner l'image verticalement"
+
+msgid ":func:`translate <sigima.proc.image.translate>`"
+msgstr ""
+
+msgid "Translate image by specified offset"
+msgstr "Translater l'image d'un décalage spécifié"
+
+msgid ":func:`resize <sigima.proc.image.resize>`"
+msgstr ""
+
+msgid "Resize image to specified dimensions"
+msgstr "Redimensionner l'image aux dimensions spécifiées"
+
+msgid ":func:`resampling <sigima.proc.image.resampling>`"
+msgstr ""
+
+msgid "Resample image with different methods"
+msgstr "Rééchantillonner l'image avec différentes méthodes"
+
+msgid ":func:`binning <sigima.proc.image.binning>`"
+msgstr ""
+
+msgid "Reduce image size by binning pixels"
+msgstr "Réduire la taille de l'image par regroupement de pixels"
+
+msgid ":func:`set_uniform_coords <sigima.proc.image.set_uniform_coords>`"
+msgstr ""
+
+msgid "Set uniform coordinate system"
+msgstr "Définir un système de coordonnées uniforme"
+
+msgid ":data:`transformer <sigima.proc.image.transformer>`"
+msgstr ""
+
+msgid "Apply custom geometric transformations"
+msgstr "Appliquer des transformations géométriques personnalisées"
+
+msgid "Frequency Domain Filtering"
+msgstr "Filtrage dans le domaine fréquentiel"
+
+msgid ":func:`butterworth <sigima.proc.image.butterworth>`"
+msgstr ""
+
+msgid "Butterworth frequency filter"
+msgstr "Filtre fréquentiel de Butterworth"
+
+msgid ":func:`gaussian_freq_filter <sigima.proc.image.gaussian_freq_filter>`"
+msgstr ""
+
+msgid "Gaussian frequency filter"
+msgstr "Filtre fréquentiel gaussien"
+
+msgid "Edge Detection"
+msgstr "Détection de contours"
+
+msgid ":func:`sobel <sigima.proc.image.sobel>`"
+msgstr ""
+
+msgid "Sobel edge detector"
+msgstr "Détecteur de contours Sobel"
+
+msgid ":func:`sobel_h <sigima.proc.image.sobel_h>`"
+msgstr ""
+
+msgid "Sobel horizontal edges"
+msgstr "Contours horizontaux Sobel"
+
+msgid ":func:`sobel_v <sigima.proc.image.sobel_v>`"
+msgstr ""
+
+msgid "Sobel vertical edges"
+msgstr "Contours verticaux Sobel"
+
+msgid ":func:`scharr <sigima.proc.image.scharr>`"
+msgstr ""
+
+msgid "Scharr edge detector"
+msgstr "Détecteur de contours Scharr"
+
+msgid ":func:`scharr_h <sigima.proc.image.scharr_h>`"
+msgstr ""
+
+msgid "Scharr horizontal edges"
+msgstr "Contours horizontaux Scharr"
+
+msgid ":func:`scharr_v <sigima.proc.image.scharr_v>`"
+msgstr ""
+
+msgid "Scharr vertical edges"
+msgstr "Contours verticaux Scharr"
+
+msgid ":func:`prewitt <sigima.proc.image.prewitt>`"
+msgstr ""
+
+msgid "Prewitt edge detector"
+msgstr "Détecteur de contours Prewitt"
+
+msgid ":func:`prewitt_h <sigima.proc.image.prewitt_h>`"
+msgstr ""
+
+msgid "Prewitt horizontal edges"
+msgstr "Contours horizontaux Prewitt"
+
+msgid ":func:`prewitt_v <sigima.proc.image.prewitt_v>`"
+msgstr ""
+
+msgid "Prewitt vertical edges"
+msgstr "Contours verticaux Prewitt"
+
+msgid ":func:`farid <sigima.proc.image.farid>`"
+msgstr ""
+
+msgid "Farid edge detector"
+msgstr "Détecteur de contours Farid"
+
+msgid ":func:`farid_h <sigima.proc.image.farid_h>`"
+msgstr ""
+
+msgid "Farid horizontal edges"
+msgstr "Contours horizontaux Farid"
+
+msgid ":func:`farid_v <sigima.proc.image.farid_v>`"
+msgstr ""
+
+msgid "Farid vertical edges"
+msgstr "Contours verticaux Farid"
+
+msgid ":func:`roberts <sigima.proc.image.roberts>`"
+msgstr ""
+
+msgid "Roberts cross-gradient"
+msgstr "Gradient croisé de Roberts"
+
+msgid ":func:`laplace <sigima.proc.image.laplace>`"
+msgstr ""
+
+msgid "Laplacian edge detector"
+msgstr "Détecteur de contours laplacien"
+
+msgid ":func:`canny <sigima.proc.image.canny>`"
+msgstr ""
+
+msgid "Canny edge detector"
+msgstr "Détecteur de contours Canny"
+
+msgid "Feature Detection"
+msgstr "Détection de caractéristiques"
+
+msgid ":func:`blob_dog <sigima.proc.image.blob_dog>`"
+msgstr ""
+
+msgid "Blob detection using Difference of Gaussians"
+msgstr "Détection de blobs par différence de gaussiennes"
+
+msgid ":func:`blob_doh <sigima.proc.image.blob_doh>`"
+msgstr ""
+
+msgid "Blob detection using Determinant of Hessian"
+msgstr "Détection de blobs par déterminant de Hessien"
+
+msgid ":func:`blob_log <sigima.proc.image.blob_log>`"
+msgstr ""
+
+msgid "Blob detection using Laplacian of Gaussians"
+msgstr "Détection de blobs par laplacien de gaussiennes"
+
+msgid ":func:`blob_opencv <sigima.proc.image.blob_opencv>`"
+msgstr ""
+
+msgid "OpenCV-based blob detection"
+msgstr "Détection de blobs basée sur OpenCV"
+
+msgid ":func:`peak_detection <sigima.proc.image.peak_detection>`"
+msgstr ""
+
+msgid "2D peak detection"
+msgstr "Détection de pics 2D"
+
+msgid ":func:`contour_shape <sigima.proc.image.contour_shape>`"
+msgstr ""
+
+msgid "Contour shape analysis"
+msgstr "Analyse de forme de contour"
+
+msgid ":func:`hough_circle_peaks <sigima.proc.image.hough_circle_peaks>`"
+msgstr ""
+
+msgid "Circular Hough transform"
+msgstr "Transformée de Hough circulaire"
+
+msgid "Morphological Operations"
+msgstr "Opérations morphologiques"
+
+msgid ":func:`erosion <sigima.proc.image.erosion>`"
+msgstr ""
+
+msgid "Morphological erosion"
+msgstr "Érosion morphologique"
+
+msgid ":func:`dilation <sigima.proc.image.dilation>`"
+msgstr ""
+
+msgid "Morphological dilation"
+msgstr "Dilatation morphologique"
+
+msgid ":func:`opening <sigima.proc.image.opening>`"
+msgstr ""
+
+msgid "Morphological opening"
+msgstr "Ouverture morphologique"
+
+msgid ":func:`closing <sigima.proc.image.closing>`"
+msgstr ""
+
+msgid "Morphological closing"
+msgstr "Fermeture morphologique"
+
+msgid ":func:`white_tophat <sigima.proc.image.white_tophat>`"
+msgstr ""
+
+msgid "White top-hat transform"
+msgstr "Transformée Top-Hat"
+
+msgid ":func:`black_tophat <sigima.proc.image.black_tophat>`"
+msgstr ""
+
+msgid "Black top-hat transform"
+msgstr "Transformée Top-Hat dual"
+
+msgid "Thresholding"
+msgstr "Seuillage"
+
+msgid ":func:`threshold <sigima.proc.image.threshold>`"
+msgstr ""
+
+msgid "Manual threshold with custom value"
+msgstr "Seuillage manuel avec valeur personnalisée"
+
+msgid ":func:`threshold_otsu <sigima.proc.image.threshold_otsu>`"
+msgstr ""
+
+msgid "Otsu's thresholding"
+msgstr "Seuillage d'Otsu"
+
+msgid ":func:`threshold_li <sigima.proc.image.threshold_li>`"
+msgstr ""
+
+msgid "Li's thresholding"
+msgstr "Seuillage de Li"
+
+msgid ":func:`threshold_yen <sigima.proc.image.threshold_yen>`"
+msgstr ""
+
+msgid "Yen's thresholding"
+msgstr "Seuillage de Yen"
+
+msgid ":func:`threshold_triangle <sigima.proc.image.threshold_triangle>`"
+msgstr ""
+
+msgid "Triangle thresholding"
+msgstr "Seuillage triangulaire"
+
+msgid ":func:`threshold_isodata <sigima.proc.image.threshold_isodata>`"
+msgstr ""
+
+msgid "Isodata thresholding"
+msgstr "Seuillage isodata"
+
+msgid ":func:`threshold_mean <sigima.proc.image.threshold_mean>`"
+msgstr ""
+
+msgid "Mean thresholding"
+msgstr "Seuillage par moyenne"
+
+msgid ":func:`threshold_minimum <sigima.proc.image.threshold_minimum>`"
+msgstr ""
+
+msgid "Minimum thresholding"
+msgstr "Seuillage minimal"
+
+msgid "Exposure and Intensity Correction"
+msgstr "Correction d'exposition et d'intensité"
+
+msgid ":func:`histogram <sigima.proc.image.histogram>`"
+msgstr ""
+
+msgid "Compute image histogram"
+msgstr "Calculer l'histogramme de l'image"
+
+msgid ":func:`equalize_hist <sigima.proc.image.equalize_hist>`"
+msgstr ""
+
+msgid "Histogram equalization"
+msgstr "Égalisation d'histogramme"
+
+msgid ":func:`equalize_adapthist <sigima.proc.image.equalize_adapthist>`"
+msgstr ""
+
+msgid "Adaptive histogram equalization"
+msgstr "Égalisation d'histogramme adaptative"
+
+msgid ":func:`adjust_gamma <sigima.proc.image.adjust_gamma>`"
+msgstr ""
+
+msgid "Gamma correction"
+msgstr "Correction gamma"
+
+msgid ":func:`adjust_log <sigima.proc.image.adjust_log>`"
+msgstr ""
+
+msgid "Logarithmic adjustment"
+msgstr "Ajustement logarithmique"
+
+msgid ":func:`adjust_sigmoid <sigima.proc.image.adjust_sigmoid>`"
+msgstr ""
+
+msgid "Sigmoid adjustment"
+msgstr "Ajustement sigmoïde"
+
+msgid ":func:`rescale_intensity <sigima.proc.image.rescale_intensity>`"
+msgstr ""
+
+msgid "Rescale intensity range"
+msgstr "Remise à l'échelle de la plage d'intensité"
+
+msgid ":func:`flatfield <sigima.proc.image.flatfield>`"
+msgstr ""
+
+msgid "Flat-field correction"
+msgstr "Correction de champ plat"
+
+msgid "Image Restoration"
+msgstr "Restauration d'image"
+
+msgid ":func:`denoise_bilateral <sigima.proc.image.denoise_bilateral>`"
+msgstr ""
+
+msgid "Bilateral denoising"
+msgstr "Débruitage bilatéral"
+
+msgid ":func:`denoise_tv <sigima.proc.image.denoise_tv>`"
+msgstr ""
+
+msgid "Total variation denoising"
+msgstr "Débruitage par variation totale"
+
+msgid ":func:`denoise_wavelet <sigima.proc.image.denoise_wavelet>`"
+msgstr ""
+
+msgid "Wavelet denoising"
+msgstr "Débruitage par ondelettes"
+
+msgid ":func:`denoise_tophat <sigima.proc.image.denoise_tophat>`"
+msgstr ""
+
+msgid "Top-hat denoising"
+msgstr "Débruitage Top-Hat"
+
+msgid ":func:`erase <sigima.proc.image.erase>`"
+msgstr ""
+
+msgid "Erase image regions"
+msgstr "Effacer des régions de l'image"
+
+msgid "Preprocessing"
+msgstr "Prétraitement"
+
+msgid ":func:`zero_padding <sigima.proc.image.zero_padding>`"
+msgstr ""
+
+msgid "Zero-padding for images"
+msgstr "Remplissage de zéros pour les images"
+
+msgid "Measurements and Analysis"
+msgstr ""
+
+msgid ":func:`centroid <sigima.proc.image.centroid>`"
+msgstr ""
+
+msgid "Compute image centroid"
+msgstr "Calculer le centroïde de l'image"
+
+msgid ":func:`enclosing_circle <sigima.proc.image.enclosing_circle>`"
+msgstr ""
+
+msgid "Find minimum enclosing circle"
+msgstr "Trouver le cercle englobant minimal"
+
+msgid ":func:`stats <sigima.proc.image.stats>`"
+msgstr ""
+
+msgid ":func:`line_profile <sigima.proc.image.line_profile>`"
+msgstr ""
+
+msgid "Extract profile along a line"
+msgstr "Extraire le profil le long d'une ligne"
+
+msgid ":func:`segment_profile <sigima.proc.image.segment_profile>`"
+msgstr ""
+
+msgid "Extract profile along a multi-segment line"
+msgstr "Extraire le profil le long d'une ligne multi-segments"
+
+msgid ":func:`radial_profile <sigima.proc.image.radial_profile>`"
+msgstr ""
+
+msgid "Extract radial profile from center"
+msgstr "Extraire le profil radial à partir du centre"
+
+msgid ":func:`average_profile <sigima.proc.image.average_profile>`"
+msgstr ""
+
+msgid "Average profile over region"
+msgstr "Profil moyen sur une région"
+
+msgid ":func:`horizontal_projection <sigima.proc.image.horizontal_projection>`"
+msgstr ""
+
+msgid "Project image onto horizontal axis"
+msgstr "Projeter l'image sur l'axe horizontal"
+
+msgid ":func:`vertical_projection <sigima.proc.image.vertical_projection>`"
+msgstr ""
+
+msgid "Project image onto vertical axis"
+msgstr "Projeter l'image sur l'axe vertical"
+
+msgid ":func:`generate_image_grid_roi <sigima.proc.image.generate_image_grid_roi>`"
+msgstr ""
+
+msgid "Generate grid of ROIs"
+msgstr "Générer une grille de ROI"
+
+msgid "See Also"
+msgstr "Voir aussi"
+
+msgid ":doc:`../api/proc` - Complete API reference for all processing functions"
+msgstr ":doc:`../api/proc` - Référence API complète pour toutes les fonctions de traitement"
+
+msgid ":doc:`../api/objects` - Data objects (SignalObj, ImageObj) used by processing functions"
+msgstr ":doc:`../api/objects` - Objets de données (SignalObj, ImageObj) utilisés par les fonctions de traitement"
+
+msgid ":doc:`../intro/index` - Examples demonstrating various computation features"
+msgstr ":doc:`../intro/index` - Exemples illustrant diverses fonctionnalités de calcul"
