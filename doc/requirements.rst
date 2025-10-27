@@ -97,6 +97,9 @@ Optional modules for building the documentation:
     * - sphinx
       - 
       - Python documentation generator
+    * - sphinx-gallery
+      - 
+      - A Sphinx extension that builds an HTML gallery of examples from any set of Python scripts.
     * - sphinx_intl
       - 
       - Sphinx utility that make it easy to translate and to apply translation.
@@ -112,9 +115,6 @@ Optional modules for building the documentation:
     * - pydata-sphinx-theme
       - 
       - Bootstrap-based Sphinx theme from the PyData community
-    * - sphinx-gallery
-      - 
-      - A Sphinx extension that builds an HTML gallery of examples from any set of Python scripts.
     * - qtpy
       - 
       - Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6).
