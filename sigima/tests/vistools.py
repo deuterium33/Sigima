@@ -164,7 +164,12 @@ def create_curve_dialog(
         toolbar=True,
         title=title,
         options=PlotOptions(
-            type="curve", xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
+            type="curve",
+            xlabel=xlabel,
+            ylabel=ylabel,
+            xunit=xunit,
+            yunit=yunit,
+            curve_antialiasing=True,
         ),
         size=(800, 600) if size is None else size,
     )
@@ -346,6 +351,8 @@ def create_curve_item(
         xdata, ydata = obj.xydata
         title = obj.title or title or ""
     item = make.mcurve(xdata, ydata)
+    item.param.line.width = 1.25
+    item.param.update_item(item)
     item.setTitle(title)
     return item
 
@@ -937,7 +944,7 @@ def __compute_grid(
 
 def view_images_side_by_side(
     images: list[ImageItem | np.ndarray | ImageObj],
-    titles: list[str],
+    titles: list[str] | None = None,
     share_axes: bool = True,
     rows: int | None = None,
     maximized: bool = False,
@@ -969,6 +976,10 @@ def view_images_side_by_side(
     )
     imparameters = IMAGE_PARAMETERS.copy()
     imparameters.update(kwargs)
+    if not isinstance(titles, (list, tuple)):
+        titles = [titles] * len(images)
+    elif len(titles) != len(images):
+        raise ValueError("Length of titles must match length of images")
     if not isinstance(results, (list, tuple)):
         results = [results] * len(images)
     elif len(results) != len(images):
@@ -976,6 +987,7 @@ def view_images_side_by_side(
     for idx, (img, result, imtitle) in enumerate(zip(images, results, titles)):
         row = idx // cols
         col = idx % cols
+        imtitle = img.title if isinstance(img, ImageObj) else imtitle
         plot = BasePlot(options=BasePlotOptions(title=imtitle))
         other_items = []
         if isinstance(img, (MaskedImageItem, ImageItem)):

@@ -1,6 +1,6 @@
 """
-Uniform and Non-Uniform Coordinate Systems with Sigima
-======================================================
+Uniform and Non-Uniform Coordinate Systems
+==========================================
 
 This example demonstrates the use of uniform and non-uniform coordinate systems
 with images in Sigima. It shows how to create, visualize, and work with both

@@ -68,9 +68,11 @@ __all__ = [
     "calc_table_from_data",
     "create_image",
     "create_image_from_param",
+    "create_image_parameters",
     "create_image_roi",
     "create_signal",
     "create_signal_from_param",
+    "create_signal_parameters",
     "create_signal_roi",
     "read_image",
     "read_images",
@@ -129,9 +131,11 @@ from sigima.objects import (
     calc_table_from_data,
     create_image,
     create_image_from_param,
+    create_image_parameters,
     create_image_roi,
     create_signal,
     create_signal_from_param,
+    create_signal_parameters,
     create_signal_roi,
 )
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-26 12:29+0100\n"
+"POT-Creation-Date: 2025-10-27 15:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -29,7 +29,13 @@ msgid "Of course, some of these examples may seem trivial, but they serve to ill
 msgstr "Bien sûr, certains de ces exemples peuvent sembler triviaux, mais ils servent à illustrer comment utiliser diverses fonctionnalités de Sigima de manière claire et concise."
 
 msgid "These examples are automatically generated when building the documentation, thus ensuring that they are always up-to-date with the latest version of Sigima."
-msgstr "Ces exemples sont générés automatiquement lors de la construction de la documentation, garantissant ainsi qu'ils sont toujours à jour avec la dernière version de Sigima."
+msgstr "Ces exemples sont générés automatiquement lors de la construction de la documentation, garantissant ainsi qu'ils sont toujours fonctionnels avec la dernière version de Sigima."
+
+msgid ":ref:`sphx_glr_auto_examples_image_creation.py`"
+msgstr ""
+
+msgid ":ref:`sphx_glr_auto_examples_signal_creation.py`"
+msgstr ""
 
 msgid "Introductory Examples"
 msgstr "Exemples introductifs"
