@@ -944,7 +944,7 @@ def __compute_grid(
 
 def view_images_side_by_side(
     images: list[ImageItem | np.ndarray | ImageObj],
-    titles: list[str],
+    titles: list[str] | None = None,
     share_axes: bool = True,
     rows: int | None = None,
     maximized: bool = False,
@@ -976,6 +976,10 @@ def view_images_side_by_side(
     )
     imparameters = IMAGE_PARAMETERS.copy()
     imparameters.update(kwargs)
+    if not isinstance(titles, (list, tuple)):
+        titles = [titles] * len(images)
+    elif len(titles) != len(images):
+        raise ValueError("Length of titles must match length of images")
     if not isinstance(results, (list, tuple)):
         results = [results] * len(images)
     elif len(results) != len(images):
@@ -983,6 +987,7 @@ def view_images_side_by_side(
     for idx, (img, result, imtitle) in enumerate(zip(images, results, titles)):
         row = idx // cols
         col = idx % cols
+        imtitle = img.title if isinstance(img, ImageObj) else imtitle
         plot = BasePlot(options=BasePlotOptions(title=imtitle))
         other_items = []
         if isinstance(img, (MaskedImageItem, ImageItem)):
