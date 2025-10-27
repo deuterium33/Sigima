@@ -236,6 +236,12 @@ def create_image_parameters(
     height: int | None = None,
     width: int | None = None,
     idtype: ImageDatatypes | None = None,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
     **kwargs: dict,
 ) -> NewImageParam:
     """Create parameters for a given image type.
@@ -246,6 +252,12 @@ def create_image_parameters(
         height: image height (number of rows)
         width: image width (number of columns)
         idtype: image data type (`ImageDatatypes` member)
+        xlabel: X axis label
+        ylabel: Y axis label
+        zlabel: Z axis label
+        xunit: X axis unit
+        yunit: Y axis unit
+        zunit: Z axis unit
         **kwargs: additional parameters (specific to the image type)
 
     Returns:
@@ -262,6 +274,18 @@ def create_image_parameters(
     if idtype is not None:
         assert isinstance(idtype, ImageDatatypes)
         p.dtype = idtype
+    if xlabel is not None:
+        p.xlabel = xlabel
+    if ylabel is not None:
+        p.ylabel = ylabel
+    if zlabel is not None:
+        p.zlabel = zlabel
+    if xunit is not None:
+        p.xunit = xunit
+    if yunit is not None:
+        p.yunit = yunit
+    if zunit is not None:
+        p.zunit = zunit
     return p
 
 
