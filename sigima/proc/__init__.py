@@ -54,7 +54,7 @@ Image processing features
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: sigima.proc.image
-   :no-members:
+   :members:
 
 Decorators and utilities
 ^^^^^^^^^^^^^^^^^^^^^^^^

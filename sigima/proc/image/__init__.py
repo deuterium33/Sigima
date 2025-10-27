@@ -5,102 +5,120 @@ Basic image processing
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.base
-   :members:
+    :members:
+    :no-index:
 
 Arithmetic
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.arithmetic
     :members:
+    :no-index:
 
 Mathematical Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.mathops
     :members:
+    :no-index:
 
 Measurements
 ~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.measurement
     :members:
+    :no-index:
 
 Extraction
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.extraction
     :members:
+    :no-index:
 
 Filtering
 ~~~~~~~~~
 
 .. automodule:: sigima.proc.image.filtering
     :members:
+    :no-index:
 
 Fourier
 ~~~~~~~
 
 .. automodule:: sigima.proc.image.fourier
     :members:
+    :no-index:
 
 Thresholding
 ~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.threshold
     :members:
+    :no-index:
 
 Exposure correction
 ~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.exposure
     :members:
+    :no-index:
 
 Preprocessing
 ~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.preprocessing
     :members:
+    :no-index:
 
 Restoration
 ~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.restoration
     :members:
+    :no-index:
 
 Noise
 ~~~~~
 
 .. automodule:: sigima.proc.image.noise
     :members:
+    :no-index:
 
 Morphology
 ~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.morphology
     :members:
+    :no-index:
 
 Edge detection
 ~~~~~~~~~~~~~~
 
 .. automodule:: sigima.proc.image.edges
+    :members:
+    :no-index:
 
 Detection
 ~~~~~~~~~
 
 .. automodule:: sigima.proc.image.detection
     :members:
+    :no-index:
 
 Geometry
 ~~~~~~~~
 
 .. automodule:: sigima.proc.image.geometry
     :members:
+    :no-index:
 
 Transformation features
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: sigima.proc.image.transformations
-   :members:
+    :members:
+    :no-index:
 """
 
 # pylint: disable=invalid-name  # Allows short reference names like x, y, ...
