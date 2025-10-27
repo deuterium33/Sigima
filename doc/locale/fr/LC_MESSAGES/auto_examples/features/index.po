@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-24 22:03+0200\n"
+"POT-Creation-Date: 2025-10-27 18:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -19,15 +19,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-msgid "Feature Examples"
-msgstr "Exemples de fonctionnalités"
+msgid "Use Cases"
+msgstr "Cas d'usage"
 
-msgid "These examples show signal and image processing features of Sigima."
-msgstr "Ces exemples montrent les fonctionnalités de traitement du signal et de l'image de Sigima."
+msgid "This folder contains examples that demonstrate specific features of Sigima around various use cases."
+msgstr "Ce dossier contient des exemples qui démontrent des fonctionnalités spécifiques de Sigima autour de divers cas d'utilisation."
 
-msgid "🚧"
+msgid ":ref:`sphx_glr_auto_examples_features_blob_detection.py`"
 msgstr ""
 
 msgid ":ref:`sphx_glr_auto_examples_features_convolution.py`"
 msgstr ""
 
+msgid ":ref:`sphx_glr_auto_examples_features_fabry_perot.py`"
+msgstr ""
+
+msgid ":ref:`sphx_glr_auto_examples_features_laser_beam.py`"
+msgstr ""
+
+msgid ":ref:`sphx_glr_auto_examples_features_paracetamol.py`"
+msgstr ""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-24 22:03+0200\n"
+"POT-Creation-Date: 2025-10-27 18:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -26,5 +26,11 @@ msgid "These examples demonstrate basic usage of Sigima."
 msgstr "Ces exemples démontrent l'utilisation de base de Sigima."
 
 msgid "🚧"
+msgstr ""
+
+msgid ":ref:`sphx_glr_auto_examples_introduction_image_creation.py`"
+msgstr ""
+
+msgid ":ref:`sphx_glr_auto_examples_introduction_signal_creation.py`"
 msgstr ""
 

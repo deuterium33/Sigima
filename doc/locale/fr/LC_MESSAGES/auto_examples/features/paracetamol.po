@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 18:01+0200\n"
+"POT-Creation-Date: 2025-10-27 18:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_paracetamol.py>` to download the full example code."
-msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_paracetamol.py>` pour télécharger le code complet de l'exemple."
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_features_paracetamol.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_features_paracetamol.py>` pour télécharger le code complet de l'exemple."
 
 msgid "Paracetamol Spectrum Analysis Example"
 msgstr "Analyser le spectre du paracétamol"
@@ -49,7 +49,7 @@ msgid "We load a sample paracetamol spectrum included in the Sigima test data. T
 msgstr "On charge un spectre de paracétamol fourni dans les données de test de Sigima. Ce spectre contient des pics d'absorption caractéristiques que l'on analyse à l'aide de différentes techniques de traitement du signal."
 
 msgid "Qt widget 1"
-msgstr "Widget Qt 1"
+msgstr ""
 
 msgid "Apply Wiener filter for noise reduction"
 msgstr "Appliquer un filtre de Wiener pour réduire le bruit"

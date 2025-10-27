@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 18:01+0200\n"
+"POT-Creation-Date: 2025-10-27 18:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -19,8 +19,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_fabry_perot.py>` to download the full example code."
-msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_fabry_perot.py>` pour télécharger le code complet de l'exemple."
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_features_fabry_perot.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_features_fabry_perot.py>` pour télécharger le code complet de l'exemple."
 
 msgid "Fabry-Perot Interference Pattern Analysis Tutorial"
 msgstr "Analyser les franges d'interférence de Fabry-Perot"
@@ -56,7 +56,7 @@ msgid "We load two sample image of Fabry-Perot interference patterns. These imag
 msgstr "On charge deux images d'exemple de franges d'interférence de Fabry-Perot. Elles sont fournies avec les données de test de Sigima. On analysera les franges d'interférence présentes dans ces images."
 
 msgid "Qt widget 1"
-msgstr "Widget Qt 1"
+msgstr ""
 
 msgid "Define circular ROI for fringe analysis"
 msgstr "Définir une ROI circulaire pour l'analyse des franges"
