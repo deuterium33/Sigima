@@ -143,7 +143,63 @@ def test_validation_decorator_only_on_computation_functions() -> None:
         raise AssertionError("\n".join(error_messages))
 
 
+def test_computation_functions_documented_in_features() -> None:
+    """Test that all computation functions are documented in doc/features.rst.
+
+    This test ensures that all computation functions (those decorated with
+    @computation_function) are documented in the features.rst file with
+    proper Sphinx :func: references using simplified paths like
+    sigima.proc.image.function_name or sigima.proc.signal.function_name.
+    """
+    # Read the features.rst file
+    doc_dir = osp.join(osp.dirname(tests_pkg.__file__), "..", "..", "doc")
+    features_rst_path = osp.join(doc_dir, "features.rst")
+
+    if not osp.exists(features_rst_path):
+        raise AssertionError(f"Documentation file not found: {features_rst_path}")
+
+    with open(features_rst_path, encoding="utf-8") as f:
+        features_content = f.read()
+
+    # Get all computation functions
+    computation_functions = find_computation_functions()
+
+    # Check each computation function to see if it's documented
+    missing_documentation = []
+
+    for module_name, func_name, _ in computation_functions:
+        # Build the expected documentation reference using simplified path
+        # The module_name is like "sigima.proc.image" or "sigima.proc.signal"
+        module_path = module_name.split("sigima.proc.")[-1]
+        expected_ref = f"sigima.proc.{module_path}.{func_name}"
+
+        # Check if this reference exists in the documentation
+        if expected_ref not in features_content:
+            missing_documentation.append((module_name, func_name, expected_ref))
+
+    # Report any missing documentation
+    if missing_documentation:
+        error_messages = []
+        error_messages.append(
+            "The following computation functions are missing from doc/features.rst:"
+        )
+        for module_name, func_name, expected_ref in missing_documentation:
+            error_messages.append(f"  - {func_name} ({expected_ref})")
+        error_messages.append("")
+        error_messages.append(f"Found {len(missing_documentation)} missing cases.")
+        error_messages.append(
+            "Please add documentation references for these computation functions "
+            "in doc/features.rst using the format:"
+        )
+        error_messages.append(
+            "   :func:`function_name <sigima.proc.module.function_name>`"
+        )
+
+        raise AssertionError("\n".join(error_messages))
+
+
 if __name__ == "__main__":
     test_validation_statistics()
     test_validation_missing_tests()
     test_validation_decorator_only_on_computation_functions()
+    test_computation_functions_documented_in_features()
