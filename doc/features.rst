@@ -6,8 +6,8 @@ Sigima provides a comprehensive suite of signal and image processing computation
 .. note::
    All computation functions are available in the :mod:`sigima.proc` module. The :mod:`sigima.tools` modules provide lower-level utility functions used internally by the proc functions.
 
-Common Operations (Signal & Image)
-----------------------------------
+Common Operations
+-----------------
 
 These operations are available for both signals and images with similar functionality.
 
@@ -22,28 +22,28 @@ Arithmetic Operations
      - Image Functions
      - Description
    * - :func:`addition <sigima.proc.signal.addition>`
-     - :func:`addition <sigima.proc.image.arithmetic.addition>`
+     - :func:`addition <sigima.proc.image.addition>`
      - Add two signals/images
    * - :func:`difference <sigima.proc.signal.difference>`
-     - :func:`difference <sigima.proc.image.arithmetic.difference>`
+     - :func:`difference <sigima.proc.image.difference>`
      - Subtract one signal/image from another
    * - :func:`product <sigima.proc.signal.product>`
-     - :func:`product <sigima.proc.image.arithmetic.product>`
+     - :func:`product <sigima.proc.image.product>`
      - Multiply two signals/images
    * - :func:`division <sigima.proc.signal.division>`
-     - :func:`division <sigima.proc.image.arithmetic.division>`
+     - :func:`division <sigima.proc.image.division>`
      - Divide one signal/image by another
    * - :func:`average <sigima.proc.signal.average>`
-     - :func:`average <sigima.proc.image.arithmetic.average>`
+     - :func:`average <sigima.proc.image.average>`
      - Compute average of multiple signals/images
    * - :func:`standard_deviation <sigima.proc.signal.standard_deviation>`
-     - :func:`standard_deviation <sigima.proc.image.arithmetic.standard_deviation>`
+     - :func:`standard_deviation <sigima.proc.image.standard_deviation>`
      - Compute standard deviation of multiple signals/images
    * - :func:`quadratic_difference <sigima.proc.signal.quadratic_difference>`
-     - :func:`quadratic_difference <sigima.proc.image.arithmetic.quadratic_difference>`
+     - :func:`quadratic_difference <sigima.proc.image.quadratic_difference>`
      - Compute quadratic difference between signals/images
    * - :func:`arithmetic <sigima.proc.signal.arithmetic>`
-     - :func:`arithmetic <sigima.proc.image.arithmetic.arithmetic>`
+     - :func:`arithmetic <sigima.proc.image.arithmetic>`
      - Generic arithmetic operations with parameters
 
 Constant Operations
@@ -57,16 +57,16 @@ Constant Operations
      - Image Functions
      - Description
    * - :func:`addition_constant <sigima.proc.signal.addition_constant>`
-     - :func:`addition_constant <sigima.proc.image.arithmetic.addition_constant>`
+     - :func:`addition_constant <sigima.proc.image.addition_constant>`
      - Add a constant value to signal/image
    * - :func:`difference_constant <sigima.proc.signal.difference_constant>`
-     - :func:`difference_constant <sigima.proc.image.arithmetic.difference_constant>`
+     - :func:`difference_constant <sigima.proc.image.difference_constant>`
      - Subtract a constant from signal/image
    * - :func:`product_constant <sigima.proc.signal.product_constant>`
-     - :func:`product_constant <sigima.proc.image.arithmetic.product_constant>`
+     - :func:`product_constant <sigima.proc.image.product_constant>`
      - Multiply signal/image by a constant
    * - :func:`division_constant <sigima.proc.signal.division_constant>`
-     - :func:`division_constant <sigima.proc.image.arithmetic.division_constant>`
+     - :func:`division_constant <sigima.proc.image.division_constant>`
      - Divide signal/image by a constant
 
 Mathematical Operations
@@ -80,34 +80,34 @@ Mathematical Operations
      - Image Functions
      - Description
    * - :func:`absolute <sigima.proc.signal.absolute>`
-     - :func:`absolute <sigima.proc.image.mathops.absolute>`
+     - :func:`absolute <sigima.proc.image.absolute>`
      - Compute absolute value
    * - :func:`exp <sigima.proc.signal.exp>`
-     - :func:`exp <sigima.proc.image.mathops.exp>`
+     - :func:`exp <sigima.proc.image.exp>`
      - Exponential function
    * - :func:`log10 <sigima.proc.signal.log10>`
-     - :func:`log10 <sigima.proc.image.mathops.log10>`
+     - :func:`log10 <sigima.proc.image.log10>`
      - Base-10 logarithm
    * - :func:`inverse <sigima.proc.signal.inverse>`
-     - :func:`inverse <sigima.proc.image.mathops.inverse>`
+     - :func:`inverse <sigima.proc.image.inverse>`
      - Compute reciprocal
    * - :func:`real <sigima.proc.signal.real>`
-     - :func:`real <sigima.proc.image.mathops.real>`
+     - :func:`real <sigima.proc.image.real>`
      - Extract real part of complex data
    * - :func:`imag <sigima.proc.signal.imag>`
-     - :func:`imag <sigima.proc.image.mathops.imag>`
+     - :func:`imag <sigima.proc.image.imag>`
      - Extract imaginary part of complex data
    * - :func:`phase <sigima.proc.signal.phase>`
-     - :func:`phase <sigima.proc.image.mathops.phase>`
+     - :func:`phase <sigima.proc.image.phase>`
      - Extract phase of complex data
    * - :func:`astype <sigima.proc.signal.astype>`
-     - :func:`astype <sigima.proc.image.mathops.astype>`
+     - :func:`astype <sigima.proc.image.astype>`
      - Convert data type
    * - :func:`transpose <sigima.proc.signal.transpose>`
-     - :func:`transpose <sigima.proc.image.geometry.transpose>`
+     - :func:`transpose <sigima.proc.image.transpose>`
      - Transpose coordinates/axes
    * - N/A
-     - :func:`log10_z_plus_n <sigima.proc.image.mathops.log10_z_plus_n>`
+     - :func:`log10_z_plus_n <sigima.proc.image.log10_z_plus_n>`
      - Log10 with offset for zero handling
 
 Signal-Specific Mathematical Operations
@@ -139,10 +139,10 @@ Complex Number Operations
      - Image Functions
      - Description
    * - :func:`complex_from_real_imag <sigima.proc.signal.complex_from_real_imag>`
-     - :func:`complex_from_real_imag <sigima.proc.image.mathops.complex_from_real_imag>`
+     - :func:`complex_from_real_imag <sigima.proc.image.complex_from_real_imag>`
      - Create complex data from real and imaginary parts
    * - :func:`complex_from_magnitude_phase <sigima.proc.signal.complex_from_magnitude_phase>`
-     - :func:`complex_from_magnitude_phase <sigima.proc.image.mathops.complex_from_magnitude_phase>`
+     - :func:`complex_from_magnitude_phase <sigima.proc.image.complex_from_magnitude_phase>`
      - Create complex data from magnitude and phase
 
 Fourier Analysis
@@ -156,19 +156,19 @@ Fourier Analysis
      - Image Functions
      - Description
    * - :func:`fft <sigima.proc.signal.fft>`
-     - :func:`fft <sigima.proc.image.fourier.fft>`
+     - :func:`fft <sigima.proc.image.fft>`
      - Fast Fourier Transform (1D/2D)
    * - :func:`ifft <sigima.proc.signal.ifft>`
-     - :func:`ifft <sigima.proc.image.fourier.ifft>`
+     - :func:`ifft <sigima.proc.image.ifft>`
      - Inverse Fast Fourier Transform (1D/2D)
    * - :func:`magnitude_spectrum <sigima.proc.signal.magnitude_spectrum>`
-     - :func:`magnitude_spectrum <sigima.proc.image.fourier.magnitude_spectrum>`
+     - :func:`magnitude_spectrum <sigima.proc.image.magnitude_spectrum>`
      - Magnitude spectrum
    * - :func:`phase_spectrum <sigima.proc.signal.phase_spectrum>`
-     - :func:`phase_spectrum <sigima.proc.image.fourier.phase_spectrum>`
+     - :func:`phase_spectrum <sigima.proc.image.phase_spectrum>`
      - Phase spectrum
    * - :func:`psd <sigima.proc.signal.psd>`
-     - :func:`psd <sigima.proc.image.fourier.psd>`
+     - :func:`psd <sigima.proc.image.psd>`
      - Power spectral density
 
 Convolution Operations
@@ -182,10 +182,10 @@ Convolution Operations
      - Image Functions
      - Description
    * - :func:`convolution <sigima.proc.signal.convolution>`
-     - :func:`convolution <sigima.proc.image.mathops.convolution>`
+     - :func:`convolution <sigima.proc.image.convolution>`
      - Convolution operation
    * - :func:`deconvolution <sigima.proc.signal.deconvolution>`
-     - :func:`deconvolution <sigima.proc.image.mathops.deconvolution>`
+     - :func:`deconvolution <sigima.proc.image.deconvolution>`
      - Deconvolution operation
 
 Filtering
@@ -199,16 +199,16 @@ Filtering
      - Image Functions
      - Description
    * - :func:`gaussian_filter <sigima.proc.signal.gaussian_filter>`
-     - :func:`gaussian_filter <sigima.proc.image.filtering.gaussian_filter>`
+     - :func:`gaussian_filter <sigima.proc.image.gaussian_filter>`
      - Gaussian smoothing filter
    * - :func:`moving_average <sigima.proc.signal.moving_average>`
-     - :func:`moving_average <sigima.proc.image.filtering.moving_average>`
+     - :func:`moving_average <sigima.proc.image.moving_average>`
      - Moving average filter
    * - :func:`moving_median <sigima.proc.signal.moving_median>`
-     - :func:`moving_median <sigima.proc.image.filtering.moving_median>`
+     - :func:`moving_median <sigima.proc.image.moving_median>`
      - Moving median filter
    * - :func:`wiener <sigima.proc.signal.wiener>`
-     - :func:`wiener <sigima.proc.image.filtering.wiener>`
+     - :func:`wiener <sigima.proc.image.wiener>`
      - Wiener filter
 
 Noise Addition
@@ -222,13 +222,13 @@ Noise Addition
      - Image Functions
      - Description
    * - :func:`add_gaussian_noise <sigima.proc.signal.add_gaussian_noise>`
-     - :func:`add_gaussian_noise <sigima.proc.image.noise.add_gaussian_noise>`
+     - :func:`add_gaussian_noise <sigima.proc.image.add_gaussian_noise>`
      - Add Gaussian noise for testing
    * - :func:`add_poisson_noise <sigima.proc.signal.add_poisson_noise>`
-     - :func:`add_poisson_noise <sigima.proc.image.noise.add_poisson_noise>`
+     - :func:`add_poisson_noise <sigima.proc.image.add_poisson_noise>`
      - Add Poisson noise for testing
    * - :func:`add_uniform_noise <sigima.proc.signal.add_uniform_noise>`
-     - :func:`add_uniform_noise <sigima.proc.image.noise.add_uniform_noise>`
+     - :func:`add_uniform_noise <sigima.proc.image.add_uniform_noise>`
      - Add uniform noise for testing
 
 Signal Conditioning
@@ -242,13 +242,13 @@ Signal Conditioning
      - Image Functions
      - Description
    * - :func:`normalize <sigima.proc.signal.normalize>`
-     - :func:`normalize <sigima.proc.image.exposure.normalize>`
+     - :func:`normalize <sigima.proc.image.normalize>`
      - Normalize amplitude/intensity values
    * - :func:`clip <sigima.proc.signal.clip>`
-     - :func:`clip <sigima.proc.image.exposure.clip>`
+     - :func:`clip <sigima.proc.image.clip>`
      - Clip values to specified range
    * - :func:`offset_correction <sigima.proc.signal.offset_correction>`
-     - :func:`offset_correction <sigima.proc.image.exposure.offset_correction>`
+     - :func:`offset_correction <sigima.proc.image.offset_correction>`
      - Remove DC offset/background
 
 Region of Interest (ROI)
@@ -262,10 +262,10 @@ Region of Interest (ROI)
      - Image Functions
      - Description
    * - :func:`extract_roi <sigima.proc.signal.extract_roi>`
-     - :func:`extract_roi <sigima.proc.image.extraction.extract_roi>`
+     - :func:`extract_roi <sigima.proc.image.extract_roi>`
      - Extract single ROI from data
    * - :func:`extract_rois <sigima.proc.signal.extract_rois>`
-     - :func:`extract_rois <sigima.proc.image.extraction.extract_rois>`
+     - :func:`extract_rois <sigima.proc.image.extract_rois>`
      - Extract multiple ROIs from data
 
 Calibration
@@ -279,7 +279,7 @@ Calibration
      - Image Functions
      - Description
    * - :func:`calibration <sigima.proc.signal.calibration>`
-     - :func:`calibration <sigima.proc.image.geometry.calibration>`
+     - :func:`calibration <sigima.proc.image.calibration>`
      - Apply coordinate system calibration
 
 Signal Processing
@@ -493,27 +493,27 @@ Geometry and Transformations
 
    * - Function
      - Description
-   * - :func:`rotate <sigima.proc.image.geometry.rotate>`
+   * - :func:`rotate <sigima.proc.image.rotate>`
      - Rotate image by arbitrary angle
-   * - :func:`rotate90 <sigima.proc.image.geometry.rotate90>`
+   * - :func:`rotate90 <sigima.proc.image.rotate90>`
      - Rotate image 90° clockwise
-   * - :func:`rotate270 <sigima.proc.image.geometry.rotate270>`
+   * - :func:`rotate270 <sigima.proc.image.rotate270>`
      - Rotate image 270° clockwise
-   * - :func:`fliph <sigima.proc.image.geometry.fliph>`
+   * - :func:`fliph <sigima.proc.image.fliph>`
      - Flip image horizontally
-   * - :func:`flipv <sigima.proc.image.geometry.flipv>`
+   * - :func:`flipv <sigima.proc.image.flipv>`
      - Flip image vertically
-   * - :func:`translate <sigima.proc.image.geometry.translate>`
+   * - :func:`translate <sigima.proc.image.translate>`
      - Translate image by specified offset
-   * - :func:`resize <sigima.proc.image.geometry.resize>`
+   * - :func:`resize <sigima.proc.image.resize>`
      - Resize image to specified dimensions
-   * - :func:`resampling <sigima.proc.image.geometry.resampling>`
+   * - :func:`resampling <sigima.proc.image.resampling>`
      - Resample image with different methods
-   * - :func:`binning <sigima.proc.image.preprocessing.binning>`
+   * - :func:`binning <sigima.proc.image.binning>`
      - Reduce image size by binning pixels
-   * - :func:`set_uniform_coords <sigima.proc.image.geometry.set_uniform_coords>`
+   * - :func:`set_uniform_coords <sigima.proc.image.set_uniform_coords>`
      - Set uniform coordinate system
-   * - :data:`transformer <sigima.proc.image.transformations.transformer>`
+   * - :data:`transformer <sigima.proc.image.transformer>`
      - Apply custom geometric transformations
 
 Frequency Domain Filtering
@@ -525,9 +525,9 @@ Frequency Domain Filtering
 
    * - Function
      - Description
-   * - :func:`butterworth <sigima.proc.image.filtering.butterworth>`
+   * - :func:`butterworth <sigima.proc.image.butterworth>`
      - Butterworth frequency filter
-   * - :func:`gaussian_freq_filter <sigima.proc.image.filtering.gaussian_freq_filter>`
+   * - :func:`gaussian_freq_filter <sigima.proc.image.gaussian_freq_filter>`
      - Gaussian frequency filter
 
 Edge Detection
@@ -539,35 +539,35 @@ Edge Detection
 
    * - Function
      - Description
-   * - :func:`sobel <sigima.proc.image.edges.sobel>`
+   * - :func:`sobel <sigima.proc.image.sobel>`
      - Sobel edge detector
-   * - :func:`sobel_h <sigima.proc.image.edges.sobel_h>`
+   * - :func:`sobel_h <sigima.proc.image.sobel_h>`
      - Sobel horizontal edges
-   * - :func:`sobel_v <sigima.proc.image.edges.sobel_v>`
+   * - :func:`sobel_v <sigima.proc.image.sobel_v>`
      - Sobel vertical edges
-   * - :func:`scharr <sigima.proc.image.edges.scharr>`
+   * - :func:`scharr <sigima.proc.image.scharr>`
      - Scharr edge detector
-   * - :func:`scharr_h <sigima.proc.image.edges.scharr_h>`
+   * - :func:`scharr_h <sigima.proc.image.scharr_h>`
      - Scharr horizontal edges
-   * - :func:`scharr_v <sigima.proc.image.edges.scharr_v>`
+   * - :func:`scharr_v <sigima.proc.image.scharr_v>`
      - Scharr vertical edges
-   * - :func:`prewitt <sigima.proc.image.edges.prewitt>`
+   * - :func:`prewitt <sigima.proc.image.prewitt>`
      - Prewitt edge detector
-   * - :func:`prewitt_h <sigima.proc.image.edges.prewitt_h>`
+   * - :func:`prewitt_h <sigima.proc.image.prewitt_h>`
      - Prewitt horizontal edges
-   * - :func:`prewitt_v <sigima.proc.image.edges.prewitt_v>`
+   * - :func:`prewitt_v <sigima.proc.image.prewitt_v>`
      - Prewitt vertical edges
-   * - :func:`farid <sigima.proc.image.edges.farid>`
+   * - :func:`farid <sigima.proc.image.farid>`
      - Farid edge detector
-   * - :func:`farid_h <sigima.proc.image.edges.farid_h>`
+   * - :func:`farid_h <sigima.proc.image.farid_h>`
      - Farid horizontal edges
-   * - :func:`farid_v <sigima.proc.image.edges.farid_v>`
+   * - :func:`farid_v <sigima.proc.image.farid_v>`
      - Farid vertical edges
-   * - :func:`roberts <sigima.proc.image.edges.roberts>`
+   * - :func:`roberts <sigima.proc.image.roberts>`
      - Roberts cross-gradient
-   * - :func:`laplace <sigima.proc.image.edges.laplace>`
+   * - :func:`laplace <sigima.proc.image.laplace>`
      - Laplacian edge detector
-   * - :func:`canny <sigima.proc.image.edges.canny>`
+   * - :func:`canny <sigima.proc.image.canny>`
      - Canny edge detector
 
 Feature Detection
@@ -579,19 +579,19 @@ Feature Detection
 
    * - Function
      - Description
-   * - :func:`blob_dog <sigima.proc.image.detection.blob_dog>`
+   * - :func:`blob_dog <sigima.proc.image.blob_dog>`
      - Blob detection using Difference of Gaussians
-   * - :func:`blob_doh <sigima.proc.image.detection.blob_doh>`
+   * - :func:`blob_doh <sigima.proc.image.blob_doh>`
      - Blob detection using Determinant of Hessian
-   * - :func:`blob_log <sigima.proc.image.detection.blob_log>`
+   * - :func:`blob_log <sigima.proc.image.blob_log>`
      - Blob detection using Laplacian of Gaussians
-   * - :func:`blob_opencv <sigima.proc.image.detection.blob_opencv>`
+   * - :func:`blob_opencv <sigima.proc.image.blob_opencv>`
      - OpenCV-based blob detection
-   * - :func:`peak_detection <sigima.proc.image.detection.peak_detection>`
+   * - :func:`peak_detection <sigima.proc.image.peak_detection>`
      - 2D peak detection
-   * - :func:`contour_shape <sigima.proc.image.detection.contour_shape>`
+   * - :func:`contour_shape <sigima.proc.image.contour_shape>`
      - Contour shape analysis
-   * - :func:`hough_circle_peaks <sigima.proc.image.detection.hough_circle_peaks>`
+   * - :func:`hough_circle_peaks <sigima.proc.image.hough_circle_peaks>`
      - Circular Hough transform
 
 Morphological Operations
@@ -603,17 +603,17 @@ Morphological Operations
 
    * - Function
      - Description
-   * - :func:`erosion <sigima.proc.image.morphology.erosion>`
+   * - :func:`erosion <sigima.proc.image.erosion>`
      - Morphological erosion
-   * - :func:`dilation <sigima.proc.image.morphology.dilation>`
+   * - :func:`dilation <sigima.proc.image.dilation>`
      - Morphological dilation
-   * - :func:`opening <sigima.proc.image.morphology.opening>`
+   * - :func:`opening <sigima.proc.image.opening>`
      - Morphological opening
-   * - :func:`closing <sigima.proc.image.morphology.closing>`
+   * - :func:`closing <sigima.proc.image.closing>`
      - Morphological closing
-   * - :func:`white_tophat <sigima.proc.image.morphology.white_tophat>`
+   * - :func:`white_tophat <sigima.proc.image.white_tophat>`
      - White top-hat transform
-   * - :func:`black_tophat <sigima.proc.image.morphology.black_tophat>`
+   * - :func:`black_tophat <sigima.proc.image.black_tophat>`
      - Black top-hat transform
 
 Thresholding
@@ -625,21 +625,21 @@ Thresholding
 
    * - Function
      - Description
-   * - :func:`threshold <sigima.proc.image.threshold.threshold>`
+   * - :func:`threshold <sigima.proc.image.threshold>`
      - Manual threshold with custom value
-   * - :func:`threshold_otsu <sigima.proc.image.threshold.threshold_otsu>`
+   * - :func:`threshold_otsu <sigima.proc.image.threshold_otsu>`
      - Otsu's thresholding
-   * - :func:`threshold_li <sigima.proc.image.threshold.threshold_li>`
+   * - :func:`threshold_li <sigima.proc.image.threshold_li>`
      - Li's thresholding
-   * - :func:`threshold_yen <sigima.proc.image.threshold.threshold_yen>`
+   * - :func:`threshold_yen <sigima.proc.image.threshold_yen>`
      - Yen's thresholding
-   * - :func:`threshold_triangle <sigima.proc.image.threshold.threshold_triangle>`
+   * - :func:`threshold_triangle <sigima.proc.image.threshold_triangle>`
      - Triangle thresholding
-   * - :func:`threshold_isodata <sigima.proc.image.threshold.threshold_isodata>`
+   * - :func:`threshold_isodata <sigima.proc.image.threshold_isodata>`
      - Isodata thresholding
-   * - :func:`threshold_mean <sigima.proc.image.threshold.threshold_mean>`
+   * - :func:`threshold_mean <sigima.proc.image.threshold_mean>`
      - Mean thresholding
-   * - :func:`threshold_minimum <sigima.proc.image.threshold.threshold_minimum>`
+   * - :func:`threshold_minimum <sigima.proc.image.threshold_minimum>`
      - Minimum thresholding
 
 Exposure and Intensity Correction
@@ -651,21 +651,21 @@ Exposure and Intensity Correction
 
    * - Function
      - Description
-   * - :func:`histogram <sigima.proc.image.exposure.histogram>`
+   * - :func:`histogram <sigima.proc.image.histogram>`
      - Compute image histogram
-   * - :func:`equalize_hist <sigima.proc.image.exposure.equalize_hist>`
+   * - :func:`equalize_hist <sigima.proc.image.equalize_hist>`
      - Histogram equalization
-   * - :func:`equalize_adapthist <sigima.proc.image.exposure.equalize_adapthist>`
+   * - :func:`equalize_adapthist <sigima.proc.image.equalize_adapthist>`
      - Adaptive histogram equalization
-   * - :func:`adjust_gamma <sigima.proc.image.exposure.adjust_gamma>`
+   * - :func:`adjust_gamma <sigima.proc.image.adjust_gamma>`
      - Gamma correction
-   * - :func:`adjust_log <sigima.proc.image.exposure.adjust_log>`
+   * - :func:`adjust_log <sigima.proc.image.adjust_log>`
      - Logarithmic adjustment
-   * - :func:`adjust_sigmoid <sigima.proc.image.exposure.adjust_sigmoid>`
+   * - :func:`adjust_sigmoid <sigima.proc.image.adjust_sigmoid>`
      - Sigmoid adjustment
-   * - :func:`rescale_intensity <sigima.proc.image.exposure.rescale_intensity>`
+   * - :func:`rescale_intensity <sigima.proc.image.rescale_intensity>`
      - Rescale intensity range
-   * - :func:`flatfield <sigima.proc.image.exposure.flatfield>`
+   * - :func:`flatfield <sigima.proc.image.flatfield>`
      - Flat-field correction
 
 Image Restoration
@@ -677,15 +677,15 @@ Image Restoration
 
    * - Function
      - Description
-   * - :func:`denoise_bilateral <sigima.proc.image.restoration.denoise_bilateral>`
+   * - :func:`denoise_bilateral <sigima.proc.image.denoise_bilateral>`
      - Bilateral denoising
-   * - :func:`denoise_tv <sigima.proc.image.restoration.denoise_tv>`
+   * - :func:`denoise_tv <sigima.proc.image.denoise_tv>`
      - Total variation denoising
-   * - :func:`denoise_wavelet <sigima.proc.image.restoration.denoise_wavelet>`
+   * - :func:`denoise_wavelet <sigima.proc.image.denoise_wavelet>`
      - Wavelet denoising
-   * - :func:`denoise_tophat <sigima.proc.image.restoration.denoise_tophat>`
+   * - :func:`denoise_tophat <sigima.proc.image.denoise_tophat>`
      - Top-hat denoising
-   * - :func:`erase <sigima.proc.image.restoration.erase>`
+   * - :func:`erase <sigima.proc.image.erase>`
      - Erase image regions
 
 Preprocessing
@@ -697,7 +697,7 @@ Preprocessing
 
    * - Function
      - Description
-   * - :func:`zero_padding <sigima.proc.image.preprocessing.zero_padding>`
+   * - :func:`zero_padding <sigima.proc.image.zero_padding>`
      - Zero-padding for images
 
 Measurements and Analysis
@@ -709,27 +709,26 @@ Measurements and Analysis
 
     * - Function
       - Description
-    * - :func:`centroid <sigima.proc.image.measurement.centroid>`
+    * - :func:`centroid <sigima.proc.image.centroid>`
       - Compute image centroid
-    * - :func:`enclosing_circle <sigima.proc.image.measurement.enclosing_circle>`
+    * - :func:`enclosing_circle <sigima.proc.image.enclosing_circle>`
       - Find minimum enclosing circle
-    * - :func:`stats <sigima.proc.image.measurement.stats>`
+    * - :func:`stats <sigima.proc.image.stats>`
       - Statistical measurements
-    * - :func:`line_profile <sigima.proc.image.extraction.line_profile>`
+    * - :func:`line_profile <sigima.proc.image.line_profile>`
       - Extract profile along a line
-    * - :func:`segment_profile <sigima.proc.image.extraction.segment_profile>`
+    * - :func:`segment_profile <sigima.proc.image.segment_profile>`
       - Extract profile along a multi-segment line
-    * - :func:`radial_profile <sigima.proc.image.extraction.radial_profile>`
+    * - :func:`radial_profile <sigima.proc.image.radial_profile>`
       - Extract radial profile from center
-    * - :func:`average_profile <sigima.proc.image.extraction.average_profile>`
+    * - :func:`average_profile <sigima.proc.image.average_profile>`
       - Average profile over region
-    * - :func:`horizontal_projection <sigima.proc.image.measurement.horizontal_projection>`
+    * - :func:`horizontal_projection <sigima.proc.image.horizontal_projection>`
       - Project image onto horizontal axis
-    * - :func:`vertical_projection <sigima.proc.image.measurement.vertical_projection>`
+    * - :func:`vertical_projection <sigima.proc.image.vertical_projection>`
       - Project image onto vertical axis
-    * - :func:`generate_image_grid_roi <sigima.proc.image.extraction.generate_image_grid_roi>`
+    * - :func:`generate_image_grid_roi <sigima.proc.image.generate_image_grid_roi>`
       - Generate grid of ROIs
-
 
 See Also
 --------
