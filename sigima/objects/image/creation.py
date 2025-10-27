@@ -165,10 +165,19 @@ class NewImageParam(gds.DataSet):
     ).set_prop("display", hide=gds.GetAttrProp("hide_height"))
     width = gds.IntItem(
         _("Width"), default=1024, help=_("Image width: number of columns"), min=1
-    ).set_prop("display", hide=gds.GetAttrProp("hide_width"))
+    ).set_prop("display", col=1, hide=gds.GetAttrProp("hide_width"))
     dtype = gds.ChoiceItem(
-        _("Data type"), ImageDatatypes, default=ImageDatatypes.FLOAT64
+        _("Type"),
+        ImageDatatypes,
+        default=ImageDatatypes.FLOAT64,
+        help=_("Image data type"),
     ).set_prop("display", hide=gds.GetAttrProp("hide_dtype"))
+    xlabel = gds.StringItem(_("X label"), default="")
+    xunit = gds.StringItem(_("X unit"), default="").set_prop("display", col=1)
+    ylabel = gds.StringItem(_("Y label"), default="")
+    yunit = gds.StringItem(_("Y unit"), default="").set_prop("display", col=1)
+    zlabel = gds.StringItem(_("Z label"), default="")
+    zunit = gds.StringItem(_("Z unit"), default="").set_prop("display", col=1)
 
     def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
         """Generate 2D data based on current parameters.
@@ -227,6 +236,12 @@ def create_image_parameters(
     height: int | None = None,
     width: int | None = None,
     idtype: ImageDatatypes | None = None,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
+    zlabel: str | None = None,
+    xunit: str | None = None,
+    yunit: str | None = None,
+    zunit: str | None = None,
     **kwargs: dict,
 ) -> NewImageParam:
     """Create parameters for a given image type.
@@ -237,6 +252,12 @@ def create_image_parameters(
         height: image height (number of rows)
         width: image width (number of columns)
         idtype: image data type (`ImageDatatypes` member)
+        xlabel: X axis label
+        ylabel: Y axis label
+        zlabel: Z axis label
+        xunit: X axis unit
+        yunit: Y axis unit
+        zunit: Z axis unit
         **kwargs: additional parameters (specific to the image type)
 
     Returns:
@@ -253,6 +274,18 @@ def create_image_parameters(
     if idtype is not None:
         assert isinstance(idtype, ImageDatatypes)
         p.dtype = idtype
+    if xlabel is not None:
+        p.xlabel = xlabel
+    if ylabel is not None:
+        p.ylabel = ylabel
+    if zlabel is not None:
+        p.zlabel = zlabel
+    if xunit is not None:
+        p.xunit = xunit
+    if yunit is not None:
+        p.yunit = yunit
+    if zunit is not None:
+        p.zunit = zunit
     return p
 
 
@@ -412,18 +445,18 @@ class Ramp2DParam(
     """Define the parameters of a 2D ramp (planar ramp)."""
 
     _g0_begin = gds.BeginGroup(_("Coefficients"))
-    a = gds.FloatItem(_("A"), default=1.0).set_pos(col=0)
-    b = gds.FloatItem(_("B"), default=1.0).set_pos(col=1)
-    c = gds.FloatItem(_("C"), default=0.0).set_pos(colspan=1)
-    x0 = gds.FloatItem(_("x<sub>0</sub>"), default=0.0).set_pos(col=0)
-    y0 = gds.FloatItem(_("y<sub>0</sub>"), default=0.0).set_pos(col=1)
-    _g0_end = gds.EndGroup(_(""))
+    a = gds.FloatItem("A", default=1.0).set_pos(col=0)
+    b = gds.FloatItem("B", default=1.0).set_pos(col=1)
+    c = gds.FloatItem("C", default=0.0).set_pos(colspan=1)
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0).set_pos(col=0)
+    y0 = gds.FloatItem("y<sub>0</sub>", default=0.0).set_pos(col=1)
+    _g0_end = gds.EndGroup("")
     _g1_begin = gds.BeginGroup(_("Domain"))
-    xmin = gds.FloatItem(_("x<sub>min</sub>"), default=-1.0).set_pos(col=0)
-    xmax = gds.FloatItem(_("x<sub>max</sub>"), default=1.0).set_pos(col=1)
-    ymin = gds.FloatItem(_("y<sub>min</sub>"), default=-1.0).set_pos(col=0)
-    ymax = gds.FloatItem(_("y<sub>max</sub>"), default=1.0).set_pos(col=1)
-    _g1_end = gds.EndGroup(_(""))
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-1.0).set_pos(col=0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=1.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=-1.0).set_pos(col=0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=1.0).set_pos(col=1)
+    _g1_end = gds.EndGroup("")
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -514,5 +547,10 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
     else:
         # User has set a custom title, use it as-is
         title = param.title
-    image = create_image(title, data)
+    image = create_image(
+        title,
+        data,
+        units=(param.xunit, param.yunit, param.zunit),
+        labels=(param.xlabel, param.ylabel, param.zlabel),
+    )
     return image

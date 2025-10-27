@@ -164,7 +164,12 @@ def create_curve_dialog(
         toolbar=True,
         title=title,
         options=PlotOptions(
-            type="curve", xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
+            type="curve",
+            xlabel=xlabel,
+            ylabel=ylabel,
+            xunit=xunit,
+            yunit=yunit,
+            curve_antialiasing=True,
         ),
         size=(800, 600) if size is None else size,
     )
@@ -346,6 +351,8 @@ def create_curve_item(
         xdata, ydata = obj.xydata
         title = obj.title or title or ""
     item = make.mcurve(xdata, ydata)
+    item.param.line.width = 1.25
+    item.param.update_item(item)
     item.setTitle(title)
     return item
 
@@ -550,6 +557,7 @@ def view_curve_items(
     xunit: str | None = None,
     yunit: str | None = None,
     add_legend: bool = True,
+    datetime_format: str | None = None,
     object_name: str = "",
 ) -> None:
     """Create a curve dialog and plot items
@@ -563,6 +571,7 @@ def view_curve_items(
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
         add_legend: Whether to add a legend to the plot, default is True
+        datetime_format: Datetime format for x-axis if x data is datetime, or None
         object_name: Object name for the dialog (for screenshot functionality)
     """
     ensure_qapp()
@@ -575,6 +584,8 @@ def view_curve_items(
         plot.add_item(item)
     if add_legend:
         plot.add_item(make.legend())
+    if datetime_format is not None:
+        plot.set_axis_datetime("bottom", format=datetime_format)
     exec_dialog(win)
     make.style = style_generator()  # Reset style generator for next call
 
@@ -611,12 +622,21 @@ def view_curves(
     else:
         datalist = [data_or_objs]
     items = []
+    datetime_format = None
     for data_or_obj in datalist:
         if isinstance(data_or_obj, SignalObj):
             xlabel = xlabel or data_or_obj.xlabel or ""
             ylabel = ylabel or data_or_obj.ylabel or ""
             xunit = xunit or data_or_obj.xunit or ""
             yunit = yunit or data_or_obj.yunit or ""
+            if data_or_obj.is_x_datetime():
+                datetime_format = data_or_obj.metadata.get("x_datetime_format")
+                if datetime_format is None:
+                    unit = data_or_obj.xunit if data_or_obj.xunit else "s"
+                    if unit in ("ns", "us", "ms"):
+                        datetime_format = "%H:%M:%S.%f"
+                    else:
+                        datetime_format = "%H:%M:%S"
         item = create_curve_item(data_or_obj)
         if isinstance(data_or_obj, SignalObj):
             items.extend(create_curve_roi_items(data_or_obj))
@@ -629,6 +649,7 @@ def view_curves(
         ylabel=ylabel,
         xunit=xunit,
         yunit=yunit,
+        datetime_format=datetime_format,
         object_name=object_name,
     )
     make.style = style_generator()  # Reset style generator for next call
@@ -923,7 +944,7 @@ def __compute_grid(
 
 def view_images_side_by_side(
     images: list[ImageItem | np.ndarray | ImageObj],
-    titles: list[str],
+    titles: list[str] | None = None,
     share_axes: bool = True,
     rows: int | None = None,
     maximized: bool = False,
@@ -955,6 +976,10 @@ def view_images_side_by_side(
     )
     imparameters = IMAGE_PARAMETERS.copy()
     imparameters.update(kwargs)
+    if not isinstance(titles, (list, tuple)):
+        titles = [titles] * len(images)
+    elif len(titles) != len(images):
+        raise ValueError("Length of titles must match length of images")
     if not isinstance(results, (list, tuple)):
         results = [results] * len(images)
     elif len(results) != len(images):
@@ -962,6 +987,7 @@ def view_images_side_by_side(
     for idx, (img, result, imtitle) in enumerate(zip(images, results, titles)):
         row = idx // cols
         col = idx % cols
+        imtitle = img.title if isinstance(img, ImageObj) else imtitle
         plot = BasePlot(options=BasePlotOptions(title=imtitle))
         other_items = []
         if isinstance(img, (MaskedImageItem, ImageItem)):
@@ -982,6 +1008,9 @@ def view_images_side_by_side(
         dlg.add_plot(row, col, plot, sync=share_axes)
     dlg.finalize_configuration()
     if maximized:
-        dlg.resize(1200, 800)
         dlg.showMaximized()
+    elif os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+        # Set explicit size for proper rendering in headless mode
+        # Qt size hints don't work reliably without a display
+        dlg.resize(20 + 440 * cols, 20 + 400 * rows)
     exec_dialog(dlg)

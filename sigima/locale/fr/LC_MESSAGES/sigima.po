@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-21 20:33+0200\n"
+"POT-Creation-Date: 2025-10-27 13:38+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -236,44 +236,35 @@ msgstr "Largeur de l'image : nombre de colonnes"
 msgid "Width"
 msgstr "Largeur"
 
-msgid "Data type"
-msgstr "Type de données"
+msgid "Type"
+msgstr "Type"
+
+msgid "Image data type"
+msgstr "Type de données de l'image"
+
+msgid "X label"
+msgstr "Titre X"
+
+msgid "X unit"
+msgstr "Unité X"
+
+msgid "Y label"
+msgstr "Titre Y"
+
+msgid "Y unit"
+msgstr "Unité Y"
+
+msgid "Z label"
+msgstr "Titre Z"
+
+msgid "Z unit"
+msgstr "Unité Z"
 
 msgid "Coefficients"
 msgstr "Coefficients"
 
-#, fuzzy
-msgid "A"
-msgstr "a"
-
-#, fuzzy
-msgid "B"
-msgstr "b"
-
-#, fuzzy
-msgid "C"
-msgstr "c"
-
-msgid "x<sub>0</sub>"
-msgstr "x<sub>0</sub>"
-
-msgid "y<sub>0</sub>"
-msgstr "y<sub>0</sub>"
-
 msgid "Domain"
 msgstr "Domaine"
-
-msgid "x<sub>min</sub>"
-msgstr "x<sub>min</sub>"
-
-msgid "x<sub>max</sub>"
-msgstr "x<sub>max</sub>"
-
-msgid "y<sub>min</sub>"
-msgstr "y<sub>min</sub>"
-
-msgid "y<sub>max</sub>"
-msgstr "y<sub>max</sub>"
 
 msgid "Data"
 msgstr "Données"
@@ -428,18 +419,6 @@ msgstr "N<sub>points</sub>"
 
 msgid "Total number of points in the signal"
 msgstr "Nombre total de points dans le signal"
-
-msgid "X label"
-msgstr "Titre X"
-
-msgid "Y label"
-msgstr "Titre Y"
-
-msgid "X unit"
-msgstr "Unité X"
-
-msgid "Y unit"
-msgstr "Unité Y"
 
 msgid "Temperature"
 msgstr "Température"
@@ -1136,6 +1115,9 @@ msgstr "Nombre de pixels (Y)"
 
 msgid "Number of adjacent pixels to be combined together along Y-axis."
 msgstr "Nombre de pixels adjacents à regrouper le long de l'axe des Y."
+
+msgid "Data type"
+msgstr "Type de données"
 
 msgid "Change pixel size"
 msgstr "Modifier la taille des pixels"

@@ -29,6 +29,12 @@ if TYPE_CHECKING:
     from sigima.objects import CircularROI, ImageObj, PolygonalROI, RectangularROI
 
 
+__all__ = [
+    "GeometryTransformer",
+    "transformer",
+]
+
+
 class GeometryTransformer:
     """
     Singleton class for applying transformations to geometry objects.
@@ -382,5 +388,6 @@ class GeometryTransformer:
         return None
 
 
-# Global singleton instance
+#: Global singleton instance of GeometryTransformer for applying geometric
+#: transformations to geometry results and ROI objects.
 transformer = GeometryTransformer()

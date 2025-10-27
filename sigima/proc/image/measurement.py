@@ -51,7 +51,9 @@ from sigima.proc.image.base import compute_geometry_from_obj
 __all__ = [
     "centroid",
     "enclosing_circle",
+    "horizontal_projection",
     "stats",
+    "vertical_projection",
 ]
 
 

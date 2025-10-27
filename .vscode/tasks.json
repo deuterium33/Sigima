@@ -559,6 +559,8 @@
                 "${workspaceFolder}/build/doc",
                 "-b",
                 "html",
+                "-D",
+                "language=fr",
                 // "-W",
             ],
             "options": {

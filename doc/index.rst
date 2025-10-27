@@ -80,6 +80,7 @@ Sigima has been funded by the following stakeholders:
     :caption: Contents
 
     intro/index
+    features
     api/index
     contributing/index
     changelog

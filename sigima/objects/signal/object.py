@@ -35,7 +35,6 @@ from sigima.objects.signal.constants import (
     DATETIME_X_FORMAT_KEY,
     DATETIME_X_KEY,
     DEFAULT_DATETIME_FORMAT,
-    TIME_UNIT_FACTORS,
     VALID_TIME_UNITS,
 )
 from sigima.objects.signal.roi import SignalROI
@@ -356,14 +355,20 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     ) -> None:
         """Set x values from datetime objects or strings.
 
-        This method converts datetime data to float timestamps for efficient storage
-        and computation while preserving the datetime context through metadata.
+        This method converts datetime data to float timestamps (Unix time: seconds
+        since 1970-01-01) for efficient storage and computation. The datetime context
+        is preserved through metadata.
+
+        Note: X values are always stored as Unix timestamps (seconds since 1970-01-01)
+        regardless of the 'unit' parameter. The 'unit' parameter is stored in metadata
+        and used only for axis labeling when plotting.
 
         Args:
             dt_array: Array of datetime objects, datetime strings, or numpy datetime64
-            unit: Time unit for storage. Options: 's' (seconds), 'ms' (milliseconds),
-             'us' (microseconds), 'ns' (nanoseconds), 'min' (minutes),
-             'h' (hours). Default is 's'.
+            unit: Time unit label for display. Options: 's' (seconds),
+             'ms' (milliseconds), 'us' (microseconds), 'ns' (nanoseconds),
+             'min' (minutes), 'h' (hours). Default is 's'. This parameter only
+             affects the axis label, not the stored data.
             format_str: Format string for datetime display. If None, uses default.
 
         Raises:
@@ -377,6 +382,9 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
             >>> signal.set_x_from_datetime(timestamps, unit='s')
             >>> signal.is_x_datetime()
             True
+            >>> # X data is stored as Unix timestamps (seconds since 1970)
+            >>> signal.x[0] > 1.7e9  # Year 2025
+            True
         """
         if unit not in VALID_TIME_UNITS:
             raise ValueError(
@@ -386,14 +394,13 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         # Convert to pandas datetime (handles strings, datetime objects, etc.)
         dt_series = pd.to_datetime(dt_array)
 
-        # Convert to float timestamp in seconds first (pandas epoch is in nanoseconds)
+        # Convert to float timestamp in seconds (pandas epoch is in nanoseconds)
+        # Note: We always store as Unix timestamps (seconds since 1970-01-01)
+        # regardless of the 'unit' parameter, which is only for display purposes
         timestamp_seconds = dt_series.astype(np.int64) / 1e9
 
-        # Convert to target unit using conversion factors
-        x_float = timestamp_seconds / TIME_UNIT_FACTORS[unit]
-
         # Convert to numpy array (pandas may return Float64Index)
-        x_float = np.array(x_float, dtype=np.float64)
+        x_float = np.array(timestamp_seconds, dtype=np.float64)
 
         # Check if signal already has data with matching size
         if self.xydata is not None and self.xydata.shape[1] == len(x_float):
@@ -429,12 +436,9 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
         """
         if not self.is_x_datetime():
             return self.x
-        # Get unit from xunit attribute (fallback to 's' if not set)
-        unit = self.xunit if self.xunit else "s"
+        # X values are always stored as Unix timestamps (seconds since 1970-01-01)
+        # regardless of the 'unit' parameter
         x_float = self.x
 
-        # Convert from stored unit back to seconds first
-        timestamp_seconds = x_float * TIME_UNIT_FACTORS.get(unit, 1.0)
-
         # Convert seconds to datetime using pandas
-        return pd.to_datetime(timestamp_seconds, unit="s").to_numpy()
+        return pd.to_datetime(x_float, unit="s").to_numpy()

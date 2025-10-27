@@ -160,6 +160,9 @@ sphinx_gallery_conf = qt_scraper.get_sphinx_gallery_conf(
     filename_pattern="", min_reported_time=60, show_memory=False
 )
 
+if "READTHEDOCS" in os.environ or "CI" in os.environ:
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 # Patch datalab_client example to use stub server during documentation build
 _stub_server = None
 
@@ -179,6 +182,12 @@ def _reset_example_namespace(gallery_conf, fname):
 # Add reset handler to sphinx_gallery_conf
 sphinx_gallery_conf["reset_modules"] = _reset_example_namespace
 sphinx_gallery_conf["reset_modules_order"] = "before"
+sphinx_gallery_conf["subsection_order"] = [
+    "./examples/introduction",
+    "./examples/features",
+    "./examples/advanced",
+]
+sphinx_gallery_conf["within_subsection_order"] = "ExampleTitleSortKey"
 # Note: The handler also cleans up the stub server from previous examples
 
 # -- Options for HTML output -------------------------------------------------
