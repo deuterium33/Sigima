@@ -1,10 +1,12 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Creating Images in Sigima
-=========================
+Creating Images
+===============
 
-This example demonstrates the three main approaches for creating images in Sigima:
+This example focuses on creating 2D image objects in Sigima.
+
+There are three primary methods to create images in Sigima:
 
 1. **Synthetic data generation**: Using built-in parameter classes to create standard
     image types (Gaussian, ramp, random distributions, etc.)

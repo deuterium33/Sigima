@@ -1,10 +1,12 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Creating Signals in Sigima
-==========================
+Creating Signals
+================
 
-This example demonstrates the three main approaches for creating signals in Sigima:
+This example focuses on creating 1D signal objects in Sigima.
+
+There are three primary methods to create signals in Sigima:
 
 1. **Synthetic data generation**: Using built-in parameter classes to create standard
     signal types (Gaussian, sine waves, random distributions, etc.)

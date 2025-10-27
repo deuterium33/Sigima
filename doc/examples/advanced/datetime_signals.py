@@ -1,6 +1,6 @@
 """
-DateTime Signal Processing with Sigima
-======================================
+DateTime Signal Processing
+==========================
 
 This example demonstrates how to work with signals that have datetime X-axis
 data in Sigima. DateTime support is essential for time-series analysis where
