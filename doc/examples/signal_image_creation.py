@@ -22,31 +22,16 @@ This allows us to focus on Sigima's functionality rather than visualization deta
 # %%
 # Importing necessary modules
 # ---------------------------
-# First of all, we need to import the required modules from Sigima and NumPy.
-# We also import vistools for visualization and helper functions to get test file names.
+# First of all, we need to import the required modules.
 
 import numpy as np
 
-from sigima.io import read_image, read_signal, read_signals
-from sigima.objects import (
-    ImageTypes,
-    SignalTypes,
-    create_image,
-    create_image_from_param,
-    create_image_parameters,
-    create_signal,
-    create_signal_from_param,
-    create_signal_parameters,
-)
-from sigima.tests.helpers import get_test_fnames
-from sigima.tests.vistools import (
-    view_curves,
-    view_images_side_by_side,
-)
+import sigima
+from sigima.tests import helpers, vistools
 
 # %%
 # Method 1: Creating signals from synthetic parameters
-# -----------------------------------------------------
+# ----------------------------------------------------
 #
 # Sigima provides built-in generators for common signal types. This is the most
 # convenient method when you need standard mathematical functions or random
@@ -58,16 +43,10 @@ from sigima.tests.vistools import (
 # - Random distributions: Normal, Uniform, Poisson
 # - Standard waveforms: Square, Sawtooth, Triangle
 # - Special functions: Planck (blackbody), Linear chirp, Step, Exponential
-#
-# This approach is ideal for:
-#
-# - Testing and validation
-# - Simulation and modeling
-# - Creating reference signals
 
 # Create a Gaussian signal using parameters
-gaussian_param = create_signal_parameters(
-    SignalTypes.GAUSS,  # Signal type
+gaussian_param = sigima.create_signal_parameters(
+    sigima.SignalTypes.GAUSS,  # Signal type
     size=500,  # Number of points
     xmin=-10.0,  # Minimum x value
     xmax=10.0,  # Maximum x value
@@ -75,16 +54,16 @@ gaussian_param = create_signal_parameters(
     mu=0.0,  # Center position
     sigma=1.5,  # Width (standard deviation)
 )
-signal_synthetic = create_signal_from_param(gaussian_param)
+signal_synthetic = sigima.create_signal_from_param(gaussian_param)
 signal_synthetic.title = "Synthetic Gaussian Signal"
 signal_synthetic.units = ("µm", "a.u.")
 signal_synthetic.labels = ("Position", "Intensity")
 
 # Create a sinusoidal signal
-sine_param = create_signal_parameters(
-    SignalTypes.SINE, size=500, xmin=0.0, xmax=2.0, freq=10.0, a=1.5
+sine_param = sigima.create_signal_parameters(
+    sigima.SignalTypes.SINE, size=500, xmin=0.0, xmax=2.0, freq=10.0, a=1.5
 )
-signal_sine = create_signal_from_param(sine_param)
+signal_sine = sigima.create_signal_from_param(sine_param)
 signal_sine.title = "Synthetic Sine Wave"
 signal_sine.units = ("s", "V")
 signal_sine.labels = ("Time", "Voltage")
@@ -94,7 +73,7 @@ print(f"  - {signal_synthetic.title}: {signal_synthetic.y.shape[0]} points")
 print(f"  - {signal_sine.title}: {signal_sine.y.shape[0]} points")
 
 # Visualize synthetic signals
-view_curves(
+vistools.view_curves(
     [signal_synthetic, signal_sine],
     title="Method 1: Synthetic Signals",
     object_name="synthetic_signals",
@@ -102,7 +81,7 @@ view_curves(
 
 # %%
 # Method 2: Loading signals from files
-# -------------------------------------
+# ------------------------------------
 #
 # Sigima can read signals from various file formats, automatically detecting the
 # format and extracting metadata when available.
@@ -112,29 +91,23 @@ view_curves(
 # - Text files: CSV, TXT (with automatic delimiter detection)
 # - Scientific formats: HDF5 (.h5sig), MAT-Files (.mat), NumPy (.npy)
 # - Specialized: MCA spectrum files (.mca), FT-Lab (.sig)
-#
-# This method is essential for:
-#
-# - Working with experimental data
-# - Integrating with existing workflows
-# - Sharing data between different tools
 
 # Load a real spectrum from a text file
 # This is a paracetamol (acetaminophen) UV-Vis absorption spectrum
-spectrum_file = get_test_fnames("paracetamol.txt")[0]
-signal_from_file = read_signal(spectrum_file)
+spectrum_file = helpers.get_test_fnames("paracetamol.txt")[0]
+signal_from_file = sigima.read_signal(spectrum_file)
 signal_from_file.title = "Paracetamol Spectrum (from file)"
 
 # Visualize signal loaded from text file
-view_curves(
+vistools.view_curves(
     signal_from_file,
     title="Signal from Text File",
     object_name="signal_from_txt",
 )
 
 # Load another signal from a CSV file with multiple curves
-csv_file = get_test_fnames("oscilloscope.csv")[0]
-signals_from_csv = read_signals(csv_file)
+csv_file = helpers.get_test_fnames("oscilloscope.csv")[0]
+signals_from_csv = sigima.read_signals(csv_file)
 # CSV files contain multiple signals; we'll show one
 signal_from_csv = signals_from_csv[1]
 
@@ -146,7 +119,7 @@ print(f"  - {signal_from_csv.title}: {signal_from_csv.y.shape[0]} points")
 
 # Visualize signal loaded from csv file
 
-view_curves(
+vistools.view_curves(
     signal_from_csv,
     title="Signal from CSV File",
     object_name="signal_from_csv",
@@ -154,8 +127,8 @@ view_curves(
 
 # %%
 # It is interesting to remark here that when importing data from files,
-# Sigima automatically extracts and preserves metadata
-# when possible. This includes:
+# Sigima automatically extracts and preserves metadata when possible.
+# This includes:
 #
 # - **Axis labels and units**: Column headers from CSV files, variable names from
 #   MAT-Files, etc.
@@ -173,12 +146,6 @@ view_curves(
 # When you already have data in NumPy arrays (from calculations, other libraries,
 # or custom data sources), you can wrap them in Sigima signal objects to benefit
 # from metadata handling and processing functions.
-#
-# This approach is perfect for:
-#
-# - Custom data generation
-# - Integration with other Python libraries (scipy, pandas, etc.)
-# - Converting legacy data to Sigima format
 
 # Create custom data: a damped oscillation
 t = np.linspace(0, 5, 1000)
@@ -186,7 +153,7 @@ damping = np.exp(-0.5 * t)
 oscillation = np.sin(2 * np.pi * 3 * t)
 y_damped = damping * oscillation
 
-signal_from_array = create_signal(
+signal_from_array = sigima.create_signal(
     title="Damped Oscillation (from array)",
     x=t,
     y=y_damped,
@@ -199,7 +166,7 @@ x_ramp = np.linspace(0, 100, 200)
 rng = np.random.default_rng(42)
 y_ramp = 0.5 * x_ramp + rng.normal(0, 2, 200)
 
-signal_noisy_ramp = create_signal(
+signal_noisy_ramp = sigima.create_signal(
     title="Noisy Ramp (from array)",
     x=x_ramp,
     y=y_ramp,
@@ -212,7 +179,7 @@ print(f"  - {signal_from_array.title}: {signal_from_array.y.shape[0]} points")
 print(f"  - {signal_noisy_ramp.title}: {signal_noisy_ramp.y.shape[0]} points")
 
 # Visualize signals created from NumPy arrays
-view_curves(
+vistools.view_curves(
     [signal_from_array, signal_noisy_ramp],
     title="Method 3: Signals from NumPy Arrays",
     object_name="signals_from_arrays",
@@ -229,16 +196,10 @@ view_curves(
 # - Distributions: Normal (Gaussian noise), Uniform, Poisson
 # - Analytical functions: 2D Gaussian, 2D ramp (bilinear form)
 # - Blank images: Zeros
-#
-# This is useful for:
-#
-# - Testing image processing algorithms
-# - Generating synthetic scenes
-# - Creating calibration patterns
 
 # Create a 2D Gaussian image
-gaussian_img_param = create_image_parameters(
-    ImageTypes.GAUSS,
+gaussian_img_param = sigima.create_image_parameters(
+    sigima.ImageTypes.GAUSS,
     height=300,
     width=300,
 )
@@ -248,14 +209,14 @@ gaussian_img_param.y0 = 0.0  # Center y position
 gaussian_img_param.sigma = 1.5  # Width
 gaussian_img_param.a = 1000.0  # Amplitude
 
-image_synthetic = create_image_from_param(gaussian_img_param)
+image_synthetic = sigima.create_image_from_param(gaussian_img_param)
 image_synthetic.title = "Synthetic 2D Gaussian"
 image_synthetic.units = ("µm", "µm", "counts")
 image_synthetic.labels = ("X", "Y", "Intensity")
 
 # Create a ramp image (gradient)
-ramp_param = create_image_parameters(
-    ImageTypes.RAMP,
+ramp_param = sigima.create_image_parameters(
+    sigima.ImageTypes.RAMP,
     height=200,
     width=200,
 )
@@ -264,7 +225,7 @@ ramp_param.y0 = -5.0
 ramp_param.dx = 0.5  # X slope
 ramp_param.dy = 0.3  # Y slope
 
-image_ramp = create_image_from_param(ramp_param)
+image_ramp = sigima.create_image_from_param(ramp_param)
 image_ramp.title = "Synthetic 2D Ramp"
 image_ramp.units = ("mm", "mm", "a.u.")
 image_ramp.labels = ("X", "Y", "Value")
@@ -274,7 +235,7 @@ print(f"  - {image_synthetic.title}: {image_synthetic.data.shape}")
 print(f"  - {image_ramp.title}: {image_ramp.data.shape}")
 
 # Visualize synthetic images
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [image_synthetic, image_ramp],
     titles=["Synthetic Gaussian", "Synthetic Ramp"],
 )
@@ -291,21 +252,15 @@ view_images_side_by_side(
 # - Scientific formats: DICOM, Andor SIF, Spiricon, Dürr NDT
 # - Data formats: NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)
 # - Text formats: CSV, TXT, ASC (with coordinate support)
-#
-# This enables:
-#
-# - Analysis of experimental images
-# - Medical imaging workflows
-# - Integration with various instruments
 
 # Load an image from a JPEG file
-jpeg_file = get_test_fnames("fiber.jpg")[0]
-image_from_jpeg = read_image(jpeg_file)
+jpeg_file = helpers.get_test_fnames("fiber.jpg")[0]
+image_from_jpeg = sigima.read_image(jpeg_file)
 image_from_jpeg.title = "Fiber Image (from JPEG)"
 
 # Load an image from a NumPy file
-npy_file = get_test_fnames("flower.npy")[0]
-image_from_npy = read_image(npy_file)
+npy_file = helpers.get_test_fnames("flower.npy")[0]
+image_from_npy = sigima.read_image(npy_file)
 image_from_npy.title = "Test Image (from NumPy)"
 
 print("\n✓ Images loaded from files")
@@ -313,7 +268,7 @@ print(f"  - {image_from_jpeg.title}: {image_from_jpeg.data.shape}")
 print(f"  - {image_from_npy.title}: {image_from_npy.data.shape}")
 
 # Visualize images loaded from files
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [image_from_jpeg, image_from_npy],
     titles=["From JPEG", "From NumPy File"],
 )
@@ -324,12 +279,6 @@ view_images_side_by_side(
 #
 # Convert existing NumPy arrays into Sigima image objects to add metadata,
 # coordinate systems, and enable advanced processing.
-#
-# Ideal for:
-#
-# - Custom image generation algorithms
-# - Integration with scipy.ndimage, scikit-image, OpenCV, etc.
-# - Processing simulation results
 
 # Create a synthetic pattern: interference fringes
 size = 256
@@ -341,7 +290,7 @@ X, Y = np.meshgrid(x, y)
 pattern = np.cos(2 * np.pi * X / 3) * np.cos(2 * np.pi * Y / 3)
 pattern = ((pattern + 1) / 2 * 255).astype(np.uint8)
 
-image_from_array = create_image(
+image_from_array = sigima.create_image(
     title="Interference Pattern (from array)",
     data=pattern,
     units=("mm", "mm", "intensity"),
@@ -355,7 +304,7 @@ rng = np.random.default_rng(123)
 radial = radial + rng.normal(0, 0.05, radial.shape)
 radial = np.clip(radial, 0, 1)
 
-image_radial = create_image(
+image_radial = sigima.create_image(
     title="Radial Gradient (from array)",
     data=radial.astype(np.float32),
     units=("µm", "µm", "a.u."),
@@ -367,7 +316,7 @@ print(f"  - {image_from_array.title}: {image_from_array.data.shape}")
 print(f"  - {image_radial.title}: {image_radial.data.shape}")
 
 # Visualize images created from NumPy arrays
-view_images_side_by_side(
+vistools.view_images_side_by_side(
     [image_from_array, image_radial],
     titles=["Interference Pattern", "Radial Gradient"],
 )
