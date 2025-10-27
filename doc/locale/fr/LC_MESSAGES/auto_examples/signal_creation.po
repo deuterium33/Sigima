@@ -1,0 +1,149 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 15:25+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_signal_creation.py>` to download the full example code."
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_signal_creation.py>` pour télécharger le code complet de l'exemple."
+
+msgid "Creating Signals in Sigima"
+msgstr "Création de signaux dans Sigima"
+
+msgid "This example demonstrates the three main approaches for creating signals in Sigima:"
+msgstr "Cet exemple illustre les trois principales approches pour créer des signaux dans Sigima :"
+
+msgid "**Synthetic data generation**: Using built-in parameter classes to create standard"
+msgstr "**Génération de données synthétiques** : Utilisation des classes de paramètres intégrées pour créer des types de signaux standard"
+
+msgid "signal types (Gaussian, sine waves, random distributions, etc.)"
+msgstr "types de signaux (Gaussien, ondes sinusoïdales, distributions aléatoires, etc.)"
+
+msgid "**Loading from files**: Importing data from various file formats"
+msgstr "**Chargement à partir de fichiers** : Importation de données à partir de divers formats de fichiers"
+
+msgid "**From NumPy arrays**: Creating objects directly from existing arrays"
+msgstr "**À partir de tableaux NumPy** : Création d'objets directement à partir de tableaux existants"
+
+msgid "Each method has its use cases, and Sigima provides a consistent interface for working with data regardless of its origin."
+msgstr "Chaque méthode a ses cas d'utilisation, et Sigima fournit une interface cohérente pour travailler avec des données, quelle que soit leur origine."
+
+msgid "For visualization, we use helper functions from the ``sigima.tests.vistools`` module. This allows us to focus on Sigima's functionality rather than visualization details."
+msgstr "Pour la visualisation, nous utilisons des fonctions d'assistance du module ``sigima.tests.vistools``. Cela nous permet de nous concentrer sur la fonctionnalité de Sigima plutôt que sur les détails de visualisation."
+
+msgid "Importing necessary modules"
+msgstr "Importation des modules nécessaires"
+
+msgid "First of all, we need to import the required modules."
+msgstr "Tout d'abord, nous devons importer les modules requis."
+
+msgid "Method 1: Creating signals from synthetic parameters"
+msgstr "Méthode 1 : Création de signaux à partir de paramètres synthétiques"
+
+msgid "Sigima provides built-in generators for common signal types. This is the most convenient method when you need standard mathematical functions or random distributions."
+msgstr "Sigima fournit des générateurs intégrés pour les types de signaux courants. C'est la méthode la plus pratique lorsque vous avez besoin de fonctions mathématiques standard ou de distributions aléatoires."
+
+msgid "Available signal types include:"
+msgstr "Les types de signaux disponibles incluent :"
+
+msgid "Mathematical functions: Gaussian, Lorentzian, Sinc, Sine, Cosine, etc."
+msgstr "Fonctions mathématiques : Gaussienne, Lorentzienne, Sinc, Sinusoïdale, Cosinus, etc."
+
+msgid "Random distributions: Normal, Uniform, Poisson"
+msgstr "Distributions aléatoires : Normale, Uniforme, Poisson"
+
+msgid "Standard waveforms: Square, Sawtooth, Triangle"
+msgstr "Formes d'onde standard : Carrée, Dent de scie, Triangle"
+
+msgid "Special functions: Planck (blackbody), Linear chirp, Step, Exponential"
+msgstr "Fonctions spéciales : Planck (corps noir), Chirp linéaire, Palier, Exponentielle"
+
+msgid "Qt widget 1"
+msgstr ""
+
+msgid "Method 2: Loading signals from files"
+msgstr "Méthode 2 : Chargement de signaux à partir de fichiers"
+
+msgid "Sigima can read signals from various file formats, automatically detecting the format and extracting metadata when available."
+msgstr "Sigima peut lire des signaux à partir de divers formats de fichiers, détectant automatiquement le format et extrayant les métadonnées lorsque cela est possible."
+
+msgid "Supported formats include:"
+msgstr "Les formats pris en charge incluent :"
+
+msgid "Text files: CSV, TXT (with automatic delimiter detection)"
+msgstr "Fichiers texte : CSV, TXT (avec détection automatique du délimiteur)"
+
+msgid "Scientific formats: HDF5 (.h5sig), MAT-Files (.mat), NumPy (.npy)"
+msgstr "Formats scientifiques : HDF5 (.h5sig), MAT-Files (.mat), NumPy (.npy)"
+
+msgid "Specialized: MCA spectrum files (.mca), FT-Lab (.sig)"
+msgstr "Spécialisé : Fichiers de spectre MCA (.mca), FT-Lab (.sig)"
+
+msgid "Qt widget 2"
+msgstr ""
+
+msgid "It is interesting to remark here that when importing data from files, Sigima automatically extracts and preserves metadata when possible. This includes:"
+msgstr "Il est intéressant de noter qu'en important des données à partir de fichiers, Sigima extrait et préserve automatiquement les métadonnées lorsque cela est possible. Cela inclut :"
+
+msgid "**Axis labels and units**: Column headers from CSV files, variable names from MAT-Files, etc."
+msgstr "**Étiquettes et unités des axes** : En-têtes de colonnes des fichiers CSV, noms de variables des fichiers MAT, etc."
+
+msgid "**Acquisition parameters**: DICOM headers, instrument settings, timestamps"
+msgstr "**Paramètres d'acquisition** : En-têtes DICOM, paramètres d'instrument, horodatages"
+
+msgid "**Physical coordinates**: Pixel spacing, origin coordinates when stored in the file"
+msgstr "**Coordonnées physiques** : Espacement des pixels, coordonnées d'origine lorsqu'elles sont stockées dans le fichier"
+
+msgid "The extracted metadata is seamlessly integrated into the signal or image object, making it available for processing, analysis, and visualization without manual configuration."
+msgstr "Les métadonnées extraites sont intégrées de manière transparente dans l'objet de signal ou d'image, les rendant disponibles pour le traitement, l'analyse et la visualisation sans configuration manuelle."
+
+msgid "Method 3: Creating signals from NumPy arrays"
+msgstr "Méthode 3 : Création de signaux à partir de tableaux NumPy"
+
+msgid "When you already have data in NumPy arrays (from calculations, other libraries, or custom data sources), you can wrap them in Sigima signal objects to benefit from metadata handling and processing functions."
+msgstr "Lorsque vous avez déjà des données dans des tableaux NumPy (provenant de calculs, d'autres bibliothèques ou de sources de données personnalisées), vous pouvez les envelopper dans des objets de signal Sigima pour bénéficier de la gestion des métadonnées et des fonctions de traitement."
+
+msgid "Summary"
+msgstr "Résumé"
+
+msgid "This example demonstrated the three main ways to create signals in Sigima:"
+msgstr "Cet exemple a démontré les trois principales façons de créer des signaux dans Sigima :"
+
+msgid "**Synthetic generation**: Fast creation of standard mathematical functions and distributions using parameter classes. Perfect for testing and simulation."
+msgstr "**Génération synthétique** : Création rapide de fonctions et de distributions mathématiques standard à l'aide de classes de paramètres. Parfait pour les tests et la simulation."
+
+msgid "**File loading**: Read data from various scientific and common file formats, with automatic format detection and metadata extraction. Essential for working with experimental data."
+msgstr "**Chargement de fichiers** : Lecture de données à partir de divers formats de fichiers scientifiques et courants, avec détection automatique du format et extraction des métadonnées. Essentiel pour travailler avec des données expérimentales."
+
+msgid "**NumPy array conversion**: Wrap existing array data with Sigima's rich metadata and processing capabilities. Ideal for custom workflows and integration with other Python libraries."
+msgstr "**Conversion de tableaux NumPy** : Enveloppez les données de tableau existantes avec les riches métadonnées et capacités de traitement de Sigima. Idéal pour les flux de travail personnalisés et l'intégration avec d'autres bibliothèques Python."
+
+msgid "All three methods produce equivalent Sigima objects that can be processed, analyzed, and visualized using the same set of tools and functions. Choose the method that best fits your workflow and data source."
+msgstr "Les trois méthodes produisent des objets Sigima équivalents qui peuvent être traités, analysés et visualisés à l'aide du même ensemble d'outils et de fonctions. Choisissez la méthode qui correspond le mieux à votre flux de travail et à votre source de données."
+
+msgid ":download:`Download Jupyter notebook: image_creation.ipynb <image_creation.ipynb>`"
+msgstr ":download:`Télécharger le notebook Jupyter : image_creation.ipynb <image_creation.ipynb>`"
+
+msgid ":download:`Download Python source code: image_creation.py <image_creation.py>`"
+msgstr ":download:`Télécharger le code source Python : image_creation.py <image_creation.py>`"
+
+msgid ":download:`Download zipped: image_creation.zip <image_creation.zip>`"
+msgstr ":download:`Télécharger le fichier compressé : image_creation.zip <image_creation.zip>`"
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr "`Galerie générée par Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
