@@ -164,7 +164,12 @@ def create_curve_dialog(
         toolbar=True,
         title=title,
         options=PlotOptions(
-            type="curve", xlabel=xlabel, ylabel=ylabel, xunit=xunit, yunit=yunit
+            type="curve",
+            xlabel=xlabel,
+            ylabel=ylabel,
+            xunit=xunit,
+            yunit=yunit,
+            curve_antialiasing=True,
         ),
         size=(800, 600) if size is None else size,
     )
@@ -346,6 +351,8 @@ def create_curve_item(
         xdata, ydata = obj.xydata
         title = obj.title or title or ""
     item = make.mcurve(xdata, ydata)
+    item.param.line.width = 1.25
+    item.param.update_item(item)
     item.setTitle(title)
     return item
 
