@@ -19,16 +19,6 @@ the DataLab application.
 # can be safely required (e.g. after raising the minimum required version of
 # scikit-image to >= 0.19).
 
-# The following comments are used to track the migration process of the `sigima`
-# package, in the context of the DataLab Core Architecture Redesign project funded by
-# the NLnet Foundation.
-
-# -------- Point of no return after creating an independent `sigima` package ----------
-# ** Task 3. Documentation and Training Materials **
-# TODO: Move DataLab's validation section to sigima's documentation
-# TODO: Add documentation on I/O plugin system (similar to the `cdl.plugins` module)
-# --------------------------------------------------------------------------------------
-
 __all__ = [
     "NO_ROI",
     "CircularROI",
