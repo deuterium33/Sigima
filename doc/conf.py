@@ -197,10 +197,10 @@ html_logo = "images/Sigima-Banner.svg"
 html_favicon = "_static/favicon.ico"
 html_show_sourcelink = False
 templates_path = ["_templates"]
-if "language=fr" in sys.argv:
-    ann = "Sigima est en cours de développement 🚧"  # noqa: E501
-else:
-    ann = "Sigima is under development 🚧"  # noqa: E501
+# if "language=fr" in sys.argv:
+#     ann = ""  # noqa: E501
+# else:
+#     ann = ""  # noqa: E501
 html_theme_options = {
     "show_toc_level": 2,
     "github_url": "https://github.com/DataLab-Platform/Sigima/",
@@ -230,7 +230,7 @@ html_theme_options = {
             "attributes": {"target": "_blank"},
         },
     ],
-    "announcement": ann,
+    # "announcement": ann,
 }
 html_static_path = ["_static"]
 
