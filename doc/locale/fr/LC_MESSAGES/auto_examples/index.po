@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 10:04+0100\n"
+"POT-Creation-Date: 2025-10-28 10:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -32,7 +32,7 @@ msgid "These examples are automatically generated when building the documentatio
 msgstr "Ces exemples sont générés automatiquement lors de la construction de la documentation, garantissant ainsi qu'ils sont toujours fonctionnels avec la dernière version de Sigima."
 
 msgid "Getting Started"
-msgstr ""
+msgstr "Premiers pas"
 
 msgid ":ref:`sphx_glr_auto_examples_getting_started_image_creation.py`"
 msgstr ""
@@ -49,9 +49,6 @@ msgstr ""
 msgid ":ref:`sphx_glr_auto_examples_use_cases_fabry_perot.py`"
 msgstr ""
 
-msgid ":ref:`sphx_glr_auto_examples_use_cases_convolution.py`"
-msgstr ""
-
 msgid ":ref:`sphx_glr_auto_examples_use_cases_laser_beam.py`"
 msgstr ""
 
@@ -59,6 +56,9 @@ msgid ":ref:`sphx_glr_auto_examples_use_cases_paracetamol.py`"
 msgstr ""
 
 msgid "Various Features"
+msgstr "Fonctionnalités diverses"
+
+msgid ":ref:`sphx_glr_auto_examples_features_convolution.py`"
 msgstr ""
 
 msgid ":ref:`sphx_glr_auto_examples_features_datalab_client.py`"

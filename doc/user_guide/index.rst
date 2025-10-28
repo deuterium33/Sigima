@@ -1,5 +1,5 @@
-Getting started
-===============
+User Guide
+==========
 
 .. only:: html and not latex
 

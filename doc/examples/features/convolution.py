@@ -1,12 +1,12 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 """
-Image Blurring and Sharpening with Convolution
-==============================================
+Convolution and Deconvolution
+=============================
 
-This example demonstrates the image convolution and deconvolution features
-available in Sigima, showing various kernels and their effects on images.
-Each section builds upon the previous one to create a comprehensive
-understanding of convolution operations.
+This example focuses on image blurring and sharpening using convolution
+and deconvolution techniques provided by Sigima. Using various kernels,
+we'll explore how these operations affect images and how to implement them
+using Sigima's processing functions.
 
 The example shows:
 

@@ -20,11 +20,10 @@ msgstr ""
 "Generated-By: Babel 2.17.0\n"
 
 msgid "Getting Started"
-msgstr ""
+msgstr "Premiers pas"
 
 msgid ":ref:`sphx_glr_auto_examples_getting_started_image_creation.py`"
 msgstr ""
 
 msgid ":ref:`sphx_glr_auto_examples_getting_started_signal_creation.py`"
 msgstr ""
-
