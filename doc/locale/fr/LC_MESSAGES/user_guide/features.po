@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 16:40+0100\n"
+"POT-Creation-Date: 2025-10-28 10:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -1327,5 +1327,7 @@ msgstr ":doc:`../api/proc` - Référence API complète pour toutes les fonctions
 msgid ":doc:`../api/objects` - Data objects (SignalObj, ImageObj) used by processing functions"
 msgstr ":doc:`../api/objects` - Objets de données (SignalObj, ImageObj) utilisés par les fonctions de traitement"
 
-msgid ":doc:`../intro/index` - Examples demonstrating various computation features"
+#, fuzzy
+msgid ":doc:`../auto_examples/index` - Examples demonstrating various computation features"
 msgstr ":doc:`../intro/index` - Exemples illustrant diverses fonctionnalités de calcul"
+

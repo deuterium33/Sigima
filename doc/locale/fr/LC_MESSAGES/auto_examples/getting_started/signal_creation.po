@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2025, DataLab Platform Developers
+# This file is distributed under the same license as the Sigima package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Sigima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-28 10:04+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_getting_started_signal_creation.py>` to download the full example code."
+msgstr ""
+
+msgid "Creating Signals"
+msgstr ""
+
+msgid "This example focuses on creating 1D signal objects in Sigima."
+msgstr ""
+
+msgid "There are three primary methods to create signals in Sigima:"
+msgstr ""
+
+msgid "**Synthetic data generation**: Using built-in parameter classes to create standard"
+msgstr ""
+
+msgid "signal types (Gaussian, sine waves, random distributions, etc.)"
+msgstr ""
+
+msgid "**Loading from files**: Importing data from various file formats"
+msgstr ""
+
+msgid "**From NumPy arrays**: Creating objects directly from existing arrays"
+msgstr ""
+
+msgid "Each method has its use cases, and Sigima provides a consistent interface for working with data regardless of its origin."
+msgstr ""
+
+msgid "For visualization, we use helper functions from the ``sigima.tests.vistools`` module. This allows us to focus on Sigima's functionality rather than visualization details."
+msgstr ""
+
+msgid "Importing necessary modules"
+msgstr ""
+
+msgid "First of all, we need to import the required modules."
+msgstr ""
+
+msgid "Method 1: Creating signals from synthetic parameters"
+msgstr ""
+
+msgid "Sigima provides built-in generators for common signal types. This is the most convenient method when you need standard mathematical functions or random distributions."
+msgstr ""
+
+msgid "Available signal types include:"
+msgstr ""
+
+msgid "Mathematical functions: Gaussian, Lorentzian, Sinc, Sine, Cosine, etc."
+msgstr ""
+
+msgid "Random distributions: Normal, Uniform, Poisson"
+msgstr ""
+
+msgid "Standard waveforms: Square, Sawtooth, Triangle"
+msgstr ""
+
+msgid "Special functions: Planck (blackbody), Linear chirp, Step, Exponential"
+msgstr ""
+
+msgid "Qt widget 1"
+msgstr ""
+
+msgid "Method 2: Loading signals from files"
+msgstr ""
+
+msgid "Sigima can read signals from various file formats, automatically detecting the format and extracting metadata when available."
+msgstr ""
+
+msgid "Supported formats include:"
+msgstr ""
+
+msgid "Text files: CSV, TXT (with automatic delimiter detection)"
+msgstr ""
+
+msgid "Scientific formats: HDF5 (.h5sig), MAT-Files (.mat), NumPy (.npy)"
+msgstr ""
+
+msgid "Specialized: MCA spectrum files (.mca), FT-Lab (.sig)"
+msgstr ""
+
+msgid "Qt widget 2"
+msgstr ""
+
+msgid "It is interesting to remark here that when importing data from files, Sigima automatically extracts and preserves metadata when possible. This includes:"
+msgstr ""
+
+msgid "**Axis labels and units**: Column headers from CSV files, variable names from MAT-Files, etc."
+msgstr ""
+
+msgid "**Acquisition parameters**: DICOM headers, instrument settings, timestamps"
+msgstr ""
+
+msgid "**Physical coordinates**: Pixel spacing, origin coordinates when stored in the file"
+msgstr ""
+
+msgid "The extracted metadata is seamlessly integrated into the signal or image object, making it available for processing, analysis, and visualization without manual configuration."
+msgstr ""
+
+msgid "Method 3: Creating signals from NumPy arrays"
+msgstr ""
+
+msgid "When you already have data in NumPy arrays (from calculations, other libraries, or custom data sources), you can wrap them in Sigima signal objects to benefit from metadata handling and processing functions."
+msgstr ""
+
+msgid "Summary"
+msgstr ""
+
+msgid "This example demonstrated the three main ways to create signals in Sigima:"
+msgstr ""
+
+msgid "**Synthetic generation**: Fast creation of standard mathematical functions and distributions using parameter classes. Perfect for testing and simulation."
+msgstr ""
+
+msgid "**File loading**: Read data from various scientific and common file formats, with automatic format detection and metadata extraction. Essential for working with experimental data."
+msgstr ""
+
+msgid "**NumPy array conversion**: Wrap existing array data with Sigima's rich metadata and processing capabilities. Ideal for custom workflows and integration with other Python libraries."
+msgstr ""
+
+msgid "All three methods produce equivalent Sigima objects that can be processed, analyzed, and visualized using the same set of tools and functions. Choose the method that best fits your workflow and data source."
+msgstr ""
+
+msgid ":download:`Download Jupyter notebook: signal_creation.ipynb <signal_creation.ipynb>`"
+msgstr ""
+
+msgid ":download:`Download Python source code: signal_creation.py <signal_creation.py>`"
+msgstr ""
+
+msgid ":download:`Download zipped: signal_creation.zip <signal_creation.zip>`"
+msgstr ""
+
+msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
+msgstr ""
+

@@ -737,4 +737,4 @@ See Also
 
 - :doc:`../api/proc` - Complete API reference for all processing functions
 - :doc:`../api/objects` - Data objects (SignalObj, ImageObj) used by processing functions
-- :doc:`../intro/index` - Examples demonstrating various computation features
+- :doc:`../auto_examples/index` - Examples demonstrating various computation features

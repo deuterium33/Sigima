@@ -65,7 +65,7 @@ Here is an example in Python 3 of a script that connects to a running DataLab
 instance, adds a signal and an image, and then runs calculations (the cell
 structure of the script make it convenient to be used in `Spyder`_ IDE):
 
-.. literalinclude:: ../examples/advanced/datalab_client.py
+.. literalinclude:: ../examples/features/datalab_client.py
 
 Additional features
 ^^^^^^^^^^^^^^^^^^^

@@ -183,9 +183,9 @@ def _reset_example_namespace(gallery_conf, fname):
 sphinx_gallery_conf["reset_modules"] = _reset_example_namespace
 sphinx_gallery_conf["reset_modules_order"] = "before"
 sphinx_gallery_conf["subsection_order"] = [
-    "./examples/introduction",
+    "./examples/getting_started",
+    "./examples/use_cases",
     "./examples/features",
-    "./examples/advanced",
 ]
 sphinx_gallery_conf["within_subsection_order"] = "ExampleTitleSortKey"
 # Note: The handler also cleans up the stub server from previous examples

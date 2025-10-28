@@ -281,7 +281,7 @@ Getting Started
 To start using Sigima, check out:
 
 * :doc:`installation` - Set up Sigima in your environment
-* :doc:`../features` - Explore Sigima's key features and capabilities
+* :doc:`features` - Explore Sigima's key features and capabilities
 * :doc:`../auto_examples/index` - Practical examples showing signals and images in action
 * :doc:`../api/index` - Complete API reference
 

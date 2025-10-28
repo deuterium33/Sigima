@@ -9,11 +9,17 @@ It provides a wide range of functionalities for analyzing and processing data, i
     .. grid:: 2 2 4 4
         :gutter: 1 2 3 4
 
-        .. grid-item-card:: :octicon:`rocket;1em;sd-text-info`  Getting started
-            :link: intro/index
+        .. grid-item-card:: :octicon:`rocket;1em;sd-text-info`  User Guide
+            :link: user_guide/index
             :link-type: doc
 
-            Installation, tutorials, use cases...
+            Installation, overview, and features
+
+        .. grid-item-card:: :octicon:`code;1em;sd-text-info`  Examples
+            :link: ../auto_examples/index
+            :link-type: doc
+
+            Gallery of examples
 
         .. grid-item-card:: :octicon:`book;1em;sd-text-info`  API
             :link: api/index
@@ -26,12 +32,6 @@ It provides a wide range of functionalities for analyzing and processing data, i
             :link-type: doc
 
             Getting involved in the project
-
-        .. grid-item-card:: :octicon:`tools;1em;log`  Release notes
-            :link: changelog
-            :link-type: doc
-
-            History of changes
 
 .. figure:: _static/DataLab-Banner.svg
     :align: center
@@ -79,8 +79,8 @@ Sigima has been funded by the following stakeholders:
     :maxdepth: 2
     :caption: Contents
 
-    intro/index
-    features
+    user_guide/index
+    auto_examples/index
     api/index
     contributing/index
     changelog
