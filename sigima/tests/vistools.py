@@ -13,6 +13,7 @@ import numpy as np
 import plotpy.tools
 from guidata.qthelpers import exec_dialog as guidata_exec_dialog
 from plotpy.builder import make
+from plotpy.config import CONF
 from plotpy.items import (
     AnnotatedCircle,
     AnnotatedEllipse,
@@ -57,6 +58,8 @@ from sigima.tools import coordinates
 QAPP: QW.QApplication | None = None
 
 WIDGETS: list[QW.QWidget] = []
+
+CONF.set("plot", "title/font/size", 11)
 
 
 def ensure_qapp() -> QW.QApplication:
@@ -164,6 +167,7 @@ def create_curve_dialog(
         toolbar=True,
         title=title,
         options=PlotOptions(
+            title=title,
             type="curve",
             xlabel=xlabel,
             ylabel=ylabel,
@@ -522,9 +526,9 @@ def create_plot_items_from_geometry(
             item.annotationparam.show_computations = False
             item.annotationparam.show_label = bool(title)
             item.annotationparam.update_item(item)
-            if isinstance(item, AnnotatedSegment):
-                item.label.labelparam.anchor = "T"
-                item.label.labelparam.update_item(item.label)
+            item.label.labelparam.anchor = "T"
+            item.label.labelparam.yc = 10
+            item.label.labelparam.update_item(item.label)
 
         items.append(item)
 
@@ -691,6 +695,7 @@ def create_image_dialog(
         toolbar=True,
         title=title,
         options=PlotOptions(
+            title=title,
             type="image",
             xlabel=xlabel,
             ylabel=ylabel,
