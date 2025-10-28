@@ -605,6 +605,7 @@ def view_curves(
     ylabel: str | None = None,
     xunit: str | None = None,
     yunit: str | None = None,
+    show_roi: bool = True,
     object_name: str = "",
 ) -> None:
     """Create a curve dialog and plot curves
@@ -618,6 +619,8 @@ def view_curves(
         ylabel: Label for the y-axis, or None for no label
         xunit: Unit for the x-axis, or None for no unit
         yunit: Unit for the y-axis, or None for no unit
+        show_roi: Whether to show ROIs defined in `SignalObj` instances, default is True
+         (ignored if `data_or_objs` is not a `SignalObj`)
         object_name: Object name for the dialog (for screenshot functionality)
     """
     ensure_qapp()
@@ -642,7 +645,7 @@ def view_curves(
                     else:
                         datetime_format = "%H:%M:%S"
         item = create_curve_item(data_or_obj)
-        if isinstance(data_or_obj, SignalObj):
+        if isinstance(data_or_obj, SignalObj) and show_roi:
             items.extend(create_curve_roi_items(data_or_obj))
         items.append(item)
     view_curve_items(
@@ -782,6 +785,7 @@ def view_images(
     yunit: str | None = None,
     zunit: str | None = None,
     results: list[GeometryResult] | GeometryResult | None = None,
+    show_roi: bool = True,
     object_name: str = "",
     **kwargs,
 ) -> None:
@@ -799,6 +803,8 @@ def view_images(
         zunit: Unit for the z-axis (color scale), or None for no unit
         results: Single `GeometryResult` or list of these to overlay on images, or None
          if no overlay is needed.
+        show_roi: Whether to show ROIs defined in `ImageObj` instances, default is True
+         (ignored if `data_or_objs` is not a `ImageObj`)
         object_name: Object name for the dialog (for screenshot functionality)
         **kwargs: Additional keyword arguments to pass to `make.maskedimage()`
     """
@@ -843,7 +849,7 @@ def view_images(
             items.append(
                 create_image_item(data_or_obj, title=image_title, **imparameters)
             )
-        if isinstance(data_or_obj, ImageObj):
+        if isinstance(data_or_obj, ImageObj) and show_roi:
             items.extend(create_image_roi_items(data_or_obj))
     if results is not None:
         if isinstance(results, GeometryResult):
@@ -955,6 +961,7 @@ def view_images_side_by_side(
     maximized: bool = False,
     title: str | None = None,
     results: list[GeometryResult] | GeometryResult | None = None,
+    show_roi: bool = True,
     object_name: str = "",
     **kwargs,
 ) -> None:
@@ -969,6 +976,8 @@ def view_images_side_by_side(
         title: Title of the dialog, or None for a default title
         results: Single `GeometryResult` or list of these to overlay on images, or None
          if no overlay is needed.
+        show_roi: Whether to show ROIs defined in `ImageObj` instances, default is True
+         (ignored if `images` do not contain `ImageObj` instances)
         object_name: Object name for the dialog widget (used for screenshot filename)
         **kwargs: Additional keyword arguments to pass to `make.maskedimage()`
     """
@@ -999,7 +1008,7 @@ def view_images_side_by_side(
             item = img
         else:
             item = create_image_item(img, title=imtitle, **imparameters)
-            if isinstance(img, ImageObj):
+            if isinstance(img, ImageObj) and show_roi:
                 other_items.extend(create_image_roi_items(img))
         plot.add_item(item)
         for other_item in other_items:
