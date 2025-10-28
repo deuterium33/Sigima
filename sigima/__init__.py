@@ -133,7 +133,7 @@ from sigima.objects import (
 set_validation_mode(ValidationMode.ENABLED)
 
 __version__ = "1.0.0"
-__docurl__ = "https://sigima.readthedocs.io/en/latest/"
+__docurl__ = "https://sigima.readthedocs.io/"
 __homeurl__ = "https://github.com/DataLab-Platform/Sigima"
 __supporturl__ = "https://github.com/DataLab-Platform/sigima/issues/new/choose"
 
