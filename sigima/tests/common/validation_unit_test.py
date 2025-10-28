@@ -153,7 +153,7 @@ def test_computation_functions_documented_in_features() -> None:
     """
     # Read the features.rst file
     doc_dir = osp.join(osp.dirname(tests_pkg.__file__), "..", "..", "doc")
-    features_rst_path = osp.join(doc_dir, "features.rst")
+    features_rst_path = osp.join(doc_dir, "user_guide", "features.rst")
 
     if not osp.exists(features_rst_path):
         raise AssertionError(f"Documentation file not found: {features_rst_path}")
