@@ -40,8 +40,7 @@ from sigima.tests import vistools
 
 
 def generate_test_image() -> None:
-    """Generate test image"""
-    # Create a NumPy array using a Generator:
+    """Generate test image with randomly placed blobs."""
     rng = np.random.default_rng(0)
     arr = rng.normal(10000, 1000, (2048, 2048))
     for _ in range(10):
@@ -165,13 +164,8 @@ blob_param.filter_by_convexity = False
 # %%
 # We finally print configured parameters:
 
-print("\n✓ Blob detection parameters configured:")
-print(f"  Threshold range: {blob_param.min_threshold} - {blob_param.max_threshold}")
-print(f"  Area range: {blob_param.min_area} - {blob_param.max_area} pixels")
-print(
-    f"  Circularity range: {blob_param.min_circularity} - {blob_param.max_circularity}"
-)
-print(f"  Min repeatability: {blob_param.min_repeatability}")
+print("\n✓ Blob detection parameters configured:" + "\n")
+print(blob_param)
 
 
 # %%
@@ -184,33 +178,22 @@ print(f"  Min repeatability: {blob_param.min_repeatability}")
 blobs = sigima.proc.image.blob_opencv(filtered_image, blob_param)
 
 print("\n✓ Blob detection completed!")
-print(f"Number of blobs detected: {len(blobs.coords) if blobs else 0}")
+print(f"  Number of blobs detected: {len(blobs.coords) if blobs else 0}")
 
 vistools.view_images(
-    [filtered_image], title="Filtered Image with Blob Detection", results=blobs
+    [filtered_image],
+    title="Filtered Image with Blob Detection",
+    results=blobs,
+    colormap="gray",
 )
 
 # %%
 # We print the detected blobs and their properties:
 
 if blobs and len(blobs.coords) > 0:
-    print("\nDetected blobs:")
-    print("Index | X coord | Y coord | Radius | Area")
-    print("-" * 45)
-
-    for i, coord in enumerate(blobs.coords):
-        x, y, radius = coord[0], coord[1], coord[2]
-        area = np.pi * radius**2
-        print(f"{i + 1:5d} | {x:7.1f} | {y:7.1f} | {radius:6.1f} | {area:6.0f}")
-
-    # Calculate statistics
-    radii = [coord[2] for coord in blobs.coords]
-    mean_radius = np.mean(radii)
-    std_radius = np.std(radii)
-
-    print("\nBlob statistics:")
-    print(f"Mean radius: {mean_radius:.1f} ± {std_radius:.1f} pixels")
-    print(f"Radius range: {min(radii):.1f} - {max(radii):.1f} pixels")
+    blobs_df = blobs.to_dataframe()
+    print("\nDetected blobs data frame:")
+    print(blobs_df)
 
 else:
     print("No blobs detected. Consider adjusting detection parameters.")
