@@ -124,6 +124,9 @@ Optional modules for building the documentation:
     * - plotpy
       - 
       - Curve and image plotting tools for Python/Qt applications
+    * - opencv-python-headless
+      - >= 4.8.1.78
+      - Wrapper package for OpenCV python bindings.
 
 Optional modules for running test suite:
 
