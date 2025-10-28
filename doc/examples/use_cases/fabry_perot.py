@@ -108,25 +108,11 @@ print("\n✓ Contour detection completed for first image")
 # %%
 # We can now print the detected circular contours and their properties
 
-
 print(f"Number of circular contours detected: {len(contour_results.coords)}")
-print("\nDetected interference rings:")
-print("Ring | Center X | Center Y | Radius")
-print("-" * 40)
 
-for i, coords in enumerate(contour_results.coords):
-    if len(coords) >= 3:  # Circle needs at least 3 parameters
-        x, y, radius = coords[0], coords[1], coords[2]
-        print(f"{i + 1:4d} | {x:8.1f} | {y:8.1f} | {radius:6.1f}")
-
-# Calculate ring statistics
-radii = [coords[2] for coords in contour_results.coords if len(coords) >= 3]
-if radii:
-    mean_radius = sum(radii) / len(radii)
-    print("\nRing statistics:")
-    print(f"Average radius: {mean_radius:.1f} pixels")
-    print(f"Radius range: {min(radii):.1f} - {max(radii):.1f} pixels")
-
+contour_df = contour_results.to_dataframe()
+print("\nDetected contours data frame:")
+print(contour_df)
 
 # %%
 # Extract horizontal intensity profile
@@ -192,20 +178,9 @@ contour_results2 = sigima.proc.image.contour_shape(img2, contour_param)
 
 print("✓ Contour detection completed for second image")
 
-# Analyze results from second image
-if contour_results2 is not None and len(contour_results2.coords) > 0:
-    print(f"Number of circular contours detected: {len(contour_results2.coords)}")
-    print("\nDetected interference rings (Image 2):")
-    print("Ring | Center X | Center Y | Radius")
-    print("-" * 40)
-
-    for i, coords in enumerate(contour_results2.coords):
-        if len(coords) >= 3:
-            x, y, radius = coords[0], coords[1], coords[2]
-            print(f"{i + 1:4d} | {x:8.1f} | {y:8.1f} | {radius:6.1f}")
-
-else:
-    print("No circular contours detected in the second image")
+contour_df2 = contour_results2.to_dataframe()
+print("\nDetected contours data frame (Image 2):")
+print(contour_df2)
 
 # %%
 # Extract profile from second image and compare both profiles
