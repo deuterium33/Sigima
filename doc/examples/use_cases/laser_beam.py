@@ -37,9 +37,6 @@ from sigima.tests import helpers, vistools
 # the propagation axis (z-axis). The images are contained in the folder laser_beam and
 # named following the pattern TEM00_z_*.jpg, where * is the z position in arbitrary
 # units.
-print("=" * 60)
-print("LASER BEAM SIZE MEASUREMENT TUTORIAL")
-print("=" * 60)
 
 
 def load_laser_beam_images():
@@ -78,10 +75,7 @@ for i, img in enumerate(images):
 # %%
 # Visualize the first few images
 print("\n✓ Visualizing sample images...")
-vistools.view_images_side_by_side(
-    images[:3],
-    titles=["Laser beam image 1", "Laser beam image 2", "Laser beam image 3"],
-)
+vistools.view_images_side_by_side(images[:3])
 
 # %%
 # Background noise analysis with histogram
@@ -139,16 +133,7 @@ print("Background noise below threshold has been removed")
 
 # %%
 # We can now visualize some clipped images:
-vistools.view_images_side_by_side(
-    images[:3] + clipped_images[:3],
-    titles=["Laser beam image 1", "Laser beam image 2", "Laser beam image 3"]
-    + [
-        "Background-Clipped Image 1",
-        "Background-Clipped Image 2",
-        "Background-Clipped Image 3",
-    ],
-    rows=2,
-)
+vistools.view_images_side_by_side(images[:3] + clipped_images[:3], rows=2)
 
 # %%
 # Compute centroids for beam center detection
@@ -205,10 +190,7 @@ print(f"\n✓ Generated {len(successful_profiles)} line profiles")
 
 # Visualize some line profiles
 vistools.view_curves(
-    successful_profiles[:3],
-    title="Horizontal Line Profiles (First 3 Images)",
-    xlabel="Position (pixels)",
-    ylabel="Intensity",
+    successful_profiles[:3], title="Horizontal Line Profiles (First 3 Images)"
 )
 
 # %%
@@ -240,12 +222,7 @@ print(f"\n✓ Generated {len(successful_radial)} radial profiles")
 
 # %%
 # We can now visualize some radial profiles
-vistools.view_curves(
-    successful_radial[:3],
-    title="Radial Profiles (First 3 Images)",
-    xlabel="Radial Distance (pixels)",
-    ylabel="Intensity",
-)
+vistools.view_curves(successful_radial[:3], title="Radial Profiles (First 3 Images)")
 
 # %%
 # Compute FWHM for radial profiles

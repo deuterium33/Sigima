@@ -1,8 +1,8 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Blob Detection Example
-======================
+Blob Detection
+==============
 
 This example demonstrates blob detection techniques available in Sigima
 for analyzing circular or blob-like features in images. It shows how to

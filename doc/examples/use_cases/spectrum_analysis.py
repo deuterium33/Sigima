@@ -1,8 +1,8 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Paracetamol Spectrum Analysis Example
-=======================================
+Spectrum Analysis
+=================
 
 This example demonstrates advanced signal processing for spectroscopy analysis
 using a paracetamol spectrum. It shows how to apply noise reduction, region
@@ -15,10 +15,6 @@ Usage:
 
 The script demonstrates spectroscopy data processing workflows commonly used
 in analytical chemistry and materials science applications.
-
-Created on September 23, 2025
-
-@author: DataLab Platform Developers
 """
 
 # %% Importing necessary modules
@@ -52,12 +48,7 @@ print(f"Energy range: {x_orig.min():.1f} to {x_orig.max():.1f} eV")
 print(f"Intensity range: {y_orig.min():.1f} to {y_orig.max():.1f}")
 
 # Visualize the original spectrum
-vistools.view_curves(
-    sig,
-    title="Paracetamol Spectrum - Original",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
-)
+vistools.view_curves(sig, title="Paracetamol Spectrum - Original")
 
 # %%
 # Apply Wiener filter for noise reduction
@@ -74,10 +65,7 @@ print("with known statistical properties.")
 
 # Compare original and filtered signals
 vistools.view_curves(
-    [sig, sig_filt],
-    title="Paracetamol Spectrum - Original vs Wiener Filtered",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
+    [sig, sig_filt], title="Paracetamol Spectrum - Original vs Wiener Filtered"
 )
 
 # %%
@@ -94,12 +82,7 @@ print(f"\n✓ ROI defined from {roi_bounds[0]} to {roi_bounds[1]} eV")
 print("This focuses analysis on the primary absorption feature")
 
 # Visualize the signal with ROI
-vistools.view_curves(
-    sig_filt,
-    title="Paracetamol Spectrum - Filtered with ROI",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
-)
+vistools.view_curves(sig_filt, title="Paracetamol Spectrum - Filtered with ROI")
 
 # %%
 # Gaussian fit on the peak
@@ -119,10 +102,7 @@ print("- Peak width (FWHM)")
 
 # Visualize the signal with Gaussian fit
 vistools.view_curves(
-    [sig_filt, fit],
-    title="Paracetamol Spectrum - ROI with Gaussian Fit",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
+    [sig_filt, fit], title="Paracetamol Spectrum - ROI with Gaussian Fit"
 )
 
 # %%
@@ -154,10 +134,7 @@ print("\n✓ Linear detrending applied!")
 
 # Compare filtered and detrended signals
 vistools.view_curves(
-    [sig_filt, detrended_signal],
-    title="Paracetamol Spectrum - Filtered vs Detrended",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
+    [sig_filt, detrended_signal], title="Paracetamol Spectrum - Filtered vs Detrended"
 )
 # %%
 # The comparison shows, as expected, that the detrending function does not work well on
@@ -225,8 +202,6 @@ print("Each detected peak is fitted with individual Gaussian functions")
 vistools.view_curves(
     [sig_filt, fitted_signal],
     title="Paracetamol Spectrum - Detrended with Multi-Gaussian Fit",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
 )
 # %%
 # Defining ROI outside peaks for better detrending
@@ -265,10 +240,7 @@ sig_filt.roi = roi.inverted(sig_filt.x.min(), sig_filt.x.max())
 
 # Visualize the signal with new ROI
 vistools.view_curves(
-    sig_filt,
-    title="Paracetamol Spectrum - Filtered with Peak Exclusion ROIs",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
+    sig_filt, title="Paracetamol Spectrum - Filtered with Peak Exclusion ROIs"
 )
 # %%
 # We can now perform a linear fit on the signal using the defined ROIs to exclude
@@ -284,6 +256,7 @@ fitted_signal = fit = sigima.proc.signal.linear_fit(sig_filt)
 
 
 better_detrended_signal = sigima.proc.signal.difference(sig_filt, fitted_signal)
+better_detrended_signal.title = "Improved Detrended Signal"
 
 print("\n✓ Improved detrending applied!")
 
@@ -291,8 +264,7 @@ print("\n✓ Improved detrending applied!")
 vistools.view_curves(
     [sig_filt, better_detrended_signal],
     title="Paracetamol Spectrum - Filtered vs Improved Detrended",
-    xlabel=XLABEL_ANGLE,
-    ylabel=YLABEL_INTENSITY,
+    show_roi=False,
 )
 # %%
 # To go futher...

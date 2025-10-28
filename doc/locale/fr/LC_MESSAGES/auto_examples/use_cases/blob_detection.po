@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 10:04+0100\n"
+"POT-Creation-Date: 2025-10-28 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_use_cases_blob_detection.py>` to download the full example code."
 msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_use_cases_blob_detection.py>` pour télécharger le code complet de l'exemple."
 
-msgid "Blob Detection Example"
-msgstr "Exemple de détection de blobs"
+msgid "Blob Detection"
+msgstr "Détection de taches"
 
 msgid "This example demonstrates blob detection techniques available in Sigima for analyzing circular or blob-like features in images. It shows how to generate apply preprocessing filters and detect blobs using OpenCV-based algorithms with fine-tuned parameters for optimal results."
-msgstr "Cet exemple illustre les techniques de détection de blobs disponibles dans Sigima pour analyser des structures circulaires ou en amas dans des images. Il montre comment générer des filtres de prétraitement et détecter des blobs à l'aide d'algorithmes basés sur OpenCV, avec des paramètres ajustés pour obtenir des résultats optimaux."
+msgstr "Cet exemple illustre les techniques de détection de taches disponibles dans Sigima pour analyser des structures circulaires ou en amas dans des images. Il montre comment générer des filtres de prétraitement et détecter des taches à l'aide d'algorithmes basés sur OpenCV, avec des paramètres ajustés pour obtenir des résultats optimaux."
 
 msgid "The script demonstrates image processing workflows commonly used in microscopy, particle analysis, and feature detection applications."
 msgstr "Le script présente des chaînes de traitement d'image couramment utilisées en microscopie, en analyse de particules et dans les applications de détection de caractéristiques."
@@ -37,10 +37,10 @@ msgid "We start by importing all the required modules for image processing and v
 msgstr "On commence par importer tous les modules nécessaires au traitement d'image et à la visualisation. Pour exécuter cet exemple, on vérifie que l'ensemble des dépendances requises est installé."
 
 msgid "Generate synthetic test image with known blobs"
-msgstr "Générer une image de test synthétique avec des blobs connus"
+msgstr "Générer une image de test synthétique avec des taches connues"
 
 msgid "We create a synthetic image with a noisy background and several circular blobs of varying sizes and intensities. This allows us to validate the blob detection algorithms effectively. To perform this task, we use a function: the detailes of this is out of the scope of this tutorial: once you have learned how to use Sigima, you will be able to use the library on your own data."
-msgstr "On crée une image synthétique avec un bruit de fond et plusieurs blobs circulaires de tailles et d'intensités variées. Cette configuration permet de valider efficacement les algorithmes de détection de blobs. Pour réaliser cette tâche, on utilise une fonction dédiée dont les détails dépassent le cadre de ce tutoriel ; une fois que vous maîtriserez Sigima, vous pourrez appliquer la bibliothèque à vos propres données."
+msgstr "On crée une image synthétique avec un bruit de fond et plusieurs taches circulaires de tailles et d'intensités variées. Cette configuration permet de valider efficacement les algorithmes de détection de taches. Pour réaliser cette tâche, on utilise une fonction dédiée dont les détails dépassent le cadre de ce tutoriel ; une fois que vous maîtriserez Sigima, vous pourrez appliquer la bibliothèque à vos propres données."
 
 msgid "Visualize the original image"
 msgstr "Visualiser l'image originale"
@@ -58,34 +58,34 @@ msgid "Image preprocessing - Binning"
 msgstr "Prétraitement d'image - binning"
 
 msgid "Looking to our image, we can see that the blobs we look for are large respect to the pixel size. A binning process can help to reduce the importance of the noise."
-msgstr "Observez l'image : les blobs recherchés sont grands par rapport à la taille des pixels. Un binning aide à réduire l'importance du bruit."
+msgstr "Observez l'image : les taches recherchées sont grandes par rapport à la taille des pixels. Un binning aide à réduire l'importance du bruit."
 
 msgid "Additional preprocessing - Moving median filter"
 msgstr "Prétraitement supplémentaire - filtre médian glissant"
 
 msgid "The result of the binning is good, but we can imagine to not be happy with that. A different approach we can take is to apply a moving median filter, to reduce the importance of the spikes. We do it with a window of 5, of curse in practice different window sizes can be tested to find the good compromise between noise reduction and resolution. Lets see how to do that."
-msgstr "Le résultat du binning est satisfaisant, mais il est possible de vouloir aller plus loin. On applique alors un filtre médian glissant pour atténuer les pics. On utilise ici une fenêtre de 5 ; en pratique, on teste différentes tailles de fenêtre pour trouver le bon compromis entre réduction du bruit et résolution. On va voir comment procéder."
+msgstr "Le résultat du binning est satisfaisant, mais il est possible de vouloir aller plus loin. On applique alors un filtre médian glissant pour atténuer les pics. On utilise ici une fenêtre de 5 ; en pratique, on teste différentes tailles de fenêtre pour trouver le bon compromis entre réduction du bruit et résolution. Voyons comment procéder."
 
 msgid "Configure blob detection parameters"
-msgstr "Configurer les paramètres de détection de blobs"
+msgstr "Configurer les paramètres de détection de taches"
 
 msgid "We are happy with the filtered image, we can now proceed to the blob detection. First of all we need to configure the parameters of the detection algorithm: this is very important to get good results. In this example, you find an overview of the parameters that can be tuned."
-msgstr "On valide l'image filtrée et on passe à la détection de blobs. On commence par configurer les paramètres de l'algorithme de détection, étape essentielle pour obtenir de bons résultats. Cet exemple offre une vue d'ensemble des paramètres ajustables."
+msgstr "On valide l'image filtrée et on passe à la détection de taches. On commence par configurer les paramètres de l'algorithme de détection, étape essentielle pour obtenir de bons résultats. Cet exemple offre une vue d'ensemble des paramètres ajustables."
 
 msgid "Create blob detection parameter object:"
-msgstr "Créer l'objet de paramètres de détection de blobs :"
+msgstr "Créer l'objet de paramètres de détection de taches :"
 
 msgid "Threshold parameters for blob detection:"
-msgstr "Paramètres de seuil pour la détection de blobs :"
+msgstr "Paramètres de seuil pour la détection de taches :"
 
 msgid "Minimum repeatability (how many times a blob center is detected):"
-msgstr "Répétabilité minimale (nombre de fois où le centre d'un blob est détecté) :"
+msgstr "Répétabilité minimale (nombre de fois où le centre d'une tache est détecté) :"
 
 msgid "Color filtering (not used for grayscale):"
 msgstr "Filtrage sur la couleur (non utilisé en niveaux de gris) :"
 
 msgid "Area filtering to select appropriate blob sizes:"
-msgstr "Filtrage sur la surface pour sélectionner les tailles de blobs adaptées :"
+msgstr "Filtrage sur la surface pour sélectionner les tailles de taches adaptées :"
 
 msgid "Circularity filtering to prefer round objects:"
 msgstr "Filtrage sur la circularité pour privilégier les objets ronds :"
@@ -97,13 +97,13 @@ msgid "We finally print configured parameters:"
 msgstr "On affiche enfin les paramètres configurés :"
 
 msgid "Perform blob detection"
-msgstr "Exécuter la détection de blobs"
+msgstr "Exécuter la détection de taches"
 
 msgid "We can now perform the blob detection on the preprocessed image using the configured parameters."
-msgstr "On peut maintenant lancer la détection de blobs sur l'image prétraitée avec les paramètres configurés."
+msgstr "On peut maintenant lancer la détection de taches sur l'image prétraitée avec les paramètres configurés."
 
 msgid "We print the detected blobs and their properties:"
-msgstr "On affiche les blobs détectés et leurs propriétés :"
+msgstr "On affiche les taches détectées et leurs propriétés :"
 
 msgid ":download:`Download Jupyter notebook: blob_detection.ipynb <blob_detection.ipynb>`"
 msgstr ":download:`Télécharger le notebook Jupyter : blob_detection.ipynb <blob_detection.ipynb>`"

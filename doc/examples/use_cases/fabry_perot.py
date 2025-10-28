@@ -1,8 +1,8 @@
 # Copyright (c) DataLab Platform Developers, BSD 3-Clause license, see LICENSE file.
 
 """
-Fabry-Perot Interference Pattern Analysis Tutorial
-===================================================
+Fabry-Perot Interference Pattern
+================================
 
 This example demonstrates image processing techniques for analyzing Fabry-Perot
 interference patterns. It shows how to load experimental images, define regions
@@ -14,10 +14,6 @@ Usage:
 
 The script demonstrates optical analysis workflows commonly used in
 interferometry, optical metrology, and precision measurements.
-
-Created on September 23, 2025
-
-@author: DataLab Platform Developers
 """
 
 # %%
@@ -39,11 +35,6 @@ from sigima.tests.data import get_test_image
 # We load two sample image of Fabry-Perot interference patterns.
 # These imags is included in the Sigima test data. We will analyze the
 # interference fringes present in these images.
-
-print("=" * 60)
-print("FABRY-PEROT INTERFERENCE ANALYSIS")
-print("=" * 60)
-
 
 # Load the first Fabry-Perot test image
 img1 = get_test_image("fabry-perot1.jpg")

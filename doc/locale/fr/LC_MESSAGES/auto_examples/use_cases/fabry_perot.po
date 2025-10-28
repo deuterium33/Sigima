@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 10:04+0100\n"
+"POT-Creation-Date: 2025-10-28 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -22,8 +22,8 @@ msgstr ""
 msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_use_cases_fabry_perot.py>` to download the full example code."
 msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_use_cases_fabry_perot.py>` pour télécharger le code complet de l'exemple."
 
-msgid "Fabry-Perot Interference Pattern Analysis Tutorial"
-msgstr "Analyser les franges d'interférence de Fabry-Perot"
+msgid "Fabry-Perot Interference Pattern"
+msgstr "Franges d'interférence de Fabry-Perot"
 
 msgid "This example demonstrates image processing techniques for analyzing Fabry-Perot interference patterns. It shows how to load experimental images, define regions of interest, detect circular contours, and extract intensity profiles for quantitative analysis of interference fringes."
 msgstr "Ce tutoriel présente des techniques de traitement d'image pour analyser les franges d'interférence de Fabry-Perot. On y montre comment charger des images expérimentales, définir des régions d'intérêt, détecter des contours circulaires et extraire des profils d'intensité pour analyser quantitativement les franges."
@@ -36,12 +36,6 @@ msgstr ""
 
 msgid "The script demonstrates optical analysis workflows commonly used in interferometry, optical metrology, and precision measurements."
 msgstr "Ce script illustre des flux d'analyse optique couramment utilisés en interférométrie, en métrologie optique et en mesures de précision."
-
-msgid "Created on September 23, 2025"
-msgstr "Créé le 23 septembre 2025"
-
-msgid "@author: DataLab Platform Developers"
-msgstr ""
 
 msgid "Importing necessary modules"
 msgstr "Importer les modules nécessaires"
