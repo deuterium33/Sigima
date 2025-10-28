@@ -1,7 +1,7 @@
-Gallery of examples
-===================
+Examples
+========
 
-This section presents a gallery of examples demonstrating the capabilities of Sigima.
+This section presents a collection of examples demonstrating the capabilities of Sigima.
 Each example is a standalone Python script that showcases specific features or use cases
 of the Sigima library, along with visualizations of the results (using an internal
 plotting module `sigima.tests.vistools` based on `PlotPyStack <https://github.com/PlotPyStack>`_).
