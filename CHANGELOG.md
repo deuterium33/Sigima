@@ -3,6 +3,12 @@
 The `sigima` library is part of the DataLab open-source platform.
 See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones.
 
+## sigima 1.0.1 ##
+
+🛠️ Bug fixes:
+
+* ...
+
 ## sigima 1.0.0 ##
 
 💥 New features and enhancements:
