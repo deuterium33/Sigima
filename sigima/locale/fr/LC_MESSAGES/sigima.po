@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-27 13:38+0100\n"
+"POT-Creation-Date: 2025-10-29 11:01+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -1399,11 +1399,14 @@ msgstr "Paramètre de forme de la fonction de fenêtrage gaussienne"
 msgid "Allan variance"
 msgstr "Variance d'Allan"
 
+msgid "Image with peaks"
+msgstr "Image avec pics"
+
 msgid "Size"
 msgstr "Taille"
 
-msgid "Number"
-msgstr "Nombre"
+msgid "Number of peaks to generate"
+msgstr "Nombre de pics à générer"
 
 msgid "Sigma of the 2D Gaussian"
 msgstr "Sigma de la gaussienne 2D"
@@ -1420,6 +1423,12 @@ msgstr "Ecart-type de la distribution gaussienne"
 msgid "Attenuation"
 msgstr "Atténuation"
 
+msgid "Ring image"
+msgstr "Image en anneau"
+
+msgid "Intensity"
+msgstr "Intensité"
+
 msgid "X<sub>center</sub>"
 msgstr "X<sub>centre</sub>"
 
@@ -1429,8 +1438,8 @@ msgstr "Y<sub>centre</sub>"
 msgid "Thickness"
 msgstr "Epaisseur"
 
-msgid "Intensity"
-msgstr "Intensité"
+msgid "Grid of Gaussian images"
+msgstr "Grille d'images gaussiennes"
 
 msgid "Number of rows"
 msgstr "Nombre de lignes"
@@ -1440,4 +1449,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

@@ -308,17 +308,19 @@ def get_laser_spot_data() -> list[np.ndarray]:
     ]
 
 
-class PeakDataParam(gds.DataSet):
+class PeakDataParam(gds.DataSet, title=_("Image with peaks")):
     """Peak data test image parameters"""
 
-    size = gds.IntItem(_("Size"), default=2000, min=1)
-    n_points = gds.IntItem(_("Number"), default=4, min=1, help=_("Number of points"))
+    size = gds.IntItem(_("Size"), unit="pixels", default=2000, min=1)
+    num_peaks = gds.IntItem(
+        "N<sub>peaks</sub>", default=4, min=1, help=_("Number of peaks to generate")
+    ).set_prop("display", col=1)
     sigma_gauss2d = gds.FloatItem(
         "σ<sub>Gauss2D</sub>", default=0.06, help=_("Sigma of the 2D Gaussian")
     )
     amp_gauss2d = gds.IntItem(
         "A<sub>Gauss2D</sub>", default=1900, help=_("Amplitude of the 2D Gaussian")
-    )
+    ).set_prop("display", col=1)
     mu_noise = gds.IntItem(
         "μ<sub>noise</sub>", default=845, help=_("Mean of the Gaussian distribution")
     )
@@ -326,9 +328,9 @@ class PeakDataParam(gds.DataSet):
         "σ<sub>noise</sub>",
         default=25,
         help=_("Standard deviation of the Gaussian distribution"),
-    )
+    ).set_prop("display", col=1)
     dx0 = gds.FloatItem("dx0", default=0.0)
-    dy0 = gds.FloatItem("dy0", default=0.0)
+    dy0 = gds.FloatItem("dy0", default=0.0).set_prop("display", col=1)
     att = gds.FloatItem(_("Attenuation"), default=1.0)
 
 
@@ -350,7 +352,7 @@ def get_peak2d_data(
         p = PeakDataParam()
     delta = 0.1
     rng = np.random.default_rng(seed)
-    coords_phys = (rng.random((p.n_points, 2)) - 0.5) * 10 * (1 - delta)
+    coords_phys = (rng.random((p.num_peaks, 2)) - 0.5) * 10 * (1 - delta)
     data = rng.normal(p.mu_noise, p.sigma_noise, size=(p.size, p.size))
     multi_nb = 2 if multi else 1
     for x0, y0 in coords_phys:
@@ -629,15 +631,21 @@ def create_2dstep_image(p: NewImageParam | None = None) -> ImageObj:
     return obj
 
 
-class RingParam(gds.DataSet):
+class RingParam(gds.DataSet, title=_("Ring image")):
     """Parameters for creating a ring image"""
 
-    image_size = gds.IntItem(_("Size"), default=1000)
-    xc = gds.IntItem(_("X<sub>center</sub>"), default=500)
-    yc = gds.IntItem(_("Y<sub>center</sub>"), default=500)
-    thickness = gds.IntItem(_("Thickness"), default=10)
-    radius = gds.IntItem(_("Radius"), default=250)
-    intensity = gds.IntItem(_("Intensity"), default=1000)
+    image_size = gds.IntItem(_("Size"), unit="pixels", default=1000)
+    intensity = gds.IntItem(_("Intensity"), unit="lsb", default=1000).set_prop(
+        "display", col=1
+    )
+    xc = gds.IntItem(_("X<sub>center</sub>"), unit="pixels", default=500)
+    yc = gds.IntItem(_("Y<sub>center</sub>"), unit="pixels", default=500).set_prop(
+        "display", col=1
+    )
+    radius = gds.IntItem(_("Radius"), unit="pixels", default=250)
+    thickness = gds.IntItem(_("Thickness"), unit="pixels", default=10).set_prop(
+        "display", col=1
+    )
 
 
 def create_ring_data(
@@ -824,7 +832,7 @@ def create_n_images(n: int = 100) -> list[ImageObj]:
     return images
 
 
-class GridOfGaussianImages(gds.DataSet):
+class GridOfGaussianImages(gds.DataSet, title=_("Grid of Gaussian images")):
     """Grid of Gaussian images"""
 
     nrows = gds.IntItem(_("Number of rows"), default=3, min=1)
