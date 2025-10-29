@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-26 11:58+0100\n"
+"POT-Creation-Date: 2025-10-29 11:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -190,6 +190,12 @@ msgstr ""
 msgid "Python documentation generator"
 msgstr "Générateur de documentation Python"
 
+msgid "sphinx-gallery"
+msgstr ""
+
+msgid "A Sphinx extension that builds an HTML gallery of examples from any set of Python scripts."
+msgstr "Une extension Sphinx qui crée une galerie HTML d'exemples à partir de n'importe quel ensemble de scripts Python."
+
 msgid "sphinx_intl"
 msgstr ""
 
@@ -220,11 +226,14 @@ msgstr ""
 msgid "Bootstrap-based Sphinx theme from the PyData community"
 msgstr "Thème Sphinx basé sur Bootstrap de la communauté PyData"
 
-msgid "sphinx-gallery"
+msgid "opencv-python-headless"
 msgstr ""
 
-msgid "A Sphinx extension that builds an HTML gallery of examples from any set of Python scripts."
-msgstr "Une extension Sphinx qui crée une galerie HTML d'exemples à partir de n'importe quel ensemble de scripts Python."
+msgid ">= 4.8.1.78"
+msgstr ""
+
+msgid "Wrapper package for OpenCV python bindings."
+msgstr "Bibliothèque d'interfaces Python pour OpenCV."
 
 msgid "Optional modules for running test suite:"
 msgstr "Modules facultatifs pour exécuter la suite de tests :"
