@@ -405,9 +405,7 @@ class RadialProfileParam(gds.DataSet):
     def choice_callback(self, item, value):  # pylint: disable=unused-argument
         """Callback for choice item"""
         if self.__obj is None:
-            raise RuntimeError(
-                "Image object not set in RadialProfileParam: call update_from_obj()"
-            )
+            return
         if value == "centroid":
             self.y0, self.x0 = sigima.tools.image.get_centroid_fourier(
                 self.__obj.get_masked_view()
