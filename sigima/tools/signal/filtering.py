@@ -108,12 +108,18 @@ def choose_savgol_window_auto(
     Returns:
         Odd integer window length.
     """
+    # Constrain max_len to be strictly less than the length of y
+    # (required for mode='interp' in scipy.signal.savgol_filter)
+    max_len = min(max_len, len(y) - 1)
+
     diffs = np.diff(y)
     sigma0 = np.median(np.abs(diffs - np.median(diffs))) / 0.6745
 
     for win in range(min_len | 1, max_len + 1, 2):  # odd lengths
         if win <= polyorder:
             continue
+        if win >= len(y):  # Additional safety check
+            break
         y_smooth = scipy.signal.savgol_filter(y, win, polyorder)
         sigma = (
             np.median(np.abs(np.diff(y_smooth) - np.median(np.diff(y_smooth)))) / 0.6745
@@ -121,7 +127,12 @@ def choose_savgol_window_auto(
         if sigma <= target_reduction * sigma0:
             return win
 
-    return max_len | 1  # fallback
+    # Fallback: return largest valid odd window
+    fallback = max_len | 1  # Make it odd
+    if fallback >= len(y):
+        # Need an odd number < len(y)
+        fallback = (len(y) - 1) if (len(y) - 1) % 2 == 1 else (len(y) - 2)
+    return fallback
 
 
 def denoise_preserve_shape(
