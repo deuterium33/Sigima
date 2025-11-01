@@ -7,7 +7,9 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 🛠️ Bug fixes:
 
-* ...
+* Fixed `ValueError` in `choose_savgol_window_auto()` when processing small data arrays (e.g., ROI segments). The function now properly constrains the Savitzky-Golay window length to be strictly less than the array size, as required by scipy's `mode='interp'` option. This fixes the issue when extracting pulse features from small ROI segments in signals.
+
+* Modified `RadialProfileParam` to allow initialization of the dataset even when the associated image object is not yet set (call to `update_from_obj`). This is useful when creating the parameter object before assigning the image, enabling more flexible workflows.
 
 ## sigima 1.0.0 ##
 

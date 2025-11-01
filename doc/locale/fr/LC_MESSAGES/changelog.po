@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-19 11:55+0200\n"
+"POT-Creation-Date: 2025-11-01 13:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -24,6 +24,18 @@ msgstr "Notes de version"
 
 msgid "The `sigima` library is part of the DataLab open-source platform. See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones."
 msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataLab. Consultez la [page de feuille de route](https://datalab-platform.com/en/contributing/roadmap.html) de DataLab pour les jalons futurs et passés."
+
+msgid "sigima 1.0.1"
+msgstr "sigima 1.0.1"
+
+msgid "🛠️ Bug fixes:"
+msgstr "🛠️ Corrections de bogues:"
+
+msgid "Fixed `ValueError` in `choose_savgol_window_auto()` when processing small data arrays (e.g., ROI segments). The function now properly constrains the Savitzky-Golay window length to be strictly less than the array size, as required by scipy's `mode='interp'` option. This fixes the issue when extracting pulse features from small ROI segments in signals."
+msgstr "Correction de `ValueError` dans `choose_savgol_window_auto()` lors du traitement de petits tableaux de données (par exemple, des segments ROI). La fonction contraint désormais correctement la longueur de la fenêtre Savitzky-Golay à être strictement inférieure à la taille du tableau, comme l'exige l'option `mode='interp'` de scipy. Cela corrige le problème lors de l'extraction des caractéristiques des impulsions à partir de petits segments ROI dans les signaux."
+
+msgid "Modified `RadialProfileParam` to allow initialization of the dataset even when the associated image object is not yet set (call to `update_from_obj`). This is useful when creating the parameter object before assigning the image, enabling more flexible workflows."
+msgstr "Modification de `RadialProfileParam` pour permettre l'initialisation de l'ensemble de données même lorsque l'objet image associé n'est pas encore défini (appel à `update_from_obj`). Cela est utile lors de la création de l'objet paramètre avant d'assigner l'image, permettant des flux de travail plus flexibles."
 
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"
@@ -712,9 +724,6 @@ msgstr "Suppression de fonctionnalités obsolètes ou étroitement couplées tel
 
 msgid "This refactoring greatly improves modularity, testability, and the clarity of the scalar computation API."
 msgstr "Cette refonte améliore considérablement la modularité, la testabilité et la clarté de l'API de calcul scalaire."
-
-msgid "🛠️ Bug fixes:"
-msgstr "🛠️ Corrections de bogues:"
 
 msgid "Fix how data is managed in signal objects (`SignalObj`):"
 msgstr "Correction de la gestion des données dans les objets de signal (`SignalObj`):"
