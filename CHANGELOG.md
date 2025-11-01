@@ -7,6 +7,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 🛠️ Bug fixes:
 
+* Fixed pulse features extraction with ROI signals. When extracting pulse features from signals with ROIs, the start/end range parameters (which apply to the full signal) were being used on ROI-extracted data, causing incorrect results. Now `extract_pulse_features()` detects when the parameter ranges are outside the ROI's x-range and automatically switches to auto-detection mode. Additionally, `extract_pulse_features()` in `sigima.tools.signal.pulse` now properly initializes `None` ranges using `get_start_range()` and `get_end_range()` with the `fraction` parameter. This ensures pulse features extracted from a signal with ROIs match the features extracted from individually extracted ROI signals.
+
 * Fixed ROI extraction for signals: ROIs are no longer incorrectly copied to destination signals when extracting ROIs. When using `extract_roi()` or `extract_rois()`, the extracted signals now have no ROI defined, which is the expected behavior since the extracted data already represents the ROI itself. This fixes the issue where extracted signals would inherit the source signal's ROI definitions.
 
 * Fixed pulse features computation to be ROI-exclusive when ROIs are defined. Previously, `TableKind.PULSE_FEATURES` incorrectly computed results for both the whole object and each ROI. This made no sense for pulse analysis, where defining ROIs indicates the presence of multiple pulses, making whole-object features irrelevant. Now `PULSE_FEATURES` correctly computes only on ROIs when they exist, otherwise on the whole object. `TableKind.STATISTICS` and `TableKind.CUSTOM` maintain the expected behavior (whole object + ROIs).

@@ -143,12 +143,31 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
         Returns:
             Pulse features dataclass
         """
+        x, y = xydata
+
+        # When processing ROI data, the start/end ranges from parameters might be
+        # outside the ROI's x-range. In that case, use None to auto-detect ranges.
+        start_range = [p.xstartmin, p.xstartmax]
+        end_range = [p.xendmin, p.xendmax]
+
+        # Check if ranges are within the data's x-range
+        x_min, x_max = x.min(), x.max()
+        if (
+            start_range[0] < x_min
+            or start_range[1] > x_max
+            or end_range[0] < x_min
+            or end_range[1] > x_max
+        ):
+            # Ranges are outside ROI bounds - use auto-detection
+            start_range = None
+            end_range = None
+
         return pulse.extract_pulse_features(
-            xydata[0],
-            xydata[1],
+            x,
+            y,
             signal_shape=p.signal_shape,
-            start_range=[p.xstartmin, p.xstartmax],
-            end_range=[p.xendmin, p.xendmax],
+            start_range=start_range,
+            end_range=end_range,
             start_ratio=start_ratio / 100.0,
             stop_ratio=stop_ratio / 100.0,
         )

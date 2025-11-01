@@ -1516,6 +1516,12 @@ def extract_pulse_features(
     if start_ratio >= stop_ratio:
         raise ValueError("start_ratio must be less than stop_ratio")
 
+    # Initialize ranges if None (auto-detection)
+    if start_range is None:
+        start_range = get_start_range(x, fraction)
+    if end_range is None:
+        end_range = get_end_range(x, fraction)
+
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
     if not isinstance(signal_shape, (SignalShape, str)):
