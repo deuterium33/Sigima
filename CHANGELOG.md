@@ -7,6 +7,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 🛠️ Bug fixes:
 
+* Fixed pulse features computation to be ROI-exclusive when ROIs are defined. Previously, `TableKind.PULSE_FEATURES` incorrectly computed results for both the whole object and each ROI. This made no sense for pulse analysis, where defining ROIs indicates the presence of multiple pulses, making whole-object features irrelevant. Now `PULSE_FEATURES` correctly computes only on ROIs when they exist, otherwise on the whole object. `TableKind.STATISTICS` and `TableKind.CUSTOM` maintain the expected behavior (whole object + ROIs).
+
 * Fixed `ValueError` in `choose_savgol_window_auto()` when processing small data arrays (e.g., ROI segments). The function now properly constrains the Savitzky-Golay window length to be strictly less than the array size, as required by scipy's `mode='interp'` option. This fixes the issue when extracting pulse features from small ROI segments in signals.
 
 * Modified `RadialProfileParam` to allow initialization of the dataset even when the associated image object is not yet set (call to `update_from_obj`). This is useful when creating the parameter object before assigning the image, enabling more flexible workflows.

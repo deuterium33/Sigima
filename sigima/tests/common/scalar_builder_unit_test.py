@@ -6,7 +6,7 @@ Unit tests for TableResultBuilder (sigima.objects.scalar).
 
 from numpy import ma
 
-from sigima.objects.scalar import TableResultBuilder
+from sigima.objects.scalar import NO_ROI, TableKind, TableResultBuilder
 from sigima.objects.signal import SignalObj
 from sigima.tests.data import create_paracetamol_signal, create_test_signal_rois
 
@@ -140,3 +140,103 @@ class TestTableResultBuilderHideColumns:
         table = builder.compute(self.sig)
 
         self._assert_display_preferences(table, {"min": False, "max": False})
+
+
+class TestTableResultBuilderROIComputationModes:
+    """Test class for TableResultBuilder ROI computation modes."""
+
+    def setup_method(self) -> None:
+        """Set up test data for each test method."""
+        # pylint: disable=attribute-defined-outside-init
+        # Create signal with multiple ROIs (3 segments)
+        self.sig = create_paracetamol_signal()
+        # Create a ROI with 3 segments manually
+        from sigima.objects import create_signal_roi
+
+        roi = create_signal_roi([[10, 20], [30, 40], [50, 60]], indices=False)
+        self.sig.roi = roi
+
+    def test_statistics_computes_whole_and_rois(self) -> None:
+        """Test STATISTICS kind computes both whole object and ROIs."""
+        builder = TableResultBuilder("Signal Statistics", kind=TableKind.STATISTICS)
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(self.sig)
+
+        # Should have results for whole object (NO_ROI) + 3 ROIs = 4 rows
+        assert len(table.data) == 4
+        assert table.roi_indices[0] == NO_ROI  # First row is whole object
+        assert table.roi_indices[1] == 0  # Then ROI 0
+        assert table.roi_indices[2] == 1  # Then ROI 1
+        assert table.roi_indices[3] == 2  # Then ROI 2
+
+    def test_pulse_features_computes_only_rois(self) -> None:
+        """Test PULSE_FEATURES kind computes ONLY ROIs when they exist."""
+        builder = TableResultBuilder("Pulse Features", kind=TableKind.PULSE_FEATURES)
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(self.sig)
+
+        # Should have results ONLY for ROIs (no whole object), so 3 rows
+        assert len(table.data) == 3
+        assert table.roi_indices[0] == 0  # First row is ROI 0
+        assert table.roi_indices[1] == 1  # Then ROI 1
+        assert table.roi_indices[2] == 2  # Then ROI 2
+        # Verify NO_ROI is not present
+        assert NO_ROI not in table.roi_indices
+
+    def test_pulse_features_computes_whole_when_no_rois(self) -> None:
+        """Test PULSE_FEATURES kind computes whole object when no ROIs exist."""
+        # Remove ROI from signal
+        sig_no_roi = create_paracetamol_signal()
+
+        builder = TableResultBuilder("Pulse Features", kind=TableKind.PULSE_FEATURES)
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(sig_no_roi)
+
+        # Should have result for whole object only (1 row)
+        assert len(table.data) == 1
+        assert table.roi_indices[0] == NO_ROI
+
+    def test_custom_kind_default_behavior(self) -> None:
+        """Test CUSTOM kind uses default behavior (whole + ROIs like STATISTICS)."""
+        builder = TableResultBuilder("Custom Results", kind=TableKind.CUSTOM)
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(self.sig)
+
+        # Should have results for whole object + ROIs = 4 rows (same as STATISTICS)
+        assert len(table.data) == 4
+        assert table.roi_indices[0] == NO_ROI
+        assert table.roi_indices[1] == 0
+        assert table.roi_indices[2] == 1
+        assert table.roi_indices[3] == 2
+
+    def test_string_kind_pulse_features(self) -> None:
+        """Test using string 'pulse_features' as kind value."""
+        builder = TableResultBuilder("Pulse Features", kind="pulse_features")
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(self.sig)
+
+        # Should behave like PULSE_FEATURES enum: only ROIs, no whole object
+        assert len(table.data) == 3
+        assert NO_ROI not in table.roi_indices
+
+    def test_string_kind_statistics(self) -> None:
+        """Test using string 'statistics' as kind value."""
+        builder = TableResultBuilder("Signal Statistics", kind="statistics")
+        builder.add(ma.min, "min")
+        builder.add(ma.max, "max")
+
+        table = builder.compute(self.sig)
+
+        # Should behave like STATISTICS enum: whole + ROIs
+        assert len(table.data) == 4
+        assert table.roi_indices[0] == NO_ROI

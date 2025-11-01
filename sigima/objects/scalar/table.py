@@ -595,6 +595,15 @@ class TableResultBuilder:
     def compute(self, obj: SignalObj | ImageObj) -> TableResult:
         """Extract data from the image or signal object and compute the table.
 
+        The ROI computation behavior depends on the TableKind:
+
+        - STATISTICS: Computes results for both the whole object (NO_ROI) and each
+          defined ROI.
+        - PULSE_FEATURES: Computes results ONLY for ROIs if any are defined; otherwise
+          computes for the whole object. This is because pulse features are meaningful
+          only within specific ROI regions when multiple pulses are present.
+        - CUSTOM: Default behavior is same as STATISTICS (whole object + ROIs).
+
         Args:
             obj: The image or signal object to extract data from.
 
@@ -603,8 +612,26 @@ class TableResultBuilder:
         """
         names = [name for name, _ in self.column_funcs]
         roi_indices = list(obj.iterate_roi_indices())
-        if roi_indices[0] is not None:
-            roi_indices.insert(0, None)
+
+        # Determine whether to include whole object computation based on TableKind
+        # Convert kind to TableKind enum if it's a string
+        if isinstance(self.kind, str):
+            try:
+                kind_enum = TableKind(self.kind)
+            except ValueError:
+                # If string doesn't match any TableKind, default to CUSTOM behavior
+                kind_enum = TableKind.CUSTOM
+        else:
+            kind_enum = self.kind
+
+        # Add whole object (None ROI) if:
+        # 1. No ROIs exist, OR
+        # 2. ROIs exist AND kind is not PULSE_FEATURES (which computes only on ROIs)
+        has_rois = roi_indices and roi_indices[0] is not None
+        if not has_rois or kind_enum != TableKind.PULSE_FEATURES:
+            if has_rois:
+                roi_indices.insert(0, None)
+
         rows = []
         roi_idx = []
         for i_roi in roi_indices:

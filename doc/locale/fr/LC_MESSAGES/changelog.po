@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 13:56+0100\n"
+"POT-Creation-Date: 2025-11-01 17:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,9 @@ msgstr "sigima 1.0.1"
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Corrections de bogues:"
+
+msgid "Fixed pulse features computation to be ROI-exclusive when ROIs are defined. Previously, `TableKind.PULSE_FEATURES` incorrectly computed results for both the whole object and each ROI. This made no sense for pulse analysis, where defining ROIs indicates the presence of multiple pulses, making whole-object features irrelevant. Now `PULSE_FEATURES` correctly computes only on ROIs when they exist, otherwise on the whole object. `TableKind.STATISTICS` and `TableKind.CUSTOM` maintain the expected behavior (whole object + ROIs)."
+msgstr "Correction de l'extraction des caractéristiques des impulsions pour qu'elle soit exclusive aux ROI lorsque des ROI sont définies. Auparavant, `TableKind.PULSE_FEATURES` calculait incorrectement les résultats à la fois pour l'objet entier et pour chaque ROI. Cela n'avait pas de sens pour l'analyse des impulsions, où la définition des ROI indique la présence de plusieurs impulsions, rendant les caractéristiques de l'objet entier non pertinentes. Désormais, `PULSE_FEATURES` calcule correctement uniquement sur les ROI lorsqu'elles existent, sinon sur l'objet entier. `TableKind.STATISTICS` et `TableKind.CUSTOM` conservent le comportement attendu (objet entier + ROI)."
 
 msgid "Fixed `ValueError` in `choose_savgol_window_auto()` when processing small data arrays (e.g., ROI segments). The function now properly constrains the Savitzky-Golay window length to be strictly less than the array size, as required by scipy's `mode='interp'` option. This fixes the issue when extracting pulse features from small ROI segments in signals."
 msgstr "Correction de `ValueError` dans `choose_savgol_window_auto()` lors du traitement de petits tableaux de données (par exemple, des segments ROI). La fonction contraint désormais correctement la longueur de la fenêtre Savitzky-Golay à être strictement inférieure à la taille du tableau, comme l'exige l'option `mode='interp'` de scipy. Cela corrige le problème lors de l'extraction des caractéristiques des impulsions à partir de petits segments ROI dans les signaux."
