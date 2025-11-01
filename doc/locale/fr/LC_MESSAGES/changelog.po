@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 17:09+0100\n"
+"POT-Creation-Date: 2025-11-01 17:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,9 @@ msgstr "sigima 1.0.1"
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Corrections de bogues:"
+
+msgid "Fixed ROI extraction for signals: ROIs are no longer incorrectly copied to destination signals when extracting ROIs. When using `extract_roi()` or `extract_rois()`, the extracted signals now have no ROI defined, which is the expected behavior since the extracted data already represents the ROI itself. This fixes the issue where extracted signals would inherit the source signal's ROI definitions."
+msgstr "Correction de l'extraction des ROI pour les signaux : les ROI ne sont plus copiées vers les signaux de destination lors de l'extraction des ROI. Lors de l'utilisation de `extract_roi()` ou `extract_rois()`, les signaux extraits n'ont désormais aucune ROI définie, ce qui est le comportement attendu puisque les données extraites représentent déjà la ROI elle-même. Cela corrige le problème où les signaux extraits hériterait des définitions de ROI du signal source."
 
 msgid "Fixed pulse features computation to be ROI-exclusive when ROIs are defined. Previously, `TableKind.PULSE_FEATURES` incorrectly computed results for both the whole object and each ROI. This made no sense for pulse analysis, where defining ROIs indicates the presence of multiple pulses, making whole-object features irrelevant. Now `PULSE_FEATURES` correctly computes only on ROIs when they exist, otherwise on the whole object. `TableKind.STATISTICS` and `TableKind.CUSTOM` maintain the expected behavior (whole object + ROIs)."
 msgstr "Correction de l'extraction des caractéristiques des impulsions pour qu'elle soit exclusive aux ROI lorsque des ROI sont définies. Auparavant, `TableKind.PULSE_FEATURES` calculait incorrectement les résultats à la fois pour l'objet entier et pour chaque ROI. Cela n'avait pas de sens pour l'analyse des impulsions, où la définition des ROI indique la présence de plusieurs impulsions, rendant les caractéristiques de l'objet entier non pertinentes. Désormais, `PULSE_FEATURES` calcule correctement uniquement sur les ROI lorsqu'elles existent, sinon sur l'objet entier. `TableKind.STATISTICS` et `TableKind.CUSTOM` conservent le comportement attendu (objet entier + ROI)."

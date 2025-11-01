@@ -166,6 +166,11 @@ def test_signal_extract_rois() -> None:
     assert np.all(sig1.data[size_roi1:] == src.data[SROI2[0] : SROI2[1]]), (
         f"Signal 2 data mismatch{context}"
     )
+    # Verify that extracted signal doesn't have ROI (bug fix verification)
+    assert sig1.roi is None, (
+        "Extracted signal should not have ROI (bug fix: ROI should not be "
+        "copied to extracted signal)"
+    )
 
 
 @pytest.mark.validation
@@ -192,6 +197,15 @@ def test_signal_extract_roi() -> None:
     )
     assert np.all(signals[1].data == src.data[SROI2[0] : SROI2[1]]), (
         f"Signal 2 data mismatch{context}"
+    )
+    # Verify that extracted signals don't have ROIs (bug fix verification)
+    assert signals[0].roi is None, (
+        "Extracted signal 1 should not have ROI (bug fix: ROIs should not be "
+        "copied to extracted signals)"
+    )
+    assert signals[1].roi is None, (
+        "Extracted signal 2 should not have ROI (bug fix: ROIs should not be "
+        "copied to extracted signals)"
     )
 
 

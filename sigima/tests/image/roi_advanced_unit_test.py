@@ -204,6 +204,8 @@ def test_image_extract_rois() -> None:
 
     assert np.all(im1.data[mask] != 0), nzroi
     assert np.all(im1.data[~mask] == 0), zroi
+    # Bug fix verification: extracted image should not have ROI defined
+    assert im1.roi is None, f"Extracted image should not have ROI defined{context}"
 
 
 @pytest.mark.validation
@@ -231,6 +233,15 @@ def test_image_extract_roi() -> None:
     rr, cc = draw.disk((yc, xc), r, shape=im2.data.shape)
     mask2[rr, cc] = 1
     assert np.all(im2.maskdata == ~mask2), f"Mask data mismatch{context}"
+    # Bug fix verification: extracted images should handle ROI correctly
+    # - For rectangular ROI: no ROI should be defined
+    # - For circular/polygonal ROI: a new ROI should be created (not copied from source)
+    assert images[0].roi is None, f"Rectangular extraction should not have ROI{context}"
+    # For circular and polygonal, roi should exist but be different from source
+    for idx in [1, 2]:
+        if images[idx].roi is not None:
+            err_msg = f"Extracted image {idx} ROI should not be same as source{context}"
+            assert images[idx].roi is not src.roi, err_msg
 
 
 def test_roi_coordinates_validation() -> None:

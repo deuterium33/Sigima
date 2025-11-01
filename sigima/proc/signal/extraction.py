@@ -39,6 +39,8 @@ def extract_rois(src: SignalObj, params: list[ROI1DParam]) -> SignalObj:
     nans = np.isnan(xout) | np.isnan(yout)
     # TODO: Handle uncertainty data
     dst.set_xydata(xout[~nans], yout[~nans])
+    # Remove ROI from destination signal: the extracted data no longer needs ROI
+    dst.roi = None
     return dst
 
 
@@ -57,4 +59,6 @@ def extract_roi(src: SignalObj, p: ROI1DParam) -> SignalObj:
     x, y = p.get_data(src).copy()
     # TODO: Handle uncertainty data
     dst.set_xydata(x, y)
+    # Remove ROI from destination signal: the extracted data no longer needs ROI
+    dst.roi = None
     return dst
