@@ -168,7 +168,7 @@ class ResultHtmlGenerator:
             # Get labels for the transposed view
             display_labels = list(df.columns)
             df_t.index = display_labels
-            text = f'<u><b style="color: blue">{result.title}</b></u>:'
+            text = f'<u><b style="color: #5294e2">{result.title}</b></u>:'
             html_kwargs = {"border": 0}
             html_kwargs.update(kwargs)
             # Format numeric columns only, avoiding float_format on mixed data types
@@ -178,7 +178,7 @@ class ResultHtmlGenerator:
         else:
             # Standard horizontal layout
             df.index = row_headers
-            text = f'<u><b style="color: blue">{result.title}</b></u>:'
+            text = f'<u><b style="color: #5294e2">{result.title}</b></u>:'
             html_kwargs = {"border": 0}
             html_kwargs.update(kwargs)
             # Format numeric columns only, avoiding float_format on mixed data types
