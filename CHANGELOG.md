@@ -5,6 +5,20 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 1.0.1 ##
 
+💥 New features and enhancements:
+
+* **Annotations API**: New public API for managing annotations on Signal and Image objects
+  * Added `get_annotations()` method: Returns a list of annotations in versioned JSON format
+  * Added `set_annotations(annotations)` method: Sets annotations from a list (replaces existing annotations)
+  * Added `add_annotation(annotation)` method: Adds a single annotation to the object
+  * Added `clear_annotations()` method: Removes all annotations from the object
+  * Added `has_annotations()` method: Returns True if the object has any annotations
+  * Annotations are stored in object metadata with versioning support (currently version "1.0")
+  * Each annotation is a dictionary with keys such as `type`, `item_class`, and `item_json` (for example)
+  * Provides clean separation between generic annotation storage and visualization-specific details
+  * Enables applications to manage plot annotations (shapes, labels, etc.) independently of ROIs
+  * Fully compatible with DataLab's PlotPy adapter pattern for visualization
+
 🛠️ Bug fixes:
 
 * **Parameter classes**: Removed default titles from generic `OrdinateParam` and `AbscissaParam` classes

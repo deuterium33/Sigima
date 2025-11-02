@@ -55,7 +55,7 @@ class SignalObj(gds.DataSet, base.BaseObj[SignalROI]):
     annotations = gds.StringItem(_("Annotations"), default="").set_prop(
         "display",
         hide=True,
-    )  # Annotations as a serialized JSON string  # type: ignore[assignment]
+    )  # Annotations (JSON). Use get/set_annotations() API  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data and metadata"))
 
     _unitsg = gds.BeginGroup(_("Titles / Units"))

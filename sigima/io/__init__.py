@@ -78,9 +78,11 @@ Example of a new image format plugin:
 from __future__ import annotations
 
 from sigima.io.common.objmeta import (
+    read_annotations,
     read_metadata,
     read_roi,
     read_roi_grid,
+    write_annotations,
     write_metadata,
     write_roi,
     write_roi_grid,
@@ -103,6 +105,7 @@ __all__ = [
     "SIGNAL_FORMAT_INFO",
     "ImageIORegistry",
     "SignalIORegistry",
+    "read_annotations",
     "read_image",
     "read_images",
     "read_metadata",
@@ -110,6 +113,7 @@ __all__ = [
     "read_roi_grid",
     "read_signal",
     "read_signals",
+    "write_annotations",
     "write_image",
     "write_images",
     "write_metadata",

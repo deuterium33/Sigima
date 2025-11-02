@@ -179,3 +179,34 @@ def read_metadata(filepath: str) -> dict[str, Any]:
     json_dict = read_dict(filepath)
     _check_tag(json_dict, expected_format="metadata")
     return json_dict["metadata"]
+
+
+def write_annotations(filepath: str, annotations: list[dict[str, Any]]) -> None:
+    """Write annotations to a file in JSON format.
+
+    Args:
+        filepath: The file path to write the annotations to.
+        annotations: The annotations list to serialize.
+    """
+    data = {
+        FORMAT_TAG: {"format": "annotations", "version": FORMAT_VERSION},
+        "annotations": annotations.copy(),
+    }
+    write_dict(filepath, data)
+
+
+def read_annotations(filepath: str) -> list[dict[str, Any]]:
+    """Read annotations from a file and return the annotations list.
+
+    Args:
+        filepath: The file path to read the annotations from.
+
+    Returns:
+        The annotations list.
+
+    Raises:
+        ValueError: If the file does not contain the expected format.
+    """
+    json_dict = read_dict(filepath)
+    _check_tag(json_dict, expected_format="annotations")
+    return json_dict["annotations"]

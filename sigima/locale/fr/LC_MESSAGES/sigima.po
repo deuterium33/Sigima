@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-10-29 11:01+0100\n"
+"POT-Creation-Date: 2025-11-02 17:11+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -1276,12 +1276,6 @@ msgstr "Borne X inférieure (vide pour aucune limite, c'est-à-dire le début du
 msgid "Upper X boundary (empty for no limit, i.e. end of the signal)"
 msgstr "Borne X supérieure (vide pour aucune limite, c'est-à-dire la fin du signal)"
 
-msgid "Ordinate"
-msgstr "Coordonnées"
-
-msgid "Abscissa"
-msgstr "Abscisse"
-
 msgid "Signal statistics"
 msgstr "Statistiques du signal"
 
@@ -1449,3 +1443,4 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
+

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-02 10:33+0100\n"
+"POT-Creation-Date: 2025-11-02 17:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -27,6 +27,42 @@ msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataL
 
 msgid "sigima 1.0.1"
 msgstr "sigima 1.0.1"
+
+msgid "💥 New features and enhancements:"
+msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**Annotations API**: New public API for managing annotations on Signal and Image objects"
+msgstr "**API d'annotations** : Nouvelle API publique pour la gestion des annotations sur les objets Signal et Image"
+
+msgid "Added `get_annotations()` method: Returns a list of annotations in versioned JSON format"
+msgstr "Ajout de la méthode `get_annotations()` : Renvoie une liste d'annotations au format JSON versionné"
+
+msgid "Added `set_annotations(annotations)` method: Sets annotations from a list (replaces existing annotations)"
+msgstr "Ajout de la méthode `set_annotations(annotations)` : Définit les annotations à partir d'une liste (remplace les annotations existantes)"
+
+msgid "Added `add_annotation(annotation)` method: Adds a single annotation to the object"
+msgstr "Ajout de la méthode `add_annotation(annotation)` : Ajoute une seule annotation à l'objet"
+
+msgid "Added `clear_annotations()` method: Removes all annotations from the object"
+msgstr "Ajout de la méthode `clear_annotations()` : Supprime toutes les annotations de l'objet"
+
+msgid "Added `has_annotations()` method: Returns True if the object has any annotations"
+msgstr "Ajout de la méthode `has_annotations()` : Renvoie True si l'objet a des annotations"
+
+msgid "Annotations are stored in object metadata with versioning support (currently version \"1.0\")"
+msgstr "Les annotations sont stockées dans les métadonnées de l'objet avec un support de versionnage (actuellement version \"1.0\")"
+
+msgid "Each annotation is a dictionary with keys such as `type`, `item_class`, and `item_json` (for example)"
+msgstr "Chaque annotation est un dictionnaire avec des clés telles que `type`, `item_class` et `item_json` (par exemple)"
+
+msgid "Provides clean separation between generic annotation storage and visualization-specific details"
+msgstr "Fournit une séparation claire entre le stockage générique des annotations et les détails spécifiques à la visualisation"
+
+msgid "Enables applications to manage plot annotations (shapes, labels, etc.) independently of ROIs"
+msgstr "Permet aux applications de gérer les annotations de tracé (formes, étiquettes, etc.) indépendamment des ROI"
+
+msgid "Fully compatible with DataLab's PlotPy adapter pattern for visualization"
+msgstr "Entièrement compatible avec le modèle d'adaptateur PlotPy de DataLab pour la visualisation"
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Correctifs:"
@@ -78,9 +114,6 @@ msgstr "Modification de `RadialProfileParam` pour permettre l'initialisation de 
 
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"
-
-msgid "💥 New features and enhancements:"
-msgstr "💥 Nouvelles fonctionnalités et améliorations:"
 
 msgid "**Signals to image conversion**: New feature to combine multiple signals into a 2D image"
 msgstr "**Conversion de signaux en image** : Nouvelle fonctionnalité pour combiner plusieurs signaux en une image 2D"

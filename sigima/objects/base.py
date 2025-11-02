@@ -9,6 +9,7 @@ Base model classes for signals and images.
 from __future__ import annotations
 
 import abc
+import json
 import re
 import sys
 from collections.abc import Generator
@@ -559,6 +560,105 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         """
         value = self.metadata.pop(f"orig_{attrname}", default)
         setattr(self, attrname, value)
+
+    # ------Annotation management methods
+
+    def get_annotations(self) -> list[dict[str, Any]]:
+        """Get annotations as a list of dictionaries.
+
+        Returns:
+            List of annotation dictionaries. Each dict contains application-specific
+            annotation data. Returns empty list if no annotations exist.
+
+        Notes:
+            The annotation format is defined by the application layer. Sigima only
+            provides storage and basic validation (valid JSON structure).
+
+        Example:
+            >>> obj.set_annotations([
+            ...     {"type": "label", "x": 10, "y": 20, "text": "Peak"},
+            ...     {"type": "rectangle", "x0": 0, "y0": 0, "x1": 100, "y1": 100}
+            ... ])
+            >>> annotations = obj.get_annotations()
+            >>> len(annotations)
+            2
+        """
+        if not self.annotations:
+            return []
+        try:
+            data = json.loads(self.annotations)
+            if isinstance(data, dict) and "annotations" in data:
+                return data["annotations"]
+            return []
+        except (json.JSONDecodeError, TypeError):
+            # Invalid JSON - return empty list
+            return []
+
+    def set_annotations(self, annotations: list[dict[str, Any]]) -> None:
+        """Set annotations from a list of dictionaries.
+
+        Args:
+            annotations: List of annotation dictionaries
+
+        Raises:
+            TypeError: If annotations is not a list
+            ValueError: If annotation items are not JSON-serializable
+
+        Notes:
+            Each annotation dictionary should be JSON-serializable.
+            The internal storage format includes a version field for future migration.
+
+        Example:
+            >>> obj.set_annotations([{"type": "label", "text": "Test"}])
+        """
+        if not isinstance(annotations, list):
+            raise TypeError(f"Annotations must be a list, got {type(annotations)}")
+
+        # Validate JSON serializability
+        try:
+            # Store with version for future-proofing
+            data = {"version": "1.0", "annotations": annotations}
+            self.annotations = json.dumps(data, indent=2)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Annotations must be JSON-serializable: {exc}") from exc
+
+    def add_annotation(self, annotation: dict[str, Any]) -> None:
+        """Add a single annotation.
+
+        Args:
+            annotation: Annotation dictionary to add
+
+        Example:
+            >>> obj.add_annotation({"type": "circle", "x": 50, "y": 50, "r": 10})
+        """
+        current = self.get_annotations()
+        current.append(annotation)
+        self.set_annotations(current)
+
+    def clear_annotations(self) -> None:
+        """Remove all annotations.
+
+        Example:
+            >>> obj.clear_annotations()
+            >>> obj.get_annotations()
+            []
+        """
+        self.annotations = ""
+
+    def has_annotations(self) -> bool:
+        """Check if object has any annotations.
+
+        Returns:
+            True if annotations exist, False otherwise
+
+        Example:
+            >>> obj.has_annotations()
+            False
+            >>> obj.add_annotation({"type": "label"})
+            >>> obj.has_annotations()
+            True
+        """
+        return bool(self.get_annotations())
 
 
 class BaseROIParamMeta(abc.ABCMeta, gds.DataSetMeta):

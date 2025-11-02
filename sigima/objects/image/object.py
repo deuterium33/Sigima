@@ -156,7 +156,7 @@ class ImageObj(gds.DataSet, base.BaseObj[ImageROI]):
     annotations = gds.StringItem(_("Annotations"), default="").set_prop(
         "display",
         hide=True,
-    )  # Annotations as a serialized JSON string  # type: ignore[assignment]
+    )  # Annotations (JSON). Use get/set_annotations() API  # type: ignore[assignment]
     _e_datag = gds.EndGroup(_("Data"))
 
     def _compute_xmin(self) -> float:
