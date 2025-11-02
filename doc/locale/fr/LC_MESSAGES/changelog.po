@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 18:44+0100\n"
+"POT-Creation-Date: 2025-11-02 10:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,21 @@ msgstr "sigima 1.0.1"
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Correctifs:"
+
+msgid "**Result HTML representation**: Improved color contrast for dark mode"
+msgstr "Représentation HTML des résultats : amélioration du contraste des couleurs pour le mode sombre"
+
+msgid "Changed result title color in `to_html()` methods from standard blue (#0000FF) to a lighter shade (#5294e2)"
+msgstr "Changement de la couleur du titre des résultats dans les méthodes `to_html()` de bleu standard (#0000FF) à une teinte plus claire (#5294e2)"
+
+msgid "Affects TableResult and GeometryResult HTML output"
+msgstr "Affecte la sortie HTML de TableResult et GeometryResult"
+
+msgid "Provides better visibility in dark mode while maintaining good appearance in light mode"
+msgstr "Offre une meilleure visibilité en mode sombre tout en maintenant une bonne apparence en mode clair"
+
+msgid "Improves readability when results are displayed in applications with dark themes"
+msgstr "Améliore la lisibilité lorsque les résultats sont affichés dans des applications avec des thèmes sombres"
 
 msgid "Fixed pulse features extraction with ROI signals. When extracting pulse features from signals with ROIs, the start/end range parameters (which apply to the full signal) were being used on ROI-extracted data, causing incorrect results. Now `extract_pulse_features()` detects when the parameter ranges are outside the ROI's x-range and automatically switches to auto-detection mode. Additionally, `extract_pulse_features()` in `sigima.tools.signal.pulse` now properly initializes `None` ranges using `get_start_range()` and `get_end_range()` with the `fraction` parameter. This ensures pulse features extracted from a signal with ROIs match the features extracted from individually extracted ROI signals."
 msgstr "Correction de l'extraction des caractéristiques des impulsions avec des signaux ROI. Lors de l'extraction des caractéristiques des impulsions à partir de signaux avec des ROI, les paramètres de plage de début/fin (qui s'appliquent au signal complet) étaient utilisés sur les données extraites des ROI, ce qui entraînait des résultats incorrects. Désormais, `extract_pulse_features()` détecte lorsque les plages de paramètres sont en dehors de la plage x de la ROI et passe automatiquement en mode de détection automatique. De plus, `extract_pulse_features()` dans `sigima.tools.signal.pulse` initialise désormais correctement les plages `None` en utilisant `get_start_range()` et `get_end_range()` avec le paramètre `fraction`. Cela garantit que les caractéristiques des impulsions extraites d'un signal avec des ROI correspondent aux caractéristiques extraites des signaux ROI extraits individuellement."
