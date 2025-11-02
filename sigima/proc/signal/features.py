@@ -132,10 +132,13 @@ def fw1e2(obj: SignalObj) -> GeometryResult | None:
     return compute_geometry_from_obj("fw1e2", "segment", obj, pulse.fw1e2)
 
 
-class OrdinateParam(gds.DataSet, title=_("Ordinate")):
+# Note: we do not specify title of the dataset here because it's a generic parameter
+# used in multiple functions (this avoids that the same title is displayed in GUI
+# for different functions)
+class OrdinateParam(gds.DataSet):
     """Ordinate parameter."""
 
-    y = gds.FloatItem(_("Ordinate"), default=0.0)
+    y = gds.FloatItem("y", default=0.0)
 
 
 @computation_function()
@@ -185,10 +188,13 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
     return table.compute(obj)
 
 
-class AbscissaParam(gds.DataSet, title=_("Abscissa")):
+# Note: we do not specify title of the dataset here because it's a generic parameter
+# used in multiple functions (this avoids that the same title is displayed in GUI
+# for different functions)
+class AbscissaParam(gds.DataSet):
     """Abscissa parameter."""
 
-    x = gds.FloatItem(_("Abscissa"), default=0.0)
+    x = gds.FloatItem("x", default=0.0)
 
 
 @computation_function()

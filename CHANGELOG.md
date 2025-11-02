@@ -7,6 +7,12 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 🛠️ Bug fixes:
 
+* **Parameter classes**: Removed default titles from generic `OrdinateParam` and `AbscissaParam` classes
+  * These parameter classes are reused across multiple computation functions (e.g., `full_width_at_y`, `x_at_y`)
+  * Default titles like "Ordinate" created redundancy when displayed with function names in analysis results
+  * Titles are now empty by default, allowing applications to provide context-specific titles when needed
+  * Improves clarity when the same parameter class is used by different functions
+
 * **Result HTML representation**: Improved color contrast for dark mode
   * Changed result title color in `to_html()` methods from standard blue (#0000FF) to a lighter shade (#5294e2)
   * Affects TableResult and GeometryResult HTML output
