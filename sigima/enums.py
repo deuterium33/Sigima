@@ -189,7 +189,7 @@ class SignalShape(gds.LabeledEnum):
 
 
 class SignalsToImageOrientation(gds.LabeledEnum):
-    """Orientation for combining signals into an image."""
+    """Orientation for assembling signals into an image."""
 
-    ROWS = "rows", _("As rows")
-    COLUMNS = "columns", _("As columns")
+    ROWS = "rows", _("Each signal becomes a row")
+    COLUMNS = "columns", _("Each signal becomes a column")

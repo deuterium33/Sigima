@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-11-02 17:11+0100\n"
+"POT-Creation-Date: 2025-11-03 11:51+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -115,13 +115,12 @@ msgstr "Filtre idéal"
 msgid "Elliptic"
 msgstr "Elliptique"
 
-#, fuzzy
-msgid "As rows"
-msgstr "Lignes"
+msgid "Each signal becomes a row"
+msgstr ""
 
 #, fuzzy
-msgid "As columns"
-msgstr "Colonnes"
+msgid "Each signal becomes a column"
+msgstr "Normaliser chaque signal avant de combiner"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -609,11 +608,14 @@ msgstr "Phase"
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"
 
+msgid "Signals to image"
+msgstr "Signaux vers image"
+
 msgid "Orientation"
 msgstr "Orientation"
 
-msgid "How to arrange signals: as rows or as columns"
-msgstr "Comment organiser les signaux : en lignes ou en colonnes"
+msgid "Stack signals as rows or columns in the output image"
+msgstr "Empiler les signaux en tant que lignes ou colonnes dans une nouvelle image"
 
 msgid "Normalize each signal before combining"
 msgstr "Normaliser chaque signal avant de combiner"
@@ -622,7 +624,7 @@ msgid "Normalization method"
 msgstr "Méthode de normalisation"
 
 msgid "Method used for normalization"
-msgstr ""
+msgstr "Méthode utilisée pour la normalisation"
 
 msgid "columns"
 msgstr "colonnes"
@@ -1258,6 +1260,9 @@ msgstr "Distance minimale"
 msgid "FWHM"
 msgstr "FWHM"
 
+msgid "<u>Methods and trade-offs:</u><br><br>•&nbsp;Zero-crossing: Fast, sensitive to noise<br>•&nbsp;Gaussian fit: Good for symmetric peaks, assumes Gaussian shape<br>•&nbsp;Lorentzian fit: Suitable for peaks with long tails, dominated by collisional or lifetime broadening<br>•&nbsp;Voigt fit: Most accurate for spectroscopic data, or laser lines broadened by both Doppler and collisional effects<br>"
+msgstr "<u>Méthodes et compromis :</u><br><br>•&nbsp;Passage par zéro : Rapide, sensible au bruit<br>•&nbsp;Ajustement gaussien : Bon pour les pics symétriques, suppose une forme gaussienne<br>•&nbsp;Ajustement lorentzien : Adapté aux pics avec de longues queues, dominés par un élargissement collisionnel ou de durée de vie<br>•&nbsp;Ajustement Voigt : Le plus précis pour les données spectroscopiques, ou les raies laser élargies à la fois par des effets Doppler et collisionnels<br>"
+
 msgid "Zero-crossing"
 msgstr "Passage par zéro"
 
@@ -1443,4 +1448,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

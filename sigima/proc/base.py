@@ -213,14 +213,14 @@ class PhaseParam(gds.DataSet, title=_("Phase")):
     )
 
 
-class SignalsToImageParam(gds.DataSet):
-    """Parameters for combining signals into an image."""
+class SignalsToImageParam(gds.DataSet, title=_("Signals to image")):
+    """Parameters for assembling signals into an image."""
 
     orientation = gds.ChoiceItem(
         _("Orientation"),
         SignalsToImageOrientation,
         default=SignalsToImageOrientation.ROWS,
-        help=_("How to arrange signals: as rows or as columns"),
+        help=_("Stack signals as rows or columns in the output image"),
     )
     _prop = gds.GetAttrProp("normalize")
     normalize = gds.BoolItem(
