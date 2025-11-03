@@ -1006,4 +1006,10 @@ def generate_table_results() -> Generator[TableResult, None, None]:
             (["P1", "P2", "P3", "P4"], [["apple", 1.232325, -9, 0]]),
         )
     ):
-        yield TableResult(f"TestProperties{index}", "test", names, data=data)
+        yield TableResult(
+            f"TestProperties{index}",
+            "test",
+            names,
+            data=data,
+            func_name="func_producing_table",
+        )

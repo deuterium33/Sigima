@@ -143,6 +143,7 @@ class GeometryTransformer:
                 else None
             ),
             attrs=geometry.attrs.copy(),
+            func_name=geometry.func_name,
         )
 
     def transform_single_roi(
