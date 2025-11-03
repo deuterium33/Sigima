@@ -187,6 +187,7 @@ class TestTableResultSerialization:
             "names": ["col1", "col2"],
             "data": [[1.0, 2.0], [3.0, 4.0]],
             "roi_indices": [0, 1],
+            "func_name": None,
             "attrs": {"method": "test"},
         }
         assert table.to_dict() == expected
@@ -531,6 +532,7 @@ class TestGeometryResultSerialization:
             "kind": "point",
             "coords": [[1.0, 2.0], [3.0, 4.0]],
             "roi_indices": [0, 1],
+            "func_name": None,
             "attrs": {"method": "test"},
         }
         assert geom.to_dict() == expected
@@ -901,16 +903,16 @@ class TestUtilityFunctions:
         assert result_roi_0.roi_indices == [0]
 
     def test_concat_geometries_empty(self) -> None:
-        """Test concat_geometries with empty list."""
-        result = concat_geometries("Empty", [])
-        assert result.title == "Empty"
-        assert result.kind == KindShape.POINT
-        assert result.coords.shape == (0, 2)
+        """Test concat_geometries with empty list raises ValueError."""
+        with pytest.raises(
+            ValueError, match="Cannot concatenate empty sequence of GeometryResult"
+        ):
+            concat_geometries("Empty", [])
 
     def test_concat_geometries_single(self) -> None:
         """Test concat_geometries with single geometry."""
         coords = np.array([[1.0, 2.0]])
-        geom = GeometryResult("Single", KindShape.POINT, coords)
+        geom = GeometryResult("Single", KindShape.POINT, coords, func_name="test_func")
         result = concat_geometries("Concat", [geom])
         assert result.title == "Concat"
         assert result.kind == KindShape.POINT
@@ -920,8 +922,12 @@ class TestUtilityFunctions:
         """Test concat_geometries with multiple geometries."""
         coords1 = np.array([[1.0, 2.0]])
         coords2 = np.array([[3.0, 4.0], [5.0, 6.0]])
-        geom1 = GeometryResult("Geom1", KindShape.POINT, coords1, np.array([0]))
-        geom2 = GeometryResult("Geom2", KindShape.POINT, coords2, np.array([1, 2]))
+        geom1 = GeometryResult(
+            "Geom1", KindShape.POINT, coords1, np.array([0]), func_name="test_func"
+        )
+        geom2 = GeometryResult(
+            "Geom2", KindShape.POINT, coords2, np.array([1, 2]), func_name="test_func"
+        )
         result = concat_geometries("Combined", [geom1, geom2])
 
         assert result.title == "Combined"
@@ -935,8 +941,12 @@ class TestUtilityFunctions:
         # Two polygons with different number of vertices
         coords1 = np.array([[1.0, 2.0, 3.0, 4.0]])  # 2 vertices
         coords2 = np.array([[5.0, 6.0, 7.0, 8.0, 9.0, 10.0]])  # 3 vertices
-        geom1 = GeometryResult("Poly1", KindShape.POLYGON, coords1)
-        geom2 = GeometryResult("Poly2", KindShape.POLYGON, coords2)
+        geom1 = GeometryResult(
+            "Poly1", KindShape.POLYGON, coords1, func_name="test_func"
+        )
+        geom2 = GeometryResult(
+            "Poly2", KindShape.POLYGON, coords2, func_name="test_func"
+        )
 
         result = concat_geometries("Mixed", [geom1, geom2])
         expected_coords = np.array(

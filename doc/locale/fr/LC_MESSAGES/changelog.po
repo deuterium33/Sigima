@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 15:48+0100\n"
+"POT-Creation-Date: 2025-11-03 18:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,27 @@ msgstr "sigima 1.0.1"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**Automatic `func_name` injection for result objects**"
+msgstr "**Injection automatique de `func_name` pour les objets de résultat**"
+
+msgid "The `@computation_function` decorator now automatically injects the function name into `TableResult` and `GeometryResult` objects"
+msgstr "Le décorateur `@computation_function` injecte désormais automatiquement le nom de la fonction dans les objets `TableResult` et `GeometryResult`"
+
+msgid "When a computation function returns a result object with `func_name=None`, the decorator sets it to the function's name using `dataclasses.replace()`"
+msgstr "Lorsqu'une fonction de calcul renvoie un objet de résultat avec `func_name=None`, le décorateur le définit au nom de la fonction en utilisant `dataclasses.replace()`"
+
+msgid "Ensures systematic assignment of `func_name` for proper result tracking and display"
+msgstr "Garantit l'attribution systématique de `func_name` pour un suivi et un affichage appropriés des résultats"
+
+msgid "Implementation uses direct `isinstance()` type checking for `TableResult` and `GeometryResult`"
+msgstr "L'implémentation utilise la vérification directe de type `isinstance()` pour `TableResult` et `GeometryResult`"
+
+msgid "Applies to both main decorator wrapper (with DataSet parameters) and simple passthrough wrapper"
+msgstr "S'applique à la fois au wrapper principal du décorateur (avec les paramètres DataSet) et au wrapper de passage simple"
+
+msgid "Eliminates need for manual `func_name` assignment in computation functions"
+msgstr "Élimine le besoin d'attribution manuelle de `func_name` dans les fonctions de calcul"
 
 msgid "**Image ROI creation utility**: New `create_image_roi_around_points()` function in `sigima.objects.image.roi`"
 msgstr "**Utilitaire de création de ROI d'image** : Nouvelle fonction `create_image_roi_around_points()` dans `sigima.objects.image.roi`"

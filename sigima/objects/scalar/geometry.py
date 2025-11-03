@@ -91,6 +91,7 @@ class GeometryResult:
          and may be NaN-padded (e.g., for polygons).
         roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
          Use NO_ROI (-1) for the "full signal/image / no ROI" row.
+        func_name: Optional name of the computation function that produced this result.
         attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
     Raises:
@@ -134,6 +135,7 @@ class GeometryResult:
     kind: KindShape
     coords: np.ndarray
     roi_indices: np.ndarray | None = None
+    func_name: str | None = None
     attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -193,6 +195,7 @@ class GeometryResult:
         coords: np.ndarray,
         roi_indices: np.ndarray | None = None,
         *,
+        func_name: str | None = None,
         attrs: dict[str, object] | None = None,
     ) -> GeometryResult:
         """Create a GeometryResult from raw data.
@@ -202,17 +205,19 @@ class GeometryResult:
             kind: Shape kind (e.g. "point", "segment").
             coords: 2-D array (N, K) with coordinates per row.
             roi_indices: Optional 1-D array (N,) mapping rows to ROI indices.
+            func_name: Optional name of the computation function.
             attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
         Returns:
             A GeometryResult instance.
         """
         return cls(
-            title,
-            kind,
-            np.asarray(coords, float),
-            None if roi_indices is None else np.asarray(roi_indices, int),
-            {} if attrs is None else dict(attrs),
+            title=title,
+            kind=kind,
+            coords=np.asarray(coords, float),
+            roi_indices=None if roi_indices is None else np.asarray(roi_indices, int),
+            func_name=func_name,
+            attrs={} if attrs is None else dict(attrs),
         )
 
     # -------- JSON-friendly (de)serialization (no DataLab metadata coupling) -----
@@ -227,6 +232,7 @@ class GeometryResult:
             "roi_indices": None
             if self.roi_indices is None
             else self.roi_indices.tolist(),
+            "func_name": self.func_name,
             "attrs": dict(self.attrs) if self.attrs else {},
         }
 
@@ -240,6 +246,7 @@ class GeometryResult:
             roi_indices=None
             if d.get("roi_indices") is None
             else np.asarray(d["roi_indices"], dtype=int),
+            func_name=d.get("func_name"),
             attrs=dict(d.get("attrs", {})),
         )
 
@@ -420,7 +427,7 @@ class GeometryResult:
 
 def concat_geometries(
     title: str,
-    items: Iterable[GeometryResult],
+    geometries: Iterable[GeometryResult],
     *,
     kind: KindShape | None = None,
 ) -> GeometryResult:
@@ -428,46 +435,54 @@ def concat_geometries(
 
     Args:
         title: Title for the concatenated result.
-        items: Iterable of GeometryResult objects to concatenate.
+        geometries: Iterable of GeometryResult objects to concatenate.
         kind: Optional kind label for the concatenated result.
 
     Returns:
         GeometryResult with concatenated data and updated metadata.
     """
-    items = list(items)
-    if not items:
-        return GeometryResult(
-            title=title, kind=KindShape.POINT, coords=np.zeros((0, 2), float)
+    geometries = list(geometries)
+    if not geometries:
+        raise ValueError("Cannot concatenate empty sequence of GeometryResult objects")
+    k = kind if kind is not None else geometries[0].kind
+    if any(geom.kind != k for geom in geometries):
+        raise ValueError(
+            "All GeometryResult objects must share the same kind to concatenate"
         )
-    k = kind if kind is not None else items[0].kind
-    for it in items:
-        if it.kind != k:
-            raise ValueError(
-                "All GeometryResult objects must share the same kind to concatenate"
-            )
-    max_k = max(it.coords.shape[1] for it in items) if items else 0
+    fn = geometries[0].func_name
+    if fn is None:
+        raise ValueError(
+            "All GeometryResult objects must have a func_name to concatenate"
+        )
+    if any(geom.func_name != fn for geom in geometries):
+        raise ValueError(
+            "All GeometryResult objects must share the same func_name to concatenate"
+        )
+    max_k = max(geom.coords.shape[1] for geom in geometries) if geometries else 0
     # right-pad with NaNs to match width
     padded = []
-    for it in items:
-        c = it.coords
+    for geometry in geometries:
+        c = geometry.coords
         if c.shape[1] < max_k:
             pad = np.full((c.shape[0], max_k - c.shape[1]), np.nan, dtype=float)
             c = np.hstack([c, pad])
         padded.append(c)
     coords = np.vstack(padded) if padded else np.zeros((0, max_k))
-    if any(it.roi_indices is not None for it in items):
+    if any(it.roi_indices is not None for it in geometries):
         parts = [
             (
                 it.roi_indices
                 if it.roi_indices is not None
                 else np.full((len(it.coords),), NO_ROI, int)
             )
-            for it in items
+            for it in geometries
         ]
         roi = np.concatenate(parts) if len(parts) else None
     else:
         roi = None
-    return GeometryResult(title=title, kind=k, coords=coords, roi_indices=roi)
+    return GeometryResult(
+        title=title, kind=k, coords=coords, roi_indices=roi, func_name=fn
+    )
 
 
 def filter_geometry_by_roi(res: GeometryResult, roi: int | None) -> GeometryResult:

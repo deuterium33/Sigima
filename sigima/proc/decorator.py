@@ -20,6 +20,9 @@ from typing import Callable, Literal, TypeVar
 import guidata.dataset as gds
 import makefun
 
+from sigima.objects.scalar.geometry import GeometryResult
+from sigima.objects.scalar.table import TableResult
+
 if sys.version_info >= (3, 10):
     # Use ParamSpec from typing module in Python 3.10+
     from typing import ParamSpec
@@ -126,7 +129,19 @@ def _make_computation_wrapper(
                 final_args.append(ds_obj)
             else:
                 final_args.append(ba.arguments.get(p.name, None))
-        return f(*final_args)
+
+        # Call the original function
+        result = f(*final_args)
+
+        # Auto-inject func_name into result objects if they support it
+        if (
+            isinstance(result, (TableResult, GeometryResult))
+            and result.func_name is None
+        ):
+            # Since results are frozen dataclasses, we need to recreate them
+            result = dataclasses.replace(result, func_name=f.__name__)
+
+        return result
 
     # Attach dynamic Sphinx docstring and signature
     doc = f.__doc__ or ""
@@ -253,10 +268,20 @@ def computation_function(
                 f, ds_cls, ds_param, params, ds_items, new_sig, signature_info, metadata
             )
 
-        # No DataSet parameter: simple passthrough
+        # No DataSet parameter: simple passthrough with func_name injection
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            return f(*args, **kwargs)
+            result = f(*args, **kwargs)
+
+            # Auto-inject func_name into result objects if they support it
+            if (
+                isinstance(result, (TableResult, GeometryResult))
+                and result.func_name is None
+            ):
+                # Since results are frozen dataclasses, we need to recreate them
+                result = dataclasses.replace(result, func_name=f.__name__)
+
+            return result
 
         metadata = ComputationMetadata(
             name=name or f.__name__,

@@ -976,19 +976,22 @@ def generate_geometry_results() -> Generator[GeometryResult, None, None]:
     Yields:
         GeometryResult object
     """
-    for index, (shape, coords) in enumerate(
+    for index, (shape, coords, func_name) in enumerate(
         (
-            (KindShape.CIRCLE, [[250, 250, 200]]),
-            (KindShape.RECTANGLE, [[300, 200, 150, 250]]),
-            (KindShape.SEGMENT, [[50, 250, 400, 400]]),
-            (KindShape.POINT, [[500, 500]]),
+            (KindShape.CIRCLE, [[250, 250, 200]], "func_producing_circle"),
+            (KindShape.RECTANGLE, [[300, 200, 150, 250]], "func_producing_rectangle"),
+            (KindShape.SEGMENT, [[50, 250, 400, 400]], "func_producing_segment"),
+            (KindShape.POINT, [[500, 500]], "func_producing_point"),
             (
                 KindShape.POLYGON,
                 [[100, 100, 150, 100, 150, 150, 200, 100, 250, 50]],
+                "func_producing_polygon",
             ),
         )
     ):
-        yield GeometryResult(f"GeomResult{index}", shape, coords=np.asarray(coords))
+        yield GeometryResult(
+            f"GeomResult{index}", shape, coords=np.asarray(coords), func_name=func_name
+        )
 
 
 def generate_table_results() -> Generator[TableResult, None, None]:

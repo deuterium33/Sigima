@@ -7,6 +7,14 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **Automatic `func_name` injection for result objects**
+  * The `@computation_function` decorator now automatically injects the function name into `TableResult` and `GeometryResult` objects
+  * When a computation function returns a result object with `func_name=None`, the decorator sets it to the function's name using `dataclasses.replace()`
+  * Ensures systematic assignment of `func_name` for proper result tracking and display
+  * Implementation uses direct `isinstance()` type checking for `TableResult` and `GeometryResult`
+  * Applies to both main decorator wrapper (with DataSet parameters) and simple passthrough wrapper
+  * Eliminates need for manual `func_name` assignment in computation functions
+
 * **Image ROI creation utility**: New `create_image_roi_around_points()` function in `sigima.objects.image.roi`
   * Creates rectangular or circular ROIs around a set of point coordinates
   * Automatically calculates optimal ROI size based on minimum distance between points

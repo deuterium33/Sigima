@@ -81,6 +81,7 @@ class TableResult:
         data: 2-D list of shape (N, len(headers)) with scalar values.
         roi_indices: Optional list (N,) mapping rows to ROI indices.
          Use NO_ROI (-1) for the "full image / no ROI" row.
+        func_name: Optional name of the computation function that produced this result.
         attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
     Raises:
@@ -96,6 +97,7 @@ class TableResult:
     headers: Sequence[str] = dataclasses.field(default_factory=list)
     data: list[list] = dataclasses.field(default_factory=list)
     roi_indices: list[int] | None = None
+    func_name: str | None = None
     attrs: dict[str, object] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -156,6 +158,7 @@ class TableResult:
         roi_indices: list[int] | None = None,
         *,
         kind: TableKind | str = TableKind.CUSTOM,
+        func_name: str | None = None,
         attrs: dict[str, object] | None = None,
     ) -> TableResult:
         """Create a TableResult from raw data.
@@ -167,18 +170,20 @@ class TableResult:
             roi_indices: Optional list (N,) mapping rows to ROI indices.
              Use NO_ROI (-1) for the "full image / no ROI" row.
             kind: Type of table result (e.g., TableKind.PULSE_FEATURES).
+            func_name: Optional name of the computation function.
             attrs: Optional algorithmic context (e.g. thresholds, method variant).
 
         Returns:
             A TableResult instance.
         """
         return cls(
-            title,
-            kind,
-            headers,
-            rows,
-            roi_indices,
-            {} if attrs is None else dict(attrs),
+            title=title,
+            kind=kind,
+            headers=headers,
+            data=rows,
+            roi_indices=roi_indices,
+            func_name=func_name,
+            attrs={} if attrs is None else dict(attrs),
         )
 
     # -------- JSON-friendly (de)serialization (no DataLab metadata coupling) -----
@@ -192,6 +197,7 @@ class TableResult:
             "names": list(self.headers),
             "data": self.data,
             "roi_indices": self.roi_indices,
+            "func_name": self.func_name,
             "attrs": dict(self.attrs) if self.attrs else {},
         }
 
@@ -204,6 +210,7 @@ class TableResult:
             headers=list(d["names"]),
             data=d["data"],
             roi_indices=d.get("roi_indices"),
+            func_name=d.get("func_name"),
             attrs=dict(d.get("attrs", {})),
         )
 
