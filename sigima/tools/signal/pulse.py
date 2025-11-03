@@ -460,6 +460,10 @@ def get_amplitude(
 ) -> float:
     """Get curve amplitude.
 
+    This function uses plateau-mean detection which is robust to noise but introduces
+    a systematic error (~2-3%) for smooth pulse shapes (Gaussian, Lorentzian, etc.).
+    This is an acceptable trade-off for robustness across all signal types.
+
     Args:
         x: 1D array of x values.
         y: 1D array of y values.
@@ -472,6 +476,13 @@ def get_amplitude(
 
     Returns:
         Amplitude of the step.
+
+    .. warning::
+
+        For noise-free smooth peaks (Gaussian, Lorentzian), this method introduces
+        a systematic offset of approximately +2-3% due to plateau-mean detection.
+        For accurate results with known signal shapes, use fitting methods instead
+        (e.g., fwhm with method='gauss' for Gaussian signals).
     """
     if signal_shape is None:
         signal_shape = heuristically_recognize_shape(x, y, start_range, end_range)
@@ -1356,21 +1367,34 @@ def fwhm(
     xmin: float | None = None,
     xmax: float | None = None,
 ) -> tuple[float, float, float, float]:
-    """Compute Full Width at Half Maximum (FWHM) of the input data
+    """Compute Full Width at Half Maximum (FWHM) of the input data.
+
+    Two types of methods are supported:
+
+      - "zero-crossing": Fast interpolation-based method that works directly with
+        signal values (no normalization). Shape-independent and robust.
+      - "gauss", "lorentz", "voigt": Curve fitting methods for specific signal
+        shapes. Very accurate when the signal matches the model.
 
     Args:
         x: 1D array of x-values.
         y: 1D array of y-values.
-        method: Calculation method. Two types of methods are supported: a zero-crossing
-         method and fitting methods (based on various models: Gauss, Lorentz, Voigt).
-         Defaults to "zero-crossing".
+        method: Calculation method.
         xmin: Lower X bound for the fitting. Defaults to None (no lower bound,
          i.e. the fitting starts from the first point).
         xmax: Upper X bound for the fitting. Defaults to None (no upper bound,
          i.e. the fitting ends at the last point)
 
     Returns:
-        FWHM segment coordinates
+        FWHM segment coordinates (x1, y1, x2, y2)
+
+    .. warning::
+
+        The zero-crossing method uses amplitude normalization via
+        :py:func:`get_amplitude`,
+        which introduces a small systematic offset (~2-3%) for smooth peaks
+        (Gaussian, Lorentzian, etc.) but is robust to noise. For accurate results
+        with known signal shapes, use fitting methods (e.g., method='gauss').
     """
     dx, dy, base = np.max(x) - np.min(x), np.max(y) - np.min(y), np.min(y)
     sigma, mu = dx * 0.1, peakdetection.xpeak(x, y)

@@ -73,7 +73,19 @@ def peak_detection(src: SignalObj, p: PeakDetectionParam) -> SignalObj:
     return dst
 
 
-class FWHMParam(gds.DataSet, title=_("FWHM")):
+class FWHMParam(
+    gds.DataSet,
+    title=_("FWHM"),
+    comment=_(
+        "<u>Methods and trade-offs:</u><br><br>"
+        "•&nbsp;Zero-crossing: Fast, sensitive to noise<br>"
+        "•&nbsp;Gaussian fit: Good for symmetric peaks, assumes Gaussian shape<br>"
+        "•&nbsp;Lorentzian fit: Suitable for peaks with long tails, dominated by "
+        "collisional or lifetime broadening<br>"
+        "•&nbsp;Voigt fit: Most accurate for spectroscopic data, or laser lines "
+        "broadened by both Doppler and collisional effects<br>"
+    ),
+):
     """FWHM parameters"""
 
     methods = (
@@ -94,7 +106,7 @@ class FWHMParam(gds.DataSet, title=_("FWHM")):
         default=None,
         check=False,
         help=_("Upper X boundary (empty for no limit, i.e. end of the signal)"),
-    )
+    ).set_prop("display", col=1)
 
 
 @computation_function()

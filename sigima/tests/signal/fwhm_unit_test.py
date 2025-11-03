@@ -9,6 +9,7 @@ Unit tests for full width computing features
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import sigima.objects
@@ -61,7 +62,14 @@ def test_signal_fwhm_interactive() -> None:
 
 @pytest.mark.validation
 def test_signal_fwhm() -> None:
-    """Validation test for the full width at half maximum computation."""
+    """Validation test for the full width at half maximum computation.
+
+    Tests FWHM computation on:
+    1. Real signal data (fwhm.txt) - validates against manual measurement
+    2. Synthetic Gaussian signals - validates against theoretical values
+    3. Multi-peak signal - validates warning behavior
+    """
+    # Test 1: Real signal data (original validation test)
     obj = sigima.tests.data.get_test_signal("fwhm.txt")
     real_fwhm = 2.675  # Manual validation
     for method, exp in (
@@ -76,6 +84,47 @@ def test_signal_fwhm() -> None:
         sigima.tests.helpers.check_scalar_result(
             f"FWHM[{method}]", length, exp, rtol=0.05
         )
+
+    # Test 2: Synthetic Gaussian signals - systematic offset investigation
+    execenv.print("\n  FWHM Gaussian validation (theoretical comparison):")
+    sigma_values = [1.0, 2.0]  # Test two sigma values
+
+    for sigma in sigma_values:
+        # Create Gaussian signal with known parameters
+        gauss_param = sigima.objects.GaussParam()
+        gauss_param.size = 1000
+        gauss_param.xmin = -10.0
+        gauss_param.xmax = 10.0
+        gauss_param.sigma = sigma
+        gauss_param.mu = 0.0
+        gauss_param.a = 1.0
+        gauss_param.y0 = 0.0
+
+        sig = sigima.objects.create_signal_from_param(gauss_param)
+
+        # Theoretical FWHM for Gaussian: FWHM = 2 * sigma * sqrt(2 * ln(2))
+        theoretical_fwhm = 2.0 * sigma * np.sqrt(2.0 * np.log(2.0))
+
+        # Test Gaussian fit method (should be most accurate)
+        fwhm_param = sigima.params.FWHMParam.create(method="gauss")
+        geometry = sigima.proc.signal.fwhm(sig, fwhm_param)
+        computed_fwhm = geometry.segments_lengths()[0]
+
+        execenv.print(
+            f"    σ={sigma}: Theoretical={theoretical_fwhm:.6f}, "
+            f"Computed={computed_fwhm:.6f}, "
+            f"Offset={(computed_fwhm - theoretical_fwhm):.6f}"
+        )
+
+        # Gaussian fit should match theoretical value very closely
+        sigima.tests.helpers.check_scalar_result(
+            f"FWHM[gauss, σ={sigma}]",
+            computed_fwhm,
+            theoretical_fwhm,
+            rtol=0.01,  # 1% tolerance
+        )
+
+    # Test 3: Multi-peak signal warning
     obj = sigima.tests.data.create_paracetamol_signal()
     with pytest.warns(UserWarning):
         sigima.proc.signal.fwhm(
