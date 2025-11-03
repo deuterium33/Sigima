@@ -57,6 +57,7 @@ from .roi import (
     ROI2DParam,
     # ROI utility function
     create_image_roi,
+    create_image_roi_around_points,
 )
 
 # Define __all__ for explicit public API
@@ -83,6 +84,7 @@ __all__ = [
     "create_image_from_param",
     "create_image_parameters",
     "create_image_roi",
+    "create_image_roi_around_points",
     "get_next_image_number",
     "register_image_parameters_class",
 ]

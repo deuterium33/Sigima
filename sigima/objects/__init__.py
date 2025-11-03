@@ -172,6 +172,7 @@ __all__ = [
     "create_image_from_param",
     "create_image_parameters",
     "create_image_roi",
+    "create_image_roi_around_points",
     "create_signal",
     "create_signal_from_param",
     "create_signal_parameters",
@@ -209,6 +210,7 @@ from sigima.objects.image import (
     create_image_from_param,
     create_image_parameters,
     create_image_roi,
+    create_image_roi_around_points,
 )
 from sigima.objects.scalar import (
     NO_ROI,

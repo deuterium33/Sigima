@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-11-03 11:51+0100\n"
+"POT-Creation-Date: 2025-11-03 15:48+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -116,11 +116,13 @@ msgid "Elliptic"
 msgstr "Elliptique"
 
 msgid "Each signal becomes a row"
-msgstr ""
+msgstr "Chaque signal devient une ligne"
 
-#, fuzzy
 msgid "Each signal becomes a column"
-msgstr "Normaliser chaque signal avant de combiner"
+msgstr "Chaque signal devient une colonne"
+
+msgid "Rectangle"
+msgstr "Rectangle"
 
 msgid "All supported files"
 msgstr "Tous les fichiers pris en charge"
@@ -659,8 +661,14 @@ msgstr "Taille du voisinage"
 msgid "Size of the sliding window used in maximum/minimum filtering algorithm (if no value is provided, the algorithm will use a default size based on the image size). "
 msgstr "Taille de la fenêtre glissante utilisée dans l'algorithme de filtrage par maximum/minimum (si aucune valeur n'est fournie, l'algorithme utilisera une taille par défaut basée sur la taille de l'image)."
 
+msgid "Regions of interest"
+msgstr "Régions d'intérêt"
+
 msgid "Create regions of interest"
 msgstr "Créer des régions d'intérêt"
+
+msgid "ROI geometry"
+msgstr "Géométrie de la ROI"
 
 msgid "Shape"
 msgstr "Forme"

@@ -7,6 +7,14 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **Image ROI creation utility**: New `create_image_roi_around_points()` function in `sigima.objects.image.roi`
+  * Creates rectangular or circular ROIs around a set of point coordinates
+  * Automatically calculates optimal ROI size based on minimum distance between points
+  * Handles boundary conditions to keep ROIs within valid image coordinates
+  * Supports both "rectangle" and "circle" geometry types
+  * Designed for creating ROIs around detected features (peaks, blobs, etc.)
+  * Centralizes ROI creation logic previously duplicated across applications
+
 * **Annotations API**: New public API for managing annotations on Signal and Image objects
   * Added `get_annotations()` method: Returns a list of annotations in versioned JSON format
   * Added `set_annotations(annotations)` method: Sets annotations from a list (replaces existing annotations)
@@ -20,6 +28,15 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
   * Fully compatible with DataLab's PlotPy adapter pattern for visualization
 
 🛠️ Bug fixes:
+
+* **2D peak detection**: Fixed architectural violation in `peak_detection()` computation function
+  * Removed direct ROI creation from computation function (was modifying input objects)
+  * Computation functions decorated with `@computation_function()` must be pure (no side effects)
+  * Removed line 128: `obj.roi = create_image_roi(...)` which violated this principle
+  * ROI creation now handled by applications in their presentation layer
+  * DataLab uses new `create_image_roi_around_points()` utility for this purpose
+  * Maintains separation of concerns: Sigima computes results, applications create visual representations
+  * Fixes regression where ROIs were not appearing in DataLab's processor-based workflow
 
 * **Parameter classes**: Removed default titles from generic `OrdinateParam` and `AbscissaParam` classes
   * These parameter classes are reused across multiple computation functions (e.g., `full_width_at_y`, `x_at_y`)

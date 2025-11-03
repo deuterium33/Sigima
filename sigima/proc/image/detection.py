@@ -25,12 +25,16 @@ enabling automated extraction of regions or features of interest.
 from __future__ import annotations
 
 import guidata.dataset as gds
-import numpy as np
 
 import sigima.enums
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects import GeometryResult, ImageObj, KindShape, create_image_roi
+from sigima.objects import (
+    GeometryResult,
+    ImageObj,
+    KindShape,
+    create_image_roi_around_points,
+)
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import compute_geometry_from_obj
 
@@ -88,7 +92,14 @@ class Peak2DDetectionParam(GenericDetectionParam):
             "based on the image size). "
         ),
     )
+    _roi_g = gds.BeginGroup(_("Regions of interest"))
     create_rois = gds.BoolItem(_("Create regions of interest"), default=True)
+    roi_geometry = gds.ChoiceItem(
+        _("ROI geometry"),
+        sigima.enums.PointROIGeometries,
+        default=sigima.enums.PointROIGeometries.RECTANGLE,
+    )
+    _roi_g_e = gds.EndGroup(_("Regions of interest"))
 
 
 @computation_function()
@@ -111,21 +122,18 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
         p.size,
         p.threshold,
     )
-    if geometry is not None and p.create_rois and len(geometry) > 1:
-        # Create a rectangular ROI around each peak, only if there are more than one
-        # peak detected (otherwise, it would not make sense to create an ROI)
-        dist = sigima.tools.image.distance_matrix(geometry.coords)
-        dist_min = dist[dist != 0].min()
-        assert dist_min > 0
-        radius = int(0.5 * dist_min / np.sqrt(2) - 1)
-        assert radius >= 1
-        ymax, xmax = obj.data.shape
-        coords = []
-        for x, y in geometry.coords:
-            x0, y0 = max(x - radius, 0), max(y - radius, 0)
-            dx, dy = min(x + radius, xmax) - x0, min(y + radius, ymax) - y0
-            coords.append([x0, y0, dx, dy])
-        obj.roi = create_image_roi("rectangle", coords, indices=True)
+
+    # Warning: the following ROI creation code will have no effect in DataLab because
+    # ROIs must be created in the GUI layer (the image object modified here won't be
+    # retained). That's why it's reimplemented in datalab/gui/processor/image.py
+    if p.create_rois and geometry is not None and len(geometry) > 1:
+        try:
+            obj.roi = create_image_roi_around_points(
+                geometry.coords, geometry=p.roi_geometry
+            )
+        except ValueError:
+            pass
+
     return geometry
 
 
