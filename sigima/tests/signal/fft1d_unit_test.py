@@ -30,6 +30,14 @@ def test_signal_zero_padding() -> None:
         sigima.objects.SignalTypes.COSINE, freq=50.0, size=1000
     )
 
+    # Dumb check to ensure that ZeroPadding1DParam won't raise an exception if the
+    # `strategy_callback` is used before calling `update_from_obj` (this could happen
+    # if the parameter is used in a GUI before being applied to a signal):
+    param = sigima.params.ZeroPadding1DParam.create(strategy="next_pow2")
+    param.n = 1  # Already the default value, but just to be explicit here
+    param.strategy_callback(None, "")  # Nothing should happen here
+    assert param.n == 1, "Padding length should remain unchanged"
+
     # Validate padding length computation
     for strategy, expected_length in (
         ("next_pow2", 24),
