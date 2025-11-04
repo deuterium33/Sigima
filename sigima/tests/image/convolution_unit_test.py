@@ -10,10 +10,10 @@ import numpy as np
 import pytest
 import scipy.signal as sps
 
+import sigima.proc.image
 from sigima.config import options as sigima_options
 from sigima.objects import create_image, create_image_from_param
 from sigima.objects.image import Gauss2DParam, ImageObj, Zero2DParam
-from sigima.proc.image.mathops import convolution, deconvolution
 from sigima.tests import guiutils
 from sigima.tests.helpers import check_array_result
 from sigima.tools.image import deconvolve
@@ -99,7 +99,7 @@ def __convolve_image(kernel: ImageObj, size: int = 32) -> tuple[ImageObj, ImageO
     """
     original = _generate_rectangle_image(size=size)
     assert original.data is not None
-    convolved = convolution(original, kernel)
+    convolved = sigima.proc.image.convolution(original, kernel)
     assert convolved.data is not None
     return original, convolved
 
@@ -133,7 +133,7 @@ def test_image_convolution(size: int = 32) -> None:
         # Test with a null kernel.
         kernel.data = np.array([])
         with pytest.raises(ValueError, match="Convolution kernel cannot be null."):
-            convolution(original, kernel)
+            sigima.proc.image.convolution(original, kernel)
 
 
 @pytest.mark.validation
@@ -146,7 +146,7 @@ def test_image_deconvolution(size: int = 32) -> None:
         # Test with an identity kernel.
         kernel = _generate_identity_kernel(size=31)
         original, convolved = __convolve_image(kernel, size=size)
-        deconvolved = deconvolution(convolved, kernel)
+        deconvolved = sigima.proc.image.deconvolution(convolved, kernel)
         guiutils.view_images_side_by_side_if_gui(
             [original, kernel, convolved, deconvolved],
             ["Original", "Kernel", "Convolved", "Deconvolved"],
@@ -157,7 +157,7 @@ def test_image_deconvolution(size: int = 32) -> None:
         # Test with a Gaussian kernel.
         kernel = _generate_gaussian_kernel(size=31, sigma=1.0)
         original, convolved = __convolve_image(kernel, size=64)
-        deconvolved = deconvolution(convolved, kernel)
+        deconvolved = sigima.proc.image.deconvolution(convolved, kernel)
         # check_array_result("Deconvolution Gaussian", deconvolved.data, original.data)
         guiutils.view_images_side_by_side_if_gui(
             [original, kernel, convolved, deconvolved],
@@ -171,7 +171,7 @@ def test_image_deconvolution(size: int = 32) -> None:
         with pytest.warns(
             UserWarning, match=r"Deconvolution kernel has even dimension\(s\).*"
         ):
-            deconvolved = deconvolution(convolved, kernel)
+            deconvolved = sigima.proc.image.deconvolution(convolved, kernel)
 
 
 def test_tools_image_deconvolve_null_kernel() -> None:

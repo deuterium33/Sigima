@@ -14,6 +14,7 @@ from typing import Generator, Literal
 import numpy as np
 import pytest
 
+import sigima.proc.signal
 from sigima.enums import SignalShape
 from sigima.objects import create_signal
 from sigima.objects.signal import (
@@ -23,7 +24,6 @@ from sigima.objects.signal import (
     SquarePulseParam,
     StepPulseParam,
 )
-from sigima.proc.signal import PulseFeaturesParam, extract_pulse_features
 from sigima.tests import guiutils
 from sigima.tests.data import get_test_signal
 from sigima.tests.helpers import check_scalar_result
@@ -1739,7 +1739,7 @@ def test_signal_extract_pulse_features() -> None:
     sig_step = create_signal("Test Step Signal", x_step, y_step)
 
     # Define step analysis parameters
-    p_step = PulseFeaturesParam()
+    p_step = sigima.proc.signal.PulseFeaturesParam()
     p_step.xstartmin = 0.0
     p_step.xstartmax = 3.0
     p_step.xendmin = 6.0
@@ -1754,7 +1754,7 @@ def test_signal_extract_pulse_features() -> None:
     tolerances_step = step_params.get_feature_tolerances()
 
     # Extract and validate step features
-    table_step = extract_pulse_features(sig_step, p_step)
+    table_step = sigima.proc.signal.extract_pulse_features(sig_step, p_step)
     tdict_step = table_step.as_dict()
     features_step = pulse.PulseFeatures(**tdict_step)
     __check_features(features_step, expected_step, tolerances_step)
@@ -1772,7 +1772,7 @@ def test_signal_extract_pulse_features() -> None:
     sig_square = create_signal("Test Square Signal", x_square, y_square)
 
     # Define square analysis parameters
-    p_square = PulseFeaturesParam()
+    p_square = sigima.proc.signal.PulseFeaturesParam()
     p_square.xstartmin = 0
     p_square.xstartmax = 2.5
     p_square.xendmin = 15
@@ -1786,7 +1786,7 @@ def test_signal_extract_pulse_features() -> None:
     )
 
     # Extract and validate square features
-    table_square = extract_pulse_features(sig_square, p_square)
+    table_square = sigima.proc.signal.extract_pulse_features(sig_square, p_square)
     tdict_square = table_square.as_dict()
     features_square = pulse.PulseFeatures(**tdict_square)
     tolerances_square = square_params.get_feature_tolerances()

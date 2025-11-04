@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import sigima.objects
-import sigima.proc.image as sipi
+import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.data import create_sincos_image
 from sigima.tests.helpers import check_array_result, check_scalar_result
@@ -32,7 +32,7 @@ def test_image_horizontal_projection() -> None:
     ima.ylabel = "Y position"
     ima.zlabel = "Intensity"
 
-    sig = sipi.horizontal_projection(ima)
+    sig = sigima.proc.image.horizontal_projection(ima)
     assert sig is not None
 
     # Visualize image and result profile during interactive runs.
@@ -82,7 +82,7 @@ def test_image_vertical_projection() -> None:
     ima.ylabel = "Y position"
     ima.zlabel = "Intensity"
 
-    sig = sipi.vertical_projection(ima)
+    sig = sigima.proc.image.vertical_projection(ima)
     assert sig is not None
 
     # Visualize image and result profile during interactive runs.

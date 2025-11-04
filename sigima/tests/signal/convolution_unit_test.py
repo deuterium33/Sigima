@@ -9,9 +9,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+import sigima.proc.signal
 from sigima.objects import create_signal
 from sigima.objects.signal import SignalObj
-from sigima.proc.signal import convolution, deconvolution
 from sigima.tests import guiutils
 from sigima.tests.env import execenv
 from sigima.tests.helpers import check_array_result
@@ -123,7 +123,7 @@ def test_signal_convolution() -> None:
     original_signal.y *= cable_kernel.y.max()
 
     # Convolve the original signal with the cable response
-    convolved_signal = convolution(original_signal, cable_kernel)
+    convolved_signal = sigima.proc.signal.convolution(original_signal, cable_kernel)
 
     # View the signals for visual inspection (if GUI enabled)
     guiutils.view_curves_if_gui(
@@ -283,10 +283,10 @@ def test_signal_deconvolution() -> None:
     kernel.y[N_POINTS // 2] = 1.0  # Identity kernel
 
     # Convolve the original signal with the identity kernel
-    convolved_signal = convolution(original_signal, kernel)
+    convolved_signal = sigima.proc.signal.convolution(original_signal, kernel)
 
     # Now deconvolve - should recover the original exactly
-    deconvolved_signal = deconvolution(convolved_signal, kernel)
+    deconvolved_signal = sigima.proc.signal.deconvolution(convolved_signal, kernel)
 
     # View the signals for visual inspection (if GUI enabled)
     guiutils.view_curves_if_gui(
@@ -341,10 +341,12 @@ def test_signal_deconvolution_realistic_demo() -> None:
     original_signal.y *= cable_kernel.y.max()
 
     # Convolve the original signal with the cable response
-    convolved_signal = convolution(original_signal, cable_kernel)
+    convolved_signal = sigima.proc.signal.convolution(original_signal, cable_kernel)
 
     # Now deconvolve to attempt recovery of original signal
-    deconvolved_signal = deconvolution(convolved_signal, cable_kernel)
+    deconvolved_signal = sigima.proc.signal.deconvolution(
+        convolved_signal, cable_kernel
+    )
 
     # View the signals for visual inspection (if GUI enabled)
     guiutils.view_curves_if_gui(

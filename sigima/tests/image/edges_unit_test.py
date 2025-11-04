@@ -6,6 +6,8 @@ Unit tests for edge detection computation functions.
 
 from __future__ import annotations
 
+from typing import Callable
+
 import pytest
 from skimage import feature, filters, util
 
@@ -44,97 +46,97 @@ def test_canny() -> None:
     )
 
 
-def __generic_edge_validation(method: str) -> None:
+def __generic_edge_validation(func: Callable[[], sigima.objects.ImageObj]) -> None:
     """Generic test for edge detection methods."""
     # See [1] in sigima\tests\image\__init__.py for more details about the validation.
     src = get_test_image("flower.npy")
-    dst: sigima.objects.ImageObj = getattr(sigima.proc.image, method)(src)
-    exp = getattr(filters, method)(src.data)
-    check_array_result(f"{method.capitalize()}", dst.data, exp)
+    dst: sigima.objects.ImageObj = func(src)
+    exp = getattr(filters, func.__name__)(src.data)
+    check_array_result(f"{func.__name__.capitalize()}", dst.data, exp)
 
 
 @pytest.mark.validation
 def test_roberts() -> None:
     """Validation test for the image Roberts edge detection processing."""
-    __generic_edge_validation("roberts")
+    __generic_edge_validation(sigima.proc.image.roberts)
 
 
 @pytest.mark.validation
 def test_prewitt() -> None:
     """Validation test for the image Prewitt edge detection processing."""
-    __generic_edge_validation("prewitt")
+    __generic_edge_validation(sigima.proc.image.prewitt)
 
 
 @pytest.mark.validation
 def test_prewitt_h() -> None:
     """Validation test for the image horizontal Prewitt edge detection processing."""
-    __generic_edge_validation("prewitt_h")
+    __generic_edge_validation(sigima.proc.image.prewitt_h)
 
 
 @pytest.mark.validation
 def test_prewitt_v() -> None:
     """Validation test for the image vertical Prewitt edge detection processing."""
-    __generic_edge_validation("prewitt_v")
+    __generic_edge_validation(sigima.proc.image.prewitt_v)
 
 
 @pytest.mark.validation
 def test_sobel() -> None:
     """Validation test for the image Sobel edge detection processing."""
-    __generic_edge_validation("sobel")
+    __generic_edge_validation(sigima.proc.image.sobel)
 
 
 @pytest.mark.validation
 def test_sobel_h() -> None:
     """Validation test for the image horizontal Sobel edge detection processing."""
-    __generic_edge_validation("sobel_h")
+    __generic_edge_validation(sigima.proc.image.sobel_h)
 
 
 @pytest.mark.validation
 def test_sobel_v() -> None:
     """Validation test for the image vertical Sobel edge detection processing."""
-    __generic_edge_validation("sobel_v")
+    __generic_edge_validation(sigima.proc.image.sobel_v)
 
 
 @pytest.mark.validation
 def test_scharr() -> None:
     """Validation test for the image Scharr edge detection processing."""
-    __generic_edge_validation("scharr")
+    __generic_edge_validation(sigima.proc.image.scharr)
 
 
 @pytest.mark.validation
 def test_scharr_h() -> None:
     """Validation test for the image horizontal Scharr edge detection processing."""
-    __generic_edge_validation("scharr_h")
+    __generic_edge_validation(sigima.proc.image.scharr_h)
 
 
 @pytest.mark.validation
 def test_scharr_v() -> None:
     """Validation test for the image vertical Scharr edge detection processing."""
-    __generic_edge_validation("scharr_v")
+    __generic_edge_validation(sigima.proc.image.scharr_v)
 
 
 @pytest.mark.validation
 def test_farid() -> None:
     """Validation test for the image Farid edge detection processing."""
-    __generic_edge_validation("farid")
+    __generic_edge_validation(sigima.proc.image.farid)
 
 
 @pytest.mark.validation
 def test_farid_h() -> None:
     """Validation test for the image horizontal Farid edge detection processing."""
-    __generic_edge_validation("farid_h")
+    __generic_edge_validation(sigima.proc.image.farid_h)
 
 
 @pytest.mark.validation
 def test_farid_v() -> None:
     """Validation test for the image vertical Farid edge detection processing."""
-    __generic_edge_validation("farid_v")
+    __generic_edge_validation(sigima.proc.image.farid_v)
 
 
 @pytest.mark.validation
 def test_laplace() -> None:
     """Validation test for the image Laplace edge detection processing."""
-    __generic_edge_validation("laplace")
+    __generic_edge_validation(sigima.proc.image.laplace)
 
 
 if __name__ == "__main__":

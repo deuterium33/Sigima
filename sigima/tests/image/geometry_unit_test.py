@@ -6,6 +6,9 @@ Unit tests for geometry computation functions.
 
 from __future__ import annotations
 
+import re
+from typing import Callable
+
 import numpy as np
 import pytest
 import scipy.ndimage as spi
@@ -54,12 +57,15 @@ def test_image_flipv() -> None:
     __generic_flip_check(sigima.proc.image.flipv, np.flipud)
 
 
-def __generic_rotate_check(angle: int) -> None:
+def __generic_rotate_check(
+    func: Callable[[sigima.objects.ImageObj], sigima.objects.ImageObj],
+) -> None:
     """Generic rotate check function."""
+    angle = int(re.match(r"rotate(\d+)", func.__name__).group(1))
     execenv.print(f"*** Testing image {angle}° rotation:")
     for ima1 in iterate_noisy_images(size=128):
         execenv.print(f"  rotate{angle}({ima1.data.dtype}): ", end="")
-        ima2 = getattr(sigima.proc.image, f"rotate{angle}")(ima1)
+        ima2 = func(ima1)
         check_array_result(
             f"Image rotate{angle}", ima2.data, np.rot90(ima1.data, k=angle // 90)
         )
@@ -68,13 +74,13 @@ def __generic_rotate_check(angle: int) -> None:
 @pytest.mark.validation
 def test_image_rotate90() -> None:
     """Image 90° rotation test."""
-    __generic_rotate_check(90)
+    __generic_rotate_check(sigima.proc.image.rotate90)
 
 
 @pytest.mark.validation
 def test_image_rotate270() -> None:
     """Image 270° rotation test."""
-    __generic_rotate_check(270)
+    __generic_rotate_check(sigima.proc.image.rotate270)
 
 
 def __get_test_image_with_roi() -> sigima.objects.ImageObj:

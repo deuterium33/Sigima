@@ -19,7 +19,7 @@ from sigima.tests.helpers import check_array_result, check_scalar_result
 
 
 @pytest.mark.validation
-def test_add_gaussian_noise() -> None:
+def test_signal_add_gaussian_noise() -> None:
     """Test :py:func:`sigima.proc.signal.add_gaussian_noise`."""
     # Generate source signal.
     size = 1024
@@ -52,7 +52,7 @@ def test_add_gaussian_noise() -> None:
 
 
 @pytest.mark.validation
-def test_add_poisson_noise() -> None:
+def test_signal_add_poisson_noise() -> None:
     """Test :py:func:`sigima.proc.signal.add_poisson_noise`."""
     # Generate source signal.
     size = 1024
@@ -86,7 +86,7 @@ def test_add_poisson_noise() -> None:
 
 
 @pytest.mark.validation
-def test_add_uniform_noise() -> None:
+def test_signal_add_uniform_noise() -> None:
     """Test :py:func:`sigima.proc.signal.add_uniform_noise`."""
     # Generate source signal.
     size = 1024
@@ -123,6 +123,6 @@ def test_add_uniform_noise() -> None:
 
 if __name__ == "__main__":
     guiutils.enable_gui()
-    test_add_gaussian_noise()
-    test_add_poisson_noise()
-    test_add_uniform_noise()
+    test_signal_add_gaussian_noise()
+    test_signal_add_poisson_noise()
+    test_signal_add_uniform_noise()

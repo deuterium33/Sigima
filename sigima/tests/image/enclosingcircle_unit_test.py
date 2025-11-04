@@ -11,9 +11,9 @@ Testing enclsoing circle function on various test images.
 
 import pytest
 
+import sigima.proc.image
 import sigima.tools.image
 from sigima.config import _
-from sigima.proc.image import enclosing_circle
 from sigima.tests import guiutils
 from sigima.tests.data import RingParam, create_ring_image, get_laser_spot_data
 from sigima.tests.env import execenv
@@ -73,7 +73,7 @@ def test_image_enclosing_circle():
     obj = create_ring_image(p)
     execenv.print("Testing enclosing circle on a ring image...")
     ex, ey, er = sigima.tools.image.get_enclosing_circle(obj.data)
-    geometry = enclosing_circle(obj)
+    geometry = sigima.proc.image.enclosing_circle(obj)
     x, y, r = geometry.coords[0]
     execenv.print(geometry)
     assert ex == x and ey == y and er == r, (

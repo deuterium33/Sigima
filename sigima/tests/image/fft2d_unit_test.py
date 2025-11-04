@@ -137,6 +137,7 @@ def test_image_ifft() -> None:
     """2D iFFT validation test."""
     # This is just a way of marking the iFFT test as a validation test because it is
     # already covered by the FFT test above (there is no need to repeat the same test).
+    # The tested function is :py:func:`sigima.proc.image.ifft`.
 
 
 @pytest.mark.validation
