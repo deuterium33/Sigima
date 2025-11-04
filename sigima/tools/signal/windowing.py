@@ -7,52 +7,37 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
 import numpy as np
 import scipy.signal.windows
 
 from sigima.enums import WindowingMethod
 
+WINDOWING_FUNCTIONS_MAP = {
+    WindowingMethod.BARTHANN: scipy.signal.windows.barthann,
+    WindowingMethod.BARTLETT: np.bartlett,
+    WindowingMethod.BLACKMAN: np.blackman,
+    WindowingMethod.BLACKMAN_HARRIS: scipy.signal.windows.blackmanharris,
+    WindowingMethod.BOHMAN: scipy.signal.windows.bohman,
+    WindowingMethod.BOXCAR: scipy.signal.windows.boxcar,
+    WindowingMethod.COSINE: scipy.signal.windows.cosine,
+    WindowingMethod.EXPONENTIAL: scipy.signal.windows.exponential,
+    WindowingMethod.FLAT_TOP: scipy.signal.windows.flattop,
+    WindowingMethod.GAUSSIAN: scipy.signal.windows.gaussian,
+    WindowingMethod.HAMMING: np.hamming,
+    WindowingMethod.HANN: np.hanning,
+    WindowingMethod.KAISER: np.kaiser,
+    WindowingMethod.LANCZOS: scipy.signal.windows.lanczos,
+    WindowingMethod.NUTTALL: scipy.signal.windows.nuttall,
+    WindowingMethod.PARZEN: scipy.signal.windows.parzen,
+    WindowingMethod.TAYLOR: scipy.signal.windows.taylor,
+    WindowingMethod.TUKEY: scipy.signal.windows.tukey,
+}
 
-def get_window(method: WindowingMethod) -> Callable[[int], np.ndarray]:
-    """Get the window function.
-
-    .. note::
-
-        The window functions are from `scipy.signal.windows` and `numpy`.
-        All functions take an integer argument that specifies the length of the window,
-        and return a NumPy array of the same length.
-
-    Args:
-        method: Windowing function method.
-
-    Returns:
-        Window function.
-
-    Raises:
-        ValueError: If the method is not recognized.
-    """
-    win_func = {
-        WindowingMethod.BARTHANN: scipy.signal.windows.barthann,
-        WindowingMethod.BARTLETT: np.bartlett,
-        WindowingMethod.BLACKMAN: np.blackman,
-        WindowingMethod.BLACKMAN_HARRIS: scipy.signal.windows.blackmanharris,
-        WindowingMethod.BOHMAN: scipy.signal.windows.bohman,
-        WindowingMethod.BOXCAR: scipy.signal.windows.boxcar,
-        WindowingMethod.COSINE: scipy.signal.windows.cosine,
-        WindowingMethod.EXPONENTIAL: scipy.signal.windows.exponential,
-        WindowingMethod.FLAT_TOP: scipy.signal.windows.flattop,
-        WindowingMethod.HAMMING: np.hamming,
-        WindowingMethod.HANN: np.hanning,
-        WindowingMethod.LANCZOS: scipy.signal.windows.lanczos,
-        WindowingMethod.NUTTALL: scipy.signal.windows.nuttall,
-        WindowingMethod.PARZEN: scipy.signal.windows.parzen,
-        WindowingMethod.TAYLOR: scipy.signal.windows.taylor,
-    }.get(method)
-    if win_func is not None:
-        return win_func
-    raise ValueError(f"Invalid window type {method.value}")
+assert set(WINDOWING_FUNCTIONS_MAP.keys()) == set(WindowingMethod), (
+    f"WINDOWING_FUNCTIONS_MAP must contain all WindowingMethod enum values. "
+    f"Missing: {set(WindowingMethod) - set(WINDOWING_FUNCTIONS_MAP.keys())}, "
+    f"Extra: {set(WINDOWING_FUNCTIONS_MAP.keys()) - set(WindowingMethod)}"
+)
 
 
 def apply_window(
@@ -78,13 +63,13 @@ def apply_window(
     Raises:
         ValueError: If the method is not recognized.
     """
+    win_func = WINDOWING_FUNCTIONS_MAP[method]
     # Cases with parameters:
     if method == WindowingMethod.GAUSSIAN:
-        return y * scipy.signal.windows.gaussian(len(y), sigma)
+        return y * win_func(len(y), sigma)
     if method == WindowingMethod.KAISER:
-        return y * np.kaiser(len(y), beta)
+        return y * win_func(len(y), beta)
     if method == WindowingMethod.TUKEY:
-        return y * scipy.signal.windows.tukey(len(y), alpha)
+        return y * win_func(len(y), alpha)
     # Cases without parameters:
-    win_func = get_window(method)
     return y * win_func(len(y))
