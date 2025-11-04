@@ -45,6 +45,6 @@ def normalize(
         return yin / np.nansum(yin)
     if parameter == NormalizationMethod.ENERGY:
         return yin / np.sqrt(np.nansum(yin * yin.conjugate()))
-    if parameter == NormalizationMethod.RMS:
-        return yin / np.sqrt(np.nanmean(yin * yin.conjugate()))
-    raise RuntimeError(f"Unsupported parameter {parameter}")
+    # At this point, we must have RMS normalization (last option)
+    assert parameter == NormalizationMethod.RMS
+    return yin / np.sqrt(np.nanmean(yin * yin.conjugate()))
