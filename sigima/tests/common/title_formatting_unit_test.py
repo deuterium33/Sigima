@@ -44,9 +44,6 @@ class TestSimpleTitleFormatter:
         result = formatter.format_1_to_1_title("gaussian_filter", "sigma=1.5")
         assert result == "Gaussian Filter Result (sigma=1.5)"
 
-        # Test with operator
-        assert formatter.format_1_to_1_title("+") == "operator_+"
-
     def test_n_to_1_operations(self):
         """Test SimpleTitleFormatter for n-to-1 operations."""
         formatter = SimpleTitleFormatter()
@@ -96,13 +93,6 @@ class TestSimpleTitleFormatter:
         # Test single words
         result = formatter.format_1_to_1_title("normalize")
         assert "Normalize" in result
-
-        # Test operators (should be handled specially)
-        result = formatter.format_1_to_1_title("+")
-        assert "operator_+" in result
-
-        result = formatter.format_1_to_1_title("-")
-        assert "operator_-" in result
 
     def test_edge_cases(self):
         """Test edge cases for SimpleTitleFormatter."""

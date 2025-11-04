@@ -99,12 +99,9 @@ class SimpleTitleFormatter:
 
     def format_1_to_1_title(self, name: str, suffix: str | None = None) -> str:
         """Format title for 1-to-1 computation."""
-        if len(name) == 1:  # This is an operator
-            base_title = f"operator_{name}"
-        else:
-            # Convert function names to human-readable format
-            readable_name = name.replace("_", " ").title()
-            base_title = f"{readable_name} Result"
+        # Convert function names to human-readable format
+        readable_name = name.replace("_", " ").title()
+        base_title = f"{readable_name} Result"
 
         if suffix:
             base_title += f" ({suffix})"
@@ -151,14 +148,9 @@ class PlaceholderTitleFormatter:
 
     def format_1_to_1_title(self, name: str, suffix: str | None = None) -> str:
         """Format title for 1-to-1 computation with placeholder."""
-        if len(name) == 1:  # This is an operator
-            title = f"{{0}}{name}"
-        else:
-            title = f"{name}({{0}})"
-            if suffix:  # suffix may be None or an empty string
-                title += "|"
-        if suffix:  # suffix may be None or an empty string
-            title += suffix
+        title = f"{name}({{0}})"
+        if suffix:
+            title += "|" + suffix
         return title
 
     def format_n_to_1_title(
