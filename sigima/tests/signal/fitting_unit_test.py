@@ -876,6 +876,11 @@ def test_signal_evaluate_fit() -> None:
     assert result_params["a"] == fit_params["a"], "Fitted a should match"
     assert result_params["b"] == fit_params["b"], "Fitted b should match"
 
+    # Remove "fit_params" and verify that the extract_fit_params raises a ValueError:
+    del result.metadata["fit_params"]
+    with pytest.raises(ValueError, match="Signal does not contain fit parameters"):
+        sigima.proc.signal.extract_fit_params(result)
+
 
 def test_fitting_user_experience() -> None:
     """Test user experience aspects of fitting functions."""
