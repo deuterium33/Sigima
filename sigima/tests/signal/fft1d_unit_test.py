@@ -155,12 +155,17 @@ def test_signal_fft() -> None:
     check_array_result("Original and recovered y data", s1.x, ifft.x.real)
 
 
+@pytest.mark.skip(reason="Already covered by the `test_signal_fft` test.")
 @pytest.mark.validation
 def test_signal_ifft() -> None:
-    """1D iFFT validation test.
+    """1D iFFT validation test."""
+    # This is just a way of marking the iFFT test as a validation test because it is
+    # already covered by the FFT test above (there is no need to repeat the same test).
+    # The tested function is :py:func:`sigima.proc.signal.ifft`.
 
-    Check that the original and reconstructed signals are equal.
-    """
+
+def test_fft_ifft_tools() -> None:
+    """Fourier 1D FFT/iFFT tools unit test."""
     param = sigima.objects.CosineParam.create(size=500)
 
     # *** Note ***
@@ -316,7 +321,7 @@ if __name__ == "__main__":
     guiutils.enable_gui()
     test_signal_zero_padding()
     test_signal_fft()
-    test_signal_ifft()
+    test_fft_ifft_tools()
     test_signal_magnitude_spectrum()
     test_signal_phase_spectrum()
     test_signal_psd()
