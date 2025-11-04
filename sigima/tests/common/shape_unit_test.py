@@ -7,6 +7,7 @@ Unit tests for shape module
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from sigima.objects import shape
 
@@ -172,6 +173,80 @@ def test_transpose_all_types() -> None:
     assert np.allclose(poly.data, [3, 2, 5, 4, 7, 6])
 
 
+def test_validation_invalid_ndim() -> None:
+    """Test that validation rejects non-1D arrays."""
+    # PointCoordinates expects 1D array
+    with pytest.raises(ValueError, match="Invalid.*coordinates ndim.*expected 1"):
+        shape.PointCoordinates([[1, 2]])  # 2D array
+
+    # SegmentCoordinates expects 1D array
+    with pytest.raises(ValueError, match="Invalid.*coordinates ndim.*expected 1"):
+        shape.SegmentCoordinates([[1, 2, 3, 4]])  # 2D array
+
+    # RectangleCoordinates expects 1D array
+    with pytest.raises(ValueError, match="Invalid.*coordinates ndim.*expected 1"):
+        shape.RectangleCoordinates(np.array([[0, 0, 2, 3]]))  # 2D array
+
+
+def test_validation_invalid_shape() -> None:
+    """Test that validation rejects arrays with wrong shape."""
+    # PointCoordinates expects exactly 2 values
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape.*expected.*2"):
+        shape.PointCoordinates([1, 2, 3])  # 3 values instead of 2
+
+    # SegmentCoordinates expects exactly 4 values
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape.*expected.*4"):
+        shape.SegmentCoordinates([1, 2, 3])  # 3 values instead of 4
+
+    # RectangleCoordinates expects exactly 4 values
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape.*expected.*4"):
+        shape.RectangleCoordinates([1, 2, 3, 4, 5])  # 5 values instead of 4
+
+    # CircleCoordinates expects exactly 3 values
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape.*expected.*3"):
+        shape.CircleCoordinates([1, 2])  # 2 values instead of 3
+
+    # EllipseCoordinates expects exactly 4 values
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape.*expected.*4"):
+        shape.EllipseCoordinates([1, 2, 3])  # 3 values instead of 4
+
+
+def test_validation_odd_number_of_values() -> None:
+    """Test that PolygonCoordinates rejects odd number of values."""
+    # PolygonCoordinates requires even number of values (x,y pairs)
+    with pytest.raises(
+        ValueError, match="Invalid.*coordinates.*even number of values expected"
+    ):
+        shape.PolygonCoordinates([1, 2, 3])  # 3 values (odd)
+
+    with pytest.raises(
+        ValueError, match="Invalid.*coordinates.*even number of values expected"
+    ):
+        shape.PolygonCoordinates([1, 2, 3, 4, 5])  # 5 values (odd)
+
+    # Valid cases with even number of values should work
+    poly = shape.PolygonCoordinates([1, 2, 3, 4])  # 4 values (even) - OK
+    assert poly.data.size == 4
+
+    poly = shape.PolygonCoordinates([1, 2, 3, 4, 5, 6])  # 6 values (even) - OK
+    assert poly.data.size == 6
+
+
+def test_validation_edge_cases() -> None:
+    """Test validation with edge cases."""
+    # Empty arrays should fail for shapes with VALID_SHAPE
+    with pytest.raises(ValueError, match="Invalid.*coordinates shape"):
+        shape.PointCoordinates([])
+
+    # Test with single value (wrong for all shapes)
+    with pytest.raises(ValueError, match="Invalid.*coordinates"):
+        shape.PointCoordinates([1])
+
+    # PolygonCoordinates with empty array (0 is even, but probably not useful)
+    poly = shape.PolygonCoordinates([])
+    assert poly.data.size == 0  # Technically valid
+
+
 if __name__ == "__main__":
     test_point_inplace_transform_and_copy()
     test_rectangle_inplace_transform()
@@ -181,3 +256,7 @@ if __name__ == "__main__":
     test_rotate_arbitrary_center()
     test_fliph_flipv_arbitrary_axis()
     test_transpose_all_types()
+    test_validation_invalid_ndim()
+    test_validation_invalid_shape()
+    test_validation_odd_number_of_values()
+    test_validation_edge_cases()
