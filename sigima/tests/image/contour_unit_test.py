@@ -13,11 +13,14 @@ import time
 import numpy as np
 import pytest
 
+import sigima.objects
+import sigima.params
+import sigima.proc.image
 from sigima.enums import ContourShape
 from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
-from sigima.tests.helpers import check_scalar_result
+from sigima.tests.helpers import check_array_result, check_scalar_result
 from sigima.tools import coordinates
 from sigima.tools.image import get_2d_peaks_coords, get_contour_shapes
 
@@ -95,6 +98,12 @@ def test_contour_shape() -> None:
         # Get contour shapes from the function
         detected_shapes = get_contour_shapes(data, shape=shape)
         execenv.print(f"Detected {len(detected_shapes)} {shape}(s)")
+
+        # Ensure we have the same results with the `contour_shape` computation function:
+        image = sigima.objects.create_image("Contour Test Image", data=data)
+        param = sigima.params.ContourShapeParam.create(shape=shape)
+        results = sigima.proc.image.contour_shape(image, param)
+        check_array_result(f"Contour shapes ({shape})", detected_shapes, results.coords)
 
         # Basic validation checks
         assert isinstance(detected_shapes, np.ndarray), (
