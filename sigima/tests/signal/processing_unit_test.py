@@ -546,13 +546,19 @@ def test_signal_interpolate() -> None:
     x2_extrap = np.array([-1.0, 0.5, 1.5, 5.0])  # Include points outside range
     y2_extrap = np.zeros_like(x2_extrap)
     src2_extrap = sigima.objects.create_signal("src2_extrap", x2_extrap, y2_extrap)
-
+    # First, we test the linear method:
     p.method = sigima.enums.Interpolation1DMethod.LINEAR
     p.fill_value = -999.0  # Custom fill value for extrapolation
     dst = sigima.proc.signal.interpolate(src1, src2_extrap, p)
     expected_with_fill = np.array([-999.0, 0.5, 2.5, -999.0])
     check_array_result("Interpolate[LINEAR+fill_value]", dst.y, expected_with_fill)
     check_array_result("Interpolate[LINEAR+fill_value]|x", dst.x, x2_extrap)
+    # Then, we test the pchip method:
+    p.method = sigima.enums.Interpolation1DMethod.PCHIP
+    dst = sigima.proc.signal.interpolate(src1, src2_extrap, p)
+    expected_with_fill_pchip = np.array([-999.0, 0.3125, 2.21875, -999.0])
+    check_array_result("Interpolate[PCHIP+fill_value]", dst.y, expected_with_fill_pchip)
+    check_array_result("Interpolate[PCHIP+fill_value]|x", dst.x, x2_extrap)
 
 
 @pytest.mark.validation
