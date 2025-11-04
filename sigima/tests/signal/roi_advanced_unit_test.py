@@ -172,6 +172,11 @@ def test_signal_extract_rois() -> None:
         "copied to extracted signal)"
     )
 
+    # Create a single ROI and extract it (for test coverage)
+    single_roi = sigima.objects.create_signal_roi([SROI1], indices=True)
+    sig2 = sigima.proc.signal.extract_rois(src, single_roi.to_params(src))
+    assert sig2.data.size == size_roi1, f"Signal size mismatch{context}"
+
 
 @pytest.mark.validation
 def test_signal_extract_roi() -> None:
