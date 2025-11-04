@@ -94,8 +94,7 @@ def polynomial_fit(src: SignalObj, p: PolynomialFitParam) -> SignalObj:
     Returns:
         Result signal object
     """
-    if p.degree < 1:
-        raise ValueError("The polynomial degree must be at least 1.")
+    # Note: no need to check degree here as gds.IntItem already enforces min=1
     return __generic_fit(src, lambda x, y: fitting.polynomial_fit(x, y, p.degree))
 
 
