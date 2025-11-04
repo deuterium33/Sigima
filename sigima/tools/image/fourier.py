@@ -224,7 +224,8 @@ def deconvolve(
     if kh % 2 == 0 or kw % 2 == 0:
         # Warning for even-sized kernels (off-by-one in centered FFT)
         warnings.warn(
-            "Deconvolution kernel should have odd dimensions for centered FFT."
+            f"Deconvolution kernel has even dimension(s) ({kh}×{kw}); "
+            f"odd dimensions recommended for centered FFT."
         )
 
     # Symmetric padding for centered 'same' convolution

@@ -73,16 +73,18 @@ def _generate_gaussian_kernel(size: int = 32, sigma: float = 1.0) -> ImageObj:
     return kernel
 
 
-def _generate_identity_kernel(size: int = 7) -> ImageObj:
+def _generate_identity_kernel(size: int = 7, ignore_odd: bool = False) -> ImageObj:
     """Generate an identity kernel image.
 
     Args:
         size: The dimension of the square kernel to generate (must be odd).
+        ignore_odd: If True, do not check for odd size.
 
     Returns:
         An image object.
     """
-    assert size % 2 == 1, "Identity kernel size must be odd."
+    if not ignore_odd:
+        assert size % 2 == 1, "Identity kernel size must be odd."
     kernel = create_image_from_param(Zero2DParam.create(height=size, width=size))
     assert kernel.data is not None
     kernel.data[size // 2, size // 2] = 1.0
@@ -152,7 +154,7 @@ def test_image_deconvolution(size: int = 32) -> None:
         )
         check_array_result("Deconvolution identity", deconvolved.data, original.data)
 
-        # # Test with a Gaussian kernel.
+        # Test with a Gaussian kernel.
         kernel = _generate_gaussian_kernel(size=31, sigma=1.0)
         original, convolved = __convolve_image(kernel, size=64)
         deconvolved = deconvolution(convolved, kernel)
@@ -162,6 +164,14 @@ def test_image_deconvolution(size: int = 32) -> None:
             ["Original", "Kernel", "Convolved", "Deconvolved"],
             title="Image Deconvolution Test: Gaussian Kernel",
         )
+
+        # Test with a non-odd-sized kernel.
+        kernel = _generate_identity_kernel(size=8, ignore_odd=True)
+        # Check that a warning is raised for non-odd-sized kernel.
+        with pytest.warns(
+            UserWarning, match=r"Deconvolution kernel has even dimension\(s\).*"
+        ):
+            deconvolved = deconvolution(convolved, kernel)
 
 
 def test_tools_image_deconvolve_null_kernel() -> None:
