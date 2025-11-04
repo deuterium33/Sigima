@@ -4,7 +4,9 @@
 Testing validation test introspection and CSV generation.
 """
 
+import inspect
 import os.path as osp
+import re
 
 import sigima.tests as tests_pkg
 from sigima.proc.decorator import find_computation_functions
@@ -198,8 +200,155 @@ def test_computation_functions_documented_in_features() -> None:
         raise AssertionError("\n".join(error_messages))
 
 
+def _check_function_referenced_in_code(
+    source_code: str, module_name: str, func_name: str
+) -> bool:
+    """Check if a computation function is referenced in source code.
+
+    This is a simple check that looks for the fully qualified function name
+    anywhere in the code (e.g., "sigima.proc.image.fliph").
+
+    Args:
+        source_code: Source code to check
+        module_name: Module name (e.g., "sigima.proc.image")
+        func_name: Function name (e.g., "fliph")
+
+    Returns:
+        True if the function is referenced in the code
+    """
+    # Simply check if the full qualified name appears in the source
+    full_name = f"{module_name}.{func_name}"
+    return full_name in source_code
+
+
+def _get_helper_functions_called(source_code: str) -> set[str]:
+    """Extract names of helper functions called in source code.
+
+    Args:
+        source_code: Source code to analyze
+
+    Returns:
+        Set of function names that are called
+    """
+    # Find all function calls that start with __ or _ (helper functions)
+    pattern = r"\b(__\w+|_\w+)\s*\("
+    matches = re.findall(pattern, source_code)
+    return set(matches)
+
+
+def test_validation_tests_call_computation_functions() -> None:
+    """Test that validation tests actually call the computation functions they test.
+
+    This test ensures that each validation test marked with @pytest.mark.validation
+    references the corresponding computation function (those decorated with
+    @computation_function) either directly or through helper functions in the
+    same test module.
+    """
+    # Get all functions marked with @pytest.mark.validation
+    validation_tests = get_validation_tests(tests_pkg)
+
+    # Get all computation functions
+    computation_functions = find_computation_functions()
+
+    # Build a mapping from test names to computation functions
+    test_to_function_map = {}
+    for module_name, func_name, _ in computation_functions:
+        valid_test_names = generate_valid_test_names_for_function(
+            module_name, func_name
+        )
+        for test_name in valid_test_names:
+            if test_name not in test_to_function_map:
+                test_to_function_map[test_name] = []
+            test_to_function_map[test_name].append((module_name, func_name))
+
+    # Check each validation test to ensure it references the computation function
+    tests_not_calling_function = []
+
+    for test_name, test_path, line_number in validation_tests:
+        if test_name not in test_to_function_map:
+            # This test doesn't correspond to any computation function
+            # (will be caught by another test)
+            continue
+
+        # Get the source code of the test function
+        # Import the test module and get the function
+        rel_path = osp.relpath(test_path, start=osp.dirname(tests_pkg.__file__))
+        module_parts = rel_path.replace(osp.sep, ".").replace(".py", "")
+        test_module_name = f"sigima.tests.{module_parts}"
+
+        try:
+            test_module = __import__(test_module_name, fromlist=[test_name])
+            test_func = getattr(test_module, test_name)
+            test_source_code = inspect.getsource(test_func)
+        except (ImportError, AttributeError, OSError):
+            # Skip if we can't get the source (e.g., built-in functions)
+            continue
+
+        # Check if the computation function is referenced in the test
+        for module_name, func_name in test_to_function_map[test_name]:
+            # Check if it's referenced directly in the test
+            function_referenced = _check_function_referenced_in_code(
+                test_source_code, module_name, func_name
+            )
+
+            # If not found directly, check helper functions
+            if not function_referenced:
+                helper_funcs = _get_helper_functions_called(test_source_code)
+
+                for helper_name in helper_funcs:
+                    try:
+                        helper_func = getattr(test_module, helper_name, None)
+                        if helper_func and callable(helper_func):
+                            helper_source = inspect.getsource(helper_func)
+                            if _check_function_referenced_in_code(
+                                helper_source, module_name, func_name
+                            ):
+                                function_referenced = True
+                                break
+                    except (AttributeError, OSError):
+                        # Can't get source for this helper, skip it
+                        continue
+
+            if not function_referenced:
+                tests_not_calling_function.append(
+                    (test_name, module_name, func_name, test_path, line_number)
+                )
+
+    # Report any validation tests that don't call their computation functions
+    if tests_not_calling_function:
+        error_messages = []
+        error_messages.append(
+            "The following validation tests don't call their corresponding "
+            "computation functions:"
+        )
+        for (
+            test_name,
+            module_name,
+            func_name,
+            test_path,
+            line_number,
+        ) in tests_not_calling_function:
+            rel_path = osp.relpath(test_path, start=osp.dirname(tests_pkg.__file__))
+            file_path = rel_path.replace(osp.sep, "\\")
+            error_messages.append(
+                f"  - {file_path}:{line_number} ({test_name})\n"
+                f"    Expected to call: {module_name}.{func_name}"
+            )
+        error_messages.append("")
+        error_messages.append(f"Found {len(tests_not_calling_function)} invalid cases.")
+        error_messages.append(
+            "Validation tests must call the computation function they are testing, "
+            "not the underlying utility functions. Please update these tests to call "
+            "the computation function (e.g., sigima.proc.image.func_name(...)) "
+            "instead of calling lower-level utility functions directly."
+        )
+
+        raise AssertionError("\n".join(error_messages))
+
+
 if __name__ == "__main__":
     test_validation_statistics()
     test_validation_missing_tests()
     test_validation_decorator_only_on_computation_functions()
     test_computation_functions_documented_in_features()
+    test_validation_tests_call_computation_functions()
