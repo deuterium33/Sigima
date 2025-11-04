@@ -34,7 +34,6 @@ from skimage import exposure
 import sigima.enums
 import sigima.tools.image
 from sigima.config import _
-from sigima.objects.base import BaseProcParam
 from sigima.objects.image import ImageObj, ROI2DParam
 from sigima.objects.signal import SignalObj
 from sigima.proc.base import (
@@ -295,14 +294,10 @@ def equalize_adapthist(src: ImageObj, p: EqualizeAdaptHistParam) -> ImageObj:
     return dst
 
 
-class FlatFieldParam(BaseProcParam):
+class FlatFieldParam(gds.DataSet):
     """Flat-field parameters"""
 
     threshold = gds.FloatItem(_("Threshold"), default=0.0)
-
-    def update_from_obj(self, obj: ImageObj) -> None:
-        """Update parameters from image"""
-        self.set_from_datatype(obj.data.dtype)
 
 
 @computation_function()
