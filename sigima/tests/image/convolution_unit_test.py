@@ -128,6 +128,10 @@ def test_image_convolution(size: int = 32) -> None:
             ["Original", "Kernel", "Convolved"],
             title="Image Convolution Test: Identity Kernel",
         )
+        # Test with a null kernel.
+        kernel.data = np.array([])
+        with pytest.raises(ValueError, match="Convolution kernel cannot be null."):
+            convolution(original, kernel)
 
 
 @pytest.mark.validation
