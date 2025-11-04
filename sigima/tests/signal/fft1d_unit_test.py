@@ -51,7 +51,7 @@ def test_signal_zero_padding() -> None:
             f" (expected {expected_length})"
         )
 
-    # Validate zero padding
+    # Validate zero padding with custom strategy
     param = sigima.params.ZeroPadding1DParam.create(strategy="custom", n=250)
     assert param.n is not None
     for location in PadLocation1D:
@@ -121,6 +121,18 @@ def test_signal_zero_padding() -> None:
                 np.zeros(n - n // 2),
             )
         execenv.print("OK")
+
+    # Validate zero padding with other strategies
+    for strategy in sigima.params.ZeroPadding1DParam.strategies:
+        if strategy == "custom":
+            continue  # Already tested above
+        param = sigima.params.ZeroPadding1DParam.create(strategy=strategy)
+        param.update_from_obj(s1)
+        s2 = sigima.proc.signal.zero_padding(s1, param)
+        len1 = s1.y.size
+        n = param.n
+        exp_len2 = len1 + n
+        assert s2.y.size == exp_len2, f"Wrong length: {len(s2.y)} (expected {exp_len2})"
 
 
 @pytest.mark.validation
