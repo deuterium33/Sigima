@@ -26,14 +26,36 @@ from sigima.proc.decorator import computation_function
 from sigima.proc.signal.base import (
     is_uncertainty_data_available,
     restore_data_outside_roi,
-    signals_dy_to_array,
-    signals_y_to_array,
 )
 from sigima.proc.signal.mathops import inverse
 from sigima.tools.signal import scaling
 
 if TYPE_CHECKING:
     from sigima.objects import ImageObj
+
+
+def __signals_y_to_array(signals: list[SignalObj]) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `y` attribute.
+
+    Args:
+        signals: List of signal objects.
+
+    Returns:
+        A NumPy array stacking the `y` attribute from all signals.
+    """
+    return np.array([sig.y for sig in signals], dtype=signals[0].y.dtype)
+
+
+def __signals_dy_to_array(signals: list[SignalObj]) -> np.ndarray:
+    """Create an array from a list of signals, extracting the `dy` attribute.
+
+    Args:
+        signals: List of signal objects.
+
+    Returns:
+        A NumPy array stacking the `dy` attribute from all signals.
+    """
+    return np.array([sig.dy for sig in signals], dtype=signals[0].dy.dtype)
 
 
 @computation_function()
@@ -63,9 +85,9 @@ def addition(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the sum of the source signals.
     """
     dst = dst_n_to_1(src_list, "Σ")  # `dst` data is initialized to `src_list[0]` data.
-    dst.y = np.sum(signals_y_to_array(src_list), axis=0)
+    dst.y = np.sum(__signals_y_to_array(src_list), axis=0)
     if is_uncertainty_data_available(src_list):
-        dst.dy = np.sqrt(np.sum(signals_dy_to_array(src_list) ** 2, axis=0))
+        dst.dy = np.sqrt(np.sum(__signals_dy_to_array(src_list) ** 2, axis=0))
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
@@ -97,9 +119,9 @@ def average(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the average of the source signals.
     """
     dst = dst_n_to_1(src_list, "µ")  # `dst` data is initialized to `src_list[0]` data.
-    dst.y = np.mean(signals_y_to_array(src_list), axis=0)
+    dst.y = np.mean(__signals_y_to_array(src_list), axis=0)
     if is_uncertainty_data_available(src_list):
-        dy_array = signals_dy_to_array(src_list)
+        dy_array = __signals_dy_to_array(src_list)
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0)) / len(src_list)
     restore_data_outside_roi(dst, src_list[0])
     return dst
@@ -128,7 +150,7 @@ def standard_deviation(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the standard deviation of the source signals.
     """
     dst = dst_n_to_1(src_list, "𝜎")  # `dst` data is initialized to `src_list[0]` data
-    dst.y = np.std(signals_y_to_array(src_list), axis=0, ddof=0)
+    dst.y = np.std(__signals_y_to_array(src_list), axis=0, ddof=0)
     if is_uncertainty_data_available(src_list):
         dst.dy = dst.y / np.sqrt(2 * (len(src_list) - 1))
     restore_data_outside_roi(dst, src_list[0])
@@ -162,10 +184,10 @@ def product(src_list: list[SignalObj]) -> SignalObj:
         Signal object representing the product of the source signals.
     """
     dst = dst_n_to_1(src_list, "Π")  # `dst` data is initialized to `src_list[0]` data.
-    y_array = signals_y_to_array(src_list)
+    y_array = __signals_y_to_array(src_list)
     dst.y = np.prod(y_array, axis=0)
     if is_uncertainty_data_available(src_list):
-        dy_array = signals_dy_to_array(src_list)
+        dy_array = __signals_dy_to_array(src_list)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             uncertainty = np.abs(dst.y) * np.sqrt(
@@ -387,7 +409,7 @@ def difference(src1: SignalObj, src2: SignalObj) -> SignalObj:
     dst = dst_2_to_1(src1, src2, "-")
     dst.y = src1.y - src2.y
     if is_uncertainty_data_available([src1, src2]):
-        dy_array = signals_dy_to_array([src1, src2])
+        dy_array = __signals_dy_to_array([src1, src2])
         dst.dy = np.sqrt(np.sum(dy_array**2, axis=0))
     restore_data_outside_roi(dst, src1)
     return dst
@@ -458,30 +480,6 @@ def division(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-def signals_to_array(
-    signals: list[SignalObj], attr: str = "y", dtype: np.dtype | None = None
-) -> np.ndarray:
-    """Create an array from a list of signals.
-
-    Args:
-        signals: List of signal objects.
-        attr: Name of the attribute to extract ("y", "dy", etc.). Defaults to "y".
-        dtype: Desired type for the output array. If None, use the first signal's dtype.
-
-    Returns:
-        A NumPy array stacking the specified attribute from all signals.
-
-    Raises:
-        ValueError: If the signals list is empty.
-    """
-    if not signals:
-        raise ValueError("The signal list is empty.")
-    if dtype is None:
-        dtype = getattr(signals[0], attr).dtype
-    arr = np.array([getattr(sig, attr) for sig in signals], dtype=dtype)
-    return arr
-
-
 @computation_function()
 def signals_to_image(src_list: list[SignalObj], p: SignalsToImageParam) -> ImageObj:
     """Combine multiple signals into an image.
@@ -520,7 +518,7 @@ def signals_to_image(src_list: list[SignalObj], p: SignalsToImageParam) -> Image
         )
 
     # Prepare data array
-    y_array = signals_y_to_array(src_list)
+    y_array = __signals_y_to_array(src_list)
 
     # Normalize if requested
     if p.normalize:

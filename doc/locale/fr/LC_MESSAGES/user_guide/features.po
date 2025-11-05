@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 10:04+0100\n"
+"POT-Creation-Date: 2025-11-05 16:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -507,12 +507,6 @@ msgstr "Traitement du signal"
 
 msgid "Array Operations"
 msgstr "Opérations sur les tableaux"
-
-msgid ":func:`signals_to_array <sigima.proc.signal.signals_to_array>`"
-msgstr ""
-
-msgid "Convert multiple signals to array"
-msgstr "Convertir plusieurs signaux en tableau"
 
 msgid ":func:`signals_to_image <sigima.proc.signal.signals_to_image>`"
 msgstr ""
@@ -1329,3 +1323,4 @@ msgstr ":doc:`../api/objects` - Objets de données (SignalObj, ImageObj) utilis�
 
 msgid ":doc:`../auto_examples/index` - Examples demonstrating various computation features"
 msgstr ":doc:`../auto_examples/index` - Exemples démontrant diverses fonctionnalités de calcul"
+

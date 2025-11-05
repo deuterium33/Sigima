@@ -94,6 +94,8 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * Modified `RadialProfileParam` to allow initialization of the dataset even when the associated image object is not yet set (call to `update_from_obj`). This is useful when creating the parameter object before assigning the image, enabling more flexible workflows.
 
+* Removed unused `signals_to_array()` function from `sigima.proc.signal.arithmetic` module. This function was not used anywhere in the codebase and has been replaced by direct NumPy array construction in `__signals_y_to_array()` and `__signals_dy_to_array()` functions, for internal use only.
+
 ## sigima 1.0.0 ##
 
 💥 New features and enhancements:

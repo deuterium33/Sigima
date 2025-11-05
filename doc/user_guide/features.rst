@@ -296,8 +296,6 @@ Array Operations
 
    * - Function
      - Description
-   * - :func:`signals_to_array <sigima.proc.signal.signals_to_array>`
-     - Convert multiple signals to array
    * - :func:`signals_to_image <sigima.proc.signal.signals_to_image>`
      - Convert signals to image representation
 

@@ -111,7 +111,6 @@ from sigima.proc.signal.arithmetic import (
     product,
     product_constant,
     quadratic_difference,
-    signals_to_array,
     signals_to_image,
     standard_deviation,
 )
@@ -120,8 +119,6 @@ from sigima.proc.signal.base import (
     compute_geometry_from_obj,
     is_uncertainty_data_available,
     restore_data_outside_roi,
-    signals_dy_to_array,
-    signals_y_to_array,
 )
 from sigima.proc.signal.extraction import (
     extract_roi,
@@ -352,10 +349,7 @@ __all__ = [
     "reverse_x",
     "sampling_rate_period",
     "sigmoid_fit",
-    "signals_dy_to_array",
-    "signals_to_array",
     "signals_to_image",
-    "signals_y_to_array",
     "sinusoidal_fit",
     "sqrt",
     "standard_deviation",

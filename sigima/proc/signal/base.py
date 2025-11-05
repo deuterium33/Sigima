@@ -127,64 +127,6 @@ class Wrap1to1Func:
         return dst
 
 
-def signals_to_array(
-    signals: list[SignalObj], attr: str = "y", dtype: np.dtype | None = None
-) -> np.ndarray:
-    """Create an array from a list of signals.
-
-    Args:
-        signals: List of signal objects.
-        attr: Name of the attribute to extract ("y", "dy", etc.). Defaults to "y".
-        dtype: Desired type for the output array. If None, use the first signal's dtype.
-
-    Returns:
-        A NumPy array stacking the specified attribute from all signals.
-
-    Raises:
-        ValueError: If the signals list is empty.
-    """
-    if not signals:
-        raise ValueError("The signal list is empty.")
-    if dtype is None:
-        dtype = getattr(signals[0], attr).dtype
-    arr = np.array([getattr(sig, attr) for sig in signals], dtype=dtype)
-    return arr
-
-
-def signals_y_to_array(
-    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
-) -> np.ndarray:
-    """Create an array from a list of signals, extracting the `y` attribute.
-
-    Args:
-        signals: List of signal objects.
-        dtype: Desired type for the output array. If None, use the first signal's dtype.
-
-    Returns:
-        A NumPy array stacking the `y` attribute from all signals.
-    """
-    if isinstance(signals, SignalObj):
-        signals = [signals]
-    return signals_to_array(signals, attr="y", dtype=dtype)
-
-
-def signals_dy_to_array(
-    signals: SignalObj | list[SignalObj], dtype: np.dtype | None = None
-) -> np.ndarray:
-    """Create an array from a list of signals, extracting the `dy` attribute.
-
-    Args:
-        signals: List of signal objects.
-        dtype: Desired type for the output array. If None, use the first signal's dtype.
-
-    Returns:
-        A NumPy array stacking the `dy` attribute from all signals.
-    """
-    if isinstance(signals, SignalObj):
-        signals = [signals]
-    return signals_to_array(signals, attr="dy", dtype=dtype)
-
-
 def compute_geometry_from_obj(
     title: str,
     shape: str,
