@@ -342,10 +342,7 @@ def find_computation_functions() -> list[tuple[str, Callable]]:
     for _, modname, _ in pkgutil.walk_packages(
         path=[osp.dirname(__file__)], prefix=".".join(__name__.split(".")[:-1]) + "."
     ):
-        try:
-            module = importlib.import_module(modname)
-        except Exception:  # pylint: disable=broad-except
-            continue
+        module = importlib.import_module(modname)
         for name, obj in inspect.getmembers(module, inspect.isfunction):
             if is_computation_function(obj):
                 if obj in objs:  # Avoid double entries for the same function
