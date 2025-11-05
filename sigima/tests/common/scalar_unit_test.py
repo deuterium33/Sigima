@@ -613,6 +613,25 @@ class TestGeometryResultShapeSpecific:
             assert list(df.columns) == ["x0", "y0", "x1", "y1", add_col]
             np.testing.assert_array_equal(df.values[:, :-1], coords)
 
+    def test_segments_to_html(self) -> None:
+        """Test GeometryResult.to_html for segments."""
+        coords = np.array([[0.0, 0.0, 3.0, 4.0], [1.0, 1.0, 4.0, 5.0]])
+        geom = GeometryResult("Test", KindShape.SEGMENT, coords)
+        html_visible_false = geom.to_html(visible_only=False)
+        assert "<table" in html_visible_false
+        assert "x0" in html_visible_false
+        assert "y0" in html_visible_false
+        assert "x1" in html_visible_false
+        assert "y1" in html_visible_false
+        assert "length" in html_visible_false
+        html_visible_true = geom.to_html(visible_only=True)
+        assert "<table" in html_visible_true
+        assert "x0" not in html_visible_true
+        assert "y0" not in html_visible_true
+        assert "x1" not in html_visible_true
+        assert "y1" not in html_visible_true
+        assert "length" in html_visible_true
+
     def test_segments_lengths(self) -> None:
         """Test GeometryResult.segments_lengths method."""
         # Create segments: (0,0)-(3,4) and (1,1)-(4,5)

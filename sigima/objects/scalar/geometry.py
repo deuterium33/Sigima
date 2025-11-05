@@ -457,7 +457,7 @@ class GeometryResult:
         Args:
             obj: Optional SignalObj or ImageObj for ROI title extraction
             visible_only: If True, include only visible headers based on display
-             preferences. Default is False.
+             preferences.
             transpose_single_row: If True, transpose when there's only one row
             **kwargs: Additional arguments passed to DataFrame.to_html()
 
