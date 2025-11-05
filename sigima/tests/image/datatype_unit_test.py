@@ -17,6 +17,17 @@ from sigima.tests.env import execenv
 from sigima.tools.datatypes import clip_astype
 
 
+def test_from_numpy_dtype():
+    """Test conversion from numpy dtypes to ImageDatatypes"""
+    for dtype in ImageDatatypes:
+        np_dtype = dtype.value
+        dtype2 = ImageDatatypes.from_numpy_dtype(np_dtype)
+        txt = f"From numpy dtype: {np_dtype} -> {dtype2.name}"
+        execenv.print(txt, end="... ")
+        assert dtype2 == dtype, txt
+        execenv.print("OK")
+
+
 def get_integer_datatypes() -> list[ImageDatatypes]:
     """Return all integer data types."""
     return [dtype for dtype in ImageDatatypes if "int" in dtype.name.lower()]
