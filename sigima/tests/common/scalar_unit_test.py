@@ -7,6 +7,7 @@ Unit tests for scalar computation functions (GeometryResult transformations).
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from sigima.objects import (
@@ -147,6 +148,39 @@ class TestTableResultInitialization:
                 data=[[1, 2], [3, 4]],
                 roi_indices=[[0], [1]],
             )
+
+    def test_from_dataframe(self) -> None:
+        """Test TableResult.from_dataframe factory method."""
+        # Test without roi_index column
+        df = pd.DataFrame({"col1": [1.0, 2.0], "col2": [3.0, 4.0]})
+        result = TableResult.from_dataframe(df, title="Test DataFrame")
+        assert result.title == "Test DataFrame"
+        assert list(result.headers) == ["col1", "col2"]
+        # DataFrame converts row-wise: row 0 has [1.0, 3.0], row 1 has [2.0, 4.0]
+        assert result.data == [[1.0, 3.0], [2.0, 4.0]]
+        assert result.roi_indices is None
+
+        # Test with roi_index column
+        df_with_roi = pd.DataFrame(
+            {"col1": [1.0, 2.0], "col2": [3.0, 4.0], "roi_index": [0, 1]}
+        )
+        result_with_roi = TableResult.from_dataframe(
+            df_with_roi, title="Test DataFrame with ROI"
+        )
+        assert result_with_roi.title == "Test DataFrame with ROI"
+        assert list(result_with_roi.headers) == ["col1", "col2"]
+        assert result_with_roi.data == [[1.0, 3.0], [2.0, 4.0]]
+        assert result_with_roi.roi_indices == [0, 1]
+
+        # Test with attrs
+        result_with_attrs = TableResult.from_dataframe(
+            df, title="Test with Attrs", attrs={"method": "test"}
+        )
+        assert result_with_attrs.attrs == {"method": "test"}
+
+        # Test with invalid input (not a DataFrame)
+        with pytest.raises(TypeError, match="df must be a pandas DataFrame"):
+            TableResult.from_dataframe([[1, 2]], title="Invalid")
 
 
 class TestTableResultFactory:
