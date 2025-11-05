@@ -243,6 +243,18 @@ class TestTableResultSerialization:
         assert table.roi_indices == [0, 1]
         assert table.attrs == {"method": "test"}
 
+    def test_to_html(self) -> None:
+        """Test TableResult.to_html serialization."""
+        table = TableResult(
+            title="Test Table",
+            headers=["col1", "col2"],
+            data=[[1.0, 2.0], [3.0, 4.0]],
+        )
+        html = table.to_html()
+        assert "<table" in html
+        assert "col1" in html
+        assert "col2" in html
+
 
 class TestTableResultDataAccess:
     """Test class for TableResult data access methods."""

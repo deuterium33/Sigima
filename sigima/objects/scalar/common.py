@@ -129,7 +129,7 @@ class ResultHtmlGenerator:
     @staticmethod
     def generate_html(
         result: GeometryResult | TableResult,
-        obj: SignalObj | ImageObj,
+        obj: SignalObj | ImageObj | None = None,
         visible_only: bool = True,
         transpose_single_row: bool = True,
         **kwargs,
@@ -192,9 +192,11 @@ class ResultHtmlGenerator:
     def _get_row_headers(
         result: TableResult | "GeometryResult",
         roi_indices: list[int] | None,
-        obj: SignalObj | ImageObj,
+        obj: SignalObj | ImageObj | None,
     ) -> list[str]:
         """Create row headers from ROI indices."""
+        if roi_indices is not None:
+            assert obj is not None, "obj must be provided if roi_indices is given"
         row_headers = []
         if roi_indices is not None:
             for roi_idx in roi_indices:

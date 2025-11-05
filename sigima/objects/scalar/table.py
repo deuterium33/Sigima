@@ -414,7 +414,7 @@ class TableResult:
 
     def to_html(
         self,
-        obj: SignalObj | ImageObj,
+        obj: SignalObj | ImageObj | None = None,
         visible_only: bool = True,
         transpose_single_row: bool = True,
         **kwargs,
@@ -424,7 +424,7 @@ class TableResult:
         Args:
             obj: SignalObj or ImageObj for ROI title extraction
             visible_only: If True, include only visible headers based on display
-             preferences. Default is False.
+             preferences.
             transpose_single_row: If True, transpose when there's only one row
             **kwargs: Additional arguments passed to DataFrame.to_html()
 

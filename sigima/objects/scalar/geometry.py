@@ -50,7 +50,7 @@ from __future__ import annotations
 
 import dataclasses
 import enum
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
 import pandas as pd
@@ -61,6 +61,9 @@ from sigima.objects.scalar.common import (
     DisplayPreferencesManager,
     ResultHtmlGenerator,
 )
+
+if TYPE_CHECKING:
+    from sigima.objects import ImageObj, SignalObj
 
 
 class KindShape(str, enum.Enum):
@@ -447,7 +450,7 @@ class GeometryResult:
 
     def to_html(
         self,
-        obj=None,
+        obj: SignalObj | ImageObj | None = None,
         visible_only: bool = True,
         transpose_single_row: bool = True,
         **kwargs,
