@@ -16,6 +16,26 @@ from sigima.tests.data import create_multigaussian_image
 from sigima.tests.helpers import print_obj_data_dimensions
 
 
+def test_image_roi_param() -> None:
+    """Test image ROI parameter conversion"""
+    # Create an image object
+    obj = create_multigaussian_image()
+    # Create an image ROI
+    coords = [100, 150, 200, 250]
+    roi = sigima.objects.create_image_roi("rectangle", coords, inverse=False)
+    # Convert to parameters
+    roiparam = roi.to_params(obj)[0]
+    assert isinstance(roiparam, sigima.objects.ROI2DParam), (
+        "Parameter should be ROI2DParam"
+    )
+    # Check that converting back to single ROI gives the same coordinates
+    single_roi = roiparam.to_single_roi(obj)
+    single_roi_coords = single_roi.get_physical_coords(obj)
+    assert np.all(single_roi_coords == np.array(coords)), (
+        "Single ROI coordinates mismatch"
+    )
+
+
 def test_image_roi_merge() -> None:
     """Test image ROI merge"""
     # Create an image object with a single ROI, and another one with another ROI.

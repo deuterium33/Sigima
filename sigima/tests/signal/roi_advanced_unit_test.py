@@ -26,6 +26,23 @@ def __create_test_signal() -> sigima.objects.SignalObj:
     return create_paracetamol_signal(size=SIZE)
 
 
+def test_signal_roi_param() -> None:
+    """Test signal ROI parameter conversion"""
+    obj = __create_test_signal()
+    coords = [50, 100]
+    roi = sigima.objects.create_signal_roi(coords, indices=True)
+    roiparam = roi.to_params(obj)[0]
+    assert isinstance(roiparam, sigima.objects.ROI1DParam), (
+        "ROI parameter should be of type ROI1DParam"
+    )
+    # Check that converting back to single ROI gives the same coordinates
+    single_roi = roiparam.to_single_roi(obj)
+    single_roi_coords = single_roi.get_indices_coords(obj)
+    assert np.array_equal(single_roi_coords, coords), (
+        "Converted single ROI coordinates should match original"
+    )
+
+
 def test_signal_roi_merge() -> None:
     """Test signal ROI merge"""
     # Create a signal object with a single ROI, and another one with another ROI.
