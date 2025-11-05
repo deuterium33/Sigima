@@ -159,9 +159,11 @@ def fft(src: SignalObj, p: FFTParam | None = None) -> SignalObj:
     Returns:
         Result signal object.
     """
+    if p is None:
+        p = FFTParam()
     dst = dst_1_to_1(src, "fft")
     x, y = src.get_data()
-    fft_x, fft_y = fourier.fft1d(x, y, shift=bool(True if p is None else p.shift))
+    fft_x, fft_y = fourier.fft1d(x, y, shift=p.shift)
     dst.set_xydata(fft_x, fft_y)
     dst.save_attr_to_metadata("xunit", "Hz" if dst.xunit == "s" else "")
     dst.save_attr_to_metadata("yunit", "")

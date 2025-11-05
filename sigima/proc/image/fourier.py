@@ -59,8 +59,10 @@ def fft(src: ImageObj, p: FFTParam | None = None) -> ImageObj:
     Returns:
         Output image object
     """
+    if p is None:
+        p = FFTParam()
     dst = dst_1_to_1(src, "fft")
-    dst.data = sigima.tools.image.fft2d(src.data, shift=True if p is None else p.shift)
+    dst.data = sigima.tools.image.fft2d(src.data, shift=p.shift)
     dst.save_attr_to_metadata("xunit", "")
     dst.save_attr_to_metadata("yunit", "")
     dst.save_attr_to_metadata("zunit", "")
@@ -80,8 +82,10 @@ def ifft(src: ImageObj, p: FFTParam | None = None) -> ImageObj:
     Returns:
         Output image object
     """
+    if p is None:
+        p = FFTParam()
     dst = dst_1_to_1(src, "ifft")
-    dst.data = sigima.tools.image.ifft2d(src.data, shift=True if p is None else p.shift)
+    dst.data = sigima.tools.image.ifft2d(src.data, shift=p.shift)
     dst.restore_attr_from_metadata("xunit", "")
     dst.restore_attr_from_metadata("yunit", "")
     dst.restore_attr_from_metadata("zunit", "")
