@@ -70,14 +70,6 @@ class TestSimpleTitleFormatter:
         result = formatter.format_2_to_1_title("divide", "method=euclidean")
         assert result == "Divide Result (method=euclidean)"
 
-    def test_placeholder_resolution(self):
-        """Test SimpleTitleFormatter placeholder resolution (should be unchanged)."""
-        formatter = SimpleTitleFormatter()
-
-        # Should return unchanged for simple formatter
-        result = formatter.resolve_placeholder_title("wiener({0})", [])
-        assert result == "wiener({0})"
-
     def test_humanize_function_name(self):
         """Test the function name humanization logic."""
         formatter = SimpleTitleFormatter()
@@ -143,28 +135,12 @@ class TestPlaceholderTitleFormatter:
         # Test basic 2-to-1 formatting
         assert formatter.format_2_to_1_title("subtract") == "subtract({0}, {1})"
 
+        # Test with operator
+        assert formatter.format_2_to_1_title("-") == "{0}-{1}"
+
         # Test with suffix
         result = formatter.format_2_to_1_title("divide", "method=euclidean")
         assert result == "divide({0}, {1})|method=euclidean"
-
-    def test_placeholder_resolution(self):
-        """Test PlaceholderTitleFormatter placeholder resolution."""
-        formatter = PlaceholderTitleFormatter()
-
-        # Create mock objects with simple string values (strings are used as fallback)
-        src1 = create_signal("Signal001", x=[1, 2], y=[3, 4])
-
-        # Test basic placeholder resolution (uses obj1 fallback since no short_id)
-        result = formatter.resolve_placeholder_title("wiener({0})", [src1])
-        assert result == "wiener(obj1)"
-
-        # Test with suffix (suffix is preserved in resolution)
-        result = formatter.resolve_placeholder_title("gaussian({0})|sigma=2.0", [src1])
-        assert result == "gaussian(obj1)|sigma=2.0"
-
-        # Test empty placeholders list (should raise IndexError)
-        with pytest.raises(IndexError):
-            formatter.resolve_placeholder_title("wiener({0})", [])
 
     def test_edge_cases(self):
         """Test edge cases for PlaceholderTitleFormatter."""
@@ -182,28 +158,19 @@ class TestPlaceholderTitleFormatter:
         assert result == "test({0})"
 
     def test_datalab_compatibility(self):
-        """Test DataLab-style placeholder resolution compatibility."""
+        """Test DataLab-style placeholder patterns."""
         formatter = PlaceholderTitleFormatter()
 
-        # Create signal objects for testing
-        sig1 = create_signal("Signal001", x=[1, 2], y=[3, 4])
-
-        # Test typical DataLab usage patterns (uses obj1 fallback without short_id)
+        # Test typical DataLab placeholder patterns (DataLab handles resolution itself)
         test_cases = [
-            ("wiener({0})", [sig1], "wiener(obj1)"),
-            ("gaussian({0})|sigma=2.0", [sig1], "gaussian(obj1)|sigma=2.0"),
-            ("add({0})|3 objects", [sig1], "add(obj1)|3 objects"),
+            ("wiener", None, "wiener({0})"),
+            ("gaussian", "sigma=2.0", "gaussian({0})|sigma=2.0"),
+            ("add", "3 objects", "add({0})|3 objects"),
         ]
 
-        for placeholder_title, source_titles, expected in test_cases:
-            result = formatter.resolve_placeholder_title(
-                placeholder_title, source_titles
-            )
+        for func_name, suffix, expected in test_cases:
+            result = formatter.format_1_to_1_title(func_name, suffix)
             assert result == expected
-
-        # Test empty list case (should raise IndexError)
-        with pytest.raises(IndexError):
-            formatter.resolve_placeholder_title("fft({0})", [])
 
 
 class TestFormatterConfiguration:

@@ -11,10 +11,7 @@ strategies while maintaining compatibility.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-if TYPE_CHECKING:
-    from sigima.objects.base import BaseObj
+from typing import Protocol, runtime_checkable
 
 __all__ = [
     "PlaceholderTitleFormatter",
@@ -71,24 +68,6 @@ class TitleFormatter(Protocol):
             Formatted title string
         """
 
-    def resolve_placeholder_title(
-        self,
-        title: str,
-        source_objects: list[BaseObj],
-    ) -> str:
-        """Resolve placeholder title with actual object references.
-
-        This method takes a title with placeholders (e.g., "wiener({0})")
-        and replaces them with actual object identifiers.
-
-        Args:
-            title: Title containing placeholders
-            source_objects: List of source objects to use for replacement
-
-        Returns:
-            Title with placeholders resolved
-        """
-
 
 class SimpleTitleFormatter:
     """Simple descriptive title formatter for Sigima-only usage.
@@ -130,14 +109,6 @@ class SimpleTitleFormatter:
             base_title += f" ({suffix})"
         return base_title
 
-    def resolve_placeholder_title(
-        self,
-        title: str,
-        source_objects: list[BaseObj],  # pylint: disable=unused-argument
-    ) -> str:
-        """For simple formatter, just return the title as-is."""
-        return title
-
 
 class PlaceholderTitleFormatter:
     """Placeholder-based title formatter compatible with DataLab.
@@ -172,28 +143,6 @@ class PlaceholderTitleFormatter:
         if suffix:
             title += "|" + suffix
         return title
-
-    def resolve_placeholder_title(
-        self,
-        title: str,
-        source_objects: list[BaseObj],
-    ) -> str:
-        """Resolve placeholder title with object short IDs (if available)."""
-        # For basic Sigima usage, use simple indexing
-        # DataLab will override this with its own patch_title_with_ids logic
-        try:
-            # Try to use short_id if available (for DataLab compatibility)
-            ids = []
-            for i, obj in enumerate(source_objects):
-                short_id = getattr(obj, "short_id", None)
-                if short_id is not None:
-                    ids.append(short_id)
-                else:
-                    ids.append(f"obj{i + 1}")
-            return title.format(*ids)
-        except (IndexError, AttributeError):
-            # Fallback: use simple object indices
-            return title.format(*[f"obj{i + 1}" for i in range(len(source_objects))])
 
 
 # Global default title formatter
