@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 16:53+0100\n"
+"POT-Creation-Date: 2025-11-05 18:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -255,6 +255,21 @@ msgstr "Modification de `RadialProfileParam` pour permettre l'initialisation de 
 
 msgid "Removed unused `signals_to_array()` function from `sigima.proc.signal.arithmetic` module. This function was not used anywhere in the codebase and has been replaced by direct NumPy array construction in `__signals_y_to_array()` and `__signals_dy_to_array()` functions, for internal use only."
 msgstr "Suppression de la fonction inutilisée `signals_to_array()` du module `sigima.proc.signal.arithmetic`. Cette fonction n'était utilisée nulle part dans la base de code et a été remplacée par une construction directe de tableau NumPy dans les fonctions `__signals_y_to_array()` et `__signals_dy_to_array()`, pour un usage interne uniquement."
+
+msgid "**ROI coordinate setters**: Fixed bugs in `set_physical_coords()` and `set_indices_coords()` methods"
+msgstr "**Méthodes de définition des coordonnées ROI** : Correction des bogues dans les méthodes `set_physical_coords()` et `set_indices_coords()`"
+
+msgid "Fixed `RectangularROI.set_physical_coords()`: Now correctly stores coordinates in delta format `[x0, y0, dx, dy]` instead of corner format `[x0, y0, x1, y1]` when `indices=True`"
+msgstr "Correction de `RectangularROI.set_physical_coords()` : Maintenant, les coordonnées sont correctement stockées au format delta `[x0, y0, dx, dy]` au lieu du format coin `[x0, y0, x1, y1]` lorsque `indices=True`"
+
+msgid "Fixed `BaseSingleROI.set_indices_coords()`: Now correctly converts the input `coords` parameter instead of `self.coords` when `indices=False`"
+msgstr "Correction de `BaseSingleROI.set_indices_coords()` : Maintenant, le paramètre d'entrée `coords` est correctement converti au lieu de `self.coords` lorsque `indices=False`"
+
+msgid "These methods were implemented for API completeness but were not used in the Sigima/DataLab codebase"
+msgstr "Ces méthodes ont été implémentées pour compléter l'API mais n'ont pas été utilisées dans la base de code Sigima/DataLab"
+
+msgid "Added comprehensive unit tests covering all ROI types (rectangular, circular, polygonal) and edge cases"
+msgstr "Ajout de tests unitaires complets couvrant tous les types de ROI (rectangulaire, circulaire, polygonal) et les cas limites"
 
 msgid "sigima 1.0.0"
 msgstr "sigima 1.0.0"

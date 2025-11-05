@@ -96,6 +96,12 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 * Removed unused `signals_to_array()` function from `sigima.proc.signal.arithmetic` module. This function was not used anywhere in the codebase and has been replaced by direct NumPy array construction in `__signals_y_to_array()` and `__signals_dy_to_array()` functions, for internal use only.
 
+* **ROI coordinate setters**: Fixed bugs in `set_physical_coords()` and `set_indices_coords()` methods
+  * Fixed `RectangularROI.set_physical_coords()`: Now correctly stores coordinates in delta format `[x0, y0, dx, dy]` instead of corner format `[x0, y0, x1, y1]` when `indices=True`
+  * Fixed `BaseSingleROI.set_indices_coords()`: Now correctly converts the input `coords` parameter instead of `self.coords` when `indices=False`
+  * These methods were implemented for API completeness but were not used in the Sigima/DataLab codebase
+  * Added comprehensive unit tests covering all ROI types (rectangular, circular, polygonal) and edge cases
+
 ## sigima 1.0.0 ##
 
 💥 New features and enhancements:

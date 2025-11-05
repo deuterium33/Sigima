@@ -477,8 +477,8 @@ class RectangularROI(BaseSingleImageROI):
         """
         if self.indices:
             x0, y0, dx, dy = coords
-            ix0, iy0, idx, idy = obj.physical_to_indices([x0, y0, x0 + dx, y0 + dy])
-            self.coords = np.array([ix0, iy0, idx, idy], dtype=int)
+            ix0, iy0, ix1, iy1 = obj.physical_to_indices([x0, y0, x0 + dx, y0 + dy])
+            self.coords = np.array([ix0, iy0, ix1 - ix0, iy1 - iy0], dtype=int)
         else:
             self.coords = np.array(coords, dtype=float)
 

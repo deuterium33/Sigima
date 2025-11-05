@@ -762,7 +762,7 @@ class BaseSingleROI(Generic[TypeObj, TypeROIParam], abc.ABC):  # type: ignore
         if self.indices:
             self.coords = coords
         else:
-            self.coords = np.array(obj.indices_to_physical(self.coords.tolist()))
+            self.coords = np.array(obj.indices_to_physical(coords.tolist()))
 
     @abc.abstractmethod
     def check_coords(self) -> None:
