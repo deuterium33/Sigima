@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 18:10+0100\n"
+"POT-Creation-Date: 2025-11-05 12:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,81 @@ msgstr "sigima 1.0.1"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**Detection ROI creation**: Generic mechanism for ROI creation across all detection functions"
+msgstr "**Création de ROI de détection** : Mécanisme générique de création de ROI pour toutes les fonctions de détection"
+
+msgid "New `DetectionROIParam` parameter class providing standardized ROI creation fields"
+msgstr "Nouvelle classe de paramètres `DetectionROIParam` fournissant des champs de création de ROI standardisés"
+
+msgid "`create_rois`: Boolean flag to enable/disable ROI creation (default: False)"
+msgstr "`create_rois`: Indicateur booléen pour activer/désactiver la création de ROI (par défaut : Faux)"
+
+msgid "`roi_geometry`: Enum selecting ROI shape (RECTANGLE or CIRCLE, default: RECTANGLE)"
+msgstr "`roi_geometry`: Enum sélectionnant la forme de la ROI (RECTANGLE ou CIRCLE, par défaut : RECTANGLE)"
+
+msgid "New `DetectionROIGeometry` enum in `sigima.enums` with RECTANGLE and CIRCLE options"
+msgstr "Nouvel énuméré `DetectionROIGeometry` dans `sigima.enums` avec les options RECTANGLE et CIRCLE"
+
+msgid "All detection parameter classes now inherit from `DetectionROIParam`:"
+msgstr "Toutes les classes de paramètres de détection héritent désormais de `DetectionROIParam` :"
+
+msgid "`Peak2DDetectionParam`: 2D peak detection"
+msgstr "`Peak2DDetectionParam`: Détection de pics 2D"
+
+msgid "`ContourShapeParam`: Contour shape fitting"
+msgstr "`ContourShapeParam`: Ajustement de la forme du contour"
+
+msgid "`BlobDOGParam`, `BlobDOHParam`, `BlobLOGParam`, `BlobOpenCVParam`: Blob detection methods"
+msgstr "`BlobDOGParam`, `BlobDOHParam`, `BlobLOGParam`, `BlobOpenCVParam`: Méthodes de détection de blobs"
+
+msgid "`HoughCircleParam`: Hough circle detection"
+msgstr "`HoughCircleParam`: Détection de cercles de Hough"
+
+msgid "New `store_roi_creation_metadata()` helper function:"
+msgstr "Nouvelle fonction d'assistance `store_roi_creation_metadata()` :"
+
+msgid "Stores ROI creation intent in `GeometryResult.attrs` dictionary"
+msgstr "Stocke l'intention de création de ROI dans le dictionnaire `GeometryResult.attrs`"
+
+msgid "Called within computation functions to communicate ROI preferences"
+msgstr "Appelée dans les fonctions de calcul pour communiquer les préférences de ROI"
+
+msgid "Does not violate function purity (no object modification)"
+msgstr "Ne contrevient pas à la pureté de la fonction (pas de modification d'objet)"
+
+msgid "New `apply_detection_rois()` helper function:"
+msgstr "Nouvelle fonction d'assistance `apply_detection_rois()` :"
+
+msgid "Creates ROIs on image objects based on `GeometryResult.attrs` metadata"
+msgstr "Crée des ROIs sur des objets d'image en fonction des métadonnées `GeometryResult.attrs`"
+
+msgid "Returns `True` if ROIs were created, `False` otherwise"
+msgstr ""
+
+msgid "Handles both rectangle and circle geometries"
+msgstr "Gère les géométries rectangulaires et circulaires"
+
+msgid "Automatically calculates optimal ROI size based on feature spacing"
+msgstr "Calcule automatiquement la taille optimale de la ROI en fonction de l'espacement des caractéristiques"
+
+msgid "Can be called by applications outside computation functions"
+msgstr "Peut être appelé par des applications en dehors des fonctions de calcul"
+
+msgid "Metadata-based architecture maintains separation of concerns:"
+msgstr "L'architecture basée sur les métadonnées maintient la séparation des concepts :"
+
+msgid "Computation functions remain pure (no side effects)"
+msgstr "Les fonctions de calcul restent pures (pas d'effets de bord)"
+
+msgid "Applications control when/how ROIs are created"
+msgstr "Les applications contrôlent quand/comment les ROI sont créées"
+
+msgid "Works seamlessly with multiprocessing engines (e.g., DataLab processors)"
+msgstr "Fonctionne sans problème avec les moteurs de traitement parallèle (par exemple, les processeurs DataLab)"
+
+msgid "Comprehensive test coverage with `validate_detection_rois()` helper in test suite"
+msgstr "Couverture de test complète avec l'assistant `validate_detection_rois()` dans la suite de tests"
 
 msgid "**Automatic `func_name` injection for result objects**"
 msgstr "**Injection automatique de `func_name` pour les objets de résultat**"

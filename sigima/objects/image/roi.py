@@ -908,39 +908,49 @@ def create_image_roi(
 
 
 def create_image_roi_around_points(
-    coords: np.ndarray, geometry: sigima.enums.PointROIGeometries
+    coords: np.ndarray, roi_geometry: sigima.enums.DetectionROIGeometry
 ) -> ImageROI:
-    """Create rectangular ROI around given point coordinates.
+    """Create ROIs around given point coordinates.
 
     Args:
         coords: Coordinates of points (shape: (n, 2))
-        geometry: ROI geometry type
+        roi_geometry: ROI geometry type (rectangle or circle)
 
     Returns:
         ImageROI object containing rectangles or circles around each point
+
+    Raises:
+        ValueError: If less than 2 points are provided (cannot determine ROI size)
     """
-    assert geometry in ("rectangle", "circle")
+    assert roi_geometry in ("rectangle", "circle")
     if coords.size == 0:
         raise ValueError("No coordinates provided to create ROIs")
     if coords.ndim != 2 or coords.shape[1] != 2:
         raise ValueError(
             f"Coordinates array must have shape (n, 2), got {coords.shape}"
         )
-    if coords.shape[0] == 1:
-        raise ValueError("At least two points are required to create ROIs")
-    # Create a rectangular ROI around each peak, only if there are more than one
-    # peak detected (otherwise, it would not make sense to create an ROI)
+    if coords.shape[0] < 2:
+        raise ValueError(
+            "At least two points are required to automatically determine ROI size"
+        )
+
+    # Calculate ROI size based on minimum distance between points
     dist = sigima.tools.image.distance_matrix(coords)
     dist_min = dist[dist != 0].min()
     assert dist_min > 0
-    radius = int(0.5 * dist_min / np.sqrt(2) - 1)
+    if roi_geometry == "rectangle":
+        # For rectangles, account for diagonal to avoid overlap
+        radius = int(0.5 * dist_min / np.sqrt(2) - 1)
+    else:  # circle
+        # For circles, use half the minimum distance directly
+        radius = int(0.5 * dist_min - 1)
     assert radius >= 1
     roi_coords = []
     for x, y in coords:
-        if geometry == "rectangle":
+        if roi_geometry == "rectangle":
             x0, y0 = x - radius, y - radius
             dx, dy = 2 * radius, 2 * radius
             roi_coords.append([x0, y0, dx, dy])
         else:  # circle
             roi_coords.append([x, y, radius])
-    return create_image_roi(geometry, roi_coords, indices=True)
+    return create_image_roi(roi_geometry, roi_coords, indices=True)

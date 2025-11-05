@@ -14,11 +14,13 @@ import importlib.util
 import numpy as np
 import pytest
 
+import sigima.enums
 import sigima.objects
 import sigima.params
 import sigima.proc.image
 from sigima.tests import guiutils
 from sigima.tests.env import execenv
+from sigima.tests.helpers import validate_detection_rois
 
 CV2_AVAILABLE = importlib.util.find_spec("cv2") is not None
 
@@ -125,41 +127,61 @@ def test_image_blob_dog():
     assert len(result.coords) > 0, "Should detect at least one blob in simple case"
     execenv.print(f"✓ DoG simple: detected {len(result.coords)} blobs")
 
-    # Test 2: Multiple blobs (simplified)
+    # Test 2: Multiple blobs with ROI creation
     data, expected_coords = create_blob_test_image(
         size=150, n_blobs=2, blob_radius=12.0, noise_level=0.1, seed=42
     )
-    obj = sigima.objects.create_image("blob_dog_multi", data=data)
-    param = sigima.params.BlobDOGParam.create(
-        min_sigma=5.0,
-        max_sigma=20.0,
-        threshold_rel=0.05,
-        overlap=0.3,
-        exclude_border=True,
-    )
-    result = sigima.proc.image.blob_dog(obj, param)
-    guiutils.view_images_if_gui(
-        obj,
-        title="DoG multi blob detection test image",
-        results=[result],
-        colormap="gray",
-    )
-    if result is not None and len(result.coords) > 0:
-        detected_count = len(result.coords)
-        expected_count = len(expected_coords)
-        execenv.print(
-            f"✓ DoG multi: detected {detected_count} blobs (expected ~{expected_count})"
-        )
-        # Validate coordinate format: should be [x, y, radius]
-        assert result.coords.shape[1] == 3, (
-            "Coordinates should have 3 columns [x, y, radius]"
-        )
-        # Check that all radii are positive
-        assert np.all(result.coords[:, 2] > 0), (
-            "All detected blob radii should be positive"
-        )
-    else:
-        execenv.print("✓ DoG multi: no blobs detected (acceptable for noisy case)")
+
+    for create_rois in (False, True):
+        for roi_geometry in sigima.enums.DetectionROIGeometry:
+            if (
+                not create_rois
+                and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
+            ):
+                continue
+
+            obj = sigima.objects.create_image("blob_dog_multi", data=data)
+            param = sigima.params.BlobDOGParam.create(
+                min_sigma=5.0,
+                max_sigma=20.0,
+                threshold_rel=0.05,
+                overlap=0.3,
+                exclude_border=True,
+                create_rois=create_rois,
+                roi_geometry=roi_geometry,
+            )
+            result = sigima.proc.image.blob_dog(obj, param)
+            # Apply ROIs from detection result
+            sigima.proc.image.apply_detection_rois(obj, result)
+
+            title = f"DoG blob detection (ROIs={create_rois}, geom={roi_geometry.name})"
+            guiutils.view_images_if_gui(
+                obj,
+                title=title,
+                results=[result],
+                colormap="gray",
+            )
+            if result is not None and len(result.coords) > 0:
+                detected_count = len(result.coords)
+                expected_count = len(expected_coords)
+                execenv.print(
+                    f"✓ DoG multi: detected {detected_count} blobs "
+                    f"(expected ~{expected_count}, ROIs={create_rois})"
+                )
+                # Validate coordinate format: should be [x, y, radius]
+                assert result.coords.shape[1] == 3, (
+                    "Coordinates should have 3 columns [x, y, radius]"
+                )
+                # Check that all radii are positive
+                assert np.all(result.coords[:, 2] > 0), (
+                    "All detected blob radii should be positive"
+                )
+                # Validate ROI creation
+                validate_detection_rois(obj, result.coords, create_rois, roi_geometry)
+            else:
+                execenv.print(
+                    "✓ DoG multi: no blobs detected (acceptable for noisy case)"
+                )
 
 
 @pytest.mark.validation
@@ -167,20 +189,38 @@ def test_image_blob_doh():
     """Blob detection using Determinant of Hessian (DoH) method validation test"""
     execenv.print("Testing blob_doh detection...")
 
-    # Start with a simple test case
+    # Test with ROI creation validation
     data = create_simple_blob_test_image()
-    obj = sigima.objects.create_image("blob_doh_test", data=data)
-    param = sigima.params.BlobDOHParam.create(
-        min_sigma=1.0,
-        max_sigma=20.0,
-        threshold_rel=0.01,
-        overlap=0.5,
-        log_scale=False,
-    )
-    result = sigima.proc.image.blob_doh(obj, param)
-    assert result is not None, "Blob detection should return results"
-    assert len(result.coords) > 0, "Should detect at least one blob"
-    execenv.print(f"✓ DoH: detected {len(result.coords)} blobs")
+
+    for create_rois in (False, True):
+        for roi_geometry in sigima.enums.DetectionROIGeometry:
+            if (
+                not create_rois
+                and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
+            ):
+                continue
+
+            obj = sigima.objects.create_image("blob_doh_test", data=data)
+            param = sigima.params.BlobDOHParam.create(
+                min_sigma=1.0,
+                max_sigma=20.0,
+                threshold_rel=0.01,
+                overlap=0.5,
+                log_scale=False,
+                create_rois=create_rois,
+                roi_geometry=roi_geometry,
+            )
+            result = sigima.proc.image.blob_doh(obj, param)
+            sigima.proc.image.apply_detection_rois(obj, result)
+
+            assert result is not None, "Blob detection should return results"
+            assert len(result.coords) > 0, "Should detect at least one blob"
+            execenv.print(
+                f"✓ DoH: detected {len(result.coords)} blobs (ROIs={create_rois})"
+            )
+
+            # Validate ROI creation
+            validate_detection_rois(obj, result.coords, create_rois, roi_geometry)
 
 
 @pytest.mark.validation
@@ -188,21 +228,39 @@ def test_image_blob_log():
     """Blob detection using Laplacian of Gaussian (LoG) method validation test"""
     execenv.print("Testing blob_log detection...")
 
-    # Start with a simple test case
+    # Test with ROI creation validation
     data = create_simple_blob_test_image()
-    obj = sigima.objects.create_image("blob_log_test", data=data)
-    param = sigima.params.BlobLOGParam.create(
-        min_sigma=1.0,
-        max_sigma=20.0,
-        threshold_rel=0.01,
-        overlap=0.5,
-        log_scale=False,
-        exclude_border=False,
-    )
-    result = sigima.proc.image.blob_log(obj, param)
-    assert result is not None, "Blob detection should return results"
-    assert len(result.coords) > 0, "Should detect at least one blob"
-    execenv.print(f"✓ LoG: detected {len(result.coords)} blobs")
+
+    for create_rois in (False, True):
+        for roi_geometry in sigima.enums.DetectionROIGeometry:
+            if (
+                not create_rois
+                and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
+            ):
+                continue
+
+            obj = sigima.objects.create_image("blob_log_test", data=data)
+            param = sigima.params.BlobLOGParam.create(
+                min_sigma=1.0,
+                max_sigma=20.0,
+                threshold_rel=0.01,
+                overlap=0.5,
+                log_scale=False,
+                exclude_border=False,
+                create_rois=create_rois,
+                roi_geometry=roi_geometry,
+            )
+            result = sigima.proc.image.blob_log(obj, param)
+            sigima.proc.image.apply_detection_rois(obj, result)
+
+            assert result is not None, "Blob detection should return results"
+            assert len(result.coords) > 0, "Should detect at least one blob"
+            execenv.print(
+                f"✓ LoG: detected {len(result.coords)} blobs (ROIs={create_rois})"
+            )
+
+            # Validate ROI creation
+            validate_detection_rois(obj, result.coords, create_rois, roi_geometry)
 
 
 @pytest.mark.validation
@@ -211,33 +269,51 @@ def test_image_blob_opencv():
     """Blob detection using OpenCV method validation test"""
     execenv.print("Testing blob_opencv detection...")
 
-    # Start with a simple test case
+    # Test with ROI creation validation
     data = create_simple_blob_test_image()
-    obj = sigima.objects.create_image("blob_opencv_test", data=data)
-    param = sigima.params.BlobOpenCVParam.create(
-        min_threshold=10.0,
-        max_threshold=200.0,
-        min_repeatability=2,
-        min_dist_between_blobs=10.0,
-        filter_by_color=False,
-        blob_color=0,
-        filter_by_area=True,
-        min_area=10.0,
-        max_area=1000.0,
-        filter_by_circularity=False,
-        min_circularity=0.1,
-        max_circularity=1.0,
-        filter_by_inertia=False,
-        min_inertia_ratio=0.1,
-        max_inertia_ratio=1.0,
-        filter_by_convexity=False,
-        min_convexity=0.1,
-        max_convexity=1.0,
-    )
-    result = sigima.proc.image.blob_opencv(obj, param)
-    assert result is not None, "Blob detection should return results"
-    assert len(result.coords) > 0, "Should detect at least one blob"
-    execenv.print(f"✓ OpenCV: detected {len(result.coords)} blobs")
+
+    for create_rois in (False, True):
+        for roi_geometry in sigima.enums.DetectionROIGeometry:
+            if (
+                not create_rois
+                and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
+            ):
+                continue
+
+            obj = sigima.objects.create_image("blob_opencv_test", data=data)
+            param = sigima.params.BlobOpenCVParam.create(
+                min_threshold=10.0,
+                max_threshold=200.0,
+                min_repeatability=2,
+                min_dist_between_blobs=10.0,
+                filter_by_color=False,
+                blob_color=0,
+                filter_by_area=True,
+                min_area=10.0,
+                max_area=1000.0,
+                filter_by_circularity=False,
+                min_circularity=0.1,
+                max_circularity=1.0,
+                filter_by_inertia=False,
+                min_inertia_ratio=0.1,
+                max_inertia_ratio=1.0,
+                filter_by_convexity=False,
+                min_convexity=0.1,
+                max_convexity=1.0,
+                create_rois=create_rois,
+                roi_geometry=roi_geometry,
+            )
+            result = sigima.proc.image.blob_opencv(obj, param)
+            sigima.proc.image.apply_detection_rois(obj, result)
+
+            assert result is not None, "Blob detection should return results"
+            assert len(result.coords) > 0, "Should detect at least one blob"
+            execenv.print(
+                f"✓ OpenCV: detected {len(result.coords)} blobs (ROIs={create_rois})"
+            )
+
+            # Validate ROI creation
+            validate_detection_rois(obj, result.coords, create_rois, roi_geometry)
 
 
 def test_blob_detection_consistency():

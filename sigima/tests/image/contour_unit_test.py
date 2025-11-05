@@ -13,6 +13,7 @@ import time
 import numpy as np
 import pytest
 
+import sigima.enums
 import sigima.objects
 import sigima.params
 import sigima.proc.image
@@ -20,7 +21,11 @@ from sigima.enums import ContourShape
 from sigima.tests import guiutils
 from sigima.tests.data import get_peak2d_data
 from sigima.tests.env import execenv
-from sigima.tests.helpers import check_array_result, check_scalar_result
+from sigima.tests.helpers import (
+    check_array_result,
+    check_scalar_result,
+    validate_detection_rois,
+)
 from sigima.tools import coordinates
 from sigima.tools.image import get_2d_peaks_coords, get_contour_shapes
 
@@ -91,7 +96,7 @@ def test_contour_shape() -> None:
     # Create test data with known shapes
     data, _expected_coords = get_peak2d_data()
 
-    # Test each contour shape type
+    # Test each contour shape type with ROI creation
     for shape in ContourShape:
         execenv.print(f"Testing contour shape: {shape}")
 
@@ -99,11 +104,33 @@ def test_contour_shape() -> None:
         detected_shapes = get_contour_shapes(data, shape=shape)
         execenv.print(f"Detected {len(detected_shapes)} {shape}(s)")
 
-        # Ensure we have the same results with the `contour_shape` computation function:
-        image = sigima.objects.create_image("Contour Test Image", data=data)
-        param = sigima.params.ContourShapeParam.create(shape=shape)
-        results = sigima.proc.image.contour_shape(image, param)
-        check_array_result(f"Contour shapes ({shape})", detected_shapes, results.coords)
+        # Test with and without ROI creation
+        for create_rois in (False, True):
+            for roi_geometry in sigima.enums.DetectionROIGeometry:
+                if (
+                    not create_rois
+                    and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
+                ):
+                    continue
+
+                image = sigima.objects.create_image("Contour Test Image", data=data)
+                param = sigima.params.ContourShapeParam.create(
+                    shape=shape,
+                    create_rois=create_rois,
+                    roi_geometry=roi_geometry,
+                )
+                results = sigima.proc.image.contour_shape(image, param)
+                sigima.proc.image.apply_detection_rois(image, results)
+
+                check_array_result(
+                    f"Contour shapes ({shape})", detected_shapes, results.coords
+                )
+
+                # Validate ROI creation
+                if len(detected_shapes) > 0:
+                    validate_detection_rois(
+                        image, results.coords, create_rois, roi_geometry
+                    )
 
         # Basic validation checks
         assert isinstance(detected_shapes, np.ndarray), (

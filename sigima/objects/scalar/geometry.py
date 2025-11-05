@@ -375,6 +375,55 @@ class GeometryResult:
         target = NO_ROI if roi is None else int(roi)
         return self.coords[self.roi_indices == target]
 
+    def bounding_boxes(self) -> np.ndarray:
+        """Return bounding boxes for each shape in the result.
+
+        Returns:
+            2-D array of shape (N, 4) with bounding boxes [x_min, y_min, x_max, y_max]
+            for each shape.
+        """
+        bboxes = []
+        for row in self.coords:
+            if self.kind == KindShape.POINT or self.kind == KindShape.MARKER:
+                x, y = row
+                bbox = [x, y, x, y]
+            elif self.kind == KindShape.SEGMENT:
+                x0, y0, x1, y1 = row
+                bbox = [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)]
+            elif self.kind == KindShape.RECTANGLE:
+                x, y, width, height = row
+                bbox = [x, y, x + width, y + height]
+            elif self.kind == KindShape.CIRCLE:
+                x, y, r = row
+                bbox = [x - r, y - r, x + r, y + r]
+            elif self.kind == KindShape.ELLIPSE:
+                x, y, a, b, _ = row
+                bbox = [x - a, y - b, x + a, y + b]
+            elif self.kind == KindShape.POLYGON:
+                xs = row[0::2]
+                ys = row[1::2]
+                xs = xs[~np.isnan(xs)]
+                ys = ys[~np.isnan(ys)]
+                bbox = [np.min(xs), np.min(ys), np.max(xs), np.max(ys)]
+            else:
+                raise ValueError(f"Unsupported kind for bounding box: {self.kind}")
+            bboxes.append(bbox)
+        return np.array(bboxes)
+
+    def centers(self) -> np.ndarray:
+        """Return center points for each shape in the result.
+
+        Returns:
+            2-D array of shape (N, 2) with center coordinates [x_center, y_center]
+            for each shape.
+        """
+        # To compute the centers, the most elegant and compact solution is to use the
+        # bounding boxes.
+        bboxes = self.bounding_boxes()
+        x_centers = (bboxes[:, 0] + bboxes[:, 2]) / 2
+        y_centers = (bboxes[:, 1] + bboxes[:, 3]) / 2
+        return np.column_stack((x_centers, y_centers))
+
     # Optional convenience for common kinds:
     def segments_lengths(self) -> np.ndarray:
         """For kind='segment': return vector of segment lengths."""

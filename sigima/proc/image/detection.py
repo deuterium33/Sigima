@@ -49,9 +49,11 @@ __all__ = [
     "BlobLOGParam",
     "BlobOpenCVParam",
     "ContourShapeParam",
+    "DetectionROIParam",
     "GenericDetectionParam",
     "HoughCircleParam",
     "Peak2DDetectionParam",
+    "apply_detection_rois",
     "blob_dog",
     "blob_doh",
     "blob_log",
@@ -59,7 +61,119 @@ __all__ = [
     "contour_shape",
     "hough_circle_peaks",
     "peak_detection",
+    "store_roi_creation_metadata",
 ]
+
+
+class DetectionROIParam(gds.DataSet):
+    """ROI creation parameters for detection algorithms.
+
+    This class can be inherited by any detection parameter class to provide
+    standardized ROI creation functionality.
+    """
+
+    _roi_g = gds.BeginGroup(_("Regions of interest"))
+    _prop_create_rois = gds.ValueProp(False)
+    create_rois = gds.BoolItem(
+        _("Create regions of interest"),
+        default=False,
+        help=_(
+            "Regions of interest will be created around detected features, "
+            "if at least two features are detected.\n"
+            "ROI size is optimized based on feature spacing."
+        ),
+    ).set_prop("display", store=_prop_create_rois)
+    roi_geometry = gds.ChoiceItem(
+        _("ROI geometry"),
+        sigima.enums.DetectionROIGeometry,
+        default=sigima.enums.DetectionROIGeometry.RECTANGLE,
+    ).set_prop("display", active=_prop_create_rois)
+    _roi_g_e = gds.EndGroup(_("Regions of interest"))
+
+
+def store_roi_creation_metadata(
+    geometry: GeometryResult | None,
+    create_rois: bool,
+    roi_geometry: sigima.enums.DetectionROIGeometry | None = None,
+) -> GeometryResult | None:
+    """Store ROI creation metadata in geometry result attributes.
+
+    This function is called by computation functions to mark that ROI creation
+    should be performed on the result. The actual ROI creation is done later
+    via apply_detection_rois().
+
+    Args:
+        geometry: Geometry result from detection
+        create_rois: Whether to create ROIs
+        roi_geometry: ROI geometry type (if None, uses default RECTANGLE)
+
+    Returns:
+        The same geometry object (for chaining), or None if geometry is None
+
+    Example:
+        >>> geometry = compute_geometry_from_obj(...)
+        >>> return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
+    """
+    if geometry is not None and create_rois and len(geometry) > 1:
+        geometry.attrs["create_rois"] = True
+        if roi_geometry is None:
+            roi_geometry = sigima.enums.DetectionROIGeometry.RECTANGLE
+        geometry.attrs["roi_geometry"] = roi_geometry
+    return geometry
+
+
+def apply_detection_rois(
+    obj: ImageObj,
+    geometry: GeometryResult,
+    force: bool = False,
+    roi_geometry: sigima.enums.DetectionROIGeometry | None = None,
+) -> bool:
+    """Apply ROI creation from detection geometry result.
+
+    This function checks if the geometry result contains ROI creation metadata
+    and applies it to the image object by creating ROIs around detected features.
+
+    Args:
+        obj: Image object to modify
+        geometry: Geometry result from a detection function
+        force: If True, create ROIs even if not requested in the result attrs
+        roi_geometry: Override ROI geometry from attrs (if None, uses attrs value)
+
+    Returns:
+        True if ROIs were created, False otherwise
+
+    Example:
+        >>> from sigima.proc.image import peak_detection, apply_detection_rois
+        >>> from sigima.params import Peak2DDetectionParam
+        >>> param = Peak2DDetectionParam()
+        >>> param.create_rois = True
+        >>> geometry = peak_detection(img, param)
+        >>> apply_detection_rois(img, geometry)  # Creates ROIs on img
+    """
+    if geometry is None:
+        return False
+
+    # Check if ROI creation was requested (or forced)
+    create_rois = force or geometry.attrs.get("create_rois", False)
+
+    if not create_rois or len(geometry) < 2:
+        return False
+
+    # Get ROI geometry from parameter, attrs, or use default
+    if roi_geometry is None:
+        roi_geometry = geometry.attrs.get(
+            "roi_geometry",
+            sigima.enums.DetectionROIGeometry.RECTANGLE,
+        )
+
+    # Get detection coordinates (centers of detected objects)
+    coords = geometry.centers()
+
+    try:
+        obj.roi = create_image_roi_around_points(coords, roi_geometry=roi_geometry)
+        return True
+    except ValueError:
+        return False
 
 
 class GenericDetectionParam(gds.DataSet):
@@ -77,7 +191,7 @@ class GenericDetectionParam(gds.DataSet):
     )
 
 
-class Peak2DDetectionParam(GenericDetectionParam):
+class Peak2DDetectionParam(DetectionROIParam, GenericDetectionParam):
     """Peak detection parameters"""
 
     size = gds.IntItem(
@@ -92,14 +206,6 @@ class Peak2DDetectionParam(GenericDetectionParam):
             "based on the image size). "
         ),
     )
-    _roi_g = gds.BeginGroup(_("Regions of interest"))
-    create_rois = gds.BoolItem(_("Create regions of interest"), default=True)
-    roi_geometry = gds.ChoiceItem(
-        _("ROI geometry"),
-        sigima.enums.PointROIGeometries,
-        default=sigima.enums.PointROIGeometries.RECTANGLE,
-    )
-    _roi_g_e = gds.EndGroup(_("Regions of interest"))
 
 
 @computation_function()
@@ -112,7 +218,7 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
         p: parameters
 
     Returns:
-        Peak coordinates
+        Peak coordinates (with ROI creation info in attrs if requested)
     """
     geometry = compute_geometry_from_obj(
         "peak",
@@ -122,22 +228,10 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
         p.size,
         p.threshold,
     )
-
-    # Warning: the following ROI creation code will have no effect in DataLab because
-    # ROIs must be created in the GUI layer (the image object modified here won't be
-    # retained). That's why it's reimplemented in datalab/gui/processor/image.py
-    if p.create_rois and geometry is not None and len(geometry) > 1:
-        try:
-            obj.roi = create_image_roi_around_points(
-                geometry.coords, geometry=p.roi_geometry
-            )
-        except ValueError:
-            pass
-
-    return geometry
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
-class ContourShapeParam(GenericDetectionParam):
+class ContourShapeParam(DetectionROIParam, GenericDetectionParam):
     """Contour shape parameters"""
 
     # Keep choices aligned with supported geometry kinds
@@ -152,7 +246,7 @@ def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | Non
     """Compute contour shape with :py:func:`sigima.tools.image.get_contour_shapes`."""
     shape: sigima.enums.ContourShape = p.shape
     kindshape = getattr(KindShape, shape.name)
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "contour",
         kindshape,
         image,
@@ -160,6 +254,7 @@ def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | Non
         shape,
         p.threshold,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
 class BaseBlobParam(gds.DataSet):
@@ -206,7 +301,7 @@ class BaseBlobParam(gds.DataSet):
     )
 
 
-class BlobDOGParam(BaseBlobParam):
+class BlobDOGParam(DetectionROIParam, BaseBlobParam):
     """Blob detection using Difference of Gaussian method"""
 
     exclude_border = gds.BoolItem(
@@ -226,9 +321,9 @@ def blob_dog(image: ImageObj, p: BlobDOGParam) -> GeometryResult | None:
         p: parameters
 
     Returns:
-        Blobs coordinates
+        Blobs coordinates (with ROI creation info in attrs if requested)
     """
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "blob_dog",
         "circle",
         image,
@@ -239,9 +334,10 @@ def blob_dog(image: ImageObj, p: BlobDOGParam) -> GeometryResult | None:
         p.threshold_rel,
         p.exclude_border,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
-class BlobDOHParam(BaseBlobParam):
+class BlobDOHParam(DetectionROIParam, BaseBlobParam):
     """Blob detection using Determinant of Hessian method"""
 
     log_scale = gds.BoolItem(
@@ -265,9 +361,9 @@ def blob_doh(image: ImageObj, p: BlobDOHParam) -> GeometryResult | None:
         p: parameters
 
     Returns:
-        Blobs coordinates
+        Blobs coordinates (with ROI creation info in attrs if requested)
     """
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "blob_doh",
         "circle",
         image,
@@ -278,6 +374,7 @@ def blob_doh(image: ImageObj, p: BlobDOHParam) -> GeometryResult | None:
         p.log_scale,
         p.threshold_rel,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
 class BlobLOGParam(BlobDOHParam):
@@ -300,9 +397,9 @@ def blob_log(image: ImageObj, p: BlobLOGParam) -> GeometryResult | None:
         p: parameters
 
     Returns:
-        Blobs coordinates
+        Blobs coordinates (with ROI creation info in attrs if requested)
     """
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "blob_log",
         "circle",
         image,
@@ -314,9 +411,10 @@ def blob_log(image: ImageObj, p: BlobLOGParam) -> GeometryResult | None:
         p.threshold_rel,
         p.exclude_border,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
-class BlobOpenCVParam(gds.DataSet):
+class BlobOpenCVParam(DetectionROIParam, gds.DataSet):
     """Blob detection using OpenCV"""
 
     min_threshold = gds.FloatItem(
@@ -463,9 +561,9 @@ def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> GeometryResult | None:
         p: parameters
 
     Returns:
-        Blobs coordinates
+        Blobs coordinates (with ROI creation info in attrs if requested)
     """
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "blob_opencv",
         "circle",
         image,
@@ -489,9 +587,10 @@ def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> GeometryResult | None:
         p.min_convexity,
         p.max_convexity,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
-class HoughCircleParam(gds.DataSet):
+class HoughCircleParam(DetectionROIParam, gds.DataSet):
     """Circle Hough transform parameters"""
 
     min_radius = gds.IntItem(
@@ -513,9 +612,9 @@ def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> GeometryResult |
         p: parameters
 
     Returns:
-        Circle coordinates
+        Circle coordinates (with ROI creation info in attrs if requested)
     """
-    return compute_geometry_from_obj(
+    geometry = compute_geometry_from_obj(
         "hough_circle_peak",
         "circle",
         image,
@@ -525,3 +624,4 @@ def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> GeometryResult |
         None,
         p.min_distance,
     )
+    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)

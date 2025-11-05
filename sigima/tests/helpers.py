@@ -21,6 +21,8 @@ from typing import Any, Generator
 import numpy as np
 from guidata.configtools import get_module_data_path
 
+import sigima.enums
+import sigima.objects
 from sigima.config import MOD_NAME
 from sigima.io.image import ImageIORegistry
 from sigima.io.signal import SignalIORegistry
@@ -530,3 +532,51 @@ def print_obj_data_dimensions(obj: SignalObj | ImageObj, indent: int = 0) -> Non
             if isinstance(obj, SignalObj):
                 roi_data = roi_data[1]  # y data
             execenv.print(f"{indent_str}  ROI[{idx}]: {__array_to_str(roi_data)}")
+
+
+def validate_detection_rois(
+    obj: ImageObj,
+    coords: np.ndarray,
+    create_rois: bool,
+    roi_geometry: sigima.enums.DetectionROIGeometry,
+) -> None:
+    """Validate that ROIs were created correctly from detection results.
+
+    Args:
+        obj: Image object that should contain ROIs
+        coords: Detection coordinates array
+        create_rois: Whether ROI creation was requested
+        roi_geometry: Expected ROI geometry type
+
+    Raises:
+        AssertionError: if ROI validation fails
+    """
+    if create_rois and len(coords) > 1:
+        assert obj.roi is not None, "ROI should be created when create_rois=True"
+        assert len(obj.roi) == coords.shape[0], (
+            f"Expected {coords.shape[0]} ROIs, got {len(obj.roi)}"
+        )
+        execenv.print(f"✓ Created {len(obj.roi)} ROIs")
+
+        # Validate ROI type based on geometry
+        for i, roi in enumerate(obj.roi):
+            if roi_geometry == sigima.enums.DetectionROIGeometry.CIRCLE:
+                assert isinstance(roi, sigima.objects.CircularROI), (
+                    f"Expected CircularROI, got {type(roi)}"
+                )
+            else:  # RECTANGLE
+                assert isinstance(roi, sigima.objects.RectangularROI), (
+                    f"Expected RectangularROI, got {type(roi)}"
+                )
+
+            # Check that ROIs are correctly positioned around detection points
+            x0, y0, x1, y1 = roi.get_bounding_box(obj)
+            # For point detections, coords has 2 columns [x, y]
+            # For blob detections, coords has 3 columns [x, y, radius]
+            x, y = coords[i, 0], coords[i, 1]
+            assert x0 <= x < x1, f"ROI {i} x0={x0}, x={x}, x1={x1} does not match"
+            assert y0 <= y < y1, f"ROI {i} y0={y0}, y={y}, y1={y1} does not match"
+    else:
+        assert obj.roi is None or len(obj.roi) == 0, (
+            "ROI should not be created when create_rois=False or too few detections"
+        )

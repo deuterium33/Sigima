@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-11-03 18:10+0100\n"
+"POT-Creation-Date: 2025-11-05 14:19+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -649,6 +649,22 @@ msgstr "Espace entre chaque colonne"
 msgid "Row spacing"
 msgstr "Espace entre chaque ligne"
 
+msgid "Regions of interest"
+msgstr "Régions d'intérêt"
+
+msgid "Create regions of interest"
+msgstr "Créer des régions d'intérêt"
+
+msgid ""
+"Regions of interest will be created around detected features, if at least two features are detected.\n"
+"ROI size is optimized based on feature spacing."
+msgstr ""
+"Des régions d'intérêt seront créées autour des caractéristiques détectées, si au moins deux caractéristiques sont détectées.\n"
+"La taille de la ROI est optimisée en fonction de l'espacement des caractéristiques."
+
+msgid "ROI geometry"
+msgstr "Géométrie de la ROI"
+
 msgid "Relative threshold"
 msgstr "Seuil relatif"
 
@@ -660,15 +676,6 @@ msgstr "Taille du voisinage"
 
 msgid "Size of the sliding window used in maximum/minimum filtering algorithm (if no value is provided, the algorithm will use a default size based on the image size). "
 msgstr "Taille de la fenêtre glissante utilisée dans l'algorithme de filtrage par maximum/minimum (si aucune valeur n'est fournie, l'algorithme utilisera une taille par défaut basée sur la taille de l'image)."
-
-msgid "Regions of interest"
-msgstr "Régions d'intérêt"
-
-msgid "Create regions of interest"
-msgstr "Créer des régions d'intérêt"
-
-msgid "ROI geometry"
-msgstr "Géométrie de la ROI"
 
 msgid "Shape"
 msgstr "Forme"
@@ -1456,4 +1463,3 @@ msgstr "Nombre de colonnes"
 
 msgid "Centroid"
 msgstr "Barycentre"
-

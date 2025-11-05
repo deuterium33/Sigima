@@ -195,7 +195,7 @@ class SignalsToImageOrientation(gds.LabeledEnum):
     COLUMNS = "columns", _("Each signal becomes a column")
 
 
-class PointROIGeometries(gds.LabeledEnum):
+class DetectionROIGeometry(gds.LabeledEnum):
     """Geometries for 2D peak detection ROIs."""
 
     CIRCLE = "circle", _("Circle")

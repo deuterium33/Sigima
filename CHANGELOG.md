@@ -7,6 +7,32 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **Detection ROI creation**: Generic mechanism for ROI creation across all detection functions
+  * New `DetectionROIParam` parameter class providing standardized ROI creation fields
+    * `create_rois`: Boolean flag to enable/disable ROI creation (default: False)
+    * `roi_geometry`: Enum selecting ROI shape (RECTANGLE or CIRCLE, default: RECTANGLE)
+  * New `DetectionROIGeometry` enum in `sigima.enums` with RECTANGLE and CIRCLE options
+  * All detection parameter classes now inherit from `DetectionROIParam`:
+    * `Peak2DDetectionParam`: 2D peak detection
+    * `ContourShapeParam`: Contour shape fitting
+    * `BlobDOGParam`, `BlobDOHParam`, `BlobLOGParam`, `BlobOpenCVParam`: Blob detection methods
+    * `HoughCircleParam`: Hough circle detection
+  * New `store_roi_creation_metadata()` helper function:
+    * Stores ROI creation intent in `GeometryResult.attrs` dictionary
+    * Called within computation functions to communicate ROI preferences
+    * Does not violate function purity (no object modification)
+  * New `apply_detection_rois()` helper function:
+    * Creates ROIs on image objects based on `GeometryResult.attrs` metadata
+    * Returns `True` if ROIs were created, `False` otherwise
+    * Handles both rectangle and circle geometries
+    * Automatically calculates optimal ROI size based on feature spacing
+    * Can be called by applications outside computation functions
+  * Metadata-based architecture maintains separation of concerns:
+    * Computation functions remain pure (no side effects)
+    * Applications control when/how ROIs are created
+    * Works seamlessly with multiprocessing engines (e.g., DataLab processors)
+  * Comprehensive test coverage with `validate_detection_rois()` helper in test suite
+
 * **Automatic `func_name` injection for result objects**
   * The `@computation_function` decorator now automatically injects the function name into `TableResult` and `GeometryResult` objects
   * When a computation function returns a result object with `func_name=None`, the decorator sets it to the function's name using `dataclasses.replace()`
