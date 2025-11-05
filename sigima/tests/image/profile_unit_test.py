@@ -132,10 +132,12 @@ def test_radial_profile() -> None:
 
     # Test radial profile with centroid center
     param = sigima.params.RadialProfileParam.create(center="centroid")
+    param.update_from_obj(ima)
     __test_radial_profile_center(ima, param)
 
     # Test radial profile with image center
     param = sigima.params.RadialProfileParam.create(center="center")
+    param.update_from_obj(ima)
     __test_radial_profile_center(ima, param)
 
     # Test radial profile with user-defined center
