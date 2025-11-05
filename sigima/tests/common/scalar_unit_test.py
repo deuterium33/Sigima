@@ -592,6 +592,27 @@ class TestGeometryResultDataAccess:
 class TestGeometryResultShapeSpecific:
     """Test class for shape-specific GeometryResult methods."""
 
+    def test_segments_to_dataframe(self) -> None:
+        """Test GeometryResult.to_dataframe for segments."""
+        for coords, add_col in [
+            (
+                np.array([[0.0, 0.0, 3.0, 4.0], [1.0, 1.0, 4.0, 5.0]]),
+                "length",  # General segments
+            ),
+            (
+                np.array([[0.0, 0.0, 3.0, 0.0], [1.0, 1.0, 4.0, 1.0]]),
+                "Δx",  # Horizontal segments
+            ),
+            (
+                np.array([[0.0, 0.0, 0.0, 4.0], [1.0, 1.0, 1.0, 5.0]]),
+                "Δy",  # Vertical segments
+            ),
+        ]:
+            geom = GeometryResult("Test", KindShape.SEGMENT, coords)
+            df = geom.to_dataframe()
+            assert list(df.columns) == ["x0", "y0", "x1", "y1", add_col]
+            np.testing.assert_array_equal(df.values[:, :-1], coords)
+
     def test_segments_lengths(self) -> None:
         """Test GeometryResult.segments_lengths method."""
         # Create segments: (0,0)-(3,4) and (1,1)-(4,5)
