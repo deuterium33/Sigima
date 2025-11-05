@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import guidata.dataset as gds
 import numpy as np
+import pytest
 
 from sigima.objects import ImageObj, SignalObj, create_image, create_signal
 from sigima.proc.base import dst_1_to_1
@@ -22,6 +23,18 @@ from sigima.proc.decorator import (
     is_computation_function,
 )
 from sigima.tests.helpers import check_array_result
+
+
+def this_is_not_a_computation_function() -> None:
+    """A dummy function that is not a computation function."""
+    pass
+
+
+def test_non_computation_function_marker() -> None:
+    """Test that a non-computation function is not marked as such."""
+    assert not is_computation_function(this_is_not_a_computation_function)
+    with pytest.raises(ValueError):
+        get_computation_metadata(this_is_not_a_computation_function)
 
 
 class DummySignalParam(gds.DataSet):
