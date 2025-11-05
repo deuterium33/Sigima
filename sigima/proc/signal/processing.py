@@ -539,19 +539,6 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-def get_nyquist_frequency(obj: SignalObj) -> float:
-    """Return the Nyquist frequency of a signal object
-
-    Args:
-        obj: signal object
-
-    Returns:
-        Nyquist frequency
-    """
-    fs = float(obj.x.size - 1) / (obj.x[-1] - obj.x[0])
-    return fs / 2.0
-
-
 @computation_function()
 def xy_mode(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Simulate the X-Y mode of an oscilloscope.

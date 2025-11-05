@@ -111,6 +111,19 @@ def wiener(src: SignalObj) -> SignalObj:
     return Wrap1to1Func(sps.wiener)(src)
 
 
+def get_nyquist_frequency(obj: SignalObj) -> float:
+    """Return the Nyquist frequency of a signal object
+
+    Args:
+        obj: signal object
+
+    Returns:
+        Nyquist frequency
+    """
+    fs = float(obj.x.size - 1) / (obj.x[-1] - obj.x[0])
+    return fs / 2.0
+
+
 class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
     """Base class for high-pass, low-pass, band-pass and band-stop filters"""
 
@@ -202,23 +215,13 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         ),
     )
 
-    @staticmethod
-    def get_nyquist_frequency(obj: SignalObj) -> float:
-        """Return the Nyquist frequency of a signal object
-
-        Args:
-            obj: signal object
-        """
-        fs = float(obj.x.size - 1) / (obj.x[-1] - obj.x[0])
-        return fs / 2.0
-
     def update_from_obj(self, obj: SignalObj) -> None:
         """Update the filter parameters from a signal object
 
         Args:
             obj: signal object
         """
-        f_nyquist = self.get_nyquist_frequency(obj)
+        f_nyquist = get_nyquist_frequency(obj)
         if self.cut0 is None:
             if self.TYPE == FilterType.LOWPASS:
                 self.cut0 = 0.1 * f_nyquist
@@ -241,7 +244,7 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
         Returns:
             tuple: filter parameters
         """
-        f_nyquist = self.get_nyquist_frequency(obj)
+        f_nyquist = get_nyquist_frequency(obj)
         args: list[float | str | tuple[float, ...]] = [self.order]  # type: ignore
         if self.method == FrequencyFilterMethod.CHEBYSHEV1:
             args += [self.rp]
