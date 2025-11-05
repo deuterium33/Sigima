@@ -201,6 +201,7 @@ def test_image_resampling() -> None:
         ymax=ima1.y0 + ima1.height,
         method=sigima.enums.Interpolation2DMethod.LINEAR,
     )
+    p1.update_from_obj(ima1)
     dst1 = sigima.proc.image.resampling(ima1, p1)
 
     # Should be very close to original (allowing for small interpolation differences)
