@@ -774,6 +774,7 @@ def view_image_items(
     exec_dialog(win)
 
 
+# pylint: disable=too-many-positional-arguments
 def view_images(
     data_or_objs: list[ImageObj | np.ndarray] | ImageObj | np.ndarray,
     name: str | None = None,

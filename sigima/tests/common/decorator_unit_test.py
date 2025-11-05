@@ -27,7 +27,6 @@ from sigima.tests.helpers import check_array_result
 
 def this_is_not_a_computation_function() -> None:
     """A dummy function that is not a computation function."""
-    pass
 
 
 def test_non_computation_function_marker() -> None:

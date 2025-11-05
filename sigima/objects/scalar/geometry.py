@@ -387,7 +387,7 @@ class GeometryResult:
         """
         bboxes = []
         for row in self.coords:
-            if self.kind == KindShape.POINT or self.kind == KindShape.MARKER:
+            if self.kind in (KindShape.POINT, KindShape.MARKER):
                 x, y = row
                 bbox = [x, y, x, y]
             elif self.kind == KindShape.SEGMENT:

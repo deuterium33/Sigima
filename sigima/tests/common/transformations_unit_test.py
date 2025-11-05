@@ -342,6 +342,8 @@ class TestSingleROITransformations:
 
         # Create a mock ROI class
         class UnsupportedROI:
+            """Mock unsupported ROI class."""
+
             def __init__(self):
                 self.coords = np.array([1.0, 2.0])
 

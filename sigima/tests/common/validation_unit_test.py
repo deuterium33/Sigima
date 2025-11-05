@@ -264,6 +264,7 @@ def test_validation_tests_call_computation_functions() -> None:
     # Check each validation test to ensure it references the computation function
     tests_not_calling_function = []
 
+    # pylint: disable=too-many-nested-blocks
     for test_name, test_path, line_number in validation_tests:
         if test_name not in test_to_function_map:
             # This test doesn't correspond to any computation function

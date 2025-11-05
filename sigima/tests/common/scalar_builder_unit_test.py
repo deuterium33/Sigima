@@ -6,8 +6,13 @@ Unit tests for TableResultBuilder (sigima.objects.scalar).
 
 from numpy import ma
 
-from sigima.objects.scalar import NO_ROI, TableKind, TableResultBuilder
-from sigima.objects.signal import SignalObj
+from sigima.objects import (
+    NO_ROI,
+    SignalObj,
+    TableKind,
+    TableResultBuilder,
+    create_signal_roi,
+)
 from sigima.tests.data import create_paracetamol_signal, create_test_signal_rois
 
 
@@ -151,8 +156,6 @@ class TestTableResultBuilderROIComputationModes:
         # Create signal with multiple ROIs (3 segments)
         self.sig = create_paracetamol_signal()
         # Create a ROI with 3 segments manually
-        from sigima.objects import create_signal_roi
-
         roi = create_signal_roi([[10, 20], [30, 40], [50, 60]], indices=False)
         self.sig.roi = roi
 
