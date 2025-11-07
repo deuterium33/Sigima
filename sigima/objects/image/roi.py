@@ -920,7 +920,9 @@ def create_image_roi_around_points(
         ImageROI object containing rectangles or circles around each point
 
     Raises:
-        ValueError: If less than 2 points are provided (cannot determine ROI size)
+        ValueError: If less than 2 points are provided (cannot determine ROI size),
+         or if points are too close together resulting in too small ROI size,
+         or if an invalid ROI geometry is specified.
     """
     assert roi_geometry in ("rectangle", "circle")
     if coords.size == 0:
@@ -944,7 +946,10 @@ def create_image_roi_around_points(
     else:  # circle
         # For circles, use half the minimum distance directly
         radius = int(0.5 * dist_min - 1)
-    assert radius >= 1
+    if radius < 1:
+        raise ValueError(
+            "Calculated ROI size is too small. Points may be too close together."
+        )
     roi_coords = []
     for x, y in coords:
         if roi_geometry == "rectangle":
