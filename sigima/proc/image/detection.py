@@ -231,7 +231,7 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
     return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
 
 
-class ContourShapeParam(DetectionROIParam, GenericDetectionParam):
+class ContourShapeParam(GenericDetectionParam):
     """Contour shape parameters"""
 
     # Keep choices aligned with supported geometry kinds
@@ -254,7 +254,7 @@ def contour_shape(image: ImageObj, p: ContourShapeParam) -> GeometryResult | Non
         shape,
         p.threshold,
     )
-    return store_roi_creation_metadata(geometry, p.create_rois, p.roi_geometry)
+    return geometry
 
 
 class BaseBlobParam(gds.DataSet):
