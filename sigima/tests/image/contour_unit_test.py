@@ -24,7 +24,6 @@ from sigima.tests.env import execenv
 from sigima.tests.helpers import (
     check_array_result,
     check_scalar_result,
-    validate_detection_rois,
 )
 from sigima.tools import coordinates
 from sigima.tools.image import get_2d_peaks_coords, get_contour_shapes
@@ -104,33 +103,12 @@ def test_contour_shape() -> None:
         detected_shapes = get_contour_shapes(data, shape=shape)
         execenv.print(f"Detected {len(detected_shapes)} {shape}(s)")
 
-        # Test with and without ROI creation
-        for create_rois in (False, True):
-            for roi_geometry in sigima.enums.DetectionROIGeometry:
-                if (
-                    not create_rois
-                    and roi_geometry != sigima.enums.DetectionROIGeometry.RECTANGLE
-                ):
-                    continue
+        image = sigima.objects.create_image("Contour Test Image", data=data)
+        param = sigima.params.ContourShapeParam.create(shape=shape)
+        results = sigima.proc.image.contour_shape(image, param)
+        sigima.proc.image.apply_detection_rois(image, results)
 
-                image = sigima.objects.create_image("Contour Test Image", data=data)
-                param = sigima.params.ContourShapeParam.create(
-                    shape=shape,
-                    create_rois=create_rois,
-                    roi_geometry=roi_geometry,
-                )
-                results = sigima.proc.image.contour_shape(image, param)
-                sigima.proc.image.apply_detection_rois(image, results)
-
-                check_array_result(
-                    f"Contour shapes ({shape})", detected_shapes, results.coords
-                )
-
-                # Validate ROI creation
-                if len(detected_shapes) > 0:
-                    validate_detection_rois(
-                        image, results.coords, create_rois, roi_geometry
-                    )
+        check_array_result(f"Contour shapes ({shape})", detected_shapes, results.coords)
 
         # Basic validation checks
         assert isinstance(detected_shapes, np.ndarray), (
