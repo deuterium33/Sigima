@@ -194,7 +194,14 @@ class ResultHtmlGenerator:
         roi_indices: list[int] | None,
         obj: SignalObj | ImageObj | None,
     ) -> list[str]:
-        """Create row headers from ROI indices."""
+        """Create row headers from ROI indices.
+
+        .. note::
+
+           Handles gracefully the case where `roi_indices` reference ROIs that
+           no longer exist in `obj.roi` (e.g., if HTML rendering happens before
+           result recomputation after ROI deletion).
+        """
         if roi_indices is not None:
             assert obj is not None, "obj must be provided if roi_indices is given"
         row_headers = []
@@ -206,7 +213,10 @@ class ResultHtmlGenerator:
                     header = f"ROI {roi_idx}"
                     # Try to get ROI title from object if available
                     if obj.roi is not None:
-                        header = obj.roi.get_single_roi_title(roi_idx)
+                        # Check if roi_idx is valid (defensive against stale indices)
+                        if 0 <= roi_idx < len(obj.roi.single_rois):
+                            header = obj.roi.get_single_roi_title(roi_idx)
+                        # else: keep default "ROI {roi_idx}" for out-of-bounds indices
                 row_headers.append(header)
         else:
             # Need to get DataFrame to know the number of rows
