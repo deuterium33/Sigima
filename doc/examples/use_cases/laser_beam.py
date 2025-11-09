@@ -75,7 +75,7 @@ for i, img in enumerate(images):
 # %%
 # Visualize the first few images
 print("\n✓ Visualizing sample images...")
-vistools.view_images_side_by_side(images[:3])
+vistools.view_images_side_by_side(images[:3], title="Sample Laser Beam Images")
 
 # %%
 # Background noise analysis with histogram
@@ -133,7 +133,11 @@ print("Background noise below threshold has been removed")
 
 # %%
 # We can now visualize some clipped images:
-vistools.view_images_side_by_side(images[:3] + clipped_images[:3], rows=2)
+vistools.view_images_side_by_side(
+    images[:3] + clipped_images[:3],
+    rows=2,
+    title="Original and Clipped Images (First 3)",
+)
 
 # %%
 # Compute centroids for beam center detection
@@ -146,17 +150,10 @@ print("\n--- Computing Beam Centroids ---")
 centroids = []
 for img in clipped_images:
     centroid_result = sigima.proc.image.centroid(img)
-    if centroid_result is not None and len(centroid_result.coords) > 0:
-        # Extract centroid coordinates (x, y)
-        coords = centroid_result.coords[0]
-        centroids.append((coords[0], coords[1]))  # (x, y)
-        print(f"  ✓ {img.title}: centroid at ({coords[0]:.1f}, {coords[1]:.1f})")
-    else:
-        centroids.append(None)
-        print(f"  ✗ {img.title}: no centroid detected")
+    centroids.append(centroid_result.value)  # (x, y)
+    print(f"  ✓ {img.title}: centroid at {centroid_result.value}")
 
-successful_centroids = [c for c in centroids if c is not None]
-print(f"\n✓ Successfully detected {len(successful_centroids)}/{len(images)} centroids")
+print(f"\n✓ Successfully detected {len(centroids)}/{len(images)} centroids")
 
 # %%
 # Extract line profiles through beam centers
@@ -169,28 +166,22 @@ print("\n--- Extracting Line Profiles ---")
 
 line_profiles = []
 for i, (img, centroid_coords) in enumerate(zip(clipped_images, centroids)):
-    if centroid_coords is not None:
-        # Create line profile parameters for horizontal line through centroid
-        line_param = sigima.proc.image.LineProfileParam()
-        line_param.direction = "horizontal"
-        line_param.row = int(centroid_coords[1])  # Use centroid y-coordinate as row
+    # Create line profile parameters for horizontal line through centroid
+    line_param = sigima.proc.image.LineProfileParam()
+    line_param.direction = "horizontal"
+    line_param.row = int(centroid_coords[1])  # Use centroid y-coordinate as row
 
-        # Extract line profile
-        profile = sigima.proc.image.line_profile(img, line_param)
-        profile.title = f"Line_profile_{img.title}"
-        line_profiles.append(profile)
-        print(f"  ✓ Extracted line profile for {img.title} at row {line_param.row}")
+    # Extract line profile
+    profile = sigima.proc.image.line_profile(img, line_param)
+    profile.title = f"Line_profile_{img.title}"
+    line_profiles.append(profile)
+    print(f"  ✓ Extracted line profile for {img.title} at row {line_param.row}")
 
-    else:
-        line_profiles.append(None)
-        print(f"  ✗ Skipped {img.title}: no centroid available")
-
-successful_profiles = [p for p in line_profiles if p is not None]
-print(f"\n✓ Generated {len(successful_profiles)} line profiles")
+print(f"\n✓ Generated {len(line_profiles)} line profiles")
 
 # Visualize some line profiles
 vistools.view_curves(
-    successful_profiles[:3], title="Horizontal Line Profiles (First 3 Images)"
+    line_profiles[:3], title="Horizontal Line Profiles (First 3 Images)"
 )
 
 # %%
@@ -208,21 +199,16 @@ for img in clipped_images:
     radial_param.center = "centroid"  # Use automatic centroid detection
 
     # Extract radial profile
-    try:
-        profile = sigima.proc.image.radial_profile(img, radial_param)
-        profile.title = f"Radial_profile_{img.title}"
-        radial_profiles.append(profile)
-        print(f"  ✓ Extracted radial profile for {img.title}")
-    except Exception as e:
-        radial_profiles.append(None)
-        print(f"  ✗ Failed to extract radial profile for {img.title}: {e}")
+    profile = sigima.proc.image.radial_profile(img, radial_param)
+    profile.title = f"Radial_profile_{img.title}"
+    radial_profiles.append(profile)
+    print(f"  ✓ Extracted radial profile for {img.title}")
 
-successful_radial = [p for p in radial_profiles if p is not None]
-print(f"\n✓ Generated {len(successful_radial)} radial profiles")
+print(f"\n✓ Generated {len(radial_profiles)} radial profiles")
 
 # %%
 # We can now visualize some radial profiles
-vistools.view_curves(successful_radial[:3], title="Radial Profiles (First 3 Images)")
+vistools.view_curves(radial_profiles[:3], title="Radial Profiles (First 3 Images)")
 
 # %%
 # Compute FWHM for radial profiles
@@ -232,41 +218,20 @@ vistools.view_curves(successful_radial[:3], title="Radial Profiles (First 3 Imag
 
 print("\n--- Computing FWHM Measurements ---")
 
-fwhm_values = []
+fwhm_vals = []
 fwhm_param = sigima.params.FWHMParam()
 fwhm_param.method = "zero-crossing"  # Standard FWHM method
 
 for profile in radial_profiles:
-    if profile is not None:
-        try:
-            fwhm_result = sigima.proc.signal.fwhm(profile, fwhm_param)
-            if fwhm_result is not None and len(fwhm_result.coords) > 0:
-                # Extract FWHM value (length of the segment)
-                fwhm_length = fwhm_result.coords[0][2]  # Third coordinate is length
-                fwhm_values.append(fwhm_length)
-                print(f"  ✓ {profile.title}: FWHM = {fwhm_length:.2f} pixels")
-            else:
-                fwhm_values.append(np.nan)
-                print(f"  ✗ {profile.title}: FWHM could not be computed")
-        except Exception as e:
-            fwhm_values.append(np.nan)
-            print(f"  ✗ {profile.title}: FWHM computation failed - {e}")
-    else:
-        fwhm_values.append(np.nan)
+    fwhm_result = sigima.proc.signal.fwhm(profile, fwhm_param)
+    fwhm_vals.append(fwhm_result.value)
+    print(f"  ✓ {profile.title}: FWHM = {fwhm_result.value:.2f} pixels")
 # %%
 # That's done, we can now print some FWHM statistics to check our results:
-valid_fwhm = [f for f in fwhm_values if not np.isnan(f)]
-if len(valid_fwhm) > 0:
-    mean_fwhm = np.mean(valid_fwhm)
-    std_fwhm = np.std(valid_fwhm)
-    print("\n✓ FWHM Statistics:")
-    print(f"  Valid measurements: {len(valid_fwhm)}/{len(fwhm_values)}")
-    min_fwhm = min(valid_fwhm)
-    max_fwhm = max(valid_fwhm)
-    print(f"  Beam size range: {min_fwhm:.2f} - {max_fwhm:.2f} pixels")
-    print(f"  Average beam size: {mean_fwhm:.2f} ± {std_fwhm:.2f} pixels")
-else:
-    print("\n✗ No valid FWHM measurements obtained")
+print("\n✓ FWHM Statistics:")
+print(f"  Valid measurements: {len(fwhm_vals)}/{len(fwhm_vals)}")
+print(f"  Beam size range: {min(fwhm_vals):.2f} - {max(fwhm_vals):.2f} pixels")
+print(f"  Average beam size: {np.mean(fwhm_vals):.2f} ± {np.std(fwhm_vals):.2f} pixels")
 # %%
 # Everything seems fine, we can now analyze the beam size evolution along the z-axis.
 
@@ -281,11 +246,11 @@ else:
 print("\n--- Beam Size Evolution Analysis ---")
 
 # Create a signal showing beam size evolution along z-axis
-z_positions = list(range(len(fwhm_values)))
+z_positions = list(range(len(fwhm_vals)))
 beam_evolution = sigima.objects.create_signal(
     "Beam size evolution",
     np.array(z_positions),
-    np.array(fwhm_values),
+    np.array(fwhm_vals),
     units=("image_index", "pixels"),
 )
 
@@ -330,31 +295,3 @@ vistools.view_curves(
     xlabel="Z Position (mm)",
     ylabel="Beam Size (pixels)",
 )
-
-# %%
-# Comprehensive analysis summary
-# ------------------------------------------------
-# We summarize the key results and findings from the laser beam analysis workflow.
-
-print("\n" + "=" * 60)
-print("LASER BEAM ANALYSIS COMPLETE")
-print("=" * 60)
-
-print(f"✓ Processed {len(images)} laser beam images")
-print(f"✓ Applied background clipping at {background_threshold} LSB threshold")
-print(f"✓ Detected centroids in {len(successful_centroids)} images")
-print(f"✓ Generated {len(successful_profiles)} horizontal line profiles")
-print(f"✓ Generated {len(successful_radial)} radial profiles")
-print(f"✓ Computed {len(valid_fwhm)} valid FWHM measurements")
-print("✓ Created beam size evolution analysis with calibration")
-
-if len(valid_fwhm) > 0:
-    print("\nBeam Characterization Results:")
-    min_beam = min(valid_fwhm)
-    max_beam = max(valid_fwhm)
-    mean_beam = np.mean(valid_fwhm)
-    std_beam = np.std(valid_fwhm)
-    cv_beam = 100 * std_beam / mean_beam
-    print(f"• Beam size range: {min_beam:.2f} - {max_beam:.2f} pixels")
-    print(f"• Average beam size: {mean_beam:.2f} ± {std_beam:.2f} pixels")
-    print(f"• Coefficient of variation: {cv_beam:.1f}%")
