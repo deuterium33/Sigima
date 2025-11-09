@@ -3,6 +3,13 @@
 The `sigima` library is part of the DataLab open-source platform.
 See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones.
 
+## sigima 1.0.2 ##
+
+🛠️ Bug fixes:
+
+* Public API:
+  * Made `BaseObj.roi_has_changed` method private (by renaming to `BaseObj.__roi_has_changed`) to avoid accidental external usage. This would interfere with the internal mask refresh mechanism that relies on controlled access to this method. The method is not part of the public API and should not be called directly by applications.
+
 ## sigima 1.0.1 ##
 
 💥 New features and enhancements:

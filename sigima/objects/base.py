@@ -294,7 +294,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
             Coordinates
         """
 
-    def roi_has_changed(self) -> bool:
+    def __roi_has_changed(self) -> bool:
         """Return True if ROI has changed since last call to this method.
 
         The first call to this method will return True if ROI has not yet been set,
@@ -360,7 +360,7 @@ class BaseObj(Generic[TypeROI], metaclass=BaseObjMeta):
         Returns:
             Masked data
         """
-        roi_changed = self.roi_has_changed()
+        roi_changed = self.__roi_has_changed()
         if self.roi is None:
             if roi_changed:
                 self._maskdata_cache = None

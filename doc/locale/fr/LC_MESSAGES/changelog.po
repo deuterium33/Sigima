@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 18:07+0100\n"
+"POT-Creation-Date: 2025-11-09 11:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -24,6 +24,18 @@ msgstr "Notes de version"
 
 msgid "The `sigima` library is part of the DataLab open-source platform. See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.html) for future and past milestones."
 msgstr "La bibliothèque `sigima` fait partie de la plateforme open-source DataLab. Consultez la [page de feuille de route](https://datalab-platform.com/en/contributing/roadmap.html) de DataLab pour les jalons futurs et passés."
+
+msgid "sigima 1.0.2"
+msgstr "sigima 1.0.2"
+
+msgid "🛠️ Bug fixes:"
+msgstr "🛠️ Correctifs:"
+
+msgid "Public API:"
+msgstr "API publique :"
+
+msgid "Made `BaseObj.roi_has_changed` method private (by renaming to `BaseObj.__roi_has_changed`) to avoid accidental external usage. This would interfere with the internal mask refresh mechanism that relies on controlled access to this method. The method is not part of the public API and should not be called directly by applications."
+msgstr "La méthode `BaseObj.roi_has_changed` a été rendue privée (en la renommant en `BaseObj.__roi_has_changed`) pour éviter une utilisation externe accidentelle. Cela interférerait avec le mécanisme interne de rafraîchissement des masques qui repose sur un accès contrôlé à cette méthode. La méthode ne fait pas partie de l'API publique et ne doit pas être appelée directement par les applications."
 
 msgid "sigima 1.0.1"
 msgstr "sigima 1.0.1"
@@ -180,9 +192,6 @@ msgstr "Permet aux applications de gérer les annotations de tracé (formes, ét
 
 msgid "Fully compatible with DataLab's PlotPy adapter pattern for visualization"
 msgstr "Entièrement compatible avec le modèle d'adaptateur PlotPy de DataLab pour la visualisation"
-
-msgid "🛠️ Bug fixes:"
-msgstr "🛠️ Correctifs:"
 
 msgid "**2D peak detection**: Fixed architectural violation in `peak_detection()` computation function"
 msgstr ""
