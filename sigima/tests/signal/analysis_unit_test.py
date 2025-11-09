@@ -128,7 +128,6 @@ def test_signal_y_at_x() -> None:
     check_scalar_result("y|x=2.5", y_val, 1.0)
 
 
-@pytest.mark.validation
 def test_x_at_y_geometry_result() -> None:
     """Test that x_at_y returns a GeometryResult with MARKER kind."""
     # Create a simple sine wave signal
@@ -163,7 +162,6 @@ def test_x_at_y_geometry_result() -> None:
     assert 0 < x_val < np.pi / 2, f"X value {x_val} out of expected range"
 
 
-@pytest.mark.validation
 def test_y_at_x_geometry_result() -> None:
     """Test that y_at_x returns a GeometryResult with MARKER kind."""
     # Create a simple quadratic signal
@@ -198,7 +196,6 @@ def test_y_at_x_geometry_result() -> None:
     assert abs(y_val - 9.0) < 0.1, f"Y value should be ~9.0, got {y_val}"
 
 
-@pytest.mark.validation
 def test_geometry_result_value_property() -> None:
     """Test the .value property for POINT, MARKER, and SEGMENT shapes."""
     from sigima.objects.scalar.geometry import GeometryResult, KindShape
@@ -252,7 +249,6 @@ def test_geometry_result_value_property() -> None:
         _ = multi_result.value
 
 
-@pytest.mark.validation
 def test_x_at_y_cross_marker_coordinates() -> None:
     """Test that x_at_y returns both x and y coordinates for cross marker display."""
     # Create a test signal
