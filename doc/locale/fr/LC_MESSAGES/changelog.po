@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-09 17:00+0100\n"
+"POT-Creation-Date: 2025-11-09 17:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -78,6 +78,27 @@ msgstr "Changement majeur : Les scripts accédant aux résultats sous forme de t
 
 msgid "🛠️ Bug fixes:"
 msgstr "🛠️ Correctifs:"
+
+msgid "Detection functions:"
+msgstr "Fonctions de détection :"
+
+msgid "**Contour detection**: Removed ROI creation support from `ContourShapeParam` as it doesn't make sense for contour detection use cases. The `ContourShapeParam` class no longer inherits from `DetectionROIParam`, and the `contour_shape()` function no longer calls `store_roi_creation_metadata()`. ROI creation remains available for other detection methods (blob detection, 2D peak detection) where it is appropriate."
+msgstr "**Détection de contours** : Suppression du support de création de ROI dans `ContourShapeParam`, car cela n'a pas de sens pour les cas d'utilisation de détection de contours. La classe `ContourShapeParam` n'hérite plus de `DetectionROIParam`, et la fonction `contour_shape()` n'appelle plus `store_roi_creation_metadata()`. La création de ROI reste disponible pour d'autres méthodes de détection (détection de blobs, détection de pics 2D) où cela est approprié."
+
+msgid "**ROI creation error handling**: Enhanced error handling in `create_image_roi_around_points()` function to provide clearer error messages:"
+msgstr "**Gestion des erreurs de création de ROI** : Amélioration de la gestion des erreurs dans la fonction `create_image_roi_around_points()` pour fournir des messages d'erreur plus clairs :"
+
+msgid "Now raises `ValueError` when calculated ROI size is too small (points too close together)"
+msgstr "Lève désormais une exception `ValueError` lorsque la taille de ROI calculée est trop petite (points trop proches les uns des autres)"
+
+msgid "Improved error messages to help users understand the cause of failures"
+msgstr "Messages d'erreur améliorés pour aider les utilisateurs à comprendre la cause des échecs"
+
+msgid "Validates ROI geometry parameter more explicitly"
+msgstr "Valide le paramètre de géométrie de ROI de manière plus explicite"
+
+msgid "Better handling of edge cases in automatic ROI sizing"
+msgstr "Meilleure gestion des cas limites dans le dimensionnement automatique des ROI"
 
 msgid "Public API:"
 msgstr "API publique :"

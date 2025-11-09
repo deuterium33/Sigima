@@ -26,6 +26,15 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 🛠️ Bug fixes:
 
+* Detection functions:
+  * **Contour detection**: Removed ROI creation support from `ContourShapeParam` as it doesn't make sense for contour detection use cases. The `ContourShapeParam` class no longer inherits from `DetectionROIParam`, and the `contour_shape()` function no longer calls `store_roi_creation_metadata()`. ROI creation remains available for other detection methods (blob detection, 2D peak detection) where it is appropriate.
+
+  * **ROI creation error handling**: Enhanced error handling in `create_image_roi_around_points()` function to provide clearer error messages:
+    * Now raises `ValueError` when calculated ROI size is too small (points too close together)
+    * Improved error messages to help users understand the cause of failures
+    * Validates ROI geometry parameter more explicitly
+    * Better handling of edge cases in automatic ROI sizing
+
 * Public API:
   * Made `BaseObj.roi_has_changed` method private (by renaming to `BaseObj.__roi_has_changed`) to avoid accidental external usage. This would interfere with the internal mask refresh mechanism that relies on controlled access to this method. The method is not part of the public API and should not be called directly by applications.
 
