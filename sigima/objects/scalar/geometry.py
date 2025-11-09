@@ -159,6 +159,8 @@ class GeometryResult:
             raise ValueError("coords must be a 2-D numpy array")
         if k == KindShape.POINT and self.coords.shape[1] != 2:
             raise ValueError("coords for 'point' must be (N,2)")
+        if k == KindShape.MARKER and self.coords.shape[1] != 2:
+            raise ValueError("coords for 'marker' must be (N,2)")
         if k == KindShape.SEGMENT and self.coords.shape[1] != 4:
             raise ValueError("coords for 'segment' must be (N,4)")
         if k == KindShape.CIRCLE and self.coords.shape[1] != 3:
@@ -187,6 +189,55 @@ class GeometryResult:
              name identifier for this geometry result type.
         """
         return self.kind.value
+
+    @property
+    def value(self) -> float | tuple[float, float]:
+        """Get the value from a single-row POINT, MARKER, or SEGMENT geometry result.
+
+        This property provides convenient access to computed values:
+
+        - For POINT: returns (x, y) coordinates as a tuple
+        - For MARKER: returns (x, y) coordinates as a tuple
+        - For SEGMENT: returns the length of the segment as a float
+
+        Returns:
+            For POINT/MARKER: tuple of (x, y) coordinates
+            For SEGMENT: float length of the segment
+
+        Raises:
+            ValueError: If the result has multiple rows or is not a POINT, MARKER,
+                       or SEGMENT kind
+
+        Examples:
+            >>> # Get coordinates from x_at_y result (MARKER)
+            >>> result = proxy.compute_x_at_y(p)
+            >>> x, y = result.value  # Get both coordinates
+            >>>
+            >>> # Get coordinates from peak detection (POINT)
+            >>> result = proxy.compute_peak_detection(p)
+            >>> x, y = result.value  # Get peak coordinates
+            >>>
+            >>> # Get segment length (SEGMENT)
+            >>> result = proxy.compute_fwhm(p)
+            >>> length = result.value  # Get FWHM length
+        """
+        if self.kind not in (KindShape.POINT, KindShape.MARKER, KindShape.SEGMENT):
+            raise ValueError(
+                f"value property only valid for POINT, MARKER, or SEGMENT kinds, "
+                f"got {self.kind}"
+            )
+        if len(self.coords) != 1:
+            raise ValueError(
+                f"value property only valid for single-row results, "
+                f"got {len(self.coords)} rows"
+            )
+
+        if self.kind == KindShape.SEGMENT:
+            return float(self.segments_lengths()[0])
+
+        # POINT or MARKER: return (x, y) tuple
+        x, y = self.coords[0]
+        return (float(x), float(y))
 
     # -------- Factory methods --------
 

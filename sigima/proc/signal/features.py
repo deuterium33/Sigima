@@ -171,23 +171,8 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     )
 
 
-def _find_first_x_at_y_value(xy: np.ndarray, y_target: float) -> float:
-    """Find the first x value where :math:`y = f(x)` equals the value :math:`y_target`.
-
-    Args:
-        xy: Tuple of (x, y) data arrays.
-        y_target: Target y value.
-
-    Returns:
-        The first interpolated x value at the given :math:`y_target`,
-        or `nan` if none found.
-    """
-    x_values = features.find_x_values_at_y(xy[0], xy[1], y_target)
-    return x_values[0] if len(x_values) > 0 else np.nan
-
-
 @computation_function()
-def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
+def x_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     """
     Compute the smallest x-value at a given y-value for a signal object.
 
@@ -196,11 +181,21 @@ def x_at_y(obj: SignalObj, p: OrdinateParam) -> TableResult:
         p: The parameter dataset for finding the abscissa.
 
     Returns:
-         An object containing the x-value.
+         A GeometryResult with a cross marker at the (x, y) position.
     """
-    table = TableResultBuilder(f"x|y={p.y}")
-    table.add(lambda xy: _find_first_x_at_y_value(xy, p.y), "x@y")
-    return table.compute(obj)
+
+    def compute_x_at_y(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """Helper function to compute x at y value."""
+        x_values = features.find_x_values_at_y(x, y, p.y)
+        x_result = x_values[0] if len(x_values) > 0 else np.nan
+        return np.array([x_result, p.y])
+
+    return compute_geometry_from_obj(
+        f"x|y={p.y}",
+        KindShape.MARKER,
+        obj,
+        compute_x_at_y,
+    )
 
 
 # Note: we do not specify title of the dataset here because it's a generic parameter
@@ -213,7 +208,7 @@ class AbscissaParam(gds.DataSet):
 
 
 @computation_function()
-def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
+def y_at_x(obj: SignalObj, p: AbscissaParam) -> GeometryResult | None:
     """
     Compute the smallest y-value at a given x-value for a signal object.
 
@@ -222,11 +217,20 @@ def y_at_x(obj: SignalObj, p: AbscissaParam) -> TableResult:
         p: The parameter dataset for finding the ordinate.
 
     Returns:
-         An object containing the y-value.
+         A GeometryResult with a cross marker at the (x, y) position.
     """
-    table = TableResultBuilder(f"y|x={p.x}")
-    table.add(lambda xy: features.find_y_at_x_value(xy[0], xy[1], p.x), "y@x")
-    return table.compute(obj)
+
+    def compute_y_at_x(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """Helper function to compute y at x value."""
+        y_result = features.find_y_at_x_value(x, y, p.x)
+        return np.array([p.x, y_result])
+
+    return compute_geometry_from_obj(
+        f"y|x={p.x}",
+        KindShape.MARKER,
+        obj,
+        compute_y_at_x,
+    )
 
 
 @computation_function()

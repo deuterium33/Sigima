@@ -1085,3 +1085,100 @@ class TestUtilityFunctions:
         expected_coords = np.array([[3.0, 4.0]])
         np.testing.assert_array_equal(result_roi_0.coords, expected_coords)
         np.testing.assert_array_equal(result_roi_0.roi_indices, np.array([0]))
+
+
+class TestGeometryResultValueProperty:
+    """Test class for GeometryResult.value property."""
+
+    def test_value_property_point(self) -> None:
+        """Test .value property for POINT shape returns (x, y) tuple."""
+        coords = np.array([[3.5, 5.0]])
+        result = GeometryResult("Test Point", KindShape.POINT, coords)
+        x, y = result.value
+        assert isinstance(x, float), "X should be a float"
+        assert isinstance(y, float), "Y should be a float"
+        assert abs(x - 3.5) < 1e-10, f"X should be 3.5, got {x}"
+        assert abs(y - 5.0) < 1e-10, f"Y should be 5.0, got {y}"
+
+    def test_value_property_marker(self) -> None:
+        """Test .value property for MARKER shape returns (x, y) tuple."""
+        coords = np.array([[2.0, 7.0]])
+        result = GeometryResult("Test Marker", KindShape.MARKER, coords)
+        x, y = result.value
+        assert isinstance(x, float), "X should be a float"
+        assert isinstance(y, float), "Y should be a float"
+        assert abs(x - 2.0) < 1e-10, f"X should be 2.0, got {x}"
+        assert abs(y - 7.0) < 1e-10, f"Y should be 7.0, got {y}"
+
+    def test_value_property_segment(self) -> None:
+        """Test .value property for SEGMENT shape returns length."""
+        # 3-4-5 triangle: segment from (0,0) to (3,4) has length 5
+        coords = np.array([[0.0, 0.0, 3.0, 4.0]])
+        result = GeometryResult("Test Segment", KindShape.SEGMENT, coords)
+        length = result.value
+        assert isinstance(length, float), "Length should be a float"
+        assert abs(length - 5.0) < 1e-10, f"Length should be 5.0, got {length}"
+
+    def test_value_property_segment_horizontal(self) -> None:
+        """Test .value property for horizontal SEGMENT."""
+        coords = np.array([[1.0, 2.0, 6.0, 2.0]])
+        result = GeometryResult("Horizontal Segment", KindShape.SEGMENT, coords)
+        length = result.value
+        assert abs(length - 5.0) < 1e-10, f"Length should be 5.0, got {length}"
+
+    def test_value_property_segment_vertical(self) -> None:
+        """Test .value property for vertical SEGMENT."""
+        coords = np.array([[3.0, 1.0, 3.0, 8.0]])
+        result = GeometryResult("Vertical Segment", KindShape.SEGMENT, coords)
+        length = result.value
+        assert abs(length - 7.0) < 1e-10, f"Length should be 7.0, got {length}"
+
+    def test_value_property_unsupported_shape(self) -> None:
+        """Test .value property raises error for unsupported shapes."""
+        # Test CIRCLE
+        coords = np.array([[0.0, 0.0, 1.0]])
+        result = GeometryResult("Test Circle", KindShape.CIRCLE, coords)
+        with pytest.raises(ValueError, match="value property only valid for"):
+            _ = result.value
+
+        # Test ELLIPSE
+        coords = np.array([[0.0, 0.0, 2.0, 1.0, 0.0]])
+        result = GeometryResult("Test Ellipse", KindShape.ELLIPSE, coords)
+        with pytest.raises(ValueError, match="value property only valid for"):
+            _ = result.value
+
+        # Test RECTANGLE
+        coords = np.array([[0.0, 0.0, 2.0, 3.0]])
+        result = GeometryResult("Test Rectangle", KindShape.RECTANGLE, coords)
+        with pytest.raises(ValueError, match="value property only valid for"):
+            _ = result.value
+
+    def test_value_property_multiple_rows(self) -> None:
+        """Test .value property raises error for multiple rows."""
+        coords = np.array([[1.0, 2.0], [3.0, 4.0]])
+        result = GeometryResult("Multiple Points", KindShape.POINT, coords)
+        with pytest.raises(ValueError, match="single-row results"):
+            _ = result.value
+
+    def test_value_property_consistency(self) -> None:
+        """Test .value property is consistent with direct coord access."""
+        # For POINT
+        coords = np.array([[1.5, 2.5]])
+        result = GeometryResult("Point", KindShape.POINT, coords)
+        x_val, y_val = result.value
+        assert x_val == result.coords[0, 0]
+        assert y_val == result.coords[0, 1]
+
+        # For MARKER
+        coords = np.array([[3.5, 4.5]])
+        result = GeometryResult("Marker", KindShape.MARKER, coords)
+        x_val, y_val = result.value
+        assert x_val == result.coords[0, 0]
+        assert y_val == result.coords[0, 1]
+
+        # For SEGMENT
+        coords = np.array([[0.0, 0.0, 3.0, 4.0]])
+        result = GeometryResult("Segment", KindShape.SEGMENT, coords)
+        length = result.value
+        expected_length = result.segments_lengths()[0]
+        assert abs(length - expected_length) < 1e-10

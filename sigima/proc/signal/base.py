@@ -129,7 +129,7 @@ class Wrap1to1Func:
 
 def compute_geometry_from_obj(
     title: str,
-    shape: str,
+    shape: str | KindShape,
     obj: SignalObj,
     func: Callable,
     *args: Any,
@@ -138,7 +138,7 @@ def compute_geometry_from_obj(
 
     Args:
         title: Result title
-        shape: Result shape kind (e.g., "segment", "point")
+        shape: Result shape kind (e.g., "segment", "point", KindShape.MARKER)
         obj: Input signal object
         func: Computation function that takes (x, y, ``*args``) and returns coordinates
         *args: Additional computation function arguments
@@ -172,10 +172,10 @@ def compute_geometry_from_obj(
         # Ensure results are in the correct 2D format
         if results.ndim == 1:
             # For segment shapes, expect 4 coordinates: [x0, y0, x1, y1]
-            if shape == "segment" and len(results) == 4:
+            if shape in ("segment", KindShape.SEGMENT) and len(results) == 4:
                 results = results.reshape(1, 4)
             elif len(results) % 2 == 0:
-                # Reshape flat coordinate array to pairs for points
+                # Reshape flat coordinate array to pairs for points/markers
                 results = results.reshape(-1, 2)
             else:
                 continue  # Skip malformed results
@@ -189,10 +189,16 @@ def compute_geometry_from_obj(
         return None
 
     coords = np.vstack(rows)
-    if shape == "segment":
+
+    # Convert shape to KindShape enum
+    if isinstance(shape, KindShape):
+        shape_kind = shape
+    elif shape == "segment":
         shape_kind = KindShape.SEGMENT
     elif shape == "point":
         shape_kind = KindShape.POINT
+    elif shape == "marker":
+        shape_kind = KindShape.MARKER
     else:
         shape_kind = KindShape.POINT  # Default fallback
 

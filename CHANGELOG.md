@@ -5,6 +5,25 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 ## sigima 1.0.2 ##
 
+💥 New features and enhancements:
+
+* **GeometryResult.value property**: New convenience property for easy script access to computed geometry values
+  * Supports POINT, MARKER, and SEGMENT shapes
+  * Returns `(x, y)` tuple for POINT and MARKER shapes (both coordinates accessible)
+  * Returns `float` length for SEGMENT shapes (calculated via `segments_lengths()`)
+  * Return type annotation: `float | tuple[float, float]`
+  * Provides intuitive API: unpack coordinates with `x, y = result.value` or get length with `length = result.value`
+  * Comprehensive error handling for unsupported shapes and multi-row results
+
+* **Signal analysis functions return GeometryResult**: Changed `x_at_y()` and `y_at_x()` to return geometry results for better visualization
+  * `x_at_y()` now returns `GeometryResult` with `MARKER` kind (previously returned `TableResult`)
+  * `y_at_x()` now returns `GeometryResult` with `MARKER` kind (previously returned `TableResult`)
+  * Both functions return coordinates as `[x, y]` in N×2 array format for cross marker display
+  * Enables proper marker visualization in DataLab GUI (displayed as cross markers on plots)
+  * Script-friendly API: use `.value` property to easily extract coordinates as `(x, y)` tuple
+  * Example: `x, y = proxy.compute_x_at_y(params).value` provides direct access to both coordinates
+  * Breaking change: Scripts accessing results as tables need to update to use `.value` property or `.coords` array
+
 🛠️ Bug fixes:
 
 * Public API:

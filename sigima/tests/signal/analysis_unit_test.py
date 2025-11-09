@@ -50,8 +50,10 @@ def test_signal_bandwidth_3db() -> None:
     length = geometry.segments_lengths()[0]
     check_scalar_result("Bandwidth@-3dB", length, 38.99301975103714)
     p1 = sigima.params.AbscissaParam.create(x=length)
-    table = sigima.proc.signal.y_at_x(obj, p1)
-    check_scalar_result("Value@cutoff", table["y@x"][0], np.max(obj.y) - 3.0)
+    geometry_result = sigima.proc.signal.y_at_x(obj, p1)
+    assert geometry_result is not None, "Y at X computation failed"
+    _, y_val = geometry_result.value  # Get (x, y) tuple from .value property
+    check_scalar_result("Value@cutoff", y_val, np.max(obj.y) - 3.0)
 
 
 @pytest.mark.validation
@@ -106,9 +108,10 @@ def test_signal_x_at_y() -> None:
     if obj is None:
         raise ValueError("Failed to create test signal")
     param = sigima.proc.signal.OrdinateParam.create(y=0.5)
-    table = sigima.proc.signal.x_at_y(obj, param)
-    assert table is not None, "X at Y computation failed"
-    check_scalar_result("x|y=0.5", table["x@y"][0], 0.0)
+    geometry = sigima.proc.signal.x_at_y(obj, param)
+    assert geometry is not None, "X at Y computation failed"
+    x_val, _ = geometry.value  # Get (x, y) tuple from .value property
+    check_scalar_result("x|y=0.5", x_val, 0.0)
 
 
 @pytest.mark.validation
@@ -119,9 +122,184 @@ def test_signal_y_at_x() -> None:
     if obj is None:
         raise ValueError("Failed to create test signal")
     param = sigima.proc.signal.AbscissaParam.create(x=2.5)
-    table = sigima.proc.signal.y_at_x(obj, param)
-    assert table is not None, "Y at X computation failed"
-    check_scalar_result("y|x=2.5", table["y@x"][0], 1.0)
+    geometry = sigima.proc.signal.y_at_x(obj, param)
+    assert geometry is not None, "Y at X computation failed"
+    _, y_val = geometry.value  # Get (x, y) tuple from .value property
+    check_scalar_result("y|x=2.5", y_val, 1.0)
+
+
+@pytest.mark.validation
+def test_x_at_y_geometry_result() -> None:
+    """Test that x_at_y returns a GeometryResult with MARKER kind."""
+    # Create a simple sine wave signal
+    x = np.linspace(0, 2 * np.pi, 100)
+    y = np.sin(x)
+    obj = sigima.objects.SignalObj()
+    obj.set_xydata(x, y)
+
+    # Find x where y = 0.5
+    param = sigima.params.OrdinateParam.create(y=0.5)
+    result = sigima.proc.signal.x_at_y(obj, param)
+
+    # Check it's a GeometryResult with MARKER kind
+    assert result is not None, "x_at_y returned None"
+    assert hasattr(result, "kind"), "Result should have 'kind' attribute"
+    from sigima.objects.scalar.geometry import KindShape
+
+    assert result.kind == KindShape.MARKER, f"Expected MARKER kind, got {result.kind}"
+
+    # Check coords shape (should be N×2 for MARKER)
+    assert result.coords.shape[1] == 2, (
+        f"MARKER coords should be N×2, got {result.coords.shape}"
+    )
+
+    # Check .value property returns (x, y) tuple
+    x_val, y_val = result.value
+    assert isinstance(x_val, float), "x value should be a float"
+    assert isinstance(y_val, float), "y value should be a float"
+    assert abs(y_val - 0.5) < 1e-10, f"Y value should be 0.5, got {y_val}"
+
+    # Verify the x coordinate is reasonable (between 0 and pi/2 for sin(x) = 0.5)
+    assert 0 < x_val < np.pi / 2, f"X value {x_val} out of expected range"
+
+
+@pytest.mark.validation
+def test_y_at_x_geometry_result() -> None:
+    """Test that y_at_x returns a GeometryResult with MARKER kind."""
+    # Create a simple quadratic signal
+    x = np.linspace(-5, 5, 101)
+    y = x**2
+    obj = sigima.objects.SignalObj()
+    obj.set_xydata(x, y)
+
+    # Find y where x = 3.0
+    param = sigima.params.AbscissaParam.create(x=3.0)
+    result = sigima.proc.signal.y_at_x(obj, param)
+
+    # Check it's a GeometryResult with MARKER kind
+    assert result is not None, "y_at_x returned None"
+    assert hasattr(result, "kind"), "Result should have 'kind' attribute"
+    from sigima.objects.scalar.geometry import KindShape
+
+    assert result.kind == KindShape.MARKER, f"Expected MARKER kind, got {result.kind}"
+
+    # Check coords shape (should be N×2 for MARKER)
+    assert result.coords.shape[1] == 2, (
+        f"MARKER coords should be N×2, got {result.coords.shape}"
+    )
+
+    # Check .value property returns (x, y) tuple
+    x_val, y_val = result.value
+    assert isinstance(x_val, float), "x value should be a float"
+    assert isinstance(y_val, float), "y value should be a float"
+    assert abs(x_val - 3.0) < 1e-10, f"X value should be 3.0, got {x_val}"
+
+    # Verify the y coordinate is correct (should be 9.0 for x^2 at x=3)
+    assert abs(y_val - 9.0) < 0.1, f"Y value should be ~9.0, got {y_val}"
+
+
+@pytest.mark.validation
+def test_geometry_result_value_property() -> None:
+    """Test the .value property for POINT, MARKER, and SEGMENT shapes."""
+    from sigima.objects.scalar.geometry import GeometryResult, KindShape
+
+    # Test POINT
+    point_result = GeometryResult.from_coords(
+        title="Test Point",
+        kind=KindShape.POINT,
+        coords=np.array([[1.5, 2.5]]),
+    )
+    x, y = point_result.value
+    assert abs(x - 1.5) < 1e-10, f"POINT x should be 1.5, got {x}"
+    assert abs(y - 2.5) < 1e-10, f"POINT y should be 2.5, got {y}"
+
+    # Test MARKER
+    marker_result = GeometryResult.from_coords(
+        title="Test Marker",
+        kind=KindShape.MARKER,
+        coords=np.array([[3.0, 4.0]]),
+    )
+    x, y = marker_result.value
+    assert abs(x - 3.0) < 1e-10, f"MARKER x should be 3.0, got {x}"
+    assert abs(y - 4.0) < 1e-10, f"MARKER y should be 4.0, got {y}"
+
+    # Test SEGMENT (3-4-5 triangle)
+    segment_result = GeometryResult.from_coords(
+        title="Test Segment",
+        kind=KindShape.SEGMENT,
+        coords=np.array([[0.0, 0.0, 3.0, 4.0]]),
+    )
+    length = segment_result.value
+    assert isinstance(length, float), "SEGMENT value should be a float"
+    assert abs(length - 5.0) < 1e-10, f"SEGMENT length should be 5.0, got {length}"
+
+    # Test error for unsupported shape (CIRCLE)
+    circle_result = GeometryResult.from_coords(
+        title="Test Circle",
+        kind=KindShape.CIRCLE,
+        coords=np.array([[0.0, 0.0, 1.0]]),
+    )
+    with pytest.raises(ValueError, match="value property only valid for"):
+        _ = circle_result.value
+
+    # Test error for multiple rows
+    multi_result = GeometryResult.from_coords(
+        title="Multiple Points",
+        kind=KindShape.POINT,
+        coords=np.array([[1.0, 2.0], [3.0, 4.0]]),
+    )
+    with pytest.raises(ValueError, match="single-row results"):
+        _ = multi_result.value
+
+
+@pytest.mark.validation
+def test_x_at_y_cross_marker_coordinates() -> None:
+    """Test that x_at_y returns both x and y coordinates for cross marker display."""
+    # Create a test signal
+    x = np.linspace(0, 10, 100)
+    y = 2 * x + 1  # Linear signal: y = 2x + 1
+    obj = sigima.objects.SignalObj()
+    obj.set_xydata(x, y)
+
+    # Find x where y = 5.0 (should be x = 2.0)
+    param = sigima.params.OrdinateParam.create(y=5.0)
+    result = sigima.proc.signal.x_at_y(obj, param)
+
+    assert result is not None
+    # Check that we have both coordinates (not NaN)
+    coords = result.coords[0]
+    x_coord, y_coord = coords
+    assert not np.isnan(x_coord), "X coordinate should not be NaN"
+    assert not np.isnan(y_coord), "Y coordinate should not be NaN"
+
+    # Verify values are correct
+    check_scalar_result("x_at_y x-coordinate", x_coord, 2.0, rtol=0.01)
+    check_scalar_result("x_at_y y-coordinate", y_coord, 5.0, rtol=0.01)
+
+
+@pytest.mark.validation
+def test_y_at_x_cross_marker_coordinates() -> None:
+    """Test that y_at_x returns both x and y coordinates for cross marker display."""
+    # Create a test signal
+    x = np.linspace(0, 10, 100)
+    y = x**2  # Quadratic signal: y = x^2
+    obj = sigima.objects.SignalObj()
+    obj.set_xydata(x, y)
+
+    # Find y where x = 3.0 (should be y = 9.0)
+    param = sigima.params.AbscissaParam.create(x=3.0)
+    result = sigima.proc.signal.y_at_x(obj, param)
+
+    assert result is not None
+    # Check that we have both coordinates (not NaN)
+    coords = result.coords[0]
+    x_coord, y_coord = coords
+    assert not np.isnan(x_coord), "X coordinate should not be NaN"
+    assert not np.isnan(y_coord), "Y coordinate should not be NaN"
+
+    # Verify values are correct
+    check_scalar_result("y_at_x x-coordinate", x_coord, 3.0, rtol=0.01)
+    check_scalar_result("y_at_x y-coordinate", y_coord, 9.0, rtol=0.01)
 
 
 if __name__ == "__main__":
@@ -133,3 +311,8 @@ if __name__ == "__main__":
     test_signal_x_at_minmax()
     test_signal_x_at_y()
     test_signal_y_at_x()
+    test_x_at_y_geometry_result()
+    test_y_at_x_geometry_result()
+    test_geometry_result_value_property()
+    test_x_at_y_cross_marker_coordinates()
+    test_y_at_x_cross_marker_coordinates()
