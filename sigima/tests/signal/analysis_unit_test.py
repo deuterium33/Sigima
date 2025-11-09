@@ -273,7 +273,6 @@ def test_x_at_y_cross_marker_coordinates() -> None:
     check_scalar_result("x_at_y y-coordinate", y_coord, 5.0, rtol=0.01)
 
 
-@pytest.mark.validation
 def test_y_at_x_cross_marker_coordinates() -> None:
     """Test that y_at_x returns both x and y coordinates for cross marker display."""
     # Create a test signal
