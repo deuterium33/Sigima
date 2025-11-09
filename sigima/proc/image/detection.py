@@ -222,7 +222,7 @@ def peak_detection(obj: ImageObj, p: Peak2DDetectionParam) -> GeometryResult | N
     """
     geometry = compute_geometry_from_obj(
         "peak",
-        "point",
+        KindShape.POINT,
         obj,
         sigima.tools.image.get_2d_peaks_coords,
         p.size,
@@ -325,7 +325,7 @@ def blob_dog(image: ImageObj, p: BlobDOGParam) -> GeometryResult | None:
     """
     geometry = compute_geometry_from_obj(
         "blob_dog",
-        "circle",
+        KindShape.CIRCLE,
         image,
         sigima.tools.image.find_blobs_dog,
         p.min_sigma,
@@ -365,7 +365,7 @@ def blob_doh(image: ImageObj, p: BlobDOHParam) -> GeometryResult | None:
     """
     geometry = compute_geometry_from_obj(
         "blob_doh",
-        "circle",
+        KindShape.CIRCLE,
         image,
         sigima.tools.image.find_blobs_doh,
         p.min_sigma,
@@ -401,7 +401,7 @@ def blob_log(image: ImageObj, p: BlobLOGParam) -> GeometryResult | None:
     """
     geometry = compute_geometry_from_obj(
         "blob_log",
-        "circle",
+        KindShape.CIRCLE,
         image,
         sigima.tools.image.find_blobs_log,
         p.min_sigma,
@@ -565,7 +565,7 @@ def blob_opencv(image: ImageObj, p: BlobOpenCVParam) -> GeometryResult | None:
     """
     geometry = compute_geometry_from_obj(
         "blob_opencv",
-        "circle",
+        KindShape.CIRCLE,
         image,
         sigima.tools.image.find_blobs_opencv,
         p.min_threshold,
@@ -616,7 +616,7 @@ def hough_circle_peaks(image: ImageObj, p: HoughCircleParam) -> GeometryResult |
     """
     geometry = compute_geometry_from_obj(
         "hough_circle_peak",
-        "circle",
+        KindShape.CIRCLE,
         image,
         sigima.tools.image.get_hough_circle_peaks,
         p.min_radius,

@@ -35,6 +35,7 @@ from sigima.config import _
 from sigima.objects import (
     GeometryResult,
     ImageObj,
+    KindShape,
     SignalObj,
     TableKind,
     TableResult,
@@ -82,7 +83,9 @@ def centroid(image: ImageObj) -> GeometryResult | None:
     Returns:
         Centroid coordinates
     """
-    return compute_geometry_from_obj("centroid", "marker", image, get_centroid_coords)
+    return compute_geometry_from_obj(
+        "centroid", KindShape.MARKER, image, get_centroid_coords
+    )
 
 
 def get_enclosing_circle_coords(data: np.ndarray) -> np.ndarray:
@@ -111,7 +114,7 @@ def enclosing_circle(image: ImageObj) -> GeometryResult | None:
         Diameter coords
     """
     return compute_geometry_from_obj(
-        "enclosing_circle", "circle", image, get_enclosing_circle_coords
+        "enclosing_circle", KindShape.CIRCLE, image, get_enclosing_circle_coords
     )
 
 

@@ -190,7 +190,7 @@ class ResultHtmlGenerator:
 
     @staticmethod
     def _get_row_headers(
-        result: TableResult | "GeometryResult",
+        result: TableResult | GeometryResult,
         roi_indices: list[int] | None,
         obj: SignalObj | ImageObj | None,
     ) -> list[str]:

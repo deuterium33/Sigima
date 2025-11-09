@@ -31,6 +31,7 @@ from sigima.config import _
 from sigima.enums import PowerUnit
 from sigima.objects import (
     GeometryResult,
+    KindShape,
     SignalObj,
     TableKind,
     TableResult,
@@ -122,7 +123,7 @@ def fwhm(obj: SignalObj, param: FWHMParam) -> GeometryResult | None:
     """
     return compute_geometry_from_obj(
         "fwhm",
-        "segment",
+        KindShape.SEGMENT,
         obj,
         pulse.fwhm,
         param.method,
@@ -141,7 +142,7 @@ def fw1e2(obj: SignalObj) -> GeometryResult | None:
     Returns:
         Segment coordinates
     """
-    return compute_geometry_from_obj("fw1e2", "segment", obj, pulse.fw1e2)
+    return compute_geometry_from_obj("fw1e2", KindShape.SEGMENT, obj, pulse.fw1e2)
 
 
 # Note: we do not specify title of the dataset here because it's a generic parameter
@@ -165,7 +166,9 @@ def full_width_at_y(obj: SignalObj, p: OrdinateParam) -> GeometryResult | None:
     Returns:
         Segment coordinates
     """
-    return compute_geometry_from_obj("∆X", "segment", obj, pulse.full_width_at_y, p.y)
+    return compute_geometry_from_obj(
+        "∆X", KindShape.SEGMENT, obj, pulse.full_width_at_y, p.y
+    )
 
 
 def _find_first_x_at_y_value(xy: np.ndarray, y_target: float) -> float:
@@ -274,7 +277,7 @@ def bandwidth_3db(obj: SignalObj) -> GeometryResult | None:
         Result shape with bandwidth.
     """
     return compute_geometry_from_obj(
-        "bandwidth", "segment", obj, features.find_bandwidth_coordinates, -3.0
+        "bandwidth", KindShape.SEGMENT, obj, features.find_bandwidth_coordinates, -3.0
     )
 
 
