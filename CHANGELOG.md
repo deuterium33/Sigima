@@ -7,6 +7,13 @@ See DataLab [roadmap page](https://datalab-platform.com/en/contributing/roadmap.
 
 💥 New features and enhancements:
 
+* **New parametric image types**: Added five new parametric image generation types for testing and calibration
+  * **Checkerboard pattern**: Alternating squares for camera calibration and spatial frequency analysis. Parameters include square size, offset, and min/max values
+  * **Sinusoidal grating**: Frequency response testing with configurable spatial frequencies (fx, fy), phase, amplitude, and DC offset
+  * **Ring pattern**: Concentric circular rings for radial analysis. Configurable period, width, center position, and amplitude range
+  * **Siemens star**: Resolution testing pattern with radial spokes. Parameters include number of spokes, inner/outer radius, center position, and value range
+  * **2D sinc function**: PSF/diffraction modeling with cardinal sine function. Configurable amplitude, center, scale factor (sigma), and DC offset
+
 * **GeometryResult.value property**: New convenience property for easy script access to computed geometry values
   * Supports POINT, MARKER, and SEGMENT shapes
   * Returns `(x, y)` tuple for POINT and MARKER shapes (both coordinates accessible)

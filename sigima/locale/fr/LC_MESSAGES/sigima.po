@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  sigima\n"
 "Report-Msgid-Bugs-To: p.raybaut@codra.fr\n"
-"POT-Creation-Date: 2025-11-05 16:52+0100\n"
+"POT-Creation-Date: 2025-11-10 10:52+0100\n"
 "PO-Revision-Date: 2025-05-22 15:46+0200\n"
 "Last-Translator: Christophe Debonnel <c.debonnel@codra.fr>\n"
 "Language: fr\n"
@@ -219,6 +219,21 @@ msgstr "Distribution uniforme"
 msgid "2D ramp"
 msgstr "Rampe 2D"
 
+msgid "Checkerboard"
+msgstr "Damier"
+
+msgid "Sinusoidal grating"
+msgstr "Réseau sinusoïdal"
+
+msgid "Ring pattern"
+msgstr "Motif en anneaux"
+
+msgid "Siemens star"
+msgstr "Étoile de Siemens"
+
+msgid "2D sinc"
+msgstr "Sinc 2D"
+
 msgid "Untitled image"
 msgstr "Image sans titre"
 
@@ -266,6 +281,105 @@ msgstr "Coefficients"
 
 msgid "Domain"
 msgstr "Domaine"
+
+msgid "Checkerboard pattern with alternating squares"
+msgstr "Motif en damier avec des carrés alternés"
+
+msgid "Square size"
+msgstr "Taille des carrés"
+
+msgid "Size of each square in pixels"
+msgstr "Taille de chaque carré en pixels"
+
+msgid "X offset"
+msgstr "Décalage X"
+
+msgid "Y offset"
+msgstr "Décalage Y"
+
+msgid "Value for dark squares"
+msgstr "Valeur des carrés foncés"
+
+msgid "Minimum value"
+msgstr "Minimum"
+
+msgid "Value for light squares"
+msgstr "Valeur des carrés clairs"
+
+msgid "Maximum value"
+msgstr "Maximum"
+
+msgid "Amplitude and offset"
+msgstr "Amplitude et décalage"
+
+msgid "DC offset"
+msgstr "Décalage DC"
+
+msgid "Frequency and phase"
+msgstr "Fréquence et phase"
+
+msgid "Spatial frequency in X direction"
+msgstr "Fréquence spatiale selon X"
+
+msgid "Spatial frequency in Y direction"
+msgstr "Fréquence spatiale selon Y"
+
+msgid "Phase"
+msgstr "Phase"
+
+msgid "Concentric ring pattern"
+msgstr "Motif en anneaux concentriques"
+
+msgid "Center X coordinate"
+msgstr "Coordonnées du centre X"
+
+msgid "Center Y coordinate"
+msgstr "Coordonnées du centre Y"
+
+msgid "Ring parameters"
+msgstr "Paramètres des anneaux"
+
+msgid "Period"
+msgstr "Période"
+
+msgid "Distance between ring centers"
+msgstr "Distance entre les centres des anneaux"
+
+msgid "Ring width"
+msgstr "Largeur des anneaux"
+
+msgid "Width of each ring"
+msgstr "Largeur de chaque anneau"
+
+msgid "Siemens star pattern for resolution testing"
+msgstr "Motif étoile de Siemens pour les tests de résolution"
+
+msgid "Number of spokes"
+msgstr "Nombre de rayons"
+
+msgid "Number of spoke pairs"
+msgstr "Nombre de paires de rayons"
+
+msgid "Radial limits"
+msgstr "Limites radiales"
+
+msgid "Inner radius"
+msgstr "Rayon intérieur"
+
+msgid "Inner radius (hole in center)"
+msgstr "Rayon intérieur (trou au centre)"
+
+msgid "Outer radius"
+msgstr "Rayon extérieur"
+
+msgid "Outer radius (edge of pattern)"
+msgstr "Rayon extérieur (bord du motif)"
+
+msgid "Center and scale"
+msgstr "Centre et échelle"
+
+msgid "Scale factor"
+msgstr "Facteur d'échelle"
 
 msgid "Data"
 msgstr "Données"
@@ -603,9 +717,6 @@ msgstr "Unité de l'angle"
 
 msgid "Unit of angle measurement"
 msgstr "Unité de mesure de l'angle"
-
-msgid "Phase"
-msgstr "Phase"
 
 msgid "Unwrapping removes discontinuities in phase"
 msgstr "Déplier supprime les discontinuités de phase"

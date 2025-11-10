@@ -21,6 +21,7 @@ will continue to work.
 from .creation import (
     # Constants
     DEFAULT_TITLE,
+    Checkerboard2DParam,
     Gauss2DParam,
     # Enums
     ImageDatatypes,
@@ -30,14 +31,17 @@ from .creation import (
     NormalDistribution2DParam,
     PoissonDistribution2DParam,
     Ramp2DParam,
+    Ring2DParam,
+    SiemensStar2DParam,
+    Sinc2DParam,
+    SinusoidalGrating2DParam,
     UniformDistribution2DParam,
     # Specific parameter classes
     Zero2DParam,
     check_all_image_parameters_classes,
-    # Core creation function
+    # Factory and utility functions
     create_image,
     create_image_from_param,
-    # Factory and utility functions
     create_image_parameters,
     get_next_image_number,
     # Registration functions
@@ -64,6 +68,7 @@ from .roi import (
 __all__ = [
     "DEFAULT_TITLE",
     "BaseSingleImageROI",
+    "Checkerboard2DParam",
     "CircularROI",
     "Gauss2DParam",
     "ImageDatatypes",
@@ -77,6 +82,10 @@ __all__ = [
     "ROI2DParam",
     "Ramp2DParam",
     "RectangularROI",
+    "Ring2DParam",
+    "SiemensStar2DParam",
+    "Sinc2DParam",
+    "SinusoidalGrating2DParam",
     "UniformDistribution2DParam",
     "Zero2DParam",
     "check_all_image_parameters_classes",

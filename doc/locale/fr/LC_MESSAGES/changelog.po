@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sigima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-09 17:08+0100\n"
+"POT-Creation-Date: 2025-11-10 10:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -30,6 +30,24 @@ msgstr "sigima 1.0.2"
 
 msgid "💥 New features and enhancements:"
 msgstr "💥 Nouvelles fonctionnalités et améliorations:"
+
+msgid "**New parametric image types**: Added five new parametric image generation types for testing and calibration"
+msgstr "**Nouveaux types d'images paramétriques** : Ajout de cinq nouveaux types de génération d'images paramétriques pour les tests et l'étalonnage"
+
+msgid "**Checkerboard pattern**: Alternating squares for camera calibration and spatial frequency analysis. Parameters include square size, offset, and min/max values"
+msgstr "**Motif en damier** : Carrés alternés pour l'étalonnage de la caméra et l'analyse de la fréquence spatiale. Les paramètres incluent la taille des carrés, le décalage et les valeurs min/max"
+
+msgid "**Sinusoidal grating**: Frequency response testing with configurable spatial frequencies (fx, fy), phase, amplitude, and DC offset"
+msgstr "**Réseau sinusoïdal** : Test de la réponse en fréquence avec des fréquences spatiales configurables (fx, fy), phase, amplitude et offset DC"
+
+msgid "**Ring pattern**: Concentric circular rings for radial analysis. Configurable period, width, center position, and amplitude range"
+msgstr "**Motif en anneau** : Anneaux circulaires concentriques pour l'analyse radiale. Période, largeur, position centrale et plage d'amplitude configurables"
+
+msgid "**Siemens star**: Resolution testing pattern with radial spokes. Parameters include number of spokes, inner/outer radius, center position, and value range"
+msgstr "**Étoile de Siemens** : Motif de test de résolution avec des rayons radiaux. Les paramètres incluent le nombre de rayons, le rayon intérieur/extérieur, la position centrale et la plage de valeurs"
+
+msgid "**2D sinc function**: PSF/diffraction modeling with cardinal sine function. Configurable amplitude, center, scale factor (sigma), and DC offset"
+msgstr "**Fonction sinc 2D** : Modélisation PSF/diffraction avec la fonction sinus cardinal. Amplitude, centre, facteur d'échelle (sigma) et offset DC configurables"
 
 msgid "**GeometryResult.value property**: New convenience property for easy script access to computed geometry values"
 msgstr "**Propriété GeometryResult.value** : Nouvelle propriété de commodité pour un accès facile aux valeurs géométriques calculées dans les scripts"

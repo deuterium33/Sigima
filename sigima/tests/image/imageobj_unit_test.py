@@ -17,7 +17,15 @@ import pytest
 import sigima.io
 import sigima.objects
 from sigima.io.image import ImageIORegistry
-from sigima.objects.image import Gauss2DParam, Ramp2DParam
+from sigima.objects.image import (
+    Checkerboard2DParam,
+    Gauss2DParam,
+    Ramp2DParam,
+    Ring2DParam,
+    SiemensStar2DParam,
+    Sinc2DParam,
+    SinusoidalGrating2DParam,
+)
 from sigima.tests import guiutils
 from sigima.tests.data import (
     create_annotated_image,
@@ -50,6 +58,25 @@ def preprocess_image_parameters(param: sigima.objects.NewImageParam) -> None:
     elif isinstance(param, Gauss2DParam):
         param.x0 = param.y0 = 3.0
         param.sigma = 5.0
+    elif isinstance(param, Checkerboard2DParam):
+        param.square_size = 32
+        param.vmin = 0.0
+        param.vmax = 100.0
+    elif isinstance(param, SinusoidalGrating2DParam):
+        param.fx = 0.05
+        param.fy = 0.0
+        param.a = 50.0
+        param.c = 100.0
+    elif isinstance(param, Ring2DParam):
+        param.period = 30.0
+        param.ring_width = 10.0
+    elif isinstance(param, SiemensStar2DParam):
+        param.n_spokes = 24
+        param.inner_radius = 10.0
+        param.outer_radius = 80.0
+    elif isinstance(param, Sinc2DParam):
+        param.sigma = 15.0
+        param.a = 100.0
 
 
 def postprocess_image_object(

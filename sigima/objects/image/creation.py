@@ -134,6 +134,16 @@ class ImageTypes(gds.LabeledEnum):
     GAUSS = "gauss", _("Gaussian")
     #: Bilinear form image
     RAMP = "ramp", _("2D ramp")
+    #: Checkerboard pattern
+    CHECKERBOARD = "checkerboard", _("Checkerboard")
+    #: Sinusoidal grating pattern
+    SINUSOIDAL_GRATING = "sinusoidal_grating", _("Sinusoidal grating")
+    #: Ring/circular pattern
+    RING = "ring", _("Ring pattern")
+    #: Siemens star pattern
+    SIEMENS_STAR = "siemens_star", _("Siemens star")
+    #: 2D sinc function
+    SINC = "sinc", _("2D sinc")
 
 
 DEFAULT_TITLE = _("Untitled image")
@@ -494,6 +504,329 @@ class Ramp2DParam(
 
 
 register_image_parameters_class(ImageTypes.RAMP, Ramp2DParam)
+
+
+class Checkerboard2DParam(
+    NewImageParam,
+    title=_("Checkerboard"),
+    comment=_("Checkerboard pattern with alternating squares"),
+):
+    """Checkerboard pattern parameters."""
+
+    square_size = gds.IntItem(
+        _("Square size"), default=64, min=1, help=_("Size of each square in pixels")
+    )
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("X offset"))
+    y0 = gds.FloatItem("y<sub>0</sub>", default=0.0, help=_("Y offset")).set_pos(col=1)
+    vmin = gds.FloatItem(
+        _("Minimum value"), default=0.0, help=_("Value for dark squares")
+    )
+    vmax = gds.FloatItem(
+        _("Maximum value"), default=255.0, help=_("Value for light squares")
+    ).set_pos(col=1)
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"Checkerboard(size={self.square_size})"
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        # Create coordinate arrays
+        y = np.arange(shape[0]) - self.y0
+        x = np.arange(shape[1]) - self.x0
+        xx, yy = np.meshgrid(x, y)
+
+        # Create checkerboard pattern using floor division
+        pattern = ((xx // self.square_size) + (yy // self.square_size)) % 2
+
+        # Scale to desired range
+        data = np.where(pattern == 0, self.vmin, self.vmax)
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.CHECKERBOARD, Checkerboard2DParam)
+
+
+class SinusoidalGrating2DParam(
+    NewImageParam,
+    title=_("Sinusoidal grating"),
+    comment="z = A sin(2π(f<sub>x</sub>·x + f<sub>y</sub>·y) + φ) + C",
+):
+    """Sinusoidal grating parameters."""
+
+    _g0_begin = gds.BeginGroup(_("Amplitude and offset"))
+    a = gds.FloatItem("A", default=100.0, help=_("Amplitude")).set_pos(col=0)
+    c = gds.FloatItem("C", default=128.0, help=_("DC offset")).set_pos(col=1)
+    _g0_end = gds.EndGroup("")
+
+    _g1_begin = gds.BeginGroup(_("Frequency and phase"))
+    fx = gds.FloatItem(
+        "f<sub>x</sub>", default=0.1, help=_("Spatial frequency in X direction")
+    ).set_pos(col=0)
+    fy = gds.FloatItem(
+        "f<sub>y</sub>", default=0.0, help=_("Spatial frequency in Y direction")
+    ).set_pos(col=1)
+    phase = gds.FloatItem("φ", default=0.0, help=_("Phase"), unit="rad").set_pos(
+        colspan=1
+    )
+    _g1_end = gds.EndGroup("")
+
+    _g2_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem("x<sub>min</sub>", default=0.0).set_pos(col=0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    _g2_end = gds.EndGroup("")
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"Grating(fx={self.fx:g},fy={self.fy:g},φ={self.phase:g})"
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        x = np.linspace(self.xmin, self.xmax, shape[1])
+        y = np.linspace(self.ymin, self.ymax, shape[0])
+        xx, yy = np.meshgrid(x, y)
+
+        data = self.a * np.sin(2 * np.pi * (self.fx * xx + self.fy * yy) + self.phase)
+        data = data + self.c
+
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.SINUSOIDAL_GRATING, SinusoidalGrating2DParam)
+
+
+class Ring2DParam(
+    NewImageParam,
+    title=_("Ring pattern"),
+    comment=_("Concentric ring pattern"),
+):
+    """Ring pattern parameters."""
+
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("Center X coordinate"))
+    y0 = gds.FloatItem(
+        "y<sub>0</sub>", default=0.0, help=_("Center Y coordinate")
+    ).set_pos(col=1)
+
+    _g0_begin = gds.BeginGroup(_("Ring parameters"))
+    period = gds.FloatItem(
+        _("Period"), default=50.0, min=0.1, help=_("Distance between ring centers")
+    )
+    ring_width = gds.FloatItem(
+        _("Ring width"), default=10.0, min=0.1, help=_("Width of each ring")
+    ).set_pos(col=1)
+    _g0_end = gds.EndGroup("")
+
+    _g1_begin = gds.BeginGroup(_("Amplitude"))
+    vmin = gds.FloatItem(_("Minimum value"), default=0.0)
+    vmax = gds.FloatItem(_("Maximum value"), default=255.0).set_pos(col=1)
+    _g1_end = gds.EndGroup("")
+
+    _g2_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-100.0).set_pos(col=0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=-100.0).set_pos(col=0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    _g2_end = gds.EndGroup("")
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"Ring(period={self.period:g},width={self.ring_width:g})"
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        x = np.linspace(self.xmin, self.xmax, shape[1])
+        y = np.linspace(self.ymin, self.ymax, shape[0])
+        xx, yy = np.meshgrid(x, y)
+
+        # Calculate distance from center
+        r = np.sqrt((xx - self.x0) ** 2 + (yy - self.y0) ** 2)
+
+        # Create ring pattern: modulo creates repeating pattern
+        ring_phase = (r % self.period) / self.period
+        # Create rings: value is high when ring_phase is within the ring width
+        ring_width_fraction = self.ring_width / self.period
+        rings = np.where(ring_phase < ring_width_fraction, 1.0, 0.0)
+
+        # Scale to desired range
+        data = self.vmin + rings * (self.vmax - self.vmin)
+
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.RING, Ring2DParam)
+
+
+class SiemensStar2DParam(
+    NewImageParam,
+    title=_("Siemens star"),
+    comment=_("Siemens star pattern for resolution testing"),
+):
+    """Siemens star pattern parameters."""
+
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("Center X coordinate"))
+    y0 = gds.FloatItem(
+        "y<sub>0</sub>", default=0.0, help=_("Center Y coordinate")
+    ).set_pos(col=1)
+
+    n_spokes = gds.IntItem(
+        _("Number of spokes"), default=36, min=2, help=_("Number of spoke pairs")
+    )
+
+    _g0_begin = gds.BeginGroup(_("Radial limits"))
+    inner_radius = gds.FloatItem(
+        _("Inner radius"), default=0.0, min=0.0, help=_("Inner radius (hole in center)")
+    )
+    outer_radius = gds.FloatItem(
+        _("Outer radius"),
+        default=100.0,
+        min=0.1,
+        help=_("Outer radius (edge of pattern)"),
+    ).set_pos(col=1)
+    _g0_end = gds.EndGroup("")
+
+    _g1_begin = gds.BeginGroup(_("Amplitude"))
+    vmin = gds.FloatItem(_("Minimum value"), default=0.0)
+    vmax = gds.FloatItem(_("Maximum value"), default=255.0).set_pos(col=1)
+    _g1_end = gds.EndGroup("")
+
+    _g2_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-100.0).set_pos(col=0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=-100.0).set_pos(col=0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    _g2_end = gds.EndGroup("")
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"Siemens(n={self.n_spokes})"
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        x = np.linspace(self.xmin, self.xmax, shape[1])
+        y = np.linspace(self.ymin, self.ymax, shape[0])
+        xx, yy = np.meshgrid(x, y)
+
+        # Calculate polar coordinates
+        r = np.sqrt((xx - self.x0) ** 2 + (yy - self.y0) ** 2)
+        theta = np.arctan2(yy - self.y0, xx - self.x0)
+
+        # Create spoke pattern: alternating black and white spokes
+        # Normalize angle to [0, 2π] and create pattern
+        theta_normalized = (theta + np.pi) / (2 * np.pi)  # Now in [0, 1]
+        spoke_pattern = np.floor(theta_normalized * self.n_spokes * 2) % 2
+
+        # Apply radial mask
+        radial_mask = (r >= self.inner_radius) & (r <= self.outer_radius)
+
+        # Combine pattern with mask
+        data = np.where(radial_mask, spoke_pattern, 0.5)  # 0.5 for outside region
+
+        # Scale to desired range
+        data = self.vmin + data * (self.vmax - self.vmin)
+
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.SIEMENS_STAR, SiemensStar2DParam)
+
+
+class Sinc2DParam(
+    NewImageParam,
+    title=_("2D sinc"),
+    comment="z = A sinc(√((x - x<sub>0</sub>)<sup>2</sup> + "
+    "(y - y<sub>0</sub>)<sup>2</sup>) / σ) + C",
+):
+    """2D sinc function parameters."""
+
+    _g0_begin = gds.BeginGroup(_("Amplitude and offset"))
+    a = gds.FloatItem("A", default=100.0, help=_("Amplitude")).set_pos(col=0)
+    c = gds.FloatItem("C", default=0.0, help=_("DC offset")).set_pos(col=1)
+    _g0_end = gds.EndGroup("")
+
+    _g1_begin = gds.BeginGroup(_("Center and scale"))
+    x0 = gds.FloatItem("x<sub>0</sub>", default=0.0, help=_("Center X coordinate"))
+    y0 = gds.FloatItem(
+        "y<sub>0</sub>", default=0.0, help=_("Center Y coordinate")
+    ).set_pos(col=1)
+    sigma = gds.FloatItem("σ", default=10.0, min=0.1, help=_("Scale factor")).set_pos(
+        colspan=1
+    )
+    _g1_end = gds.EndGroup("")
+
+    _g2_begin = gds.BeginGroup(_("Domain"))
+    xmin = gds.FloatItem("x<sub>min</sub>", default=-50.0).set_pos(col=0)
+    xmax = gds.FloatItem("x<sub>max</sub>", default=50.0).set_pos(col=1)
+    ymin = gds.FloatItem("y<sub>min</sub>", default=-50.0).set_pos(col=0)
+    ymax = gds.FloatItem("y<sub>max</sub>", default=50.0).set_pos(col=1)
+    _g2_end = gds.EndGroup("")
+
+    def generate_title(self) -> str:
+        """Generate a title based on current parameters."""
+        return f"Sinc(σ={self.sigma:g},x0={self.x0:g},y0={self.y0:g})"
+
+    def generate_2d_data(self, shape: tuple[int, int]) -> np.ndarray:
+        """Generate 2D data based on current parameters.
+
+        Args:
+            shape: Tuple (height, width) for the output array.
+
+        Returns:
+            2D data array
+        """
+        x = np.linspace(self.xmin, self.xmax, shape[1])
+        y = np.linspace(self.ymin, self.ymax, shape[0])
+        xx, yy = np.meshgrid(x, y)
+
+        # Calculate radial distance from center
+        r = np.sqrt((xx - self.x0) ** 2 + (yy - self.y0) ** 2)
+
+        # Calculate sinc function: sinc(x) = sin(x)/x, with special case for x=0
+        # Scale by sigma
+        r_scaled = r / self.sigma
+
+        # Use numpy's sinc which is defined as sin(pi*x)/(pi*x)
+        # We want sin(x)/x, so we divide by pi
+        data = np.where(r_scaled == 0, 1.0, np.sin(r_scaled) / r_scaled)
+
+        # Apply amplitude and offset
+        data = self.a * data + self.c
+
+        return data.astype(self.dtype.to_numpy_dtype())
+
+
+register_image_parameters_class(ImageTypes.SINC, Sinc2DParam)
+
+
 check_all_image_parameters_classes()
 
 IMG_NB = 0
