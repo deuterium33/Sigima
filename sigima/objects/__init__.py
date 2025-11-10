@@ -102,6 +102,11 @@ Images
 .. autodataset:: sigima.objects.PoissonDistribution2DParam
 .. autodataset:: sigima.objects.Gauss2DParam
 .. autodataset:: sigima.objects.Ramp2DParam
+.. autodataset:: sigima.objects.Checkerboard2DParam
+.. autodataset:: sigima.objects.SinusoidalGrating2DParam
+.. autodataset:: sigima.objects.Ring2DParam
+.. autodataset:: sigima.objects.SiemensStar2DParam
+.. autodataset:: sigima.objects.Sinc2DParam
 .. autodataset:: sigima.objects.ROI2DParam
 .. autoclass:: sigima.objects.ImageROI
 .. autoclass:: sigima.objects.ImageDatatypes
