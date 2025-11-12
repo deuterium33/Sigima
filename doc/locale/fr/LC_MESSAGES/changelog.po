@@ -176,7 +176,7 @@ msgid "Creates ROIs on image objects based on `GeometryResult.attrs` metadata"
 msgstr "Crée des ROIs sur des objets d'image en fonction des métadonnées `GeometryResult.attrs`"
 
 msgid "Returns `True` if ROIs were created, `False` otherwise"
-msgstr ""
+msgstr "Renvoie `True` si des ROI ont été créées, `False` sinon"
 
 msgid "Handles both rectangle and circle geometries"
 msgstr "Gère les géométries rectangulaires et circulaires"
