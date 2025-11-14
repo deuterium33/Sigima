@@ -684,7 +684,7 @@ Image Restoration
    * - :func:`denoise_wavelet <sigima.proc.image.denoise_wavelet>`
      - Wavelet denoising
    * - :func:`denoise_tophat <sigima.proc.image.denoise_tophat>`
-     - Top-hat denoising
+     - Top-Hat denoising
    * - :func:`erase <sigima.proc.image.erase>`
      - Erase image regions
 
