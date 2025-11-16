@@ -20,116 +20,115 @@ msgstr ""
 "Generated-By: Babel 2.17.0\n"
 
 msgid ":ref:`Go to the end <sphx_glr_download_auto_examples_getting_started_image_creation.py>` to download the full example code."
-msgstr ""
+msgstr ":ref:`Aller à la fin <sphx_glr_download_auto_examples_getting_started_image_creation.py>` pour télécharger le code d'exemple complet."
 
 msgid "Creating Images"
-msgstr ""
+msgstr "Créer des images"
 
 msgid "This example focuses on creating 2D image objects in Sigima."
-msgstr ""
+msgstr "Cet exemple se concentre sur la création d'objets images 2D dans Sigima."
 
 msgid "There are three primary methods to create images in Sigima:"
-msgstr ""
+msgstr "Il existe trois méthodes principales pour créer des images dans Sigima :"
 
 msgid "**Synthetic data generation**: Using built-in parameter classes to create standard"
-msgstr ""
+msgstr "**Génération de données synthétiques** : Utilisation de classes de paramètres intégrées pour créer des"
 
 msgid "image types (Gaussian, ramp, random distributions, etc.)"
-msgstr ""
+msgstr "types d'images standard (gaussienne, rampe, distributions aléatoires, etc.)"
 
 msgid "**Loading from files**: Importing data from various file formats"
-msgstr ""
+msgstr "**Chargement depuis des fichiers** : Importation de données à partir de différents formats de fichiers"
 
 msgid "**From NumPy arrays**: Creating objects directly from existing arrays"
-msgstr ""
+msgstr "**À partir de tableaux NumPy** : Création d'objets directement à partir de tableaux existants"
 
 msgid "Each method has its use cases, and Sigima provides a consistent interface for working with data regardless of its origin."
-msgstr ""
+msgstr "Chaque méthode a ses cas d'usage, et Sigima fournit une interface cohérente pour travailler avec les données quelle que soit leur origine."
 
 msgid "For visualization, we use helper functions from the ``sigima.tests.vistools`` module. This allows us to focus on Sigima's functionality rather than visualization details."
-msgstr ""
+msgstr "Pour la visualisation, nous utilisons des fonctions auxiliaires du module ``sigima.tests.vistools``. Cela nous permet de nous concentrer sur les fonctionnalités de Sigima plutôt que sur les détails de visualisation."
 
 msgid "Importing necessary modules"
-msgstr ""
+msgstr "Importation des modules nécessaires"
 
 msgid "First of all, we need to import the required modules."
-msgstr ""
+msgstr "Tout d'abord, nous devons importer les modules requis."
 
 msgid "Method 1: Creating images from synthetic parameters"
-msgstr ""
+msgstr "Méthode 1 : Créer des images à partir de paramètres synthétiques"
 
 msgid "Similar to signals, Sigima can generate synthetic images using parameter classes."
-msgstr ""
+msgstr "Comme pour les signaux, Sigima peut générer des images synthétiques à l'aide de classes de paramètres."
 
 msgid "Available image types include:"
-msgstr ""
+msgstr "Les types d'images disponibles incluent :"
 
 msgid "Distributions: Normal (Gaussian noise), Uniform, Poisson"
-msgstr ""
+msgstr "Distributions : Normale (bruit gaussien), Uniforme, Poisson"
 
 msgid "Analytical functions: 2D Gaussian, 2D ramp (bilinear form)"
-msgstr ""
+msgstr "Fonctions analytiques : Gaussienne 2D, Rampe 2D (forme bilinéaire)"
 
 msgid "Blank images: Zeros"
-msgstr ""
+msgstr "Images vierges : Zéros"
 
 msgid "Qt widget 1"
-msgstr ""
+msgstr "Widget Qt 1"
 
 msgid "Method 2: Loading images from files"
-msgstr ""
+msgstr "Méthode 2 : Charger des images à partir de fichiers"
 
 msgid "Sigima supports a wide range of image file formats, both common and scientific."
-msgstr ""
+msgstr "Sigima prend en charge une large gamme de formats de fichiers image, courants et scientifiques."
 
 msgid "Supported formats include:"
-msgstr ""
+msgstr "Les formats pris en charge incluent :"
 
 msgid "Common formats: BMP, JPEG, PNG, TIFF, JPEG 2000"
-msgstr ""
+msgstr "Formats courants : BMP, JPEG, PNG, TIFF, JPEG 2000"
 
 msgid "Scientific formats: DICOM, Andor SIF, Spiricon, Dürr NDT"
-msgstr ""
+msgstr "Formats scientifiques : DICOM, Andor SIF, Spiricon, Dürr NDT"
 
 msgid "Data formats: NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
-msgstr ""
+msgstr "Formats de données : NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
 
 msgid "Text formats: CSV, TXT, ASC (with coordinate support)"
-msgstr ""
+msgstr "Formats texte : CSV, TXT, ASC (avec prise en charge des coordonnées)"
 
 msgid "Method 3: Creating images from NumPy arrays"
-msgstr ""
+msgstr "Méthode 3 : Créer des images à partir de tableaux NumPy"
 
 msgid "Convert existing NumPy arrays into Sigima image objects to add metadata, coordinate systems, and enable advanced processing."
-msgstr ""
+msgstr "Convertir les tableaux NumPy existants en objets image Sigima pour ajouter des métadonnées, des systèmes de coordonnées et activer le traitement avancé."
 
 msgid "Summary"
-msgstr ""
+msgstr "Résumé"
 
 msgid "This example demonstrated the three main ways to create images in Sigima:"
-msgstr ""
+msgstr "Cet exemple a démontré les trois principales façons de créer des images dans Sigima :"
 
 msgid "**Synthetic generation**: Fast creation of standard mathematical functions and distributions using parameter classes. Perfect for testing and simulation."
-msgstr ""
+msgstr "**Génération synthétique** : Création rapide de fonctions mathématiques standard et de distributions à l'aide de classes de paramètres. Parfait pour les tests et la simulation."
 
 msgid "**File loading**: Read data from various scientific and common file formats, with automatic format detection and metadata extraction. Essential for working with experimental data."
-msgstr ""
+msgstr "**Chargement de fichiers** : Lecture de données à partir de divers formats de fichiers scientifiques et courants, avec détection automatique du format et extraction des métadonnées. Essentiel pour travailler avec des données expérimentales."
 
 msgid "**NumPy array conversion**: Wrap existing array data with Sigima's rich metadata and processing capabilities. Ideal for custom workflows and integration with other Python libraries."
-msgstr ""
+msgstr "**Conversion de tableaux NumPy** : Envelopper les données de tableau existantes avec les riches métadonnées et capacités de traitement de Sigima. Idéal pour les flux de travail personnalisés et l'intégration avec d'autres bibliothèques Python."
 
 msgid "All three methods produce equivalent Sigima objects that can be processed, analyzed, and visualized using the same set of tools and functions. Choose the method that best fits your workflow and data source."
-msgstr ""
+msgstr "Les trois méthodes produisent des objets Sigima équivalents qui peuvent être traités, analysés et visualisés à l'aide du même ensemble d'outils et de fonctions. Choisissez la méthode qui convient le mieux à votre flux de travail et à votre source de données."
 
 msgid ":download:`Download Jupyter notebook: image_creation.ipynb <image_creation.ipynb>`"
-msgstr ""
+msgstr ":download:`Télécharger le notebook Jupyter : image_creation.ipynb <image_creation.ipynb>`"
 
 msgid ":download:`Download Python source code: image_creation.py <image_creation.py>`"
-msgstr ""
+msgstr ":download:`Télécharger le code source Python : image_creation.py <image_creation.py>`"
 
 msgid ":download:`Download zipped: image_creation.zip <image_creation.zip>`"
-msgstr ""
+msgstr ":download:`Télécharger en archive zip : image_creation.zip <image_creation.zip>`"
 
 msgid "`Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
-msgstr ""
-
+msgstr "`Galerie générée par Sphinx-Gallery <https://sphinx-gallery.github.io>`_"
