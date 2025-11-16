@@ -1234,7 +1234,7 @@ msgstr "Débruitage par ondelettes"
 msgid ":func:`denoise_tophat <sigima.proc.image.denoise_tophat>`"
 msgstr ""
 
-msgid "Top-hat denoising"
+msgid "Top-Hat denoising"
 msgstr "Débruitage Top-Hat"
 
 msgid ":func:`erase <sigima.proc.image.erase>`"
@@ -1323,4 +1323,3 @@ msgstr ":doc:`../api/objects` - Objets de données (SignalObj, ImageObj) utilis�
 
 msgid ":doc:`../auto_examples/index` - Examples demonstrating various computation features"
 msgstr ":doc:`../auto_examples/index` - Exemples démontrant diverses fonctionnalités de calcul"
-
