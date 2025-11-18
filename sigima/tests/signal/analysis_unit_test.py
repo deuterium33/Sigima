@@ -143,9 +143,9 @@ def test_x_at_y_geometry_result() -> None:
     # Check it's a GeometryResult with MARKER kind
     assert result is not None, "x_at_y returned None"
     assert hasattr(result, "kind"), "Result should have 'kind' attribute"
-    from sigima.objects.scalar.geometry import KindShape
-
-    assert result.kind == KindShape.MARKER, f"Expected MARKER kind, got {result.kind}"
+    assert result.kind == sigima.objects.KindShape.MARKER, (
+        f"Expected MARKER kind, got {result.kind}"
+    )
 
     # Check coords shape (should be N×2 for MARKER)
     assert result.coords.shape[1] == 2, (
@@ -177,9 +177,9 @@ def test_y_at_x_geometry_result() -> None:
     # Check it's a GeometryResult with MARKER kind
     assert result is not None, "y_at_x returned None"
     assert hasattr(result, "kind"), "Result should have 'kind' attribute"
-    from sigima.objects.scalar.geometry import KindShape
-
-    assert result.kind == KindShape.MARKER, f"Expected MARKER kind, got {result.kind}"
+    assert result.kind == sigima.objects.KindShape.MARKER, (
+        f"Expected MARKER kind, got {result.kind}"
+    )
 
     # Check coords shape (should be N×2 for MARKER)
     assert result.coords.shape[1] == 2, (
@@ -198,12 +198,10 @@ def test_y_at_x_geometry_result() -> None:
 
 def test_geometry_result_value_property() -> None:
     """Test the .value property for POINT, MARKER, and SEGMENT shapes."""
-    from sigima.objects.scalar.geometry import GeometryResult, KindShape
-
     # Test POINT
-    point_result = GeometryResult.from_coords(
+    point_result = sigima.objects.GeometryResult.from_coords(
         title="Test Point",
-        kind=KindShape.POINT,
+        kind=sigima.objects.KindShape.POINT,
         coords=np.array([[1.5, 2.5]]),
     )
     x, y = point_result.value
@@ -211,9 +209,9 @@ def test_geometry_result_value_property() -> None:
     assert abs(y - 2.5) < 1e-10, f"POINT y should be 2.5, got {y}"
 
     # Test MARKER
-    marker_result = GeometryResult.from_coords(
+    marker_result = sigima.objects.GeometryResult.from_coords(
         title="Test Marker",
-        kind=KindShape.MARKER,
+        kind=sigima.objects.KindShape.MARKER,
         coords=np.array([[3.0, 4.0]]),
     )
     x, y = marker_result.value
@@ -221,9 +219,9 @@ def test_geometry_result_value_property() -> None:
     assert abs(y - 4.0) < 1e-10, f"MARKER y should be 4.0, got {y}"
 
     # Test SEGMENT (3-4-5 triangle)
-    segment_result = GeometryResult.from_coords(
+    segment_result = sigima.objects.GeometryResult.from_coords(
         title="Test Segment",
-        kind=KindShape.SEGMENT,
+        kind=sigima.objects.KindShape.SEGMENT,
         coords=np.array([[0.0, 0.0, 3.0, 4.0]]),
     )
     length = segment_result.value
@@ -231,18 +229,18 @@ def test_geometry_result_value_property() -> None:
     assert abs(length - 5.0) < 1e-10, f"SEGMENT length should be 5.0, got {length}"
 
     # Test error for unsupported shape (CIRCLE)
-    circle_result = GeometryResult.from_coords(
+    circle_result = sigima.objects.GeometryResult.from_coords(
         title="Test Circle",
-        kind=KindShape.CIRCLE,
+        kind=sigima.objects.KindShape.CIRCLE,
         coords=np.array([[0.0, 0.0, 1.0]]),
     )
     with pytest.raises(ValueError, match="value property only valid for"):
         _ = circle_result.value
 
     # Test error for multiple rows
-    multi_result = GeometryResult.from_coords(
+    multi_result = sigima.objects.GeometryResult.from_coords(
         title="Multiple Points",
-        kind=KindShape.POINT,
+        kind=sigima.objects.KindShape.POINT,
         coords=np.array([[1.0, 2.0], [3.0, 4.0]]),
     )
     with pytest.raises(ValueError, match="single-row results"):

@@ -13,26 +13,12 @@ import pytest
 
 from sigima.io import read_images, read_signals
 from sigima.io.ftlab import FTLabImageFile, imread_ftlabima, sigread_ftlabsig
-from sigima.objects import ImageObj, SignalObj
+from sigima.objects import ImageObj
 from sigima.tests import guiutils, helpers
 from sigima.tests.env import execenv
 
 
-def __read_objs(fname: str) -> list[ImageObj] | list[SignalObj]:
-    """Read objects from a file"""
-    if "curve" in fname:
-        objs = read_signals(fname)
-    else:
-        objs = read_images(fname)
-    for obj in objs:
-        if np.all(np.isnan(obj.data)):
-            raise ValueError("Data is all NaNs")
-    for obj in objs:
-        execenv.print(obj)
-    return objs
-
-
-def __read_and_view_objs(
+def read_and_view_objs(
     fname: str | None = None, title: str | None = None
 ) -> list[ImageObj]:
     """Read and view objects from a file
@@ -44,7 +30,15 @@ def __read_and_view_objs(
     Returns:
         List of ImageObj or SignalObj read from the file.
     """
-    objs = __read_objs(fname)
+    if "curve" in fname:
+        objs = read_signals(fname)
+    else:
+        objs = read_images(fname)
+    for obj in objs:
+        if np.all(np.isnan(obj.data)):
+            raise ValueError("Data is all NaNs")
+    for obj in objs:
+        execenv.print(obj)
     guiutils.view_curves_and_images_if_gui(objs, title=f"{title} - {fname}")
     return objs
 
@@ -52,19 +46,19 @@ def __read_and_view_objs(
 @helpers.try_open_test_data("Testing TXT file reader", "*.txt")
 def test_open_txt(fname: str | None = None, title: str | None = None) -> None:
     """Testing TXT files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing CSV file reader", "*.csv")
 def test_open_csv(fname: str | None = None, title: str | None = None) -> None:
     """Testing CSV files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab signal file reader", "*.sig")
 def test_open_sigdata(fname: str | None = None, title: str | None = None) -> None:
     """Testing FTLab signal files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
     # Read the FTLab signal file and compare the data with the reference
     data = sigread_ftlabsig(fname)
@@ -75,31 +69,31 @@ def test_open_sigdata(fname: str | None = None, title: str | None = None) -> Non
 @helpers.try_open_test_data("Testing MCA file reader", "*.mca")
 def test_open_mca(fname: str | None = None, title: str | None = None) -> None:
     """Testing MCA files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing MAT-File reader", "*.mat")
 def test_open_mat(fname: str | None = None, title: str | None = None) -> None:
     """Testing MAT files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SIF file handler", "*.sif")
 def test_open_sif(fname: str | None = None, title: str | None = None) -> None:
     """Testing SIF files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing SCOR-DATA file handler", "*.scor-data")
 def test_open_scordata(fname: str | None = None, title: str | None = None) -> None:
     """Testing SCOR-DATA files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
 
 @helpers.try_open_test_data("Testing FTLab image file handler", "*.ima")
 def test_open_imadata(fname: str | None = None, title: str | None = None) -> None:
     """Testing FTLab image files."""
-    __read_and_view_objs(fname, title)
+    read_and_view_objs(fname, title)
 
     # Read the FTLab image file and show the data
     ftlab_file = FTLabImageFile(fname)

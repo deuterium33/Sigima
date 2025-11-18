@@ -95,13 +95,13 @@ msgid "Data formats: NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
 msgstr "Formats de données : NumPy (.npy), MATLAB (.mat), HDF5 (.h5img)"
 
 msgid "Text formats: CSV, TXT, ASC (with coordinate support)"
-msgstr "Formats texte : CSV, TXT, ASC (avec support des coordonnées)"
+msgstr "Formats texte : CSV, TXT, ASC (avec prise en charge des coordonnées)"
 
 msgid "Method 3: Creating images from NumPy arrays"
-msgstr "Méthode 3 : Création d'images à partir de tableaux NumPy"
+msgstr ""
 
 msgid "Convert existing NumPy arrays into Sigima image objects to add metadata, coordinate systems, and enable advanced processing."
-msgstr "Convertissez les tableaux NumPy existants en objets images Sigima pour ajouter des métadonnées, des systèmes de coordonnées et activer le traitement avancé."
+msgstr "Convertir les tableaux NumPy existants en objets image Sigima pour ajouter des métadonnées, des systèmes de coordonnées et activer le traitement avancé."
 
 msgid "Summary"
 msgstr "Résumé"
