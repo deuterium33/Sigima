@@ -55,6 +55,8 @@ __all__ = [
     "addition_constant",
     "arithmetic",
     "average",
+    "minimum",
+    "maximum",
     "difference",
     "difference_constant",
     "division",
@@ -112,6 +114,57 @@ def average(src_list: list[ImageObj]) -> ImageObj:
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
+@computation_function()
+def minimum(src_list: list[ImageObj]) -> ImageObj:
+    """Compute the element-wise maximum of multiple signals.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the maximum is performed
+        only within the ROI.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source signals.
+
+    Returns:
+        Signal object representing the maximum of the source signals.
+    """
+    dst = dst_n_to_1(src_list, "min")  # `dst` data is initialized to `src_list[0]` data.
+    assert dst.data is not None
+    y_array = np.array([src.data for src in src_list], dtype=dst.data.dtype)
+    dst.data = np.min(y_array, axis=0)
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
+
+@computation_function()
+def maximum(src_list: list[ImageObj]) -> ImageObj:
+    """Compute the element-wise maximum of multiple signals.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the maximum is performed
+        only within the ROI.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source signals.
+
+    Returns:
+        Signal object representing the maximum of the source signals.
+    """
+    dst = dst_n_to_1(src_list, "max")  # `dst` data is initialized to `src_list[0]` data.
+    assert dst.data is not None
+    y_array = np.array([src.data for src in src_list], dtype=dst.data.dtype)
+    dst.data = np.max(y_array, axis=0)
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
 
 @computation_function()
 def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
