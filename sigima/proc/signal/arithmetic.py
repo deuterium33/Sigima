@@ -126,6 +126,61 @@ def average(src_list: list[SignalObj]) -> SignalObj:
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
+@computation_function()
+def minimum(src_list: list[SignalObj]) -> SignalObj:
+    """Compute the element-wise minimum of multiple signals.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the minimum is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are not propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source signals.
+
+    Returns:
+        Signal object representing the minimum of the source signals.
+    """
+    dst = dst_n_to_1(src_list, "min")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.min(__signals_y_to_array(src_list), axis=0)
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
+
+@computation_function()
+def maximum(src_list: list[SignalObj]) -> SignalObj:
+    """Compute the element-wise maximum of multiple signals.
+
+    .. note::
+
+        If all signals share the same region of interest (ROI), the maximum is performed
+        only within the ROI.
+
+    .. note::
+
+        Uncertainties are not propagated.
+
+    .. warning::
+
+        It is assumed that all signals have the same size and x-coordinates.
+
+    Args:
+        src_list: List of source signals.
+
+    Returns:
+        Signal object representing the maximum of the source signals.
+    """
+    dst = dst_n_to_1(src_list, "max")  # `dst` data is initialized to `src_list[0]` data.
+    dst.y = np.max(__signals_y_to_array(src_list), axis=0)
+    restore_data_outside_roi(dst, src_list[0])
+    return dst
 
 @computation_function()
 def standard_deviation(src_list: list[SignalObj]) -> SignalObj:
