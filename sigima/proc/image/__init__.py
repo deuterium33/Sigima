@@ -447,6 +447,8 @@ __all__ = [
     "log10",
     "log10_z_plus_n",
     "magnitude_spectrum",
+    "maximum",
+    "minimum",
     "moving_average",
     "moving_median",
     "normalize",
