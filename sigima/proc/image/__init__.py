@@ -145,6 +145,8 @@ from sigima.proc.image.arithmetic import (
     difference_constant,
     division,
     division_constant,
+    maximum,
+    minimum,
     product,
     product_constant,
     quadratic_difference,
