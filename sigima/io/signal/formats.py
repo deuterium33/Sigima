@@ -82,7 +82,7 @@ class CSVSignalFormat(SignalFormatBase):
 
     FORMAT_INFO = FormatInfo(
         name=_("CSV files"),
-        extensions="*.csv *.txt",
+        extensions="*.csv *.txt *.dat *.asc",
         readable=True,
         writeable=True,
     )
