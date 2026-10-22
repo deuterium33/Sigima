@@ -30,11 +30,16 @@ from sigima.objects import (
 )
 from sigima.objects.scalar.common import format_legend_value
 from sigima.proc.base import HistogramParam, new_signal_result
+from sigima.proc.contracts import EXACT, ReplayQualification, tolerance
 from sigima.proc.decorator import computation_function
 from sigima.tools.signal import dynamic, features, pulse
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.histogram",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
     """Compute histogram with :py:func:`numpy.histogram`
 
@@ -46,10 +51,10 @@ def histogram(src: SignalObj, p: HistogramParam) -> SignalObj:
         Result signal object
     """
     data = src.get_masked_view().compressed()
-    suffix = p.get_suffix(data)  # Also updates p.lower and p.upper
+    suffix = p.get_suffix(data)
 
     # Compute histogram:
-    y, bin_edges = np.histogram(data, bins=p.bins, range=(p.lower, p.upper))
+    y, bin_edges = np.histogram(data, bins=p.bins, range=p.get_range(data))
     x = (bin_edges[:-1] + bin_edges[1:]) / 2
 
     # Note: we use the `new_signal_result` function to create the result signal object
@@ -116,13 +121,36 @@ class PulseFeaturesParam(gds.DataSet, title=_("Pulse features")):
         ),
     )
 
+    def validate_parameters(self, *context: object) -> None:
+        """Validate baseline intervals."""
+        del context
+        if self.xstartmin > self.xstartmax:
+            raise ValueError("xstartmin must be less than or equal to xstartmax")
+        if self.xendmin > self.xendmax:
+            raise ValueError("xendmin must be less than or equal to xendmax")
+
     def update_from_obj(self, obj: SignalObj) -> None:
         """Update parameters from a signal object."""
         self.xstartmin, self.xstartmax = pulse.get_start_range(obj.x)
         self.xendmin, self.xendmax = pulse.get_end_range(obj.x)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.extract_pulse_features",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Floating-point reductions and linear algebra (NumPy, SciPy, scikit-"
+                "image) differ in the last bits across library versions"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult:
     """Extract pulse features.
 
@@ -182,7 +210,11 @@ def extract_pulse_features(obj: SignalObj, p: PulseFeaturesParam) -> TableResult
     return builder.compute(obj)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.sampling_rate_period",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def sampling_rate_period(obj: SignalObj) -> TableResult:
     """Compute sampling rate and period
     using the following functions:
@@ -202,7 +234,11 @@ def sampling_rate_period(obj: SignalObj) -> TableResult:
     return table.compute(obj)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.contrast",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def contrast(obj: SignalObj) -> TableResult:
     """Compute contrast with :py:func:`sigima.tools.signal.misc.contrast`"""
     table = TableResultBuilder(_("Contrast"))
@@ -210,7 +246,11 @@ def contrast(obj: SignalObj) -> TableResult:
     return table.compute(obj)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.x_at_minmax",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def x_at_minmax(obj: SignalObj) -> TableResult:
     """
     Compute the smallest argument at the minima and the smallest argument at the maxima.

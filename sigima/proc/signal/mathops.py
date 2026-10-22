@@ -16,6 +16,12 @@ from sigima.config import _
 from sigima.enums import AngleUnit
 from sigima.objects import SignalObj
 from sigima.proc.base import AngleUnitParam, PhaseParam, dst_1_to_1, dst_2_to_1
+from sigima.proc.contracts import (
+    EXACT,
+    SOURCE_GRID_LINEAR_HOLD,
+    ReplayQualification,
+    tolerance,
+)
 from sigima.proc.decorator import computation_function
 from sigima.proc.signal.base import (
     Wrap1to1Func,
@@ -25,7 +31,11 @@ from sigima.proc.signal.base import (
 from sigima.tools import coordinates
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.transpose",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def transpose(src: SignalObj) -> SignalObj:
     """Transpose signal (swap X and Y axes).
 
@@ -45,7 +55,11 @@ def transpose(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.inverse",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def inverse(src: SignalObj) -> SignalObj:
     """Compute the element-wise inverse of a signal.
 
@@ -80,7 +94,11 @@ def inverse(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.absolute",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def absolute(src: SignalObj) -> SignalObj:
     """Compute absolute value with :py:data:`numpy.absolute`
 
@@ -93,7 +111,11 @@ def absolute(src: SignalObj) -> SignalObj:
     return Wrap1to1Func(np.absolute)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.real",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def real(src: SignalObj) -> SignalObj:
     """Compute real part with :py:func:`numpy.real`
 
@@ -106,7 +128,11 @@ def real(src: SignalObj) -> SignalObj:
     return Wrap1to1Func(np.real)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.imag",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def imag(src: SignalObj) -> SignalObj:
     """Compute imaginary part with :py:func:`numpy.imag`
 
@@ -119,7 +145,22 @@ def imag(src: SignalObj) -> SignalObj:
     return Wrap1to1Func(np.imag)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.phase",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Transcendental functions (exp, log, trigonometric) of the "
+                "platform math library differ in the last bits (e.g. WebAssembly)"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
     """Compute the phase (argument) of a complex signal.
 
@@ -147,7 +188,12 @@ def phase(src: SignalObj, p: PhaseParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.complex_from_real_imag",
+    contract_version=1,
+    x_alignment=SOURCE_GRID_LINEAR_HOLD,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def complex_from_real_imag(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Combine two real signals into a complex signal using real + i * imag.
 
@@ -173,7 +219,12 @@ def complex_from_real_imag(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.complex_from_magnitude_phase",
+    contract_version=1,
+    x_alignment=SOURCE_GRID_LINEAR_HOLD,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def complex_from_magnitude_phase(
     src1: SignalObj, src2: SignalObj, p: AngleUnitParam
 ) -> SignalObj:
@@ -200,12 +251,13 @@ def complex_from_magnitude_phase(
             "The x coordinates of the two signals are not the same. "
             "Results may be incorrect."
         )
-    if np.any(src1.y < 0.0):
+    magnitude = src1.y
+    if np.any(magnitude < 0.0):
         warnings.warn("Negative radius values are not allowed. They will be set to 0.")
-        src1.y = np.maximum(src1.y, 0.0)
+        magnitude = np.maximum(magnitude, 0.0)
     dst = dst_2_to_1(src1, src2, "mag_phase")
     assert p.unit is not None
-    y = coordinates.polar_to_complex(src1.y, src2.y, unit=p.unit)
+    y = coordinates.polar_to_complex(magnitude, src2.y, unit=p.unit)
     dst.set_xydata(src1.x, y, src1.x, None)
     return dst
 
@@ -220,7 +272,11 @@ class DataTypeSParam(gds.DataSet, title=_("Convert data type")):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.astype",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def astype(src: SignalObj, p: DataTypeSParam) -> SignalObj:
     """Convert data type with :py:func:`numpy.astype`
 
@@ -236,7 +292,22 @@ def astype(src: SignalObj, p: DataTypeSParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.log10",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Transcendental functions (exp, log, trigonometric) of the "
+                "platform math library differ in the last bits (e.g. WebAssembly)"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def log10(src: SignalObj) -> SignalObj:
     """Compute Log10 with :py:data:`numpy.log10`
 
@@ -264,7 +335,11 @@ def log10(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.exp",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def exp(src: SignalObj) -> SignalObj:
     """Compute exponential with :py:data:`numpy.exp`
 
@@ -289,7 +364,11 @@ def exp(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.sqrt",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def sqrt(src: SignalObj) -> SignalObj:
     """Compute square root with :py:data:`numpy.sqrt`
 
@@ -323,7 +402,11 @@ class PowerParam(gds.DataSet, title=_("Power")):
     power = gds.FloatItem(_("Power"), default=2.0)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.power",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def power(src: SignalObj, p: PowerParam) -> SignalObj:
     """Compute power with :py:data:`numpy.power`
 
@@ -348,7 +431,11 @@ def power(src: SignalObj, p: PowerParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.to_polar",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     """Convert Cartesian coordinates to polar coordinates.
 
@@ -385,7 +472,22 @@ def to_polar(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.to_cartesian",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Transcendental functions (exp, log, trigonometric) of the "
+                "platform math library differ in the last bits (e.g. WebAssembly)"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def to_cartesian(src: SignalObj, p: AngleUnitParam) -> SignalObj:
     """Convert polar coordinates to Cartesian coordinates.
 

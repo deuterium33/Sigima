@@ -35,6 +35,7 @@ import scipy.ndimage as spi
 from sigima.config import _
 from sigima.enums import BorderMode, Interpolation2DMethod
 from sigima.objects.image import ImageObj
+from sigima.proc.contracts import EXACT, ReplayQualification
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import dst_1_to_1, restore_data_outside_roi
 from sigima.proc.image.transformations import transformer
@@ -71,7 +72,11 @@ class TranslateParam(gds.DataSet):
     dy = gds.FloatItem(_("Y translation"), default=0.0)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.translate",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def translate(src: ImageObj, p: TranslateParam) -> ImageObj:
     """Translate data with :py:func:`scipy.ndimage.shift`
 
@@ -88,6 +93,7 @@ def translate(src: ImageObj, p: TranslateParam) -> ImageObj:
     else:
         dst.set_coords(src.xcoords + p.dx, src.ycoords + p.dy)
     transformer.transform_roi(dst, "translate", dx=p.dx, dy=p.dy)
+    transformer.transform_annotations(dst, "translate", dx=p.dx, dy=p.dy)
     return dst
 
 
@@ -128,7 +134,11 @@ class RotateParam(gds.DataSet):
     ).set_prop("display", active=prop)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.rotate",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
     """Rotate data with :py:func:`scipy.ndimage.rotate`
 
@@ -150,6 +160,7 @@ def rotate(src: ImageObj, p: RotateParam) -> ImageObj:
         prefilter=p.prefilter,
     )
     dst.roi = None  # Reset ROI as it may change after rotation
+    dst.clear_graphical_annotations()
     return dst
 
 
@@ -174,7 +185,11 @@ def __swap_axes(src: ImageObj, dst: ImageObj) -> None:
         dst.set_coords(src.ycoords, src.xcoords)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.rotate90",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def rotate90(src: ImageObj) -> ImageObj:
     """Rotate data 90° with :py:func:`numpy.rot90`
 
@@ -192,10 +207,16 @@ def rotate90(src: ImageObj) -> ImageObj:
     # shapes cannot do (a rotated rectangle is no longer a rectangle).
     transformer.transform_roi(dst, "transpose")
     transformer.transform_roi(dst, "flipv", cy=dst.yc)
+    transformer.transform_annotations(dst, "transpose")
+    transformer.transform_annotations(dst, "flipv", cy=dst.yc)
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.rotate270",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def rotate270(src: ImageObj) -> ImageObj:
     """Rotate data 270° with :py:func:`numpy.rot90`
 
@@ -211,10 +232,16 @@ def rotate270(src: ImageObj) -> ImageObj:
     # ``numpy.rot90(a, 3)`` is ``numpy.fliplr(a.T)`` (see :func:`rotate90`).
     transformer.transform_roi(dst, "transpose")
     transformer.transform_roi(dst, "fliph", cx=dst.xc)
+    transformer.transform_annotations(dst, "transpose")
+    transformer.transform_annotations(dst, "fliph", cx=dst.xc)
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.fliph",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def fliph(src: ImageObj) -> ImageObj:
     """Flip data horizontally with :py:func:`numpy.fliplr`
 
@@ -227,10 +254,15 @@ def fliph(src: ImageObj) -> ImageObj:
     dst = dst_1_to_1(src, "fliph")
     dst.data = np.fliplr(src.data)
     transformer.transform_roi(dst, "fliph", cx=dst.xc)
+    transformer.transform_annotations(dst, "fliph", cx=dst.xc)
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.flipv",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def flipv(src: ImageObj) -> ImageObj:
     """Flip data vertically with :py:func:`numpy.flipud`
 
@@ -243,6 +275,7 @@ def flipv(src: ImageObj) -> ImageObj:
     dst = dst_1_to_1(src, "flipv")
     dst.data = np.flipud(src.data)
     transformer.transform_roi(dst, "flipv", cy=dst.yc)
+    transformer.transform_annotations(dst, "flipv", cy=dst.yc)
     return dst
 
 
@@ -251,7 +284,7 @@ class ResizeParam(gds.DataSet):
 
     prop = gds.ValueProp(False)
 
-    zoom = gds.FloatItem(_("Zoom"), default=1.0)
+    zoom = gds.FloatItem(_("Zoom"), default=1.0, min=0.0, nonzero=True)
     mode = gds.ChoiceItem(_("Mode"), BorderMode, default=BorderMode.CONSTANT)
     cval = gds.FloatItem(
         _("cval"),
@@ -274,7 +307,11 @@ class ResizeParam(gds.DataSet):
     ).set_prop("display", active=prop)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.resize",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
     """Zooming function with :py:func:`scipy.ndimage.zoom`
 
@@ -305,7 +342,11 @@ def resize(src: ImageObj, p: ResizeParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.transpose",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def transpose(src: ImageObj) -> ImageObj:
     """Transpose image with :py:func:`numpy.transpose`.
 
@@ -319,6 +360,7 @@ def transpose(src: ImageObj) -> ImageObj:
     dst.data = np.transpose(src.data)
     __swap_axes(src, dst)
     transformer.transform_roi(dst, "transpose")
+    transformer.transform_annotations(dst, "transpose")
     return dst
 
 
@@ -360,10 +402,16 @@ class Resampling2DParam(gds.DataSet):
 
     # Pixel size mode parameters
     dx = gds.FloatItem(
-        "ΔX", default=None, allow_none=True, help=_("Pixel size in X direction")
+        "ΔX",
+        default=None,
+        allow_none=True,
+        help=_("Pixel size in X direction"),
     ).set_prop("display", active=gds.FuncProp(_prop, lambda x: x == "dxy"))
     dy = gds.FloatItem(
-        "ΔY", default=None, allow_none=True, help=_("Pixel size in Y direction")
+        "ΔY",
+        default=None,
+        allow_none=True,
+        help=_("Pixel size in Y direction"),
     ).set_prop("display", active=gds.FuncProp(_prop, lambda x: x == "dxy"))
 
     # Shape mode parameters
@@ -396,6 +444,34 @@ class Resampling2DParam(gds.DataSet):
         check=False,
     )
 
+    def validate_parameters(self, *context: object) -> None:
+        """Validate output bounds and the active sampling mode."""
+        if not context or not isinstance(context[0], ImageObj):
+            raise ValueError("resampling validation requires a source ImageObj")
+        src = context[0]
+        xmin = self.xmin if self.xmin is not None else src.x0
+        xmax = self.xmax if self.xmax is not None else src.x0 + src.width
+        ymin = self.ymin if self.ymin is not None else src.y0
+        ymax = self.ymax if self.ymax is not None else src.y0 + src.height
+        x_extent = xmax - xmin
+        y_extent = ymax - ymin
+        if x_extent == 0.0 or y_extent == 0.0:
+            raise ValueError("resampling coordinate extents must be nonzero")
+
+        if self.mode == "dxy":
+            if self.dx is None or self.dy is None:
+                raise ValueError("dx and dy must be specified in pixel size mode")
+            if self.dx == 0.0 or self.dy == 0.0:
+                raise ValueError("dx and dy must be nonzero in pixel size mode")
+            x_sign_mismatch = (x_extent < 0.0) != (self.dx < 0.0)
+            y_sign_mismatch = (y_extent < 0.0) != (self.dy < 0.0)
+            if x_sign_mismatch or y_sign_mismatch:
+                raise ValueError("pixel sizes must have the same sign as their extents")
+        elif self.width is None or self.height is None:
+            raise ValueError("width and height must be specified in shape mode")
+        elif self.width < 1 or self.height < 1:
+            raise ValueError("width and height must be at least 1 in shape mode")
+
     def update_from_obj(self, obj: ImageObj) -> None:
         """Update parameters from an image object."""
         if self.xmin is None:
@@ -416,7 +492,11 @@ class Resampling2DParam(gds.DataSet):
             self.height = obj.data.shape[0]
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.resampling",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def resampling(src: ImageObj, p: Resampling2DParam) -> ImageObj:
     """Resample image to new coordinate grid using interpolation
 
@@ -535,8 +615,12 @@ class UniformCoordsParam(gds.DataSet):
 
     x0 = gds.FloatItem("X<sub>0</sub>", default=0.0, help=_("Origin X-axis coordinate"))
     y0 = gds.FloatItem("Y<sub>0</sub>", default=0.0, help=_("Origin Y-axis coordinate"))
-    dx = gds.FloatItem("Δx", default=1.0, help=_("Pixel size along X-axis"))
-    dy = gds.FloatItem("Δy", default=1.0, help=_("Pixel size along Y-axis"))
+    dx = gds.FloatItem(
+        "Δx", default=1.0, nonzero=True, help=_("Pixel size along X-axis")
+    )
+    dy = gds.FloatItem(
+        "Δy", default=1.0, nonzero=True, help=_("Pixel size along Y-axis")
+    )
 
     def update_from_obj(self, obj: ImageObj) -> None:
         """Update default values from image object's non-uniform coordinates.
@@ -577,7 +661,11 @@ class UniformCoordsParam(gds.DataSet):
                 self.dy = 1.0
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.set_uniform_coords",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def set_uniform_coords(src: ImageObj, p: UniformCoordsParam) -> ImageObj:
     """Convert image to uniform coordinate system
 
@@ -604,7 +692,11 @@ class XYZCalibrateParam(gds.DataSet):
     a3 = gds.FloatItem("a<sub>3</sub>", default=0.0, help=_("Cubic term"))
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.calibration",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def calibration(src: ImageObj, p: XYZCalibrateParam) -> ImageObj:
     """Compute polynomial calibration
 

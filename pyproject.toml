@@ -33,10 +33,12 @@ classifiers = [
 ]
 requires-python = ">=3.9, <4"
 dependencies = [
-    "guidata >= 3.13",
+    "guidata >= 3.16.0",
     "NumPy >= 1.22, < 2.5",
     "SciPy >= 1.10.1, < 1.17",
     "scikit-image >= 0.19.2, < 0.27",
+    # Not built for Pyodide (WebAssembly): tifffile then reads uncompressed TIFF
+    "imagecodecs >= 2024.12.30; sys_platform != 'emscripten'",
     "pandas >= 1.4, < 3.1",
     "PyWavelets >= 1.2, < 2.0",
     "packaging >= 21.3",
@@ -71,8 +73,9 @@ doc = [
     "matplotlib",
     "opencv-python-headless >= 4.8.1.78",
 ]
-test = ["pytest", "pytest-xvfb"]
+test = ["pytest", "pytest-xvfb", "jsonschema >= 4"]
 qt = ["qtpy", "PyQt5", "plotpy"]
+plotly = ["plotly >= 5.0"]
 
 [tool.setuptools.packages.find]
 include = ["sigima*"]
@@ -105,7 +108,7 @@ include = ["sigima*"]
 ]
 
 [tool.setuptools.dynamic]
-version = { attr = "sigima.__version__" }
+version = { attr = "sigima._metadata.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "sigima --import-mode=importlib"

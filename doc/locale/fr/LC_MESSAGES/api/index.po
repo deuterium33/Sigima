@@ -45,11 +45,23 @@ msgstr ":mod:`sigima.objects`"
 msgid "Object model for signals and images (:class:`sigima.objects.SignalObj` and :class:`sigima.objects.ImageObj`), scalar results (:class:`sigima.objects.GeometryResult` and :class:`sigima.objects.TableResult`), and related functions"
 msgstr "Modèle d'objet pour les signaux et les images (:class:`sigima.objects.SignalObj` et :class:`sigima.objects.ImageObj`), résultats scalaires (:class:`sigima.objects.GeometryResult` et :class:`sigima.objects.TableResult`), et fonctions associées"
 
+msgid ":mod:`sigima.objects.annotations`"
+msgstr ":mod:`sigima.objects.annotations`"
+
+msgid "Renderer-independent graphical annotation model, serialization, and transformations (see :doc:`annotations`)"
+msgstr "Modèle d'annotation graphique indépendant du moteur de rendu, sérialisation et transformations (voir :doc:`annotations`)"
+
 msgid ":mod:`sigima.proc`"
 msgstr ":mod:`sigima.proc`"
 
 msgid "Computation functions, which operate on signal and image objects (:class:`sigima.objects.SignalObj` or :class:`sigima.objects.ImageObj`) and return signal or image objects, or scalar results (:class:`sigima.objects.GeometryResult` or :class:`sigima.objects.TableResult`)."
 msgstr "Fonctions de calcul, qui opèrent sur des objets signal et image (:class:`sigima.objects.SignalObj` ou :class:`sigima.objects.ImageObj`) et retournent des objets signal ou image, ou des résultats scalaires (:class:`sigima.objects.GeometryResult` ou :class:`sigima.objects.TableResult`)."
+
+msgid ":mod:`sigima.io`"
+msgstr ":mod:`sigima.io`"
+
+msgid "Input/output functions for reading and writing signals and images, including parameterized RAW image import and format-aware image export."
+msgstr "Fonctions d'entrée/sortie pour la lecture et l'écriture de signaux et d'images, y compris l'import paramétré d'images RAW et l'export d'images adapté au format."
 
 msgid ":mod:`sigima.config`"
 msgstr ":mod:`sigima.config`"

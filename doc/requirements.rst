@@ -11,7 +11,7 @@ The `sigima` package requires the following Python modules:
       - >=3.9, <4
       - Python programming language
     * - guidata
-      - >= 3.13
+      - >= 3.16.0
       - Automatic GUI generation for easy dataset editing and display
     * - NumPy
       - >= 1.22, < 2.5
@@ -22,6 +22,9 @@ The `sigima` package requires the following Python modules:
     * - scikit-image
       - >= 0.19.2, < 0.27
       - Image processing in Python
+    * - imagecodecs
+      - >= 2024.12.30 (sys_platform != 'emscripten')
+      - Image transformation, compression, and decompression codecs
     * - pandas
       - >= 1.4, < 3.1
       - Powerful data structures for data analysis, time series, and statistics
@@ -155,3 +158,6 @@ Optional modules for running test suite:
     * - pytest-xvfb
       - 
       - A pytest plugin to run Xvfb (or Xephyr/Xvnc) for tests.
+    * - jsonschema
+      - >= 4
+      - An implementation of JSON Schema validation for Python

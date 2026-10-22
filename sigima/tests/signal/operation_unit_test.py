@@ -146,6 +146,12 @@ def test_signal_difference() -> None:
     check_array_result("Signal difference", s3.y, s1.y - s2.y)
     expected_dy = np.sqrt(s1.dy**2 + s2.dy**2)
     check_array_result("Difference error propagation", s3.dy, expected_dy)
+    x = np.array([0.0, 1.0, 2.0, 3.0])
+    a = sigima.objects.create_signal("a", x, np.array([1.0, 4.0, 9.0, 16.0]))
+    b = sigima.objects.create_signal("b", x, np.array([1.0, 1.0, 2.0, 3.0]))
+    c = sigima.proc.signal.difference(a, b)
+    assert np.array_equal(c.x, x)
+    assert np.array_equal(c.y, [0.0, 3.0, 7.0, 13.0])
 
 
 @pytest.mark.validation
@@ -344,6 +350,21 @@ def test_signal_complex_from_magnitude_phase(
         result.y,
         polar_to_complex(magnitude, phase, unit=unit_str),
     )
+
+
+def test_complex_from_magnitude_phase_keeps_negative_magnitude() -> None:
+    """Negative magnitudes are clipped in the result, not in the input signal."""
+    x = np.linspace(0.0, 1.0, 3)
+    magnitude = np.array([-1.0, 2.0, -3.0])
+    s_mag = SignalObj("magnitude")
+    s_mag.set_xydata(x, magnitude.copy())
+    s_phase = SignalObj("phase")
+    s_phase.set_xydata(x, np.zeros(3))
+    p = AngleUnitParam.create(unit=AngleUnit.RADIAN)
+    with pytest.warns(UserWarning, match="Negative radius"):
+        result = complex_from_magnitude_phase(s_mag, s_phase, p)
+    assert np.array_equal(s_mag.y, magnitude)
+    assert np.array_equal(result.y, np.array([0.0, 2.0, 0.0], dtype=complex))
 
 
 def __test_all_complex_from_magnitude_phase() -> None:

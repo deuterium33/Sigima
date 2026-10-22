@@ -10,7 +10,7 @@ We follow the `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ coding style.
 
 In particular, we are especially strict about the following guidelines:
 
-- Limit all lines to a maximum of 79 characters.
+- Limit all lines to a maximum of 88 characters.
 - Respect the naming conventions (classes, functions, variables, etc.).
 - Use specific exceptions instead of the generic :class:`Exception`.
 
@@ -23,26 +23,31 @@ ruff
 ^^^^
 
 If you are using `Visual Studio Code <https://code.visualstudio.com/>`_,
-the project settings will automatically format your code with `ruff` on save
-(you may also run the task "Run Ruff" to run `ruff` on the project).
+the project settings will automatically format your code with `ruff` on save.
+You may also run the Ruff tasks on the project.
 
-To run `ruff`, run the following command::
+To format and check the code with `ruff`, run the following commands from the
+repository root::
 
-    ruff check
+  python scripts/run_with_env.py python -m ruff format
+  python scripts/run_with_env.py python -m ruff check
 
 pylint
 ^^^^^^
 
-To run `pylint`, run the following command::
+To run `pylint`, run the following command from the repository root::
 
-    pylint sigima
+  python scripts/run_with_env.py python -m pylint sigima
 
 If you are using `Visual Studio Code <https://code.visualstudio.com/>`_
-on Windows, you may run the task "Run Pylint" to run `pylint` on the project.
+on Windows, you may run the "Pylint" task on the project. The enabled checks
+and accepted exclusions are defined in the repository's ``.pylintrc`` file.
 
 .. note::
 
-    A `pylint` rating greater than 9/10 is required to merge a pull request.
+  The Ruff and Pylint checks must both exit successfully before a pull request
+  may be merged. Pylint's numeric rating is informative only: the merge gate is
+  based on the absence of diagnostics from the enabled checks.
 
 Specific coding guidelines
 --------------------------
@@ -72,3 +77,84 @@ guidelines:
 - Avoid using ``__getattr__`` and ``__setattr__`` methods. They are often used
   to implement lazy initialization, but this can be done in a more explicit
   way.
+
+Operation contracts
+-------------------
+
+Every public computation function declares an operation contract with
+``@computation_function(operation_id=..., contract_version=...)`` (see
+:mod:`sigima.proc.contracts`). Applications record these identifiers in
+workspace provenance and use them to replay a computation later, possibly with
+another Sigima version. Everything about an operation is declared next to its
+function; :mod:`sigima.proc.contracts` holds no data naming an operation.
+Follow these rules when you add or change a computation function:
+
+- Write the identifier in clear next to the function: ``sigima.signal.<name>``
+  or ``sigima.image.<name>``, ``contract_version=1`` at the first declaration.
+  Never derive an identifier from a Python name. Keep the identifier when you
+  rename or move the function.
+
+- If the identifier itself must change, keep the previous one in ``aliases``.
+
+- Increase ``contract_version`` for any change of meaning: new, removed or
+  renamed parameters, a different default behavior, different outputs or a
+  different scientific result for the same inputs.
+
+- The structure of the contract (input roles, parameter arguments, outputs) is
+  inferred from the annotations. Annotate every argument and the return value
+  with names imported at runtime (not only under ``TYPE_CHECKING``). When roles
+  cannot be inferred (more than two input objects), declare them with
+  ``roles=(...)``.
+
+- Declare the :data:`sigima.config.options` read by the computation itself with
+  ``reads_options=(...)``: applications record their values and restore them
+  for a replay. Random generators take their seed as a parameter.
+
+- Declare the metadata keys of input objects read by the computation itself
+  with ``reads_metadata={role: (key, ...)}`` (e.g. the fit parameters read by
+  ``evaluate_fit``): state fingerprints do not cover metadata, so applications
+  record their values and refuse a replay when they changed.
+
+- Never change a reference case to make a test pass. Update the reference
+  cases deliberately, and explain the scientific reason, when a numerical
+  correction changes the result.
+
+- Declaring a contract does not qualify it for replay. A qualification is
+  declared next to the function with
+  ``qualification=ReplayQualification(contract_version=..., comparison=...)``
+  (see :mod:`sigima.proc.contracts.declarations`). It names the contract
+  version that was actually tested: increasing ``contract_version`` does not qualify the new
+  version. It requires the validation test of the function (marked
+  ``validation``) and the generic replay test
+  (``sigima/tests/common/replay_qualification_test.py``), which replays the
+  calls captured during the validation tests as an application replays a
+  recorded activity. Run ``pytest --qualification-report=report.json``: the
+  run fails if a declared qualification is not proven.
+
+- The comparison rule of a qualification is exact by default (``EXACT``).
+  Declare a tolerance (``tolerance(...)``) only when the nature of the
+  computation justifies it (transforms, interpolations, iterative fits...),
+  with that justification, and state whether results must still be identical
+  within an identical environment. Never widen a tolerance to hide an error:
+  changing a rule changes the qualification.
+
+- Set a tolerance from differences measured between environments (NumPy,
+  SciPy, platforms), not from guesses: run the test suite in a first
+  environment with ``SIGIMA_REPLAY_DUMP=<calls file>``, then in a second one
+  with ``SIGIMA_REPLAY_REFERENCE=<calls file>`` and
+  ``SIGIMA_REPLAY_CROSS_REPORT=<report.json>``. The second run replays the
+  calls captured by the first one and reports the differences by operation. A
+  function whose results differ beyond any justified tolerance stays
+  unqualified. To include Pyodide (WebAssembly, the runtime of DataLab-Web),
+  capture the calls into a directory with NumPy 1.26
+  (``SIGIMA_REPLAY_DUMP=<directory>/``), replay them with
+  ``node scripts/pyodide_replay/run.mjs`` (see its header) and compare the
+  results with ``sigima.tests.replay_probe.compare_replays``.
+
+- Some two-input contracts align the operand on the source grid before the
+  call: declare the policy with ``x_alignment=...`` (see
+  :mod:`sigima.proc.contracts.policies` and
+  :mod:`sigima.proc.contracts.alignment`). Applications
+  record the policy and its version, and a replay refuses unknown policies.
+  Never change a policy in place: add a new version and keep the previous one
+  supported.

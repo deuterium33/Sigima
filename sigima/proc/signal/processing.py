@@ -45,9 +45,16 @@ from sigima.proc.base import (
     ReplaceSpecialValuesSignalParam,
     dst_2_to_1,
 )
+from sigima.proc.contracts import (
+    EXACT,
+    SOURCE_GRID_LINEAR_HOLD,
+    ReplayQualification,
+    tolerance,
+)
 from sigima.proc.decorator import computation_function
 from sigima.tools.signal import fourier, interpolation, scaling, windowing
 from sigima.tools.signal import replace_values as rv
+from sigima.validation import validate_dataset
 
 from .base import dst_1_to_1, is_uncertainty_data_available, restore_data_outside_roi
 
@@ -78,7 +85,22 @@ class InterpolationParam(gds.DataSet, title=_("Interpolation")):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.interpolate",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Floating-point reductions and linear algebra (NumPy, SciPy, scikit-"
+                "image) differ in the last bits across library versions"
+            ),
+            atol=1e-13,
+            rtol=1e-12,
+            same_environment="exact",
+        ),
+    ),
+)
 def interpolate(src1: SignalObj, src2: SignalObj, p: InterpolationParam) -> SignalObj:
     """Interpolate data with :py:func:`sigima.tools.signal.interpolation.interpolate`.
 
@@ -122,6 +144,21 @@ class Resampling1DParam(InterpolationParam):
         "display", active=FuncProp(_prop, lambda x: x == "nbpts")
     )
 
+    def validate_parameters(self, *context: object) -> None:
+        """Validate the target domain and active sampling mode."""
+        validate_dataset(super(), *context)
+        if self.xmin is None or self.xmax is None:
+            raise ValueError("xmin and xmax must be specified")
+        if self.mode == "dx":
+            if self.dx is None or self.dx == 0.0:
+                raise ValueError("dx must be non-zero in step size mode")
+            if (self.xmax > self.xmin and self.dx < 0.0) or (
+                self.xmax < self.xmin and self.dx > 0.0
+            ):
+                raise ValueError("dx sign must match the target domain orientation")
+        elif self.mode == "nbpts" and (self.nbpts is None or self.nbpts < 1):
+            raise ValueError("nbpts must be at least 1 in number of points mode")
+
     def update_from_obj(self, obj: SignalObj) -> None:
         """Update parameters from a signal object."""
         if self.xmin is None:
@@ -134,7 +171,11 @@ class Resampling1DParam(InterpolationParam):
             self.nbpts = len(obj.x)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.resampling",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def resampling(src: SignalObj, p: Resampling1DParam) -> SignalObj:
     """Resample data with :py:func:`sigima.tools.signal.interpolation.interpolate`
 
@@ -189,7 +230,24 @@ def check_same_sample_rate(src1: SignalObj, src2: SignalObj) -> None:
         raise ValueError(f"Signals must have the same sample rate (dx): {dx1} != {dx2}")
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.deconvolution",
+    contract_version=1,
+    reads_options=("auto_normalize_kernel",),
+    x_alignment=SOURCE_GRID_LINEAR_HOLD,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Fourier transforms (NumPy/SciPy pocketfft) differ in the last bits "
+                "across library versions"
+            ),
+            atol=1e-14,
+            rtol=1e-10,
+            same_environment="exact",
+        ),
+    ),
+)
 def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Compute deconvolution.
 
@@ -229,7 +287,11 @@ def deconvolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.normalize",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
     """Normalize data with :py:func:`sigima.tools.signal.level.normalize`
 
@@ -274,7 +336,11 @@ def normalize(src: SignalObj, p: NormalizeParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.derivative",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def derivative(src: SignalObj) -> SignalObj:
     """Compute derivative with :py:func:`numpy.gradient`
 
@@ -301,7 +367,11 @@ def derivative(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.integral",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def integral(src: SignalObj) -> SignalObj:
     """Compute integral with :py:func:`scipy.integrate.cumulative_trapezoid`
 
@@ -340,7 +410,11 @@ class XYCalibrateParam(gds.DataSet, title=_("Calibration")):
     b = gds.FloatItem("b", default=0.0)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.calibration",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def calibration(src: SignalObj, p: XYCalibrateParam) -> SignalObj:
     """Compute linear calibration
 
@@ -369,7 +443,11 @@ def calibration(src: SignalObj, p: XYCalibrateParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.clip",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def clip(src: SignalObj, p: ClipParam) -> SignalObj:
     """Compute maximum data clipping with :py:func:`numpy.clip`
 
@@ -399,7 +477,11 @@ def clip(src: SignalObj, p: ClipParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.offset_correction",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def offset_correction(src: SignalObj, p: ROI1DParam) -> SignalObj:
     """Correct offset: subtract the mean value of the signal in the specified range
     (baseline correction)
@@ -425,7 +507,22 @@ class DetrendingParam(gds.DataSet, title=_("Detrending")):
     method = gds.ChoiceItem(_("Detrending method"), methods, default="linear")
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.detrending",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Floating-point reductions and linear algebra (NumPy, SciPy, scikit-"
+                "image) differ in the last bits across library versions"
+            ),
+            atol=1e-11,
+            rtol=1e-11,
+            same_environment="exact",
+        ),
+    ),
+)
 def detrending(src: SignalObj, p: DetrendingParam) -> SignalObj:
     """Detrend data with :py:func:`scipy.signal.detrend`
 
@@ -474,8 +571,29 @@ class WindowingParam(gds.DataSet, title=_("Windowing")):
         active=gds.FuncProp(_meth_prop, lambda x: x == WindowingMethod.GAUSSIAN),
     )
 
+    def validate_parameters(self, *context: object) -> None:
+        """Validate parameters used by the selected window method."""
+        del context
+        if self.method == WindowingMethod.GAUSSIAN and self.sigma == 0.0:
+            raise ValueError("sigma must be non-zero for Gaussian windowing")
 
-@computation_function()
+
+@computation_function(
+    operation_id="sigima.signal.apply_window",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Transcendental functions (exp, log, trigonometric) of the "
+                "platform math library differ in the last bits (e.g. WebAssembly)"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
     """Compute windowing with :py:func:`sigima.tools.signal.windowing.apply_window`.
 
@@ -501,7 +619,11 @@ def apply_window(src: SignalObj, p: WindowingParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.reverse_x",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def reverse_x(src: SignalObj) -> SignalObj:
     """Reverse x-axis
 
@@ -516,7 +638,24 @@ def reverse_x(src: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.convolution",
+    contract_version=1,
+    reads_options=("auto_normalize_kernel",),
+    x_alignment=SOURCE_GRID_LINEAR_HOLD,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Fourier transforms (NumPy/SciPy pocketfft) differ in the last bits "
+                "across library versions"
+            ),
+            atol=1e-15,
+            rtol=1e-11,
+            same_environment="exact",
+        ),
+    ),
+)
 def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Compute convolution of two signals with :py:func:`scipy.signal.convolve`.
 
@@ -550,7 +689,12 @@ def convolution(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.xy_mode",
+    contract_version=1,
+    x_alignment=SOURCE_GRID_LINEAR_HOLD,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def xy_mode(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Simulate the X-Y mode of an oscilloscope.
 
@@ -578,7 +722,11 @@ def xy_mode(src1: SignalObj, src2: SignalObj) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.replace_x_by_other_y",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def replace_x_by_other_y(src1: SignalObj, src2: SignalObj) -> SignalObj:
     """Create a new signal using Y from src1 and Y from src2 as X coordinates.
 
@@ -678,7 +826,11 @@ def _apply_signal_strategy(
     return x, y, False
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.replace_special_values",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def replace_special_values(
     src: SignalObj, p: ReplaceSpecialValuesSignalParam
 ) -> SignalObj:

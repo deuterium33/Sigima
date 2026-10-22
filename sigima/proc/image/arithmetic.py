@@ -30,6 +30,7 @@ of image data.
 from __future__ import annotations
 
 import warnings
+from typing import Any
 
 import numpy as np
 
@@ -39,6 +40,7 @@ from sigima.proc.base import (
     ArithmeticParam,
     ConstantParam,
 )
+from sigima.proc.contracts import EXACT, ReplayQualification
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import (
     dst_1_to_1,
@@ -82,7 +84,11 @@ __all__ = [
 # the modified object from the worker processes.
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.addition",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def addition(src_list: list[ImageObj]) -> ImageObj:
     """Add images in the list and return the result image object
 
@@ -99,7 +105,11 @@ def addition(src_list: list[ImageObj]) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.average",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def average(src_list: list[ImageObj]) -> ImageObj:
     """Compute the average of images in the list and return the result image object
 
@@ -168,7 +178,11 @@ def maximum(src_list: list[ImageObj]) -> ImageObj:
     restore_data_outside_roi(dst, src_list[0])
     return dst
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.standard_deviation",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
     """Compute the element-wise standard deviation of multiple images.
 
@@ -198,7 +212,11 @@ def standard_deviation(src_list: list[ImageObj]) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.product",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def product(src_list: list[ImageObj]) -> ImageObj:
     """Multiply images in the list and return the result image object
 
@@ -215,7 +233,34 @@ def product(src_list: list[ImageObj]) -> ImageObj:
     return dst
 
 
-@computation_function()
+def _constant_like(value: float, dtype: np.dtype) -> Any:
+    """Return the constant of an operation at the precision of the image data.
+
+    For integer images, the constant is truncated toward zero, as a Python
+    integer: it is never converted to the integer type, whose conversion of an
+    out-of-range value depends on the platform (``-1`` would become ``255`` for
+    ``uint8`` on x86-64 and ``0`` in WebAssembly). For other types, it is
+    converted to the type of the data.
+
+    Args:
+        value: Constant value.
+        dtype: Data type of the image.
+
+    Returns:
+        The constant, used in a float computation.
+    """
+    if np.issubdtype(dtype, np.integer) and np.isfinite(value):
+        return int(np.trunc(value))
+    if np.issubdtype(dtype, np.integer):
+        return float(value)
+    return np.array(value).astype(dtype=dtype)
+
+
+@computation_function(
+    operation_id="sigima.image.addition_constant",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def addition_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     """Add **dst** and a constant value and return the new result image object
 
@@ -226,16 +271,18 @@ def addition_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     Returns:
         Result image object **src** + **p.value** (new object)
     """
-    # For the addition of a constant value, we convert the constant value to the same
-    # data type as the input image, for consistency.
-    value = np.array(p.value).astype(dtype=src.data.dtype)
+    value = _constant_like(p.value, src.data.dtype)
     dst = dst_1_to_1(src, "+", str(value))
     dst.data = np.add(src.data, value, dtype=float)
     restore_data_outside_roi(dst, src)
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.difference_constant",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def difference_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     """Subtract a constant value from an image and return the new result image object
 
@@ -246,16 +293,18 @@ def difference_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     Returns:
         Result image object **src** - **p.value** (new object)
     """
-    # For the subtraction of a constant value, we convert the constant value to the same
-    # data type as the input image, for consistency.
-    value = np.array(p.value).astype(dtype=src.data.dtype)
+    value = _constant_like(p.value, src.data.dtype)
     dst = dst_1_to_1(src, "-", str(value))
     dst.data = np.subtract(src.data, value, dtype=float)
     restore_data_outside_roi(dst, src)
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.product_constant",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def product_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     """Multiply **dst** by a constant value and return the new result image object
 
@@ -277,7 +326,11 @@ def product_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.division_constant",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def division_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
     """Divide an image by a constant value and return the new result image object
 
@@ -303,7 +356,11 @@ def division_constant(src: ImageObj, p: ConstantParam) -> ImageObj:
 # --------------------------------------------------------------------------------------
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.arithmetic",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def arithmetic(src1: ImageObj, src2: ImageObj, p: ArithmeticParam) -> ImageObj:
     """Compute arithmetic operation on two images
 
@@ -337,7 +394,11 @@ def arithmetic(src1: ImageObj, src2: ImageObj, p: ArithmeticParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.difference",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def difference(src1: ImageObj, src2: ImageObj) -> ImageObj:
     """Compute difference between two images
 
@@ -354,7 +415,11 @@ def difference(src1: ImageObj, src2: ImageObj) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.quadratic_difference",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def quadratic_difference(src1: ImageObj, src2: ImageObj) -> ImageObj:
     """Compute quadratic difference between two images
 
@@ -371,7 +436,11 @@ def quadratic_difference(src1: ImageObj, src2: ImageObj) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.division",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def division(src1: ImageObj, src2: ImageObj) -> ImageObj:
     """Compute division between two images
 

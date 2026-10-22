@@ -103,6 +103,10 @@ with the :py:class:`sigima.params.BinningParam` dataset:
 I/O parameters
 ^^^^^^^^^^^^^^
 
+.. autodataset:: sigima.params.ImageExportParam
+    :no-index:
+.. autodataset:: sigima.params.RawImageImportParam
+    :no-index:
 .. autodataset:: sigima.io.convenience.SaveToDirectoryParam
     :no-index:
 
@@ -320,6 +324,7 @@ __all__ = [
     "BlobDOHParam",
     "BlobLOGParam",
     "BlobOpenCVParam",
+    "BrightnessContrastParam",
     "ButterworthParam",
     "CannyParam",
     "ClipParam",
@@ -345,6 +350,7 @@ __all__ = [
     "HighPassFilterParam",
     "HistogramParam",
     "HoughCircleParam",
+    "ImageExportParam",
     "InterpolationParam",
     "LineProfileParam",
     "Log10ZPlusNParam",
@@ -362,6 +368,7 @@ __all__ = [
     "PulseFeaturesParam",
     "ROIGridParam",
     "RadialProfileParam",
+    "RawImageImportParam",
     "ReplaceSpecialValuesImageParam",
     "ReplaceSpecialValuesSignalParam",
     "Resampling1DParam",
@@ -384,6 +391,8 @@ __all__ = [
 ]
 
 from sigima.io.convenience import SaveToDirectoryParam
+from sigima.io.image.export import ImageExportParam
+from sigima.io.image.raw import RawImageImportParam
 from sigima.proc.base import (
     AngleUnitParam,
     ArithmeticParam,
@@ -411,6 +420,7 @@ from sigima.proc.image import (
     BlobDOHParam,
     BlobLOGParam,
     BlobOpenCVParam,
+    BrightnessContrastParam,
     ButterworthParam,
     CannyParam,
     ContourShapeParam,

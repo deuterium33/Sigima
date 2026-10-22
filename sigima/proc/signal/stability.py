@@ -28,6 +28,7 @@ import numpy as np
 
 from sigima.config import _
 from sigima.objects import SignalObj
+from sigima.proc.contracts import EXACT, ReplayQualification
 from sigima.proc.decorator import computation_function
 from sigima.tools.signal import stability
 
@@ -40,7 +41,11 @@ class AllanVarianceParam(gds.DataSet, title=_("Allan variance")):
     max_tau = gds.IntItem("Max τ", default=100, min=1, unit="pts")
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.allan_variance",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Allan variance with
     :py:func:`sigima.tools.signal.stability.allan_variance`.
@@ -60,7 +65,11 @@ def allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.allan_deviation",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def allan_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Allan deviation with
     :py:func:`sigima.tools.signal.stability.allan_deviation`
@@ -80,7 +89,11 @@ def allan_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.overlapping_allan_variance",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def overlapping_allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Overlapping Allan variance.
 
@@ -99,7 +112,11 @@ def overlapping_allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalO
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.modified_allan_variance",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def modified_allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Modified Allan variance.
 
@@ -118,7 +135,11 @@ def modified_allan_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.hadamard_variance",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def hadamard_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Hadamard variance.
 
@@ -137,7 +158,11 @@ def hadamard_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.total_variance",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def total_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Total variance.
 
@@ -156,7 +181,11 @@ def total_variance(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.time_deviation",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def time_deviation(src: SignalObj, p: AllanVarianceParam) -> SignalObj:
     """Compute Time Deviation (TDEV).
 

@@ -42,11 +42,12 @@ msgstr ""
 msgid ""
 "Backend library for visualization (sigima.viz module).\n"
 "\n"
-"Valid values: ``\"auto\"``, ``\"plotpy\"``, ``\"matplotlib\"``.\n"
+"Valid values: ``\"auto\"``, ``\"plotpy\"``, ``\"matplotlib\"``, ``\"plotly\"``.\n"
 "\n"
 "- ``\"auto\"`` (default): Automatically select PlotPy if available, otherwise Matplotlib\n"
 "- ``\"plotpy\"``: Use PlotPy for interactive visualizations (requires PlotPy and Qt)\n"
 "- ``\"matplotlib\"``: Use Matplotlib for visualizations (simpler, view-only)\n"
+"- ``\"plotly\"``: Use Plotly for browser-based interactive visualizations\n"
 "\n"
 "This setting can also be overridden using the ``SIGIMA_VIZ_BACKEND`` environment\n"
 "variable. Note that Matplotlib backend does not support all features of PlotPy\n"
@@ -54,11 +55,12 @@ msgid ""
 msgstr ""
 "Bibliothèque backend pour la visualisation des tests (tests interactifs uniquement).\n"
 "\n"
-"Valeurs valides : ``\"auto\"``, ``\"plotpy\"``, ``\"matplotlib\"``.\n"
+"Valeurs valides : ``\"auto\"``, ``\"plotpy\"``, ``\"matplotlib\"``, ``\"plotly\"``.\n"
 "\n"
 "- ``\"auto\"`` (par défaut) : Sélectionner automatiquement PlotPy si disponible, sinon Matplotlib\n"
 "- ``\"plotpy\"`` : Utiliser PlotPy pour les visualisations interactives (nécessite PlotPy et Qt)\n"
 "- ``\"matplotlib\"`` : Utiliser Matplotlib pour les visualisations (plus simple, statique)\n"
+"- ``\"plotly\"`` : Utiliser Plotly pour les visualisations interactives dans un navigateur\n"
 "\n"
 "Ce paramètre peut également être remplacé en utilisant la variable d'environnement ``SIGIMA_VIZ_BACKEND``.\n"
 "Notez que le backend Matplotlib ne prend pas en charge toutes les fonctionnalités de PlotPy\n"
@@ -237,11 +239,107 @@ msgstr "Écraser les fichiers existants"
 msgid "Image I/O formats"
 msgstr "Formats d'entrée/sortie d'images"
 
+msgid "Image export"
+msgstr "Exportation d'image"
+
+msgid "Normalization"
+msgstr "Normalisation"
+
+msgid "None"
+msgstr "Aucune"
+
+msgid "Min-max"
+msgstr "Min-max"
+
+msgid "Percentile"
+msgstr "Percentile"
+
+msgid "Manual"
+msgstr "Manuel"
+
+msgid "Manual minimum"
+msgstr "Minimum manuel"
+
+msgid "Manual maximum"
+msgstr "Maximum manuel"
+
+msgid "Low percentile"
+msgstr "Percentile inférieur"
+
+msgid "High percentile"
+msgstr "Percentile supérieur"
+
+msgid "Out-of-range behavior"
+msgstr "Comportement hors plage"
+
+msgid "Clip"
+msgstr "Ecrêtage"
+
+msgid "Rescale"
+msgstr "Rééchelonnage"
+
+msgid "Target data type"
+msgstr "Type de données cible"
+
+msgid "Automatic"
+msgstr "Automatique"
+
+msgid "Non-finite values"
+msgstr "Valeurs non finies"
+
+msgid "Raise an error"
+msgstr "Lever une erreur"
+
+msgid "Replace"
+msgstr "Remplacer"
+
+msgid "Replacement value"
+msgstr "Valeur de remplacement"
+
+msgid "Gamma"
+msgstr "Gamma"
+
+msgid "Invert"
+msgstr "Inverser"
+
+msgid "Format options"
+msgstr "Options de format"
+
 msgid "Text files"
 msgstr "Fichiers texte"
 
 msgid "MAT-Files"
 msgstr "Fichiers MAT"
+
+msgid "RAW image import"
+msgstr "Importation d'image RAW"
+
+msgid "Image data type"
+msgstr "Type de données de l'image"
+
+msgid "Width"
+msgstr "Largeur"
+
+msgid "Height"
+msgstr "Hauteur"
+
+msgid "Offset to first image"
+msgstr "Décalage avant la première image"
+
+msgid "Number of images"
+msgstr "Nombre d'images"
+
+msgid "Gap between images"
+msgstr "Espace entre les images"
+
+msgid "Little-endian byte order"
+msgstr "Ordre des octets petit-boutiste"
+
+msgid "White is zero"
+msgstr "Le blanc correspond à zéro"
+
+msgid "RAW image"
+msgstr "Image RAW"
 
 msgid "Signal I/O formats"
 msgstr "Formats d'entrée/sortie de signaux"
@@ -315,23 +413,14 @@ msgstr "Image sans titre"
 msgid "Title"
 msgstr "Titre"
 
-msgid "Height"
-msgstr "Hauteur"
-
 msgid "Image height: number of rows"
 msgstr "Hauteur de l'image : nombre de lignes"
-
-msgid "Width"
-msgstr "Largeur"
 
 msgid "Image width: number of columns"
 msgstr "Largeur de l'image : nombre de colonnes"
 
 msgid "Type"
 msgstr "Type"
-
-msgid "Image data type"
-msgstr "Type de données de l'image"
 
 msgid "X label"
 msgstr "Titre X"
@@ -356,6 +445,12 @@ msgstr "Coefficients"
 
 msgid "Domain"
 msgstr "Domaine"
+
+msgid "Physical coordinates"
+msgstr "Coordonnées physiques"
+
+msgid "Use the domain [x<sub>min</sub>, x<sub>max</sub>] × [y<sub>min</sub>, y<sub>max</sub>] as image coordinates, so that positions, widths and frequencies match the plot axes. Otherwise, the image is displayed in pixel coordinates."
+msgstr "Utiliser le domaine [x<sub>min</sub>, x<sub>max</sub>] × [y<sub>min</sub>, y<sub>max</sub>] comme coordonnées de l'image, afin que les positions, largeurs et fréquences correspondent aux axes du graphique. Sinon, l'image est affichée en coordonnées pixel."
 
 msgid "Checkerboard pattern with alternating squares"
 msgstr "Motif en damier avec des carrés alternés"
@@ -616,6 +711,12 @@ msgstr "Nombre total de points dans le signal"
 msgid "Temperature"
 msgstr "Température"
 
+msgid "Wavelength"
+msgstr "Longueur d'onde"
+
+msgid "Spectral radiance"
+msgstr "Luminance énergétique spectrale"
+
 msgid "Initial phase"
 msgstr "Phase initiale"
 
@@ -741,9 +842,6 @@ msgstr "Mode"
 
 msgid "Moving median"
 msgstr "Médiane mobile"
-
-msgid "Clip"
-msgstr "Ecrêtage"
 
 msgid "Lower clipping value"
 msgstr "Borne inférieure d'écrêtage"
@@ -1074,8 +1172,14 @@ msgstr "Interprète les seuils bas et haut en tant que quantiles des niveaux des
 msgid "Value to fill past edges of input if mode is constant."
 msgstr "Valeur de remplissage si le mode est constant."
 
-msgid "Gamma"
-msgstr "Gamma"
+msgid "Brightness and contrast"
+msgstr "Luminosité et contraste"
+
+msgid "Minimum"
+msgstr "Minimum"
+
+msgid "Adjust the intensity window using the histogram."
+msgstr "Ajuster la fenêtre d'intensité à l'aide de l'histogramme."
 
 msgid "Gamma correction factor (higher values give more contrast)."
 msgstr "Facteur de correction gamma (plus la valeur est élevée, plus le contraste est important)."
@@ -1431,14 +1535,8 @@ msgstr "Ondelette"
 msgid "Method"
 msgstr "Méthode"
 
-msgid "Manual"
-msgstr "Manuel"
-
 msgid "Mean"
 msgstr "Moyenne"
-
-msgid "Minimum"
-msgstr "Minimum"
 
 msgid "Threshold method"
 msgstr "Méthode de seuillage"
@@ -1713,3 +1811,4 @@ msgstr "Barycentre"
 
 msgid "Plot dialog"
 msgstr "Fenêtre de tracé"
+

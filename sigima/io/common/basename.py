@@ -74,21 +74,22 @@ def format_basenames(
     Raises:
         KeyError: If the format string references an unknown placeholder.
     """
+    obj_list = list(objects)
+    count = len(obj_list)
     result: list[str] = []
     formatter = CustomFormatter()
-    for i, obj in enumerate(objects):
+    for i, obj in enumerate(obj_list):
         # Note: We provide metadata dict only for {metadata[key]} access,
         # not for direct {metadata} use (which would create overly long filenames)
-        metadata = getattr(obj, "metadata", {})
+        metadata = obj.metadata
         context: dict[str, Any] = {
-            "title": getattr(obj, "title", ""),
+            "title": obj.title,
             "index": i + 1,
-            "count": len(list(objects)),
-            # Attributes may not exist on all objects.
-            "xlabel": getattr(obj, "xlabel", ""),
-            "xunit": getattr(obj, "xunit", ""),
-            "ylabel": getattr(obj, "ylabel", ""),
-            "yunit": getattr(obj, "yunit", ""),
+            "count": count,
+            "xlabel": obj.xlabel,
+            "xunit": obj.xunit,
+            "ylabel": obj.ylabel,
+            "yunit": obj.yunit,
             "metadata": metadata,
         }
         try:

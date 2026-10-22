@@ -154,6 +154,10 @@ class DataLabStubServer:
         self.server.register_function(self.import_h5_file, "import_h5_file")
         self.server.register_function(self.load_h5_workspace, "load_h5_workspace")
         self.server.register_function(self.save_h5_workspace, "save_h5_workspace")
+        self.server.register_function(self.export_capsule, "export_capsule")
+        self.server.register_function(self.open_capsule, "open_capsule")
+        self.server.register_function(self.load_from_files, "load_from_files")
+        self.server.register_function(self.load_from_directory, "load_from_directory")
 
         # Object operations
         self.server.register_function(self.add_signal, "add_signal")
@@ -374,6 +378,38 @@ class DataLabStubServer:
             if self.verbose:
                 execenv.print(f"[STUB] Failed to save workspace: {exc}")
 
+    def export_capsule(
+        self,
+        filename: str,
+        name: str | None = None,
+        description: str | None = None,
+        as_revision: bool = True,
+        workspace_ref: str | None = None,
+        workspace_filename: str | None = None,
+        attachments: list[str] | None = None,
+    ) -> str:
+        """Export the workspace as a capsule (stub: writes a placeholder file).
+
+        Returns:
+            A dummy manifest fingerprint.
+        """
+        if self.verbose:
+            execenv.print(
+                f"[STUB] export_capsule: {filename}, name={name}, "
+                f"as_revision={as_revision}, workspace_ref={workspace_ref}, "
+                f"attachments={attachments}"
+            )
+        del description, workspace_filename
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("# DataLab capsule stub file (for testing)\n")
+        return "sha256:" + "0" * 64
+
+    def open_capsule(self, filename: str, workspace: str | None = None) -> None:
+        """Open a capsule as the workspace (stub: like loading a workspace)."""
+        if self.verbose:
+            execenv.print(f"[STUB] open_capsule: {filename}, workspace={workspace}")
+        self.load_h5_workspace([filename], reset_all=True)
+
     # Object operations
     # pylint: disable=unused-argument
     def add_signal(
@@ -458,18 +494,19 @@ class DataLabStubServer:
             set_current: if True, set the added object as current
         """
         obj: SignalObj | ImageObj = utils.rpcjson_to_dataset(obj_data)
+        obj_uuid = str(uuid.uuid4())
+        if isinstance(obj, SignalObj):
+            self.signals[obj_uuid] = obj
+            if group_id and group_id in self.signal_groups:
+                self.signal_groups[group_id].objects.append(obj_uuid)
+        else:
+            self.images[obj_uuid] = obj
+            if group_id and group_id in self.image_groups:
+                self.image_groups[group_id].objects.append(obj_uuid)
         if self.verbose:
             obj_str = "signal" if isinstance(obj, SignalObj) else "image"
-            obj_uuid = str(uuid.uuid4())
             print(f"Added {obj_str} {obj.title} with UUID {obj_uuid}")
-            if isinstance(obj, SignalObj):
-                self.signals[obj_uuid] = obj
-                if group_id and group_id in self.signal_groups:
-                    self.signal_groups[group_id].objects.append(obj_uuid)
-            else:
-                self.images[obj_uuid] = obj
-                if group_id and group_id in self.image_groups:
-                    self.image_groups[group_id].objects.append(obj_uuid)
+        return True
 
     def set_object(self, obj_data: list[str]) -> None:
         """Set object data (update an existing object by UUID).
@@ -490,27 +527,36 @@ class DataLabStubServer:
         elif self.verbose:
             print(f"set_object: no object found with UUID {obj_uuid}")
 
-    def load_from_files(self, filenames: list[str]) -> None:
+    def load_from_files(
+        self, filenames: list[str], param_data: list[str] | None = None
+    ) -> None:
         """Load objects from files (stub implementation).
 
         Args:
             filenames: list of file names
+            param_data: Optional serialized format-specific import parameters
         """
         if self.verbose:
+            param_info = "" if param_data is None else " with import parameters"
             print(
-                f"load_from_files called with {len(filenames)} files "
+                f"load_from_files called with {len(filenames)} files{param_info} "
                 "(stub - not implemented)"
             )
 
-    def load_from_directory(self, path: str) -> None:
+    def load_from_directory(
+        self, path: str, param_data: list[str] | None = None
+    ) -> None:
         """Load objects from directory (stub implementation).
 
         Args:
             path: directory path
+            param_data: Optional serialized format-specific import parameters
         """
         if self.verbose:
+            param_info = "" if param_data is None else " with import parameters"
             print(
-                f"load_from_directory called with path: {path} (stub - not implemented)"
+                f"load_from_directory called with path: {path}{param_info} "
+                "(stub - not implemented)"
             )
 
     def get_object_titles(self, panel: str | None = None) -> list[str]:

@@ -9,7 +9,7 @@ This module provides visualization utilities for Sigima objects, useful for:
 - Data analysis in Jupyter notebooks
 - Quick visual inspection of processing results
 
-The module automatically selects between PlotPy and Matplotlib backends based on
+The module selects between PlotPy, Matplotlib, and Plotly backends based on
 availability and configuration settings.
 
 The backend selection follows this priority:
@@ -21,6 +21,7 @@ Backend selection logic:
 - "auto": Try PlotPy first, fall back to Matplotlib
 - "plotpy": Use PlotPy (raise ImportError if not available)
 - "matplotlib": Use Matplotlib (raise ImportError if not available)
+- "plotly": Use Plotly (raise ImportError if not available)
 
 Module exports:
 - BACKEND_NAME: Name of the selected backend ("plotpy" or "matplotlib")
@@ -68,6 +69,7 @@ if TYPE_CHECKING:
         maximized: bool = False,
         results: list[GeometryResult] | GeometryResult | None = None,
         show_roi: bool = True,
+        show_annotations: bool = True,
         object_name: str = "",
         **kwargs,
     ) -> None:
@@ -80,6 +82,7 @@ if TYPE_CHECKING:
         maximized: bool = False,
         results: list[GeometryResult] | GeometryResult | None = None,
         show_roi: bool = True,
+        show_annotations: bool = True,
         object_name: str = "",
         **kwargs,
     ) -> None:
@@ -94,6 +97,7 @@ if TYPE_CHECKING:
         title: str | None = None,
         results: list[GeometryResult] | GeometryResult | None = None,
         show_roi: bool = True,
+        show_annotations: bool = True,
         object_name: str = "",
         **kwargs,
     ) -> None:
@@ -108,6 +112,7 @@ if TYPE_CHECKING:
         maximized: bool = False,
         results: list[GeometryResult] | GeometryResult | None = None,
         show_roi: bool = True,
+        show_annotations: bool = True,
         object_name: str = "",
         **kwargs,
     ) -> None:
@@ -215,17 +220,12 @@ if TYPE_CHECKING:
         return object()
 
 
-# Determine which backend to use
-_BACKEND_NAME: str | None = None
-_BACKEND_SOURCE: str = "auto"
-
-
 def _select_backend() -> tuple[str, str]:
     """Select visualization backend based on configuration and availability.
 
     Returns:
         Tuple of (backend_name, source) where:
-        - backend_name: "plotpy" or "matplotlib"
+        - backend_name: "plotpy", "matplotlib", or "plotly"
         - source: How the backend was selected ("env", "config", "auto")
 
     Raises:
@@ -236,7 +236,7 @@ def _select_backend() -> tuple[str, str]:
 
     # Priority 1: Environment variable
     env_backend = os.environ.get("SIGIMA_VIZ_BACKEND", "").lower()
-    if env_backend in ("plotpy", "matplotlib", "auto"):
+    if env_backend in ("plotpy", "matplotlib", "plotly", "auto"):
         requested = env_backend
         source = "env"
     else:
@@ -273,6 +273,17 @@ def _select_backend() -> tuple[str, str]:
                 "Install with: pip install matplotlib"
             ) from exc
 
+    elif requested == "plotly":
+        try:
+            import plotly  # noqa: F401
+
+            return ("plotly", source)
+        except ImportError as exc:
+            raise ImportError(
+                "Plotly backend requested but Plotly is not installed. "
+                "Install with: pip install 'sigima[plotly]'"
+            ) from exc
+
     else:  # "auto"
         # Try PlotPy first
         try:
@@ -300,8 +311,8 @@ def _select_backend() -> tuple[str, str]:
 
 # Lazy backend initialization - deferred until first attribute access
 _BACKEND_MODULE = None
-_BACKEND_NAME = None
-_BACKEND_SOURCE = None
+_BACKEND_NAME: str | None = None
+_BACKEND_SOURCE: str | None = None
 _INITIALIZING = False  # Flag to prevent recursion
 
 # Public API: Set default values for BACKEND_NAME and BACKEND_SOURCE
@@ -335,6 +346,8 @@ def _initialize_backend():
             _BACKEND_MODULE = importlib.import_module(".viz_plotpy", package=__name__)
         elif _BACKEND_NAME == "matplotlib":
             _BACKEND_MODULE = importlib.import_module(".viz_mpl", package=__name__)
+        elif _BACKEND_NAME == "plotly":
+            _BACKEND_MODULE = importlib.import_module(".viz_plotly", package=__name__)
     finally:
         _INITIALIZING = False
 
@@ -360,7 +373,7 @@ def __getattr__(name: str):
         def _placeholder(*args, **kwargs):
             raise ImportError(
                 f"Function '{name}' requires a visualization backend. "
-                "Please install either PlotPy or Matplotlib."
+                "Please install PlotPy, Matplotlib, or Plotly."
             )
 
         _placeholder.__name__ = name

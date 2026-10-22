@@ -22,8 +22,8 @@ msgstr "Nous suivons le style de codage `PEP 8 <https://www.python.org/dev/peps/
 msgid "In particular, we are especially strict about the following guidelines:"
 msgstr "En particulier, nous sommes particulièrement stricts sur les directives suivantes :"
 
-msgid "Limit all lines to a maximum of 79 characters."
-msgstr "Limiter toutes les lignes à un maximum de 79 caractères."
+msgid "Limit all lines to a maximum of 88 characters."
+msgstr "Limiter toutes les lignes à un maximum de 88 caractères."
 
 msgid "Respect the naming conventions (classes, functions, variables, etc.)."
 msgstr "Respecter les conventions de nommage (classes, fonctions, variables, etc.)."
@@ -43,23 +43,23 @@ msgstr "`pylint <https://pypi.org/project/pylint/>`_ pour l'analyse statique du 
 msgid "ruff"
 msgstr "ruff"
 
-msgid "If you are using `Visual Studio Code <https://code.visualstudio.com/>`_, the project settings will automatically format your code with `ruff` on save (you may also run the task \"Run Ruff\" to run `ruff` on the project)."
-msgstr "Si vous utilisez `Visual Studio Code <https://code.visualstudio.com/>`_, les paramètres du projet formateront automatiquement votre code avec `ruff` à l'enregistrement (vous pouvez également exécuter la tâche \"Run Ruff\" pour exécuter `ruff` sur le projet)."
+msgid "If you are using `Visual Studio Code <https://code.visualstudio.com/>`_, the project settings will automatically format your code with `ruff` on save. You may also run the Ruff tasks on the project."
+msgstr "Si vous utilisez `Visual Studio Code <https://code.visualstudio.com/>`_, les paramètres du projet formateront automatiquement votre code avec `ruff` à l'enregistrement. Vous pouvez également exécuter les tâches Ruff sur le projet."
 
-msgid "To run `ruff`, run the following command::"
-msgstr "Pour exécuter `ruff`, exécutez la commande suivante::"
+msgid "To format and check the code with `ruff`, run the following commands from the repository root::"
+msgstr "Pour formater et vérifier le code avec `ruff`, exécutez les commandes suivantes depuis la racine du dépôt::"
 
 msgid "pylint"
 msgstr "pylint"
 
-msgid "To run `pylint`, run the following command::"
-msgstr "Pour exécuter `pylint`, exécutez la commande suivante::"
+msgid "To run `pylint`, run the following command from the repository root::"
+msgstr "Pour exécuter `pylint`, lancez la commande suivante depuis la racine du dépôt::"
 
-msgid "If you are using `Visual Studio Code <https://code.visualstudio.com/>`_ on Windows, you may run the task \"Run Pylint\" to run `pylint` on the project."
-msgstr "Si vous utilisez `Visual Studio Code <https://code.visualstudio.com/>`_ sur Windows, vous pouvez exécuter la tâche \"Run Pylint\" pour exécuter `pylint` sur le projet."
+msgid "If you are using `Visual Studio Code <https://code.visualstudio.com/>`_ on Windows, you may run the \"Pylint\" task on the project. The enabled checks and accepted exclusions are defined in the repository's ``.pylintrc`` file."
+msgstr "Si vous utilisez `Visual Studio Code <https://code.visualstudio.com/>`_ sous Windows, vous pouvez exécuter la tâche \"Pylint\" sur le projet. Les vérifications activées et les exclusions acceptées sont définies dans le fichier ``.pylintrc`` du dépôt."
 
-msgid "A `pylint` rating greater than 9/10 is required to merge a pull request."
-msgstr "Une note `pylint` supérieure à 9/10 est requise pour fusionner une demande d'extraction."
+msgid "The Ruff and Pylint checks must both exit successfully before a pull request may be merged. Pylint's numeric rating is informative only: the merge gate is based on the absence of diagnostics from the enabled checks."
+msgstr "Les vérifications Ruff et Pylint doivent toutes deux se terminer avec succès avant qu'une demande d'extraction puisse être fusionnée. La note numérique de Pylint est uniquement informative : l'autorisation de fusion repose sur l'absence de diagnostics issus des vérifications activées."
 
 msgid "Specific coding guidelines"
 msgstr "Règles de codage spécifiques"
@@ -87,3 +87,42 @@ msgstr "Évitez d'utiliser des mixins (héritage multiple) si possible. Il est s
 
 msgid "Avoid using ``__getattr__`` and ``__setattr__`` methods. They are often used to implement lazy initialization, but this can be done in a more explicit way."
 msgstr "Évitez d'utiliser les méthodes ``__getattr__`` et ``__setattr__``. Ils sont souvent utilisés pour implémenter une initialisation paresseuse, mais cela peut être fait de manière plus explicite."
+
+msgid "Operation contracts"
+msgstr "Contrats d'opération"
+
+msgid "Every public computation function declares an operation contract with ``@computation_function(operation_id=..., contract_version=...)`` (see :mod:`sigima.proc.contracts`). Applications record these identifiers in workspace provenance and use them to replay a computation later, possibly with another Sigima version. Everything about an operation is declared next to its function; :mod:`sigima.proc.contracts` holds no data naming an operation. Follow these rules when you add or change a computation function:"
+msgstr "Chaque fonction de calcul publique déclare un contrat d'opération avec ``@computation_function(operation_id=..., contract_version=...)`` (voir :mod:`sigima.proc.contracts`). Les applications enregistrent ces identifiants dans la provenance de l'espace de travail et s'en servent pour rejouer un calcul plus tard, éventuellement avec une autre version de Sigima. Tout ce qui caractérise une opération est déclaré auprès de sa fonction ; :mod:`sigima.proc.contracts` ne contient aucune donnée nommant une opération. Respectez ces règles lorsque vous ajoutez ou modifiez une fonction de calcul :"
+
+msgid "Write the identifier in clear next to the function: ``sigima.signal.<name>`` or ``sigima.image.<name>``, ``contract_version=1`` at the first declaration. Never derive an identifier from a Python name. Keep the identifier when you rename or move the function."
+msgstr "Écrivez l'identifiant en clair auprès de la fonction : ``sigima.signal.<nom>`` ou ``sigima.image.<nom>``, ``contract_version=1`` à la première déclaration. Ne déduisez jamais un identifiant d'un nom Python. Conservez l'identifiant lorsque vous renommez ou déplacez la fonction."
+
+msgid "If the identifier itself must change, keep the previous one in ``aliases``."
+msgstr "Si l'identifiant lui-même doit changer, conservez le précédent dans ``aliases``."
+
+msgid "Increase ``contract_version`` for any change of meaning: new, removed or renamed parameters, a different default behavior, different outputs or a different scientific result for the same inputs."
+msgstr "Augmentez ``contract_version`` pour tout changement de sens : paramètres ajoutés, supprimés ou renommés, comportement par défaut différent, sorties différentes ou résultat scientifique différent pour les mêmes entrées."
+
+msgid "The structure of the contract (input roles, parameter arguments, outputs) is inferred from the annotations. Annotate every argument and the return value with names imported at runtime (not only under ``TYPE_CHECKING``). When roles cannot be inferred (more than two input objects), declare them with ``roles=(...)``."
+msgstr "La structure du contrat (rôles des entrées, arguments de paramètres, sorties) est déduite des annotations. Annotez chaque argument et la valeur de retour avec des noms importés à l'exécution (pas seulement sous ``TYPE_CHECKING``). Lorsque les rôles ne peuvent pas être déduits (plus de deux objets en entrée), déclarez-les avec ``roles=(...)``."
+
+msgid "Declare the :data:`sigima.config.options` read by the computation itself with ``reads_options=(...)``: applications record their values and restore them for a replay. Random generators take their seed as a parameter."
+msgstr "Déclarez les :data:`sigima.config.options` lues par le calcul lui-même avec ``reads_options=(...)`` : les applications enregistrent leurs valeurs et les restaurent pour un rejeu. Les générateurs aléatoires reçoivent leur graine en paramètre."
+
+msgid "Declare the metadata keys of input objects read by the computation itself with ``reads_metadata={role: (key, ...)}`` (e.g. the fit parameters read by ``evaluate_fit``): state fingerprints do not cover metadata, so applications record their values and refuse a replay when they changed."
+msgstr "Déclarez les clés de métadonnées des objets d'entrée lues par le calcul lui-même avec ``reads_metadata={rôle: (clé, ...)}`` (par exemple les paramètres d'ajustement lus par ``evaluate_fit``) : les empreintes d'état ne couvrent pas les métadonnées, si bien que les applications enregistrent leurs valeurs et refusent un rejeu lorsqu'elles ont changé."
+
+msgid "Never change a reference case to make a test pass. Update the reference cases deliberately, and explain the scientific reason, when a numerical correction changes the result."
+msgstr "Ne modifiez jamais un cas de référence pour faire passer un test. Mettez à jour les cas de référence délibérément, en expliquant la raison scientifique, lorsqu'une correction numérique change le résultat."
+
+msgid "Declaring a contract does not qualify it for replay. A qualification is declared next to the function with ``qualification=ReplayQualification(contract_version=..., comparison=...)`` (see :mod:`sigima.proc.contracts.declarations`). It names the contract version that was actually tested: increasing ``contract_version`` does not qualify the new version. It requires the validation test of the function (marked ``validation``) and the generic replay test (``sigima/tests/common/replay_qualification_test.py``), which replays the calls captured during the validation tests as an application replays a recorded activity. Run ``pytest --qualification-report=report.json``: the run fails if a declared qualification is not proven."
+msgstr "Déclarer un contrat ne le qualifie pas pour le rejeu. Une qualification est déclarée auprès de la fonction avec ``qualification=ReplayQualification(contract_version=..., comparison=...)`` (voir :mod:`sigima.proc.contracts.declarations`). Elle désigne la version du contrat effectivement testée : augmenter ``contract_version`` ne qualifie pas la nouvelle version. Elle exige le test de validation de la fonction (marqué ``validation``) et le test générique de rejeu (``sigima/tests/common/replay_qualification_test.py``), qui rejoue les appels capturés pendant les tests de validation comme une application rejoue une activité enregistrée. Exécutez ``pytest --qualification-report=report.json`` : l'exécution échoue si une qualification déclarée n'est pas prouvée."
+
+msgid "The comparison rule of a qualification is exact by default (``EXACT``). Declare a tolerance (``tolerance(...)``) only when the nature of the computation justifies it (transforms, interpolations, iterative fits...), with that justification, and state whether results must still be identical within an identical environment. Never widen a tolerance to hide an error: changing a rule changes the qualification."
+msgstr "La règle de comparaison d'une qualification est exacte par défaut (``EXACT``). Ne déclarez une tolérance (``tolerance(...)``) que si la nature du calcul la justifie (transformées, interpolations, ajustements itératifs…), avec cette justification, et précisez si les résultats doivent rester identiques dans un environnement identique. N'élargissez jamais une tolérance pour masquer une erreur : changer une règle change la qualification."
+
+msgid "Set a tolerance from differences measured between environments (NumPy, SciPy, platforms), not from guesses: run the test suite in a first environment with ``SIGIMA_REPLAY_DUMP=<calls file>``, then in a second one with ``SIGIMA_REPLAY_REFERENCE=<calls file>`` and ``SIGIMA_REPLAY_CROSS_REPORT=<report.json>``. The second run replays the calls captured by the first one and reports the differences by operation. A function whose results differ beyond any justified tolerance stays unqualified. To include Pyodide (WebAssembly, the runtime of DataLab-Web), capture the calls into a directory with NumPy 1.26 (``SIGIMA_REPLAY_DUMP=<directory>/``), replay them with ``node scripts/pyodide_replay/run.mjs`` (see its header) and compare the results with ``sigima.tests.replay_probe.compare_replays``."
+msgstr "Fixez une tolérance à partir des écarts mesurés entre environnements (NumPy, SciPy, plateformes), et non par estimation : exécutez la suite de tests dans un premier environnement avec ``SIGIMA_REPLAY_DUMP=<fichier d'appels>``, puis dans un second avec ``SIGIMA_REPLAY_REFERENCE=<fichier d'appels>`` et ``SIGIMA_REPLAY_CROSS_REPORT=<rapport.json>``. La seconde exécution rejoue les appels capturés par la première et rapporte les écarts par opération. Une fonction dont les résultats diffèrent au-delà de toute tolérance justifiée reste non qualifiée. Pour inclure Pyodide (WebAssembly, l'environnement d'exécution de DataLab-Web), capturez les appels dans un dossier avec NumPy 1.26 (``SIGIMA_REPLAY_DUMP=<dossier>/``), rejouez-les avec ``node scripts/pyodide_replay/run.mjs`` (voir son en-tête) et comparez les résultats avec ``sigima.tests.replay_probe.compare_replays``."
+
+msgid "Some two-input contracts align the operand on the source grid before the call: declare the policy with ``x_alignment=...`` (see :mod:`sigima.proc.contracts.policies` and :mod:`sigima.proc.contracts.alignment`). Applications record the policy and its version, and a replay refuses unknown policies. Never change a policy in place: add a new version and keep the previous one supported."
+msgstr "Certains contrats à deux entrées alignent l'opérande sur la grille de la source avant l'appel : déclarez la politique avec ``x_alignment=...`` (voir :mod:`sigima.proc.contracts.policies` et :mod:`sigima.proc.contracts.alignment`). Les applications enregistrent la politique et sa version, et un rejeu refuse les politiques inconnues. Ne modifiez jamais une politique sur place : ajoutez une nouvelle version et conservez la précédente."

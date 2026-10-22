@@ -46,6 +46,7 @@ from skimage.util import img_as_ubyte  # type: ignore[import]
 from sigima.config import _
 from sigima.enums import FilterMode
 from sigima.objects.image import ImageObj
+from sigima.proc.contracts import EXACT, ReplayQualification
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, dst_1_to_1, restore_data_outside_roi
 
@@ -75,6 +76,18 @@ __all__ = [
 
 class CannyParam(gds.DataSet):
     """Canny filter parameters."""
+
+    def validate_parameters(self, *context: object) -> None:
+        """Validate the hysteresis threshold interval."""
+        del context
+        if self.low_threshold > self.high_threshold:
+            raise ValueError(
+                "low_threshold must be less than or equal to high_threshold"
+            )
+        if self.use_quantiles and (
+            self.low_threshold > 1.0 or self.high_threshold > 1.0
+        ):
+            raise ValueError("quantile thresholds must be less than or equal to 1")
 
     sigma = gds.FloatItem(
         "Sigma",
@@ -113,7 +126,11 @@ class CannyParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.canny",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def canny(src: ImageObj, p: CannyParam) -> ImageObj:
     """Compute Canny filter with :py:func:`skimage.feature.canny`.
 
@@ -146,7 +163,11 @@ def canny(src: ImageObj, p: CannyParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.farid",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def farid(src: ImageObj) -> ImageObj:
     """Compute Farid filter with :py:func:`skimage.filters.farid`.
 
@@ -159,7 +180,11 @@ def farid(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.farid)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.farid_h",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def farid_h(src: ImageObj) -> ImageObj:
     """Compute horizontal Farid filter with :py:func:`skimage.filters.farid_h`.
 
@@ -172,7 +197,11 @@ def farid_h(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.farid_h)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.farid_v",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def farid_v(src: ImageObj) -> ImageObj:
     """Compute vertical Farid filter with :py:func:`skimage.filters.farid_v`.
 
@@ -185,7 +214,11 @@ def farid_v(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.farid_v)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.laplace",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def laplace(src: ImageObj) -> ImageObj:
     """Compute Laplace filter with :py:func:`skimage.filters.laplace`.
 
@@ -198,7 +231,11 @@ def laplace(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.laplace)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.prewitt",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def prewitt(src: ImageObj) -> ImageObj:
     """Compute Prewitt filter with :py:func:`skimage.filters.prewitt`.
 
@@ -211,7 +248,11 @@ def prewitt(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.prewitt)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.prewitt_h",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def prewitt_h(src: ImageObj) -> ImageObj:
     """Compute horizontal Prewitt filter with :py:func:`skimage.filters.prewitt_h`.
 
@@ -224,7 +265,11 @@ def prewitt_h(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.prewitt_h)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.prewitt_v",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def prewitt_v(src: ImageObj) -> ImageObj:
     """Compute vertical Prewitt filter with :py:func:`skimage.filters.prewitt_v`.
 
@@ -237,7 +282,11 @@ def prewitt_v(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.prewitt_v)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.roberts",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def roberts(src: ImageObj) -> ImageObj:
     """Compute Roberts filter with :py:func:`skimage.filters.roberts`.
 
@@ -250,7 +299,11 @@ def roberts(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.roberts)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.scharr",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def scharr(src: ImageObj) -> ImageObj:
     """Compute Scharr filter with :py:func:`skimage.filters.scharr`.
 
@@ -263,7 +316,11 @@ def scharr(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.scharr)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.scharr_h",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def scharr_h(src: ImageObj) -> ImageObj:
     """Compute horizontal Scharr filter with :py:func:`skimage.filters.scharr_h`.
 
@@ -276,7 +333,11 @@ def scharr_h(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.scharr_h)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.sobel",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def sobel(src: ImageObj) -> ImageObj:
     """Compute Sobel filter with :py:func:`skimage.filters.sobel`.
 
@@ -289,7 +350,11 @@ def sobel(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.sobel)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.sobel_h",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def sobel_h(src: ImageObj) -> ImageObj:
     """Compute horizontal Sobel filter with :py:func:`skimage.filters.sobel_h`.
 
@@ -302,7 +367,11 @@ def sobel_h(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.sobel_h)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.sobel_v",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def sobel_v(src: ImageObj) -> ImageObj:
     """Compute vertical Sobel filter with :py:func:`skimage.filters.sobel_v`.
 
@@ -315,7 +384,11 @@ def sobel_v(src: ImageObj) -> ImageObj:
     return Wrap1to1Func(filters.sobel_v)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.scharr_v",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def scharr_v(src: ImageObj) -> ImageObj:
     """Compute vertical Scharr filter with :py:func:`skimage.filters.scharr_v`.
 

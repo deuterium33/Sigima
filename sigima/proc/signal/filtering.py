@@ -45,6 +45,7 @@ from sigima.objects.base import (
     UniformDistributionParam,
 )
 from sigima.proc.base import GaussianParam, MovingAverageParam, MovingMedianParam
+from sigima.proc.contracts import EXACT, ReplayQualification, tolerance
 from sigima.proc.decorator import computation_function
 from sigima.proc.signal.arithmetic import addition
 from sigima.proc.signal.base import Wrap1to1Func, dst_1_to_1, restore_data_outside_roi
@@ -52,7 +53,11 @@ from sigima.proc.signal.fourier import ZeroPadding1DParam, zero_padding
 from sigima.tools.signal import fourier
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.gaussian_filter",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def gaussian_filter(src: SignalObj, p: GaussianParam) -> SignalObj:
     """Compute gaussian filter with :py:func:`scipy.ndimage.gaussian_filter`
 
@@ -66,7 +71,11 @@ def gaussian_filter(src: SignalObj, p: GaussianParam) -> SignalObj:
     return Wrap1to1Func(spi.gaussian_filter, sigma=p.sigma)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.moving_average",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
     """Compute moving average with :py:func:`scipy.ndimage.uniform_filter`
 
@@ -82,7 +91,11 @@ def moving_average(src: SignalObj, p: MovingAverageParam) -> SignalObj:
     )(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.moving_median",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
     """Compute moving median with :py:func:`scipy.ndimage.median_filter`
 
@@ -98,7 +111,11 @@ def moving_median(src: SignalObj, p: MovingMedianParam) -> SignalObj:
     )(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.wiener",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def wiener(src: SignalObj) -> SignalObj:
     """Compute Wiener filter with :py:func:`scipy.signal.wiener`
 
@@ -216,6 +233,33 @@ class BaseHighLowBandParam(gds.DataSet, title=_("Filter")):
             lambda x, y: x == FrequencyFilterMethod.BRICKWALL and y,
         ),
     )
+
+    def validate_parameters(self, *context: object) -> None:
+        """Validate active cutoff frequencies against the filter method."""
+        if not context or not isinstance(context[0], SignalObj):
+            raise ValueError("filter validation requires a source SignalObj")
+        if self.cut0 is None or self.cut0 <= 0.0:
+            raise ValueError("cut0 must be strictly positive")
+
+        is_band_filter = self.TYPE in (FilterType.BANDPASS, FilterType.BANDSTOP)
+        if is_band_filter:
+            if self.cut1 is None or self.cut1 <= 0.0:
+                raise ValueError("cut1 must be strictly positive for band filters")
+            if self.method == FrequencyFilterMethod.BRICKWALL:
+                if self.cut0 > self.cut1:
+                    raise ValueError("cut0 must be less than or equal to cut1")
+            elif self.cut0 >= self.cut1:
+                raise ValueError("cut0 must be strictly less than cut1")
+
+        if self.method != FrequencyFilterMethod.BRICKWALL:
+            f_nyquist = get_nyquist_frequency(context[0])
+            active_cutoffs = [self.cut0]
+            if is_band_filter:
+                active_cutoffs.append(self.cut1)
+            if any(cutoff >= f_nyquist for cutoff in active_cutoffs):
+                raise ValueError(
+                    "IIR cutoff frequencies must be strictly below Nyquist"
+                )
 
     def update_from_obj(self, obj: SignalObj) -> None:
         """Update the filter parameters from a signal object
@@ -366,7 +410,22 @@ def frequency_filter(src: SignalObj, p: BaseHighLowBandParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.lowpass",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "IIR filter design and filtering (SciPy) differ in the last bits across"
+                " SciPy versions"
+            ),
+            atol=1e-13,
+            rtol=1e-10,
+            same_environment="exact",
+        ),
+    ),
+)
 def lowpass(src: SignalObj, p: LowPassFilterParam) -> SignalObj:
     """Compute low-pass filter with :py:func:`scipy.signal.filtfilt`
 
@@ -380,7 +439,22 @@ def lowpass(src: SignalObj, p: LowPassFilterParam) -> SignalObj:
     return frequency_filter(src, p)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.highpass",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "IIR filter design and filtering (SciPy) differ in the last bits across"
+                " SciPy versions"
+            ),
+            atol=1e-12,
+            rtol=1e-08,
+            same_environment="exact",
+        ),
+    ),
+)
 def highpass(src: SignalObj, p: HighPassFilterParam) -> SignalObj:
     """Compute high-pass filter with :py:func:`scipy.signal.filtfilt`
 
@@ -394,7 +468,22 @@ def highpass(src: SignalObj, p: HighPassFilterParam) -> SignalObj:
     return frequency_filter(src, p)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.bandpass",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "IIR filter design and filtering (SciPy) differ in the last bits across"
+                " SciPy versions"
+            ),
+            atol=1e-12,
+            rtol=1e-09,
+            same_environment="exact",
+        ),
+    ),
+)
 def bandpass(src: SignalObj, p: BandPassFilterParam) -> SignalObj:
     """Compute band-pass filter with :py:func:`scipy.signal.filtfilt`
 
@@ -408,7 +497,22 @@ def bandpass(src: SignalObj, p: BandPassFilterParam) -> SignalObj:
     return frequency_filter(src, p)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.bandstop",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "IIR filter design and filtering (SciPy) differ in the last bits across"
+                " SciPy versions"
+            ),
+            atol=1e-11,
+            rtol=1e-09,
+            same_environment="exact",
+        ),
+    ),
+)
 def bandstop(src: SignalObj, p: BandStopFilterParam) -> SignalObj:
     """Compute band-stop filter with :py:func:`scipy.signal.filtfilt`
 
@@ -423,7 +527,11 @@ def bandstop(src: SignalObj, p: BandStopFilterParam) -> SignalObj:
 
 
 # Noise addition functions
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.add_gaussian_noise",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def add_gaussian_noise(src: SignalObj, p: NormalDistributionParam) -> SignalObj:
     """Add normal noise to the input signal.
 
@@ -445,7 +553,11 @@ def add_gaussian_noise(src: SignalObj, p: NormalDistributionParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.add_poisson_noise",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     """Add Poisson noise to the input signal.
 
@@ -467,7 +579,11 @@ def add_poisson_noise(src: SignalObj, p: PoissonDistributionParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.signal.add_uniform_noise",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def add_uniform_noise(src: SignalObj, p: UniformDistributionParam) -> SignalObj:
     """Add uniform noise to the input signal.
 

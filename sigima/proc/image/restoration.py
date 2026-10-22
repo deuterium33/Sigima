@@ -21,8 +21,6 @@ distortions.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import guidata.dataset as gds
 import numpy as np
 import pywt
@@ -31,12 +29,10 @@ from skimage import morphology, restoration
 from sigima.config import _
 from sigima.enums import ShrinkageMethod, ThresholdMethod, WaveletMode
 from sigima.objects.image import ImageObj, ROI2DParam
+from sigima.proc.contracts import EXACT, ReplayQualification, tolerance
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import Wrap1to1Func, dst_1_to_1, restore_data_outside_roi
-
-if TYPE_CHECKING:
-    import sigima.params
-
+from sigima.proc.image.morphology import MorphologyParam
 
 # NOTE: Only parameter classes DEFINED in this module should be included in __all__.
 # Parameter classes imported from other modules (like sigima.proc.base) should NOT
@@ -87,7 +83,11 @@ class DenoiseTVParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.denoise_tv",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def denoise_tv(src: ImageObj, p: DenoiseTVParam) -> ImageObj:
     """Compute Total Variation denoising
     with :py:func:`skimage.restoration.denoise_tv_chambolle`
@@ -134,7 +134,22 @@ class DenoiseBilateralParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.denoise_bilateral",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Transcendental functions (exp, log, trigonometric) of the "
+                "platform math library differ in the last bits (e.g. WebAssembly)"
+            ),
+            atol=1e-14,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def denoise_bilateral(src: ImageObj, p: DenoiseBilateralParam) -> ImageObj:
     """Compute bilateral filter denoising
     with :py:func:`skimage.restoration.denoise_bilateral`
@@ -167,7 +182,11 @@ class DenoiseWaveletParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.denoise_wavelet",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def denoise_wavelet(src: ImageObj, p: DenoiseWaveletParam) -> ImageObj:
     """Compute Wavelet denoising
     with :py:func:`skimage.restoration.denoise_wavelet`
@@ -184,8 +203,12 @@ def denoise_wavelet(src: ImageObj, p: DenoiseWaveletParam) -> ImageObj:
     )(src)
 
 
-@computation_function()
-def denoise_tophat(src: ImageObj, p: sigima.params.MorphologyParam) -> ImageObj:
+@computation_function(
+    operation_id="sigima.image.denoise_tophat",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
+def denoise_tophat(src: ImageObj, p: MorphologyParam) -> ImageObj:
     """Denoise using White Top-Hat
     with :py:func:`skimage.morphology.white_tophat`
 
@@ -202,7 +225,22 @@ def denoise_tophat(src: ImageObj, p: sigima.params.MorphologyParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.erase",
+    contract_version=1,
+    qualification=ReplayQualification(
+        contract_version=1,
+        comparison=tolerance(
+            (
+                "Floating-point reductions and linear algebra (NumPy, SciPy, scikit-"
+                "image) differ in the last bits across library versions"
+            ),
+            atol=1e-15,
+            rtol=1e-14,
+            same_environment="exact",
+        ),
+    ),
+)
 def erase(src: ImageObj, p: ROI2DParam | list[ROI2DParam]) -> ImageObj:
     """Erase an area of the image using the mean value of the image.
 

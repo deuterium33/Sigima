@@ -8,6 +8,8 @@ Test viz API compatibility between backends
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
 import inspect
 import sys
 
@@ -22,6 +24,11 @@ def _has_matplotlib() -> bool:
         return True
     except ImportError:
         return False
+
+
+HAS_MPL = "matplotlib" in sys.modules or _has_matplotlib()
+HAS_PLOTPY = importlib.util.find_spec("plotpy") is not None
+HAS_PLOTLY = importlib.util.find_spec("plotly") is not None
 
 
 def get_public_functions(module) -> set[str]:
@@ -44,8 +51,8 @@ def get_public_functions(module) -> set[str]:
 
 
 @pytest.mark.skipif(
-    "matplotlib" not in sys.modules and not _has_matplotlib(),
-    reason="matplotlib not available",
+    not HAS_MPL or not HAS_PLOTPY,
+    reason="Matplotlib or PlotPy not available",
 )
 def test_matplotlib_backend_has_all_plotpy_functions():
     """Test that matplotlib backend implements stubs for all PlotPy functions.
@@ -75,10 +82,53 @@ def test_matplotlib_backend_has_all_plotpy_functions():
         )
 
 
+@pytest.mark.skipif(
+    not HAS_PLOTLY or not HAS_PLOTPY,
+    reason="Plotly or PlotPy not available",
+)
+def test_plotly_backend_has_all_plotpy_functions() -> None:
+    """Test that the Plotly backend implements the public PlotPy API."""
+    from sigima.viz import viz_plotly, viz_plotpy
+
+    missing_funcs = get_public_functions(viz_plotpy) - get_public_functions(viz_plotly)
+
+    if missing_funcs:
+        missing_list = "\n  - ".join(sorted(missing_funcs))
+        pytest.fail(
+            f"Plotly backend is missing the following functions:\n  - {missing_list}"
+        )
+
+
+def test_annotation_visibility_parameter_has_backend_parity() -> None:
+    """Check the public annotation visibility switch on available backends."""
+    backend_modules = (
+        (HAS_MPL, "sigima.viz.viz_mpl"),
+        (HAS_PLOTLY, "sigima.viz.viz_plotly"),
+        (HAS_PLOTPY, "sigima.viz.viz_plotpy"),
+    )
+    backends = [
+        importlib.import_module(module_name)
+        for is_available, module_name in backend_modules
+        if is_available
+    ]
+    if not backends:
+        pytest.skip("No visualization backend available")
+
+    for function_name in (
+        "view_curves",
+        "view_images",
+        "view_images_side_by_side",
+        "view_curves_and_images",
+    ):
+        for backend in backends:
+            parameter = inspect.signature(getattr(backend, function_name)).parameters[
+                "show_annotations"
+            ]
+            assert parameter.default is True
+
+
 def test_backend_selection_env_var(monkeypatch):
     """Test that SIGIMA_VIZ_BACKEND environment variable works."""
-    import importlib
-
     # Check if matplotlib is available
     try:
         import matplotlib  # noqa: F401  # pylint: disable=unused-import
@@ -102,8 +152,6 @@ def test_backend_selection_env_var(monkeypatch):
 
 def test_backend_selection_option(monkeypatch):
     """Test that configuration option viz_backend works."""
-    import importlib
-
     # Check if matplotlib is available
     try:
         import matplotlib  # noqa: F401  # pylint: disable=unused-import
@@ -132,20 +180,7 @@ def test_backend_selection_option(monkeypatch):
 
 def test_backend_info_available():
     """Test that backend information is exposed."""
-    # Check if any backend is available
-    try:
-        import matplotlib  # noqa: F401  # pylint: disable=unused-import
-
-        backend_available = True
-    except ImportError:
-        try:
-            import plotpy  # noqa: F401  # pylint: disable=unused-import
-
-            backend_available = True
-        except ImportError:
-            backend_available = False
-
-    if not backend_available:
+    if not (HAS_MPL or HAS_PLOTPY or HAS_PLOTLY):
         pytest.skip("No visualization backend available")
 
     from sigima import viz
@@ -155,7 +190,7 @@ def test_backend_info_available():
 
     assert hasattr(viz, "BACKEND_NAME")
     assert hasattr(viz, "BACKEND_SOURCE")
-    assert viz.BACKEND_NAME in ("plotpy", "matplotlib")
+    assert viz.BACKEND_NAME in ("plotpy", "matplotlib", "plotly")
     assert viz.BACKEND_SOURCE in ("env", "config", "auto")
 
 

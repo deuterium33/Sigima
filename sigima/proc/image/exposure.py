@@ -46,6 +46,7 @@ from sigima.proc.base import (
     ReplaceSpecialValuesImageParam,
     new_signal_result,
 )
+from sigima.proc.contracts import EXACT, ReplayQualification
 from sigima.proc.decorator import computation_function
 from sigima.proc.image.base import (
     Wrap1to1Func,
@@ -63,10 +64,12 @@ __all__ = [
     "AdjustGammaParam",
     "AdjustLogParam",
     "AdjustSigmoidParam",
+    "BrightnessContrastParam",
     "EqualizeAdaptHistParam",
     "EqualizeHistParam",
     "FlatFieldParam",
     "RescaleIntensityParam",
+    "adjust_brightness_contrast",
     "adjust_gamma",
     "adjust_log",
     "adjust_sigmoid",
@@ -80,6 +83,90 @@ __all__ = [
     "replace_special_values",
     "rescale_intensity",
 ]
+
+
+class BrightnessContrastParam(gds.DataSet, title=_("Brightness and contrast")):
+    """Brightness and contrast adjustment parameters."""
+
+    minimum = gds.FloatItem(_("Minimum"), default=0.0, check=False).set_prop(
+        "display", hide=True
+    )
+    maximum = gds.FloatItem(_("Maximum"), default=1.0, check=False).set_prop(
+        "display", hide=True
+    )
+    histogram = gds.HistogramRangeItem(
+        _("Brightness and contrast"),
+        "minimum",
+        "maximum",
+        help=_("Adjust the intensity window using the histogram."),
+    ).set_prop("display", presentation="brightness_contrast")
+
+    def update_from_obj(self, obj: ImageObj) -> None:
+        """Initialize the range and histogram from an image object."""
+        self.update_editor_context(obj)
+        self.minimum, self.maximum = self.histogram["reset_range"]
+
+    def update_editor_context(self, obj: ImageObj | None) -> None:
+        """Refresh transient editor context without changing saved parameters."""
+        if obj is None:
+            self.histogram = {}
+            return
+        if np.issubdtype(obj.data.dtype, np.complexfloating):
+            raise ValueError("Brightness and contrast require a real image")
+        data = obj.get_masked_view().compressed()
+        self.histogram = sigima.tools.image.brightness_contrast_context(
+            data, obj.data.dtype
+        )
+
+    def validate_parameters(self, *context: object) -> None:
+        """Validate the source dtype and canonical input range."""
+        if not context or not isinstance(context[0], ImageObj):
+            raise ValueError(
+                "brightness and contrast validation requires a source ImageObj"
+            )
+        if np.issubdtype(context[0].data.dtype, np.complexfloating):
+            raise ValueError("Brightness and contrast require a real image")
+        if (
+            not np.isfinite(self.minimum)
+            or not np.isfinite(self.maximum)
+            or self.minimum >= self.maximum
+        ):
+            raise ValueError("minimum must be finite and strictly less than maximum")
+
+
+@computation_function(
+    operation_id="sigima.image.adjust_brightness_contrast",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
+def adjust_brightness_contrast(src: ImageObj, p: BrightnessContrastParam) -> ImageObj:
+    """Apply a clipped linear brightness and contrast adjustment.
+
+    Args:
+        src: Input image object
+        p: Brightness and contrast parameters
+
+    Returns:
+        Adjusted image object
+    """
+    dst = dst_1_to_1(
+        src,
+        "adjust_brightness_contrast",
+        f"min={p.minimum:.6g}, max={p.maximum:.6g}",
+    )
+    data = src.get_masked_view().compressed()
+    observed_range, output_range = sigima.tools.image.brightness_contrast_ranges(
+        data, src.data.dtype
+    )
+    if observed_range is not None and observed_range[0] < observed_range[1]:
+        dst.data = sigima.tools.image.adjust_brightness_contrast(
+            src.data,
+            p.minimum,
+            p.maximum,
+            output_range,
+        )
+        restore_data_outside_roi(dst, src)
+    return dst
 
 
 class AdjustGammaParam(gds.DataSet):
@@ -99,7 +186,11 @@ class AdjustGammaParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.adjust_gamma",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def adjust_gamma(src: ImageObj, p: AdjustGammaParam) -> ImageObj:
     """Gamma correction with :py:func:`skimage.exposure.adjust_gamma`
 
@@ -132,7 +223,11 @@ class AdjustLogParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.adjust_log",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def adjust_log(src: ImageObj, p: AdjustLogParam) -> ImageObj:
     """Compute log correction with :py:func:`skimage.exposure.adjust_log`
 
@@ -172,7 +267,11 @@ class AdjustSigmoidParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.adjust_sigmoid",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def adjust_sigmoid(src: ImageObj, p: AdjustSigmoidParam) -> ImageObj:
     """Compute sigmoid correction with :py:func:`skimage.exposure.adjust_sigmoid`
 
@@ -217,7 +316,11 @@ class RescaleIntensityParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.rescale_intensity",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def rescale_intensity(src: ImageObj, p: RescaleIntensityParam) -> ImageObj:
     """Rescale image intensity levels
     with :py:func:`skimage.exposure.rescale_intensity`
@@ -252,7 +355,11 @@ class EqualizeHistParam(gds.DataSet):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.equalize_hist",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def equalize_hist(src: ImageObj, p: EqualizeHistParam) -> ImageObj:
     """Histogram equalization with :py:func:`skimage.exposure.equalize_hist`
 
@@ -281,7 +388,11 @@ class EqualizeAdaptHistParam(EqualizeHistParam):
     )
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.equalize_adapthist",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def equalize_adapthist(src: ImageObj, p: EqualizeAdaptHistParam) -> ImageObj:
     """Adaptive histogram equalization
     with :py:func:`skimage.exposure.equalize_adapthist`
@@ -309,7 +420,11 @@ class FlatFieldParam(gds.DataSet):
     threshold = gds.FloatItem(_("Threshold"), default=0.0)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.flatfield",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def flatfield(src1: ImageObj, src2: ImageObj, p: FlatFieldParam) -> ImageObj:
     """Compute flat field correction with :py:func:`sigima.tools.image.flatfield`
 
@@ -332,7 +447,11 @@ def flatfield(src1: ImageObj, src2: ImageObj, p: FlatFieldParam) -> ImageObj:
 # --------------------------------------------------------------------------------------
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.normalize",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def normalize(src: ImageObj, p: NormalizeParam) -> ImageObj:
     """
     Normalize image data depending on its maximum,
@@ -351,7 +470,11 @@ def normalize(src: ImageObj, p: NormalizeParam) -> ImageObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.histogram",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def histogram(src: ImageObj, p: HistogramParam) -> SignalObj:
     """Compute histogram of the image data, with :py:func:`numpy.histogram`
 
@@ -363,8 +486,8 @@ def histogram(src: ImageObj, p: HistogramParam) -> SignalObj:
         Signal object with the histogram
     """
     data = src.get_masked_view().compressed()
-    suffix = p.get_suffix(data)  # Also updates p.lower and p.upper
-    y, bin_edges = np.histogram(data, bins=p.bins, range=(p.lower, p.upper))
+    suffix = p.get_suffix(data)
+    y, bin_edges = np.histogram(data, bins=p.bins, range=p.get_range(data))
     x = (bin_edges[:-1] + bin_edges[1:]) / 2
     dst = new_signal_result(
         src,
@@ -379,7 +502,11 @@ def histogram(src: ImageObj, p: HistogramParam) -> SignalObj:
     return dst
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.clip",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def clip(src: ImageObj, p: ClipParam) -> ImageObj:
     """Apply clipping with :py:func:`numpy.clip`
 
@@ -393,7 +520,11 @@ def clip(src: ImageObj, p: ClipParam) -> ImageObj:
     return Wrap1to1Func(np.clip, a_min=p.lower, a_max=p.upper)(src)
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.offset_correction",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def offset_correction(src: ImageObj, p: ROI2DParam) -> ImageObj:
     """Apply offset correction
 
@@ -458,7 +589,11 @@ def _apply_image_strategy(
     return data
 
 
-@computation_function()
+@computation_function(
+    operation_id="sigima.image.replace_special_values",
+    contract_version=1,
+    qualification=ReplayQualification(contract_version=1, comparison=EXACT),
+)
 def replace_special_values(
     src: ImageObj, p: ReplaceSpecialValuesImageParam
 ) -> ImageObj:

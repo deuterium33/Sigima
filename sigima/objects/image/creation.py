@@ -34,6 +34,7 @@ from sigima.config import _
 from sigima.objects import base
 from sigima.objects.image.object import ImageObj
 from sigima.tools.image import scale_data_to_min_max
+from sigima.validation import validate_dataset
 
 
 def create_image(
@@ -199,6 +200,90 @@ class NewImageParam(gds.DataSet):
             2D data array
         """
         return np.zeros(shape, dtype=self.dtype.to_numpy_dtype())
+
+
+def physical_coords_item() -> gds.BoolItem:
+    """Return a new "Physical coordinates" item for :class:`DomainImageParam`.
+
+    Each subclass creates its own item so that it can be laid out in the
+    subclass's domain group.
+    """
+    return gds.BoolItem(
+        _("Physical coordinates"),
+        default=True,
+        help=_(
+            "Use the domain [x<sub>min</sub>, x<sub>max</sub>] × "
+            "[y<sub>min</sub>, y<sub>max</sub>] as image coordinates, so that "
+            "positions, widths and frequencies match the plot axes. "
+            "Otherwise, the image is displayed in pixel coordinates."
+        ),
+    )
+
+
+class DomainImageParam(NewImageParam):
+    """Base class for images computed over a rectangular domain.
+
+    Subclasses compute their data on the ``[xmin, xmax] × [ymin, ymax]``
+    domain, sampled at pixel centers. They define the ``xmin``, ``xmax``,
+    ``ymin``, ``ymax`` items and a ``physical_coords`` item (created with
+    :func:`physical_coords_item`), so that these items can be laid out in the
+    subclass's own groups.
+
+    When ``physical_coords`` is True, :func:`create_image_from_param` applies
+    the domain to the image uniform coordinates (see :meth:`get_uniform_coords`).
+    Otherwise, the image keeps pixel coordinates.
+
+    Domain images were created in pixel coordinates before this option existed:
+    parameters serialized without it (e.g. creation parameters stored in the
+    metadata of an object, in a workspace or in a processing history) are
+    deserialized with the option disabled, so that recreating an image from
+    them gives back the original coordinates.
+    """
+
+    xmin: float
+    xmax: float
+    ymin: float
+    ymax: float
+    physical_coords: bool
+
+    def deserialize(self, reader) -> None:
+        """Deserialize the dataset, keeping pixel coordinates for old payloads.
+
+        Args:
+            reader: HDF5, JSON or INI reader object.
+        """
+        super().deserialize(reader)
+        with reader.group("physical_coords"):
+            try:
+                reader.read_bool()
+            except KeyError:
+                self.physical_coords = False
+
+    def validate_parameters(self, *context: object) -> None:
+        """Validate the domain when it is used as image coordinates."""
+        validate_dataset(super(), *context)
+        if self.physical_coords and (self.xmax <= self.xmin or self.ymax <= self.ymin):
+            raise ValueError(
+                "xmax must be greater than xmin and ymax greater than ymin "
+                "when physical coordinates are enabled"
+            )
+
+    def get_uniform_coords(
+        self, shape: tuple[int, int]
+    ) -> tuple[float, float, float, float]:
+        """Return the uniform coordinates matching the domain.
+
+        Args:
+            shape: Tuple (height, width) of the image data.
+
+        Returns:
+            Tuple (dx, dy, x0, y0): pixel spacing and coordinates of the first
+            pixel center.
+        """
+        height, width = shape
+        dx = (self.xmax - self.xmin) / (width - 1) if width > 1 else 1.0
+        dy = (self.ymax - self.ymin) / (height - 1) if height > 1 else 1.0
+        return float(dx), float(dy), float(self.xmin), float(self.ymin)
 
 
 IMAGE_TYPE_PARAM_CLASSES = {}
@@ -395,7 +480,7 @@ register_image_parameters_class(
 
 
 class Gauss2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("Gaussian"),
     comment="z = A exp(-((√((x - x<sub>0</sub>)<sup>2</sup> + "
     "(y - y<sub>0</sub>)<sup>2</sup>) - μ)<sup>2</sup>) / (2 σ<sup>2</sup>))",
@@ -404,13 +489,14 @@ class Gauss2DParam(
 
     a = gds.FloatItem("A", default=None, check=False)
     xmin = gds.FloatItem("x<sub>min</sub>", default=-10.0).set_pos(col=1)
-    sigma = gds.FloatItem("σ", default=1.0)
+    sigma = gds.FloatItem("σ", default=1.0, min=0.0, nonzero=True)
     xmax = gds.FloatItem("x<sub>max</sub>", default=10.0).set_pos(col=1)
     mu = gds.FloatItem("μ", default=0.0)
     ymin = gds.FloatItem("y<sub>min</sub>", default=-10.0).set_pos(col=1)
     x0 = gds.FloatItem("x<sub>0</sub>", default=0.0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=10.0).set_pos(col=1)
     y0 = gds.FloatItem("y<sub>0</sub>", default=0.0).set_pos(col=0, colspan=1)
+    physical_coords = physical_coords_item().set_pos(col=1)
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -448,7 +534,7 @@ register_image_parameters_class(ImageTypes.GAUSS, Gauss2DParam)
 
 
 class Ramp2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("2D ramp"),
     comment="z = A (x - x<sub>0</sub>) + B (y - y<sub>0</sub>) + C",
 ):
@@ -466,6 +552,7 @@ class Ramp2DParam(
     xmax = gds.FloatItem("x<sub>max</sub>", default=1.0).set_pos(col=1)
     ymin = gds.FloatItem("y<sub>min</sub>", default=-1.0).set_pos(col=0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=1.0).set_pos(col=1)
+    physical_coords = physical_coords_item()
     _g1_end = gds.EndGroup("")
 
     def generate_title(self) -> str:
@@ -555,7 +642,7 @@ register_image_parameters_class(ImageTypes.CHECKERBOARD, Checkerboard2DParam)
 
 
 class SinusoidalGrating2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("Sinusoidal grating"),
     comment="z = A sin(2π(f<sub>x</sub>·x + f<sub>y</sub>·y) + φ) + C",
 ):
@@ -583,6 +670,7 @@ class SinusoidalGrating2DParam(
     xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
     ymin = gds.FloatItem("y<sub>min</sub>", default=0.0).set_pos(col=0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    physical_coords = physical_coords_item()
     _g2_end = gds.EndGroup("")
 
     def generate_title(self) -> str:
@@ -612,7 +700,7 @@ register_image_parameters_class(ImageTypes.SINUSOIDAL_GRATING, SinusoidalGrating
 
 
 class Ring2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("Ring pattern"),
     comment=_("Concentric ring pattern"),
 ):
@@ -642,6 +730,7 @@ class Ring2DParam(
     xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
     ymin = gds.FloatItem("y<sub>min</sub>", default=-100.0).set_pos(col=0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    physical_coords = physical_coords_item()
     _g2_end = gds.EndGroup("")
 
     def generate_title(self) -> str:
@@ -680,7 +769,7 @@ register_image_parameters_class(ImageTypes.RING, Ring2DParam)
 
 
 class SiemensStar2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("Siemens star"),
     comment=_("Siemens star pattern for resolution testing"),
 ):
@@ -717,7 +806,14 @@ class SiemensStar2DParam(
     xmax = gds.FloatItem("x<sub>max</sub>", default=100.0).set_pos(col=1)
     ymin = gds.FloatItem("y<sub>min</sub>", default=-100.0).set_pos(col=0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=100.0).set_pos(col=1)
+    physical_coords = physical_coords_item()
     _g2_end = gds.EndGroup("")
+
+    def validate_parameters(self, *context: object) -> None:
+        """Validate radial limits."""
+        validate_dataset(super(), *context)
+        if self.inner_radius > self.outer_radius:
+            raise ValueError("inner_radius must be less than or equal to outer_radius")
 
     def generate_title(self) -> str:
         """Generate a title based on current parameters."""
@@ -761,7 +857,7 @@ register_image_parameters_class(ImageTypes.SIEMENS_STAR, SiemensStar2DParam)
 
 
 class Sinc2DParam(
-    NewImageParam,
+    DomainImageParam,
     title=_("2D sinc"),
     comment="z = A sinc(√((x - x<sub>0</sub>)<sup>2</sup> + "
     "(y - y<sub>0</sub>)<sup>2</sup>) / σ) + C",
@@ -788,6 +884,7 @@ class Sinc2DParam(
     xmax = gds.FloatItem("x<sub>max</sub>", default=50.0).set_pos(col=1)
     ymin = gds.FloatItem("y<sub>min</sub>", default=-50.0).set_pos(col=0)
     ymax = gds.FloatItem("y<sub>max</sub>", default=50.0).set_pos(col=1)
+    physical_coords = physical_coords_item()
     _g2_end = gds.EndGroup("")
 
     def generate_title(self) -> str:
@@ -864,6 +961,7 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
         param.width = 1024
     if param.dtype is None:
         param.dtype = ImageDatatypes.UINT16
+    validate_dataset(param)
     # Generate data first, as some `generate_title()` methods may depend on it:
     shape = (param.height, param.width)
     data = param.generate_2d_data(shape)
@@ -886,4 +984,6 @@ def create_image_from_param(param: NewImageParam) -> ImageObj:
         units=(param.xunit, param.yunit, param.zunit),
         labels=(param.xlabel, param.ylabel, param.zlabel),
     )
+    if isinstance(param, DomainImageParam) and param.physical_coords:
+        image.set_uniform_coords(*param.get_uniform_coords(shape))
     return image
